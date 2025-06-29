@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/types';
 import { saveProduct, runEnhancement } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -150,7 +150,12 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
   };
 
   const applySuggestion = () => {
-    form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
+    try {
+        const formattedJson = JSON.stringify(JSON.parse(aiSuggestion), null, 2);
+        form.setValue('currentInformation', formattedJson, { shouldValidate: true });
+    } catch (error) {
+        form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
+    }
     setAiSuggestion('');
   };
 
@@ -255,10 +260,12 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
               )}
             />
             {aiSuggestion && (
-                <div className="space-y-2">
-                    <FormLabel>AI Suggestion</FormLabel>
-                    <Textarea readOnly value={aiSuggestion} className="min-h-[150px] font-mono text-sm bg-muted" />
-                    <Button type="button" onClick={applySuggestion}>Apply Suggestion</Button>
+                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                    <div className="flex justify-between items-center">
+                        <FormLabel>AI Suggestion</FormLabel>
+                        <Button type="button" size="sm" onClick={applySuggestion}>Apply Suggestion</Button>
+                    </div>
+                    <Textarea readOnly value={aiSuggestion} className="min-h-[150px] font-mono text-sm bg-background" />
                 </div>
             )}
           </form>

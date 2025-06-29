@@ -1,4 +1,6 @@
-import type { Product } from './types';
+import type { Product } from '@/types';
+
+const now = new Date();
 
 export let products: Product[] = [
   {
@@ -13,7 +15,9 @@ export let products: Product[] = [
       "water_resistance_atm": 5,
     }, null, 2),
     status: 'Published',
-    lastUpdated: '2024-07-20',
+    lastUpdated: new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0],
+    createdAt: new Date(now.setDate(now.getDate() - 30)).toISOString(),
+    updatedAt: new Date(now.setDate(now.getDate() - 1)).toISOString(),
   },
   {
     id: 'pp-002',
@@ -27,7 +31,9 @@ export let products: Product[] = [
       "weight_grams": 795,
     }, null, 2),
     status: 'Published',
-    lastUpdated: '2024-07-18',
+    lastUpdated: new Date(now.setDate(now.getDate() - 3)).toISOString().split('T')[0],
+    createdAt: new Date(now.setDate(now.getDate() - 60)).toISOString(),
+    updatedAt: new Date(now.setDate(now.getDate() - 3)).toISOString(),
   },
   {
     id: 'pp-003',
@@ -40,7 +46,9 @@ export let products: Product[] = [
       "color": "White",
     }, null, 2),
     status: 'Draft',
-    lastUpdated: '2024-07-21',
+    lastUpdated: new Date(now.setDate(now.getDate() - 0)).toISOString().split('T')[0],
+    createdAt: new Date(now.setDate(now.getDate() - 5)).toISOString(),
+    updatedAt: new Date(now.setDate(now.getDate() - 0)).toISOString(),
   },
   {
     id: 'pp-004',
@@ -53,7 +61,9 @@ export let products: Product[] = [
       "features": ["Laptop Compartment", "Water Resistant"],
     }, null, 2),
     status: 'Archived',
-    lastUpdated: '2023-11-05',
+    lastUpdated: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().split('T')[0],
+    createdAt: new Date(now.setFullYear(now.getFullYear() - 1) - 10).toISOString(),
+    updatedAt: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
   },
     {
     id: 'pp-005',
@@ -66,6 +76,8 @@ export let products: Product[] = [
       "assembly_required": true
     }, null, 2),
     status: 'Published',
-    lastUpdated: '2024-06-15',
+    lastUpdated: new Date(now.setDate(now.getDate() - 15)).toISOString().split('T')[0],
+    createdAt: new Date(now.setDate(now.getDate() - 45)).toISOString(),
+    updatedAt: new Date(now.setDate(now.getDate() - 15)).toISOString(),
   },
 ];

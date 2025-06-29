@@ -15,7 +15,7 @@ import {
   Trash2,
   UserCircle,
 } from 'lucide-react';
-import type { Product } from '@/lib/types';
+import type { Product } from '@/types';
 import {
   Sidebar,
   SidebarContent,
@@ -66,6 +66,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { format } from 'date-fns';
 
 function Logo() {
   return (
@@ -233,7 +234,7 @@ export default function PassportDashboard({
                       <TableCell>
                         <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
                       </TableCell>
-                      <TableCell>{product.lastUpdated}</TableCell>
+                      <TableCell>{format(new Date(product.lastUpdated), 'PPP')}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
