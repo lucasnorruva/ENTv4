@@ -115,24 +115,20 @@ export default function AuditorDashboard({ products }: { products: Product[] }) 
                 Review: {selectedProduct.productName}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Below are the details from the last automated verification check.
+                Below is the summary from the last automated verification check.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <div className="space-y-4 my-4">
-              <h3 className="font-semibold text-sm">Verification Details:</h3>
-              {selectedProduct.verificationDetails && selectedProduct.verificationDetails.length > 0 ? (
-                <ul className="space-y-2 text-sm text-destructive list-disc list-inside bg-destructive/10 p-4 rounded-md">
-                   {selectedProduct.verificationDetails.map((detail, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                        <span>{detail}</span>
-                    </li>
-                   ))}
-                </ul>
+              <h3 className="font-semibold text-sm">Compliance Summary:</h3>
+              {selectedProduct.verificationStatus === 'Failed' ? (
+                <div className="flex items-start gap-3 text-sm text-destructive bg-destructive/10 p-4 rounded-md">
+                   <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                   <p>{selectedProduct.complianceSummary || 'No specific details were provided for this failure.'}</p>
+                </div>
               ) : (
-                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 p-4 rounded-md">
+                <div className="flex items-center gap-3 text-sm text-green-600 bg-green-500/10 p-4 rounded-md">
                    <CheckCircle className="h-4 w-4 shrink-0"/>
-                   <p>No issues found in the last automated check.</p>
+                   <p>{selectedProduct.complianceSummary || 'No issues found in the last automated check.'}</p>
                 </div>
               )}
                <div className="text-xs text-muted-foreground pt-2">

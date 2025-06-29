@@ -1,11 +1,12 @@
 // src/triggers/scheduled-verifications.ts
 'use server';
 
-import { collection, doc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, query, writeBatch, where } from 'firebase/firestore';
 import { logAuditEvent } from '@/lib/actions';
 import { Collections } from '@/lib/constants';
 import { db } from '@/lib/firebase';
 import type { CompliancePath, Product } from '@/types';
+import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 
 /**
  * Runs a daily compliance check on all products pending verification.
@@ -51,61 +52,50 @@ export async function runDailyComplianceCheck(): Promise<{
     const product = { id: productDoc.id, ...productDoc.data() } as Product;
     const compliancePath = compliancePathsMap.get(product.category);
 
-    let verificationStatus: 'Verified' | 'Failed' = 'Verified';
-    const failureReasons: string[] = [];
+    let finalStatus: 'Verified' | 'Failed' = 'Verified';
+    let finalSummary = 'Product is compliant with all known rules for its category.';
 
     if (!compliancePath) {
-      verificationStatus = 'Failed';
-      failureReasons.push(`No compliance path found for category: ${product.category}`);
+        finalStatus = 'Failed';
+        finalSummary = `No compliance path is configured for the product category: "${product.category}".`;
     } else {
-      const { rules } = compliancePath;
-      const info = JSON.parse(product.currentInformation);
-      const infoString = JSON.stringify(info).toLowerCase();
+        try {
+            const { isCompliant, complianceSummary } = await summarizeComplianceGaps({
+                productName: product.productName,
+                productInformation: product.currentInformation,
+                compliancePathName: compliancePath.name,
+                complianceRules: JSON.stringify(compliancePath.rules),
+            });
+            
+            finalStatus = isCompliant ? 'Verified' : 'Failed';
+            finalSummary = complianceSummary;
 
-      // Rule: Minimum sustainability score
-      if (rules.minSustainabilityScore && (product.sustainabilityScore ?? 0) < rules.minSustainabilityScore) {
-        verificationStatus = 'Failed';
-        failureReasons.push(`Sustainability score of ${product.sustainabilityScore} is below the required minimum of ${rules.minSustainabilityScore}.`);
-      }
-
-      // Rule: Banned keywords/materials
-      rules.bannedKeywords?.forEach(keyword => {
-        if (infoString.includes(keyword.toLowerCase())) {
-          verificationStatus = 'Failed';
-          failureReasons.push(`Product contains banned material/keyword: ${keyword}`);
+        } catch (error) {
+            console.error(`AI compliance check failed for product ${product.id}:`, error);
+            finalStatus = 'Failed';
+            finalSummary = 'Automated compliance check could not be completed due to an internal AI error.';
         }
-      });
-       
-      // Rule: Required keywords/materials
-      rules.requiredKeywords?.forEach(keyword => {
-        if (!infoString.includes(keyword.toLowerCase())) {
-          verificationStatus = 'Failed';
-          failureReasons.push(`Product is missing required material/keyword: ${keyword}`);
-        }
-      });
     }
     
-    if (verificationStatus === 'Verified') {
+    if (finalStatus === 'Verified') {
       passed++;
     } else {
       failed++;
-      console.log(`Product ${product.id} failed verification. Reasons: ${failureReasons.join(', ')}`);
-      // TODO: In a real system, trigger notification to an auditor/compliance officer here.
-      // e.g., sendEmail('auditor@example.com', 'Verification Failed', `...`);
+      console.log(`Product ${product.id} failed verification. Summary: ${finalSummary}`);
     }
 
     // 4. Update product in batch and log audit event
     const productRef = doc(db, Collections.PRODUCTS, product.id);
     batch.update(productRef, {
-      verificationStatus: verificationStatus,
+      verificationStatus: finalStatus,
       lastVerificationDate: new Date().toISOString(),
-      verificationDetails: failureReasons,
+      complianceSummary: finalSummary,
     });
 
     await logAuditEvent(
       'product.verify',
       product.id,
-      { status: verificationStatus, reasons: failureReasons },
+      { status: finalStatus, summary: finalSummary },
       'system'
     );
   }
