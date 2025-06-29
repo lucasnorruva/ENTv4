@@ -1,69 +1,57 @@
 // src/triggers/scheduled-verifications.ts
 "use server";
 
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  writeBatch,
-  where,
-} from "firebase/firestore";
 import { logAuditEvent } from "@/lib/actions";
-import { Collections } from "@/lib/constants";
-import { db } from "@/lib/firebase";
+import { products } from "@/lib/data"; // Import mock products
+import { compliancePaths } from "@/lib/compliance-data"; // Import mock compliance paths
 import type { CompliancePath, Product } from "@/types";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 /**
  * Runs a daily compliance check on all products pending verification.
  * This function is designed to be triggered by a scheduled cron job.
+ * It uses in-memory mock data for development.
  */
 export async function runDailyComplianceCheck(): Promise<{
   processed: number;
   passed: number;
   failed: number;
 }> {
-  console.log("Running scheduled compliance and verification checks...");
-
-  // 1. Fetch all compliance paths and create a lookup map
-  const compliancePathsSnapshot = await getDocs(
-    collection(db, Collections.COMPLIANCE_PATHS),
+  console.log(
+    "Running scheduled compliance and verification checks (mock mode)...",
   );
-  const compliancePathsMap = new Map<string, CompliancePath>();
-  compliancePathsSnapshot.forEach((doc) => {
-    const path = { id: doc.id, ...doc.data() } as CompliancePath;
+
+  // 1. Create a lookup map for compliance paths
+  const compliancePathsMap = new Map<
+    string,
+    Omit<CompliancePath, "id" | "createdAt" | "updatedAt">
+  >();
+  compliancePaths.forEach((path) => {
     compliancePathsMap.set(path.category, path);
   });
 
   if (compliancePathsMap.size === 0) {
-    console.warn(
-      "No compliance paths found in Firestore. Aborting verification check.",
-    );
+    console.warn("No mock compliance paths found. Aborting verification check.");
     return { processed: 0, passed: 0, failed: 0 };
   }
 
-  // 2. Fetch all products with 'Pending' verification status
-  const productsQuery = query(
-    collection(db, Collections.PRODUCTS),
-    where("verificationStatus", "==", "Pending"),
+  // 2. Filter for products with 'Pending' verification status from mock data
+  const productsToVerify = products.filter(
+    (p) => p.verificationStatus === "Pending",
   );
-  const productsSnapshot = await getDocs(productsQuery);
 
-  if (productsSnapshot.empty) {
-    console.log("No products are pending verification.");
+  if (productsToVerify.length === 0) {
+    console.log("No mock products are pending verification.");
     return { processed: 0, passed: 0, failed: 0 };
   }
 
-  const batch = writeBatch(db);
   let processed = 0;
   let passed = 0;
   let failed = 0;
 
   // 3. Process each product
-  for (const productDoc of productsSnapshot.docs) {
+  for (const product of productsToVerify) {
     processed++;
-    const product = { id: productDoc.id, ...productDoc.data() } as Product;
     const compliancePath = compliancePathsMap.get(product.category);
 
     let finalStatus: "Verified" | "Failed" = "Verified";
@@ -105,13 +93,17 @@ export async function runDailyComplianceCheck(): Promise<{
       );
     }
 
-    // 4. Update product in batch and log audit event
-    const productRef = doc(db, Collections.PRODUCTS, product.id);
-    batch.update(productRef, {
-      verificationStatus: finalStatus,
-      lastVerificationDate: new Date().toISOString(),
-      complianceSummary: finalSummary,
-    });
+    // 4. Update the product in the mock array and log an audit event
+    const productIndex = products.findIndex((p) => p.id === product.id);
+    if (productIndex !== -1) {
+      const originalProduct = products[productIndex];
+      products[productIndex] = {
+        ...originalProduct,
+        verificationStatus: finalStatus,
+        lastVerificationDate: new Date().toISOString(),
+        complianceSummary: finalSummary,
+      };
+    }
 
     await logAuditEvent(
       "product.verify",
@@ -121,11 +113,8 @@ export async function runDailyComplianceCheck(): Promise<{
     );
   }
 
-  // 5. Commit all batched writes
-  await batch.commit();
-
   console.log(
-    `Compliance check complete. Processed: ${processed}, Passed: ${passed}, Failed: ${failed}.`,
+    `Mock compliance check complete. Processed: ${processed}, Passed: ${passed}, Failed: ${failed}.`,
   );
   return { processed, passed, failed };
 }
