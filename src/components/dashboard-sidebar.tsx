@@ -13,75 +13,186 @@ import {
   Factory,
   Wrench,
   FileQuestion,
+  PlusCircle,
+  Clock,
+  KeyRound,
+  FileText,
+  LifeBuoy,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { UserRoles, type Role } from "@/lib/constants";
+import type { User } from "@/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 function Logo() {
   return (
     <div className="flex items-center gap-2">
-      <LayoutGrid className="h-7 w-7 text-primary" />
-      <h1 className="text-xl font-bold">Norruva</h1>
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-7 w-7 text-primary"
+      >
+        <path d="M17 17l-10-10"></path>
+        <path d="M17 7v10"></path>
+        <path d="M7 17V7"></path>
+      </svg>
+      <h1 className="text-xl font-bold group-data-[collapsible=icon]:hidden">
+        Norruva
+      </h1>
     </div>
   );
 }
 
-interface DashboardSidebarProps {
-  userRole: Role;
+interface NavItem {
+  title: string;
+  icon: React.ElementType;
+  href: string;
 }
 
-const navConfig: Record<
-  Role,
-  { title: string; icon: React.ElementType; href: string }[]
-> = {
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
+type NavConfig = NavGroup[];
+
+const navConfig: Record<Role, NavConfig> = {
   [UserRoles.ADMIN]: [
-    { title: "Users", icon: Users, href: "#" },
-    { title: "Compliance Rules", icon: FileQuestion, href: "#" },
-    { title: "System Settings", icon: Settings, href: "#" },
+    {
+      label: "Management",
+      items: [
+        { title: "Users", icon: Users, href: "#" },
+        { title: "Compliance Rules", icon: FileQuestion, href: "#" },
+        { title: "System Analytics", icon: BarChart3, href: "#" },
+      ],
+    },
+    {
+      label: "Configuration",
+      items: [
+        { title: "API Settings", icon: Code, href: "#" },
+        { title: "Integrations", icon: Wrench, href: "#" },
+      ],
+    },
   ],
   [UserRoles.SUPPLIER]: [
-    { title: "My Products", icon: BookCopy, href: "#" },
-    { title: "Upload History", icon: Code, href: "#" },
+    {
+      label: "My Passports",
+      items: [
+        { title: "All Products", icon: BookCopy, href: "#" },
+        { title: "Create New", icon: PlusCircle, href: "#" },
+        { title: "Upload History", icon: Clock, href: "#" },
+      ],
+    },
   ],
   [UserRoles.MANUFACTURER]: [
-    { title: "Products", icon: BookCopy, href: "#" },
-    { title: "Production Lines", icon: Factory, href: "#" },
+    {
+      label: "Production",
+      items: [
+        { title: "Products", icon: BookCopy, href: "#" },
+        { title: "Production Lines", icon: Factory, href: "#" },
+        { title: "Component Traceability", icon: BarChart3, href: "#" },
+      ],
+    },
   ],
   [UserRoles.AUDITOR]: [
-    { title: "Audit Queue", icon: ShieldCheck, href: "#" },
-    { title: "All Products", icon: BookCopy, href: "#" },
+    {
+      label: "Auditing",
+      items: [
+        { title: "Audit Queue", icon: ShieldCheck, href: "#" },
+        { title: "All Products", icon: BookCopy, href: "#" },
+        { title: "Reports", icon: FileText, href: "#" },
+      ],
+    },
   ],
   [UserRoles.COMPLIANCE_MANAGER]: [
-    { title: "Flagged Products", icon: ShieldCheck, href: "#" },
-    { title: "Compliance Reports", icon: BarChart3, href: "#" },
+    {
+      label: "Compliance",
+      items: [
+        { title: "Flagged Products", icon: ShieldCheck, href: "#" },
+        { title: "Compliance Reports", icon: BarChart3, href: "#" },
+      ],
+    },
   ],
   [UserRoles.BUSINESS_ANALYST]: [
-    { title: "Analytics", icon: BarChart3, href: "#" },
-    { title: "Data Export", icon: Code, href: "#" },
+    {
+      label: "Analytics",
+      items: [
+        { title: "Product Trends", icon: BarChart3, href: "#" },
+        { title: "Sustainability Metrics", icon: Recycle, href: "#" },
+        { title: "Data Export", icon: Code, href: "#" },
+      ],
+    },
   ],
   [UserRoles.DEVELOPER]: [
-    { title: "API Logs", icon: Code, href: "#" },
-    { title: "Integrations", icon: Wrench, href: "#" },
+    {
+      label: "Development",
+      items: [
+        { title: "API Logs", icon: Code, href: "#" },
+        { title: "Integrations", icon: Wrench, href: "#" },
+        { title: "API Keys", icon: KeyRound, href: "#" },
+      ],
+    },
   ],
   [UserRoles.RECYCLER]: [
-    { title: "EOL Products", icon: Recycle, href: "#" },
-    { title: "Recycling Reports", icon: BarChart3, href: "#" },
+    {
+      label: "Recycling",
+      items: [
+        { title: "EOL Products", icon: Recycle, href: "#" },
+        { title: "Recycling Reports", icon: BarChart3, href: "#" },
+        { title: "Material Composition", icon: FileText, href: "#" },
+      ],
+    },
   ],
   [UserRoles.SERVICE_PROVIDER]: [
-    { title: "Service Tickets", icon: Wrench, href: "#" },
-    { title: "Product Manuals", icon: BookCopy, href: "#" },
+    {
+      label: "Services",
+      items: [
+        { title: "Service Tickets", icon: Wrench, href: "#" },
+        { title: "Product Manuals", icon: BookCopy, href: "#" },
+        { title: "Repair Analytics", icon: BarChart3, href: "#" },
+      ],
+    },
   ],
 };
 
-export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
-  const menuItems = navConfig[userRole] || [];
+const generalNav: NavGroup[] = [
+  {
+    label: "General",
+    items: [
+      { title: "Settings", icon: Settings, href: "#" },
+      { title: "Support", icon: LifeBuoy, href: "#" },
+    ],
+  },
+];
+
+interface DashboardSidebarProps {
+  userRole: Role;
+  user: User;
+}
+
+export default function DashboardSidebar({
+  userRole,
+  user,
+}: DashboardSidebarProps) {
+  const menuConfig = navConfig[userRole] || [];
 
   return (
     <Sidebar>
@@ -90,16 +201,67 @@ export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title} isActive={false}>
-                <item.icon />
-                <span>{item.title}</span>
+          <SidebarMenuItem>
+            <SidebarMenuButton href="#" tooltip="Dashboard" isActive={true}>
+              <LayoutGrid />
+              <span>Dashboard</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+
+        {menuConfig.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarMenu>
+              {group.items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton href={item.href} tooltip={item.title}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
+
+        <SidebarGroup>
+          <SidebarGroupLabel>General</SidebarGroupLabel>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Settings">
+                <Settings />
+                <span>Settings</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="#" tooltip="Support">
+                <LifeBuoy />
+                <span>Support</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="group-data-[collapsible=icon]:hidden">
+        <SidebarSeparator />
+        <div className="p-2 flex items-center gap-3">
+          <Avatar>
+            <AvatarImage src={`https://i.pravatar.cc/150?u=${user.id}`} />
+            <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 overflow-hidden">
+            <p className="font-semibold text-sm truncate">{user.fullName}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user.email}
+            </p>
+          </div>
+          <Button variant="ghost" size="icon" className="w-8 h-8">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
