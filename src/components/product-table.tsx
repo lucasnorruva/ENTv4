@@ -3,7 +3,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { MoreHorizontal, FilePenLine, Trash2 } from 'lucide-react';
+import { MoreHorizontal, FilePenLine, Trash2, Link as LinkIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
 import type { Product } from '@/types';
@@ -127,6 +127,14 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
                     <FilePenLine className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
+                  {product.blockchainProof && (
+                    <DropdownMenuItem asChild>
+                      <a href={product.blockchainProof.explorerUrl} target="_blank" rel="noopener noreferrer">
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        View on Polygon
+                      </a>
+                    </DropdownMenuItem>
+                  )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem onSelect={e => e.preventDefault()}>

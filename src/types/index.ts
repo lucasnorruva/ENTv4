@@ -48,6 +48,10 @@ export interface Product extends BaseEntity {
   verificationStatus?: 'Verified' | 'Pending' | 'Failed';
   complianceSummary?: string;
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
+  blockchainProof?: {
+    txHash: string;
+    explorerUrl: string;
+  };
 }
 
 /**

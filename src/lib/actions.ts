@@ -9,6 +9,7 @@ import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy, writeBatch, getDoc } from 'firebase/firestore';
 import { Collections } from './constants';
+import { anchorToPolygon, hashProductData } from '@/services/blockchain';
 
 const productsCollection = collection(db, Collections.PRODUCTS);
 const compliancePathsCollection = collection(db, Collections.COMPLIANCE_PATHS);
@@ -51,9 +52,14 @@ export async function getProducts(): Promise<Product[]> {
   return products;
 }
 
-export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated' | 'sustainabilityScore' | 'sustainabilityReport'> & { id?: string }): Promise<Product> {
+export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated' | 'sustainabilityScore' | 'sustainabilityReport' | 'blockchainProof'> & { id?: string }): Promise<Product> {
   const now = new Date();
   const nowISO = now.toISOString();
+
+  // --- Blockchain Anchoring Step ---
+  // Hash the deterministic product data *before* AI enrichment.
+  const productDataHash = hashProductData(data.currentInformation);
+  const blockchainProof = await anchorToPolygon(productDataHash);
   
   const aiInput = {
     productName: data.productName,
@@ -77,6 +83,7 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
     const updatedData = { 
         ...saveData, 
         ...aiResult,
+        blockchainProof,
         updatedAt: nowISO, 
         lastUpdated: now.toISOString().split('T')[0],
         verificationStatus: 'Pending' as const,
@@ -92,11 +99,11 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
     const newProductData = {
       ...data,
       ...aiResult,
+      blockchainProof,
       createdAt: nowISO,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split('T')[0],
       verificationStatus: 'Pending' as const,
-      lastVerificationDate: nowISO,
       endOfLifeStatus: 'Active' as const,
     };
     const docRef = await addDoc(collection(db, Collections.PRODUCTS), newProductData);
