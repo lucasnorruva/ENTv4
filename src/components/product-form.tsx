@@ -56,6 +56,7 @@ const productSchema = z.object({
     { message: 'Must be valid JSON' }
   ),
   status: z.enum(['Published', 'Draft', 'Archived']),
+  ebsiVcId: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -95,6 +96,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
       complianceLevel: 'Medium',
       currentInformation: defaultJsonInfo,
       status: 'Draft',
+      ebsiVcId: '',
     },
   });
 
@@ -109,6 +111,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         complianceLevel: product.complianceLevel,
         currentInformation: product.currentInformation,
         status: product.status,
+        ebsiVcId: product.ebsiVcId || '',
       });
     } else {
       form.reset({
@@ -120,6 +123,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         complianceLevel: 'Medium',
         currentInformation: defaultJsonInfo,
         status: 'Draft',
+        ebsiVcId: '',
       });
     }
     setAiSuggestion('');
@@ -324,6 +328,20 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   )}
                 />
               </div>
+
+               <FormField
+                  control={form.control}
+                  name="ebsiVcId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>EBSI Verifiable Credential ID (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="did:ebsi:..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
               <FormField
                 control={form.control}

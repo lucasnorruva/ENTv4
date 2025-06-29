@@ -51,7 +51,9 @@ export interface Product extends BaseEntity {
   blockchainProof?: {
     txHash: string;
     explorerUrl: string;
+    blockHeight: number;
   };
+  ebsiVcId?: string;
 }
 
 /**

@@ -23,7 +23,7 @@ export async function hashProductData(productData: string): Promise<string> {
  */
 export async function anchorToPolygon(
   hash: string,
-): Promise<{ txHash: string; explorerUrl: string }> {
+): Promise<{ txHash: string; explorerUrl: string; blockHeight: number }> {
   console.log(`Anchoring hash ${hash} to Polygon...`);
 
   // In a real implementation, you would:
@@ -36,8 +36,9 @@ export async function anchorToPolygon(
   await new Promise((resolve) => setTimeout(resolve, 700));
   const mockTxHash = `0x${[...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join("")}`;
   const explorerUrl = `https://polygonscan.com/tx/${mockTxHash}`; // Mock PolygonScan URL
+  const blockHeight = Math.floor(Math.random() * 1000000) + 50000000; // Mock block height
 
   console.log(`Hash anchored in transaction: ${mockTxHash}`);
 
-  return { txHash: mockTxHash, explorerUrl };
+  return { txHash: mockTxHash, explorerUrl, blockHeight };
 }

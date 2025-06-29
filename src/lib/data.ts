@@ -38,7 +38,9 @@ export let products: Product[] = [
     blockchainProof: {
       txHash: "0xabc123",
       explorerUrl: "#",
+      blockHeight: 50123456,
     },
+    ebsiVcId: "did:ebsi:z2d5c3g7h1k9j4m6p8q",
   },
   {
     id: "pp-002",
@@ -76,6 +78,7 @@ export let products: Product[] = [
     blockchainProof: {
       txHash: "0xdef456",
       explorerUrl: "#",
+      blockHeight: 50234567,
     },
   },
   {
@@ -145,6 +148,7 @@ export let products: Product[] = [
     blockchainProof: {
       txHash: "0xghi789",
       explorerUrl: "#",
+      blockHeight: 49876543,
     },
   },
   {

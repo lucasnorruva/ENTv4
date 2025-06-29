@@ -50,6 +50,7 @@ export async function saveProduct(
   let blockchainProof = {
     txHash: "0xmocktx" + Math.random().toString(16).slice(2),
     explorerUrl: "#",
+    blockHeight: 0,
   };
   try {
     const productDataHash = await hashProductData(data.currentInformation);
