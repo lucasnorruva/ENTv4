@@ -41,6 +41,9 @@ const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   productDescription: z.string().min(10, 'Product description is required'),
   productImage: z.string().url('Must be a valid URL'),
+  category: z.string().min(1, 'Category is required'),
+  supplier: z.string().min(1, 'Supplier is required'),
+  complianceLevel: z.enum(['High', 'Medium', 'Low']),
   currentInformation: z.string().refine(
     val => {
       try {
@@ -76,6 +79,9 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
       productName: '',
       productDescription: '',
       productImage: 'https://placehold.co/100x100.png',
+      category: 'Electronics',
+      supplier: '',
+      complianceLevel: 'Medium',
       currentInformation: '{}',
       status: 'Draft',
     },
@@ -87,6 +93,9 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
         productName: product.productName,
         productDescription: product.productDescription,
         productImage: product.productImage,
+        category: product.category,
+        supplier: product.supplier,
+        complianceLevel: product.complianceLevel,
         currentInformation: product.currentInformation,
         status: product.status,
       });
@@ -95,6 +104,9 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
         productName: '',
         productDescription: '',
         productImage: 'https://placehold.co/100x100.png',
+        category: 'Electronics',
+        supplier: '',
+        complianceLevel: 'Medium',
         currentInformation: '{}',
         status: 'Draft',
       });
@@ -175,19 +187,22 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
         </SheetHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 overflow-y-auto pr-6">
-            <FormField
-              control={form.control}
-              name="productName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Eco-Friendly Smart Watch" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="productName"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel>Product Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Eco-Friendly Smart Watch" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
             <FormField
               control={form.control}
               name="productDescription"
@@ -214,28 +229,93 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                      <SelectItem value="Published">Published</SelectItem>
-                      <SelectItem value="Archived">Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Electronics">Electronics</SelectItem>
+                          <SelectItem value="Fashion">Fashion</SelectItem>
+                          <SelectItem value="Home Goods">Home Goods</SelectItem>
+                          <SelectItem value="Automotive">Automotive</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="supplier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. GreenTech Supplies" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="complianceLevel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compliance Level</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a level" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="High">High</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="Low">Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Published">Published</SelectItem>
+                        <SelectItem value="Archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
              <FormField
               control={form.control}
               name="currentInformation"

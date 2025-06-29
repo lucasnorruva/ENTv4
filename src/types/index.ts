@@ -35,9 +35,14 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
+  category: string;
+  supplier: string;
+  complianceLevel: 'High' | 'Medium' | 'Low';
   currentInformation: string; // A stringified JSON object with passport data
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
+  sustainabilityScore?: number;
+  sustainabilityReport?: string;
 }
 
 /**

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from './data';
 import type { Product } from '@/types';
 import { enhancePassportInformation, type EnhancePassportInformationInput } from '@/ai/flows/enhance-passport-information';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 import { Collections } from './constants';
@@ -35,7 +36,7 @@ export async function getProducts(): Promise<Product[]> {
   return products;
 }
 
-export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated'> & { id?: string }): Promise<Product> {
+export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated' | 'sustainabilityScore' | 'sustainabilityReport'> & { id?: string }): Promise<Product> {
   const now = new Date().toISOString();
 
   if (data.id) {
@@ -47,8 +48,8 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
     
     revalidatePath('/dashboard');
 
-    // To provide the full product object back, we need the createdAt timestamp.
-    // In a real app, you'd fetch it, but here we'll assume it exists.
+    // To provide the full product object back, we'd ideally fetch it.
+    // For now, we return the merged data which might not have all fields.
     return { ...updatedData, id: data.id, createdAt: 'N/A' } as Product;
   } else {
     // Create new product
@@ -59,8 +60,34 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
       lastUpdated: now.split('T')[0],
     };
     const docRef = await addDoc(collection(db, Collections.PRODUCTS), newProductData);
-    revalidatePath('/dashboard');
-    return { ...newProductData, id: docRef.id };
+    
+    // This simulates the "on-create trigger" by immediately calling the AI flow
+    // and updating the document with the sustainability score.
+    try {
+        const aiResult = await calculateSustainability({
+            productName: data.productName,
+            productDescription: data.productDescription,
+            category: data.category,
+            currentInformation: data.currentInformation
+        });
+
+        const productWithScore = {
+            ...newProductData,
+            ...aiResult
+        };
+        
+        // Update the doc with the AI insights
+        await setDoc(docRef, productWithScore);
+        
+        revalidatePath('/dashboard');
+        return { ...productWithScore, id: docRef.id };
+
+    } catch (aiError) {
+        console.error("AI sustainability calculation failed for new product:", aiError);
+        // The product was created, but AI failed. We can still return the base product.
+        revalidatePath('/dashboard');
+        return { ...newProductData, id: docRef.id };
+    }
   }
 }
 

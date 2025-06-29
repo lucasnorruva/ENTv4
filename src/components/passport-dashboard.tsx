@@ -67,6 +67,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
+import { Progress } from './ui/progress';
 
 function Logo() {
   return (
@@ -212,6 +213,7 @@ export default function PassportDashboard({
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
                     <TableHead>Product Name</TableHead>
+                    <TableHead>Sustainability Score</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Last Updated</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -231,6 +233,16 @@ export default function PassportDashboard({
                           />
                       </TableCell>
                       <TableCell className="font-medium">{product.productName}</TableCell>
+                      <TableCell>
+                        {product.sustainabilityScore !== undefined ? (
+                          <div className="flex items-center gap-2" title={product.sustainabilityReport}>
+                              <Progress value={product.sustainabilityScore} className="w-20 h-2" />
+                              <span>{product.sustainabilityScore}/100</span>
+                          </div>
+                        ) : (
+                            <span className="text-muted-foreground text-xs italic">Pending...</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
                       </TableCell>
