@@ -1,3 +1,4 @@
+
 "use server";
 
 /**
@@ -47,8 +48,11 @@ const prompt = ai.definePrompt({
   name: "classifyProductPrompt",
   input: { schema: ClassifyProductInputSchema },
   output: { schema: ClassifyProductOutputSchema },
-  prompt: `You are an ESG analyst. Based on the product information, classify it into an ESG category and provide a risk score.
-  Your analysis should be informed by principles similar to those in ISO 14067 for carbon footprint, but applied more broadly to ESG risks.
+  prompt: `You are an ESG analyst specializing in product lifecycle assessment. Your task is to classify the product and assess its risk based on provided data, with specific alignment to ISO 14067 for carbon footprint analysis.
+
+  Analyze the product's name, description, category, and passport data.
+  Determine a relevant ESG category (e.g., Circular Design, Resource Depletion, Pollution Prevention).
+  Provide an ESG risk score from 0 (low risk) to 10 (high risk). Your risk assessment must be informed by principles from ISO 14067, paying close attention to materials and manufacturing data that could indicate a high carbon footprint.
 
   Product Name: {{{productName}}}
   Product Description: {{{productDescription}}}

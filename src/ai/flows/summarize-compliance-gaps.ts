@@ -1,3 +1,4 @@
+
 "use server";
 
 /**
@@ -53,7 +54,7 @@ const prompt = ai.definePrompt({
   name: "summarizeComplianceGapsPrompt",
   input: { schema: SummarizeComplianceGapsInputSchema },
   output: { schema: SummarizeComplianceGapsOutputSchema },
-  prompt: `You are an expert EU regulatory compliance auditor for Digital Product Passports. Your task is to analyze a product's data against a specific set of compliance rules and provide a clear, concise summary of your findings.
+  prompt: `You are an expert EU regulatory compliance auditor for Digital Product Passports, specializing in regulations like ESPR, REACH, RoHS, and SCIP database requirements. Your task is to analyze a product's data against a specific set of compliance rules and provide a clear, concise summary of your findings.
 
   Analyze the following product information:
   - Product Name: {{{productName}}}
@@ -69,7 +70,9 @@ const prompt = ai.definePrompt({
   {{{complianceRules}}}
   \`\`\`
 
-  Based on your analysis, determine if the product is compliant. Then, write a 2-4 sentence summary explaining the result. If there are compliance gaps, clearly state what they are (e.g., "The product's sustainability score of 55 is below the required minimum of 60," or "The product contains the banned material 'Lead'."). If it is compliant, confirm that it meets all specified requirements.
+  Based on your analysis, determine if the product is compliant. Pay special attention to chemical composition and check for banned or declarable substances as defined in the rules (simulating REACH/RoHS/SCIP checks).
+
+  Write a 2-4 sentence summary explaining the compliance status. If there are gaps, clearly state them (e.g., "The product's sustainability score of 55 is below the required minimum of 60," or "The product contains the banned substance 'Lead', which violates RoHS compliance."). If it is compliant, confirm that it meets all specified requirements.
   `,
 });
 
