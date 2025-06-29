@@ -13,7 +13,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetFooter,
   SheetClose,
 } from '@/components/ui/sheet';
 import {
@@ -67,6 +66,17 @@ interface ProductFormProps {
   onSave: (product: Product) => void;
 }
 
+const defaultJsonInfo = JSON.stringify(
+  {
+    materials: [],
+    manufacturing_process: 'Details about manufacturing...',
+    certifications: [],
+    packaging: 'Description of packaging...',
+  },
+  null,
+  2
+);
+
 export default function ProductForm({ isOpen, onOpenChange, product, onSave }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -82,7 +92,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
       category: 'Electronics',
       supplier: '',
       complianceLevel: 'Medium',
-      currentInformation: '{}',
+      currentInformation: defaultJsonInfo,
       status: 'Draft',
     },
   });
@@ -107,7 +117,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         category: 'Electronics',
         supplier: '',
         complianceLevel: 'Medium',
-        currentInformation: '{}',
+        currentInformation: defaultJsonInfo,
         status: 'Draft',
       });
     }
@@ -132,8 +142,8 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         });
       }
     });
-  }
-  
+  };
+
   const handleEnhanceWithAI = async () => {
     const { productName, productDescription, currentInformation } = form.getValues();
     if (!productName || !productDescription) {
@@ -159,7 +169,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
     } finally {
         setIsAiLoading(false);
     }
-  }
+  };
 
   const applySuggestion = () => {
     try {
@@ -169,13 +179,12 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
     }
     setAiSuggestion('');
-  }
-
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-2xl w-full flex flex-col">
-        <SheetHeader>
+      <SheetContent className="sm:max-w-2xl w-full flex flex-col p-0">
+        <SheetHeader className="p-6 pb-2">
           <SheetTitle>
             {product ? 'Edit Product Passport' : 'Create Product Passport'}
           </SheetTitle>
@@ -185,180 +194,180 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
               : 'Fill in the details for the new product passport.'}
           </SheetDescription>
         </SheetHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} id="product-form" className="space-y-4 flex-1 overflow-y-auto pr-6">
-            <div className="grid grid-cols-2 gap-4">
+        <div className="flex-1 overflow-y-auto">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
+                <FormField
+                  control={form.control}
+                  name="productName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Product Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Eco-Friendly Smart Watch" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
               <FormField
                 control={form.control}
-                name="productName"
+                name="productDescription"
                 render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>Product Name</FormLabel>
+                  <FormItem>
+                    <FormLabel>Product Description</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Eco-Friendly Smart Watch" {...field} />
+                      <Textarea placeholder="Describe the product..." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="productDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Describe the product..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="productImage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Image URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
+                control={form.control}
+                name="productImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Image URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Electronics">Electronics</SelectItem>
+                            <SelectItem value="Fashion">Fashion</SelectItem>
+                            <SelectItem value="Home Goods">Home Goods</SelectItem>
+                            <SelectItem value="Automotive">Automotive</SelectItem>
+                            <SelectItem value="Other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="supplier"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Supplier</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. GreenTech Supplies" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
                   control={form.control}
-                  name="category"
+                  name="complianceLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category</FormLabel>
+                      <FormLabel>Compliance Level</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
-                          </SelectTrigger>
+                            <SelectValue placeholder="Select a level" />
+                          </Trigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Electronics">Electronics</SelectItem>
-                          <SelectItem value="Fashion">Fashion</SelectItem>
-                          <SelectItem value="Home Goods">Home Goods</SelectItem>
-                          <SelectItem value="Automotive">Automotive</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
+                          <SelectItem value="High">High</SelectItem>
+                          <SelectItem value="Medium">Medium</SelectItem>
+                          <SelectItem value="Low">Low</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                 <FormField
+                <FormField
                   control={form.control}
-                  name="supplier"
+                  name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Supplier</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. GreenTech Supplies" {...field} />
-                      </FormControl>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a status" />
+                          </Trigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Draft">Draft</SelectItem>
+                          <SelectItem value="Published">Published</SelectItem>
+                          <SelectItem value="Archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-            </div>
-             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="complianceLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Compliance Level</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a level" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a status" />
-                        </Trigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Draft">Draft</SelectItem>
-                        <SelectItem value="Published">Published</SelectItem>
-                        <SelectItem value="Archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+              </div>
 
-             <FormField
-              control={form.control}
-              name="currentInformation"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex justify-between items-center">
-                    <FormLabel>Passport Information (JSON)</FormLabel>
-                     <Button type="button" size="sm" variant="outline" onClick={handleEnhanceWithAI} disabled={isAiLoading}>
-                        {isAiLoading ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
-                        )}
-                        Enhance with AI
-                    </Button>
-                  </div>
-                  <FormControl>
-                    <Textarea placeholder='{ "key": "value" }' {...field} className="min-h-[150px] font-mono text-sm" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {aiSuggestion && (
-                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+              <FormField
+                control={form.control}
+                name="currentInformation"
+                render={({ field }) => (
+                  <FormItem>
                     <div className="flex justify-between items-center">
-                        <FormLabel>AI Suggestion</FormLabel>
-                        <Button type="button" size="sm" onClick={applySuggestion}>Apply Suggestion</Button>
+                      <FormLabel>Passport Information (JSON)</FormLabel>
+                      <Button type="button" size="sm" variant="outline" onClick={handleEnhanceWithAI} disabled={isAiLoading}>
+                          {isAiLoading ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                              <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
+                          )}
+                          Enhance with AI
+                      </Button>
                     </div>
-                    <Textarea readOnly value={aiSuggestion} className="min-h-[150px] font-mono text-sm bg-background" />
+                    <FormControl>
+                      <Textarea placeholder='{ "key": "value" }' {...field} className="min-h-[150px] font-mono text-sm" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {aiSuggestion && (
+                  <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                      <div className="flex justify-between items-center">
+                          <FormLabel>AI Suggestion</FormLabel>
+                          <Button type="button" size="sm" onClick={applySuggestion}>Apply Suggestion</Button>
+                      </div>
+                      <Textarea readOnly value={aiSuggestion} className="min-h-[150px] font-mono text-sm bg-background" />
+                  </div>
+              )}
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                    <SheetClose asChild>
+                    <Button type="button" variant="outline">Cancel</Button>
+                    </SheetClose>
+                    <Button type="submit" disabled={isPending || isAiLoading}>
+                    {(isPending || isAiLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isPending ? 'Saving...' : 'Save Passport'}
+                    </Button>
                 </div>
-            )}
-          </form>
-        </Form>
-        <SheetFooter className="pt-4 pr-6">
-          <SheetClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </SheetClose>
-          <Button type="submit" disabled={isPending} form="product-form">
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Passport
-          </Button>
-        </SheetFooter>
+              </form>
+            </Form>
+        </div>
       </SheetContent>
     </Sheet>
   );
