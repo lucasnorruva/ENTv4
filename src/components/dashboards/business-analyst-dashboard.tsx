@@ -10,6 +10,7 @@ import type { Product } from '@/types';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
 import { Button } from '../ui/button';
 import { FileDown } from 'lucide-react';
+import SustainabilityByCategoryChart from '../charts/sustainability-by-category-chart';
 
 export default function BusinessAnalystDashboard({ products }: { products: Product[] }) {
   const complianceData = {
@@ -17,6 +18,23 @@ export default function BusinessAnalystDashboard({ products }: { products: Produ
       pending: products.filter(p => p.verificationStatus === 'Pending').length,
       failed: products.filter(p => p.verificationStatus === 'Failed').length,
   };
+
+  const categoryScores = products.reduce((acc, product) => {
+    if (product.sustainabilityScore !== undefined) {
+      if (!acc[product.category]) {
+        acc[product.category] = { totalScore: 0, count: 0 };
+      }
+      acc[product.category].totalScore += product.sustainabilityScore;
+      acc[product.category].count++;
+    }
+    return acc;
+  }, {} as Record<string, { totalScore: number; count: number }>);
+
+  const sustainabilityByCategoryData = Object.entries(categoryScores).map(([category, data]) => ({
+    category,
+    averageScore: data.count > 0 ? Math.round(data.totalScore / data.count) : 0,
+  }));
+
 
   return (
     <div className="grid gap-6">
@@ -52,10 +70,7 @@ export default function BusinessAnalystDashboard({ products }: { products: Produ
                     <CardDescription>Average sustainability scores by category.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {/* Placeholder for another chart */}
-                    <div className="h-60 flex items-center justify-center text-muted-foreground bg-muted/50 rounded-lg">
-                        <p>Chart coming soon</p>
-                    </div>
+                    <SustainabilityByCategoryChart data={sustainabilityByCategoryData} />
                 </CardContent>
             </Card>
         </div>
