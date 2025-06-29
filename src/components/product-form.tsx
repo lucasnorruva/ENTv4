@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -165,7 +166,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
             title: "AI Enhancement Failed",
             description: "Could not get suggestion from AI. Please try again.",
             variant: "destructive"
-        })
+        });
     } finally {
         setIsAiLoading(false);
     }
@@ -249,7 +250,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
+                            </Trigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="Electronics">Electronics</SelectItem>
