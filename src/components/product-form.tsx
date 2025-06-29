@@ -60,14 +60,14 @@ const productSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
-interface PassportFormProps {
+interface ProductFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   product: Product | null;
   onSave: (product: Product) => void;
 }
 
-export default function PassportForm({ isOpen, onOpenChange, product, onSave }: PassportFormProps) {
+export default function ProductForm({ isOpen, onOpenChange, product, onSave }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
@@ -302,7 +302,7 @@ export default function PassportForm({ isOpen, onOpenChange, product, onSave }: 
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="Draft">Draft</SelectItem>

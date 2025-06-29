@@ -79,6 +79,7 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
       lastUpdated: now.toISOString().split('T')[0],
       verificationStatus: 'Pending' as const,
       lastVerificationDate: nowISO,
+      endOfLifeStatus: 'Active' as const,
     };
     const docRef = await addDoc(collection(db, Collections.PRODUCTS), newProductData);
     

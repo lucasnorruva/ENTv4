@@ -22,11 +22,12 @@ export const UserRoles = {
   ADMIN: 'Admin',
   SUPPLIER: 'Supplier',
   AUDITOR: 'Auditor',
-  COMPLIANCE_OFFICER: 'Compliance Officer',
+  COMPLIANCE_MANAGER: 'Compliance Manager',
   MANUFACTURER: 'Manufacturer',
   SERVICE_PROVIDER: 'Service Provider',
   RECYCLER: 'Recycler',
-  DEVELOPER: 'Developer'
+  DEVELOPER: 'Developer',
+  BUSINESS_ANALYST: 'Business Analyst'
 } as const;
 
 /**

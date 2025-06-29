@@ -16,6 +16,7 @@ export interface BaseEntity {
  */
 export interface User extends BaseEntity {
   email: string;
+  fullName: string;
   companyId: string;
   roles: Role[];
 }
@@ -45,6 +46,7 @@ export interface Product extends BaseEntity {
   sustainabilityReport?: string;
   lastVerificationDate?: string; // ISO 8601 format
   verificationStatus?: 'Verified' | 'Pending' | 'Failed';
+  endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
 }
 
 /**
