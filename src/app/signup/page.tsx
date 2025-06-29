@@ -7,7 +7,7 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         <h1 className="text-3xl font-bold text-center mb-2">Create an Account</h1>
         <p className="text-muted-foreground text-center mb-8">
-          Get started with PassportFlow for free.
+          Get started with Norruva for free.
         </p>
         <SignupForm />
         <p className="mt-4 text-center text-sm text-muted-foreground">

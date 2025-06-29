@@ -11,16 +11,16 @@ function Logo() {
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-8 w-8 text-primary"
+        className="h-7 w-7 text-primary"
       >
-        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-        <path d="M2 17l10 5 10-5"></path>
-        <path d="M2 12l10 5 10-5"></path>
+        <path d="M17 17l-10-10"></path>
+        <path d="M17 7v10"></path>
+        <path d="M7 17V7"></path>
       </svg>
-      <h1 className="text-2xl font-bold">PassportFlow</h1>
+      <h1 className="text-2xl font-bold">Norruva</h1>
     </div>
   );
 }
@@ -120,7 +120,7 @@ export default function LandingPage() {
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">
-          © 2024 PassportFlow. All rights reserved.
+          © 2024 Norruva. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link className="text-xs hover:underline underline-offset-4" href="#">

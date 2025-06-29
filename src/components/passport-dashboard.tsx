@@ -71,7 +71,7 @@ function Logo() {
   return (
     <div className="flex items-center gap-2">
       <LayoutGrid className="h-7 w-7 text-primary" />
-      <h1 className="text-xl font-bold">PassportFlow</h1>
+      <h1 className="text-xl font-bold">Norruva</h1>
     </div>
   );
 }
