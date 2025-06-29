@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import LoginForm from "@/components/login-form";
 import Link from "next/link";
 
@@ -10,6 +11,9 @@ export default function LoginPage() {
           Enter your credentials to access your account.
         </p>
         <LoginForm />
+        <Button asChild className="w-full mt-4">
+          <Link href="/dashboard">Go to Dashboard</Link>
+        </Button>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
