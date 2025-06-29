@@ -1,4 +1,7 @@
 // src/components/dashboards/auditor-dashboard.tsx
+'use client';
+
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -16,51 +19,133 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { Product } from '@/types';
+import { AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function AuditorDashboard({ products }: { products: Product[] }) {
-    const productsToAudit = products.filter(p => p.verificationStatus === 'Pending' || p.verificationStatus === 'Failed');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const productsToAudit = products.filter(
+    p => p.verificationStatus === 'Pending' || p.verificationStatus === 'Failed'
+  );
+
+  const handleReviewClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDialogOpen(true);
+  };
+
+  const handleApprove = () => {
+    // In a real app, this would trigger a server action to update the product status
+    alert(`Product ${selectedProduct?.productName} approved.`);
+    setIsDialogOpen(false);
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Auditor Dashboard</CardTitle>
-        <CardDescription>
-          Review products for compliance, run checks, and view audit history.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Auditor Dashboard</CardTitle>
+          <CardDescription>
+            Review products for compliance, run checks, and view audit history.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
             <TableHeader>
-                <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Current Status</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                </TableRow>
+              <TableRow>
+                <TableHead>Product</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Current Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
-                {productsToAudit.map(product => (
-                    <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.productName}</TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>
-                            <Badge variant={product.verificationStatus === 'Failed' ? 'destructive' : 'secondary'}>
-                                {product.verificationStatus}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <Button variant="outline" size="sm">Review Product</Button>
-                        </TableCell>
-                    </TableRow>
-                ))}
+              {productsToAudit.map(product => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">
+                    {product.productName}
+                  </TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        product.verificationStatus === 'Failed'
+                          ? 'destructive'
+                          : 'secondary'
+                      }
+                    >
+                      {product.verificationStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReviewClick(product)}
+                    >
+                      Review Product
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
-        </Table>
-        {productsToAudit.length === 0 && (
+          </Table>
+          {productsToAudit.length === 0 && (
             <div className="text-center py-10 text-muted-foreground">
-                <p>No products are currently in the audit queue.</p>
+              <p>No products are currently in the audit queue.</p>
             </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+      {selectedProduct && (
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Review: {selectedProduct.productName}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Below are the details from the last automated verification check.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-4 my-4">
+              <h3 className="font-semibold text-sm">Verification Details:</h3>
+              {selectedProduct.verificationDetails && selectedProduct.verificationDetails.length > 0 ? (
+                <ul className="space-y-2 text-sm text-destructive list-disc list-inside bg-destructive/10 p-4 rounded-md">
+                   {selectedProduct.verificationDetails.map((detail, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                        <span>{detail}</span>
+                    </li>
+                   ))}
+                </ul>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-green-600 bg-green-500/10 p-4 rounded-md">
+                   <CheckCircle className="h-4 w-4 shrink-0"/>
+                   <p>No issues found in the last automated check.</p>
+                </div>
+              )}
+               <div className="text-xs text-muted-foreground pt-2">
+                    Last Checked: {selectedProduct.lastVerificationDate ? new Date(selectedProduct.lastVerificationDate).toLocaleString() : 'N/A'}
+               </div>
+            </div>
+            <AlertDialogFooter>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
+              <Button onClick={handleApprove}>Approve Passport</Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </>
   );
 }

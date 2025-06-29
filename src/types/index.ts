@@ -46,6 +46,7 @@ export interface Product extends BaseEntity {
   sustainabilityReport?: string;
   lastVerificationDate?: string; // ISO 8601 format
   verificationStatus?: 'Verified' | 'Pending' | 'Failed';
+  verificationDetails?: string[];
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
 }
 

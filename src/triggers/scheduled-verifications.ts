@@ -99,6 +99,7 @@ export async function runDailyComplianceCheck(): Promise<{
     batch.update(productRef, {
       verificationStatus: verificationStatus,
       lastVerificationDate: new Date().toISOString(),
+      verificationDetails: failureReasons,
     });
 
     await logAuditEvent(
