@@ -23,6 +23,8 @@ export let products: Product[] = [
     lastUpdated: new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0],
     createdAt: new Date(now.setDate(now.getDate() - 30)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 1)).toISOString(),
+    verificationStatus: 'Verified',
+    lastVerificationDate: new Date(now.setDate(now.getDate() - 1)).toISOString(),
   },
   {
     id: 'pp-002',
@@ -39,11 +41,14 @@ export let products: Product[] = [
       "flight_time_minutes": 30,
       "range_km": 5,
       "weight_grams": 795,
+      "materials": ["Plastic", "Lithium"],
     }, null, 2),
     status: 'Published',
     lastUpdated: new Date(now.setDate(now.getDate() - 3)).toISOString().split('T')[0],
     createdAt: new Date(now.setDate(now.getDate() - 60)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 3)).toISOString(),
+    verificationStatus: 'Verified',
+    lastVerificationDate: new Date(now.setDate(now.getDate() - 3)).toISOString(),
   },
   {
     id: 'pp-003',
@@ -62,6 +67,8 @@ export let products: Product[] = [
     lastUpdated: new Date(now.setDate(now.getDate() - 0)).toISOString().split('T')[0],
     createdAt: new Date(now.setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 0)).toISOString(),
+    verificationStatus: 'Pending',
+    lastVerificationDate: new Date(now.setDate(now.getDate() - 5)).toISOString(),
   },
   {
     id: 'pp-004',
@@ -75,13 +82,15 @@ export let products: Product[] = [
     sustainabilityReport: 'Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.',
     currentInformation: JSON.stringify({
       "capacity_liters": 25,
-      "materials": ["Recycled PET"],
+      "materials": ["Recycled PET", "Polyester"],
       "features": ["Laptop Compartment", "Water Resistant"],
     }, null, 2),
     status: 'Archived',
     lastUpdated: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().split('T')[0],
     createdAt: new Date(now.setFullYear(now.getFullYear() - 1) - 10).toISOString(),
     updatedAt: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
+    verificationStatus: 'Failed',
+    lastVerificationDate: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
   },
     {
     id: 'pp-005',
@@ -102,5 +111,7 @@ export let products: Product[] = [
     lastUpdated: new Date(now.setDate(now.getDate() - 15)).toISOString().split('T')[0],
     createdAt: new Date(now.setDate(now.getDate() - 45)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 15)).toISOString(),
+    verificationStatus: 'Pending',
+    lastVerificationDate: new Date(now.setDate(now.getDate() - 45)).toISOString(),
   },
 ];

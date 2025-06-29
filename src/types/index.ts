@@ -43,6 +43,8 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   sustainabilityScore?: number;
   sustainabilityReport?: string;
+  lastVerificationDate?: string; // ISO 8601 format
+  verificationStatus?: 'Verified' | 'Pending' | 'Failed';
 }
 
 /**
@@ -52,6 +54,12 @@ export interface CompliancePath extends BaseEntity {
   name: string;
   description: string;
   regulations: string[]; // e.g., ['ESPR', 'CSRD']
+  category: string; // The product category this path applies to
+  rules: {
+    minSustainabilityScore?: number;
+    requiredKeywords?: string[];
+    bannedKeywords?: string[];
+  };
 }
 
 /**
@@ -78,7 +86,7 @@ export interface Verification extends BaseEntity {
  * Logs significant actions taken within the system for auditing purposes.
  */
 export interface AuditLog extends BaseEntity {
-  userId: string;
+  userId: string; // Can be 'system' for automated actions
   action: string; // e.g., 'product.create', 'verification.approve'
   entityId: string;
   details: Record<string, any>; // Stores before/after states for changes

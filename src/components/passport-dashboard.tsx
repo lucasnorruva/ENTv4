@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
   Settings,
+  ShieldCheck,
   Trash2,
   UserCircle,
 } from 'lucide-react';
@@ -130,6 +131,19 @@ export default function PassportDashboard({
       case 'Draft':
         return 'secondary';
       case 'Archived':
+        return 'outline';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getVerificationVariant = (status?: Product['verificationStatus']) => {
+    switch (status) {
+      case 'Verified':
+        return 'default';
+      case 'Pending':
+        return 'secondary';
+      case 'Failed':
         return 'destructive';
       default:
         return 'outline';
@@ -149,6 +163,12 @@ export default function PassportDashboard({
               <SidebarMenuButton tooltip="Passports" isActive>
                 <BookCopy />
                 <span>Passports</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton tooltip="Compliance">
+                <ShieldCheck />
+                <span>Compliance</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -213,8 +233,9 @@ export default function PassportDashboard({
                   <TableRow>
                     <TableHead className="w-[80px]">Image</TableHead>
                     <TableHead>Product Name</TableHead>
-                    <TableHead>Sustainability Score</TableHead>
+                    <TableHead>Sustainability</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Verification</TableHead>
                     <TableHead>Last Updated</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -245,6 +266,11 @@ export default function PassportDashboard({
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getVerificationVariant(product.verificationStatus)}>
+                          {product.verificationStatus ?? 'N/A'}
+                        </Badge>
                       </TableCell>
                       <TableCell>{format(new Date(product.lastUpdated), 'PPP')}</TableCell>
                       <TableCell className="text-right">
