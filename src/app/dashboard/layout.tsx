@@ -17,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import RoleSwitcher from "@/components/role-switcher";
-import SWRegister from "@/components/sw-register";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +64,6 @@ export default async function DashboardLayout({
           </DropdownMenu>
         </header>
         <main className="flex-1 p-6">{children}</main>
-        <SWRegister />
       </SidebarInset>
     </SidebarProvider>
   );

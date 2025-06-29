@@ -6,7 +6,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.ADMIN]: {
     id: "user-admin",
     fullName: "Admin User",
-    email: "admin@norruva.com",
+    email: "admin@passportflow.com",
     companyId: "comp-01",
     roles: [UserRoles.ADMIN],
     createdAt: "",
@@ -15,7 +15,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.SUPPLIER]: {
     id: "user-supplier",
     fullName: "Supplier User",
-    email: "supplier@norruva.com",
+    email: "supplier@passportflow.com",
     companyId: "comp-02",
     roles: [UserRoles.SUPPLIER],
     createdAt: "",
@@ -24,7 +24,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.AUDITOR]: {
     id: "user-auditor",
     fullName: "Auditor User",
-    email: "auditor@norruva.com",
+    email: "auditor@passportflow.com",
     companyId: "comp-01",
     roles: [UserRoles.AUDITOR],
     createdAt: "",
@@ -33,7 +33,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.COMPLIANCE_MANAGER]: {
     id: "user-compliance",
     fullName: "Compliance Manager",
-    email: "compliance@norruva.com",
+    email: "compliance@passportflow.com",
     companyId: "comp-01",
     roles: [UserRoles.COMPLIANCE_MANAGER],
     createdAt: "",
@@ -42,7 +42,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.MANUFACTURER]: {
     id: "user-manufacturer",
     fullName: "Manufacturer User",
-    email: "manufacturer@norruva.com",
+    email: "manufacturer@passportflow.com",
     companyId: "comp-03",
     roles: [UserRoles.MANUFACTURER],
     createdAt: "",
@@ -51,7 +51,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.SERVICE_PROVIDER]: {
     id: "user-service",
     fullName: "Service Provider",
-    email: "service@norruva.com",
+    email: "service@passportflow.com",
     companyId: "comp-04",
     roles: [UserRoles.SERVICE_PROVIDER],
     createdAt: "",
@@ -60,7 +60,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.RECYCLER]: {
     id: "user-recycler",
     fullName: "Recycler User",
-    email: "recycler@norruva.com",
+    email: "recycler@passportflow.com",
     companyId: "comp-05",
     roles: [UserRoles.RECYCLER],
     createdAt: "",
@@ -69,7 +69,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.DEVELOPER]: {
     id: "user-developer",
     fullName: "Developer User",
-    email: "developer@norruva.com",
+    email: "developer@passportflow.com",
     companyId: "comp-01",
     roles: [UserRoles.DEVELOPER],
     createdAt: "",
@@ -78,7 +78,7 @@ const mockUsers: Record<Role, User> = {
   [UserRoles.BUSINESS_ANALYST]: {
     id: "user-analyst",
     fullName: "Business Analyst",
-    email: "analyst@norruva.com",
+    email: "analyst@passportflow.com",
     companyId: "comp-01",
     roles: [UserRoles.BUSINESS_ANALYST],
     createdAt: "",
