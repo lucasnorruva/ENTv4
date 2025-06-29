@@ -4,15 +4,32 @@ import { revalidatePath } from 'next/cache';
 import { passports as mockPassports } from './data';
 import type { Passport } from './types';
 import { enhancePassportInformation, type EnhancePassportInformationInput } from '@/ai/flows/enhance-passport-information';
+import { db } from './firebase';
+import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 
-// In a real application, this would be a database.
-// For this demo, we're using an in-memory array which resets on each server restart.
-let passports: Passport[] = [...mockPassports];
+const passportsCollection = collection(db, 'passports');
+
+async function seedDatabase() {
+    const passportsSnapshot = await getDocs(passportsCollection);
+    if (passportsSnapshot.empty) {
+        const promises = mockPassports.map(passport => {
+            const docRef = doc(passportsCollection, passport.id);
+            return setDoc(docRef, passport);
+        });
+        await Promise.all(promises);
+    }
+}
 
 export async function getPassports(): Promise<Passport[]> {
-  // Simulate network latency
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return passports.sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
+  await seedDatabase();
+  
+  const q = query(passportsCollection, orderBy('lastUpdated', 'desc'));
+  const passportsSnapshot = await getDocs(q);
+  const passports: Passport[] = [];
+  passportsSnapshot.forEach(doc => {
+    passports.push({ id: doc.id, ...doc.data() } as Passport);
+  });
+  return passports;
 }
 
 export async function savePassport(data: Omit<Passport, 'id' | 'lastUpdated'> & { id?: string }): Promise<Passport> {
@@ -20,34 +37,30 @@ export async function savePassport(data: Omit<Passport, 'id' | 'lastUpdated'> & 
 
   if (data.id) {
     // Update existing passport
-    const index = passports.findIndex(p => p.id === data.id);
-    if (index !== -1) {
-      passports[index] = { ...passports[index], ...data, lastUpdated: now };
-      revalidatePath('/');
-      return passports[index];
-    }
-    throw new Error('Passport not found');
+    const passportRef = doc(db, 'passports', data.id);
+    const saveData = { ...data };
+    delete saveData.id;
+    const updatedData = { ...saveData, lastUpdated: now };
+    await setDoc(passportRef, updatedData, { merge: true });
+    revalidatePath('/');
+    return { ...data, lastUpdated: now } as Passport;
   } else {
     // Create new passport
-    const newPassport: Passport = {
+    const newPassportData = {
       ...data,
-      id: `pp-${Date.now().toString()}`,
       lastUpdated: now,
     };
-    passports.unshift(newPassport);
+    const docRef = await addDoc(collection(db, 'passports'), newPassportData);
     revalidatePath('/');
-    return newPassport;
+    return { ...newPassportData, id: docRef.id };
   }
 }
 
 export async function deletePassport(id: string): Promise<{ success: boolean }> {
-  const index = passports.findIndex(p => p.id === id);
-  if (index !== -1) {
-    passports.splice(index, 1);
-    revalidatePath('/');
-    return { success: true };
-  }
-  return { success: false };
+  const passportRef = doc(db, 'passports', id);
+  await deleteDoc(passportRef);
+  revalidatePath('/');
+  return { success: true };
 }
 
 export async function runEnhancement(data: EnhancePassportInformationInput): Promise<string> {
