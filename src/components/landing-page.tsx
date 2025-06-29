@@ -242,6 +242,23 @@ export default function LandingPage() {
                 </div>
             </div>
         </section>
+        
+        {/* Pricing Section Placeholder */}
+        <section id="pricing" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+            <div className="container px-4 md:px-6">
+                <div className="flex flex-col items-center justify-center space-y-4 text-center">
+                    <div className="space-y-2">
+                        <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium">
+                          Pricing
+                        </div>
+                        <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Coming Soon</h2>
+                        <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                            We are currently finalizing our pricing plans. Stay tuned for simple, transparent pricing.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         {/* Final CTA Section */}
         <section className="w-full py-12 md:py-24 lg:py-32 border-t">
@@ -270,16 +287,16 @@ export default function LandingPage() {
           © 2024 Norruva. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+          <Link className="text-xs hover:underline underline-offset-4" href="#features">
             Features
           </Link>
-           <Link className="text-xs hover:underline underline-offset-4" href="#">
+           <Link className="text-xs hover:underline underline-offset-4" href="#pricing">
             Pricing
           </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+          <Link className="text-xs hover:underline underline-offset-4" href="/terms">
             Terms of Service
           </Link>
-          <Link className="text-xs hover:underline underline-offset-4" href="#">
+          <Link className="text-xs hover:underline underline-offset-4" href="/privacy">
             Privacy
           </Link>
         </nav>
