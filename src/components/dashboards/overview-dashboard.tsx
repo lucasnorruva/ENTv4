@@ -13,7 +13,7 @@ export default function OverviewDashboard() {
       <CardHeader>
         <CardTitle>Overview</CardTitle>
         <CardDescription>
-          A summary of the PassportFlow system. This is a default view for roles
+          A summary of the Norruva system. This is a default view for roles
           without a specific dashboard.
         </CardDescription>
       </CardHeader>

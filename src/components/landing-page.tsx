@@ -35,7 +35,7 @@ function Logo() {
         <path d="M17 7v10"></path>
         <path d="M7 17V7"></path>
       </svg>
-      <h1 className="text-2xl font-bold">PassportFlow</h1>
+      <h1 className="text-2xl font-bold">Norruva</h1>
     </div>
   );
 }
@@ -68,7 +68,7 @@ export default function LandingPage() {
                     Unlock Product Trust with Digital Passports
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    PassportFlow is the enterprise-grade platform for creating,
+                    Norruva is the enterprise-grade platform for creating,
                     managing, and verifying Digital Product Passports (DPPs).
                     Drive transparency, ensure compliance, and build unshakable
                     customer trust.
@@ -226,7 +226,7 @@ export default function LandingPage() {
             <div className="mx-auto max-w-3xl text-center">
               <Quote className="h-10 w-10 text-primary mx-auto mb-4" />
               <p className="text-xl md:text-2xl font-medium">
-                "PassportFlow has revolutionized our approach to compliance. What
+                "Norruva has revolutionized our approach to compliance. What
                 used to take months of manual work now takes hours. It's an
                 essential tool for any modern, sustainable brand."
               </p>
@@ -264,13 +264,13 @@ export default function LandingPage() {
                     product's lifecycle, from raw materials to recycling. It
                     provides transparency and traceability, helping consumers
                     and businesses make more informed and sustainable choices.
-                    PassportFlow helps you create and manage these passports in
+                    Norruva helps you create and manage these passports in
                     compliance with EU regulations.
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="item-2">
                   <AccordionTrigger>
-                    Is PassportFlow suitable for small businesses?
+                    Is Norruva suitable for small businesses?
                   </AccordionTrigger>
                   <AccordionContent>
                     Absolutely! Our platform is designed to be scalable. We
@@ -293,7 +293,7 @@ export default function LandingPage() {
                 </AccordionItem>
                 <AccordionItem value="item-4">
                   <AccordionTrigger>
-                    Do I need to know about blockchain to use PassportFlow?
+                    Do I need to know about blockchain to use Norruva?
                   </AccordionTrigger>
                   <AccordionContent>
                     Not at all. We handle all the blockchain complexity behind
@@ -355,7 +355,7 @@ export default function LandingPage() {
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-muted-foreground">
-          © 2024 PassportFlow. All rights reserved.
+          © 2024 Norruva. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link

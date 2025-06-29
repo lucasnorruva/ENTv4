@@ -3,7 +3,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "PassportFlow",
+  title: "Norruva",
   description: "The Future of Product Transparency",
 };
 
