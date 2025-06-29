@@ -1,6 +1,6 @@
-import type { Passport } from './types';
+import type { Product } from './types';
 
-export let passports: Passport[] = [
+export let products: Product[] = [
   {
     id: 'pp-001',
     productName: 'Eco-Friendly Smart Watch Series 5',

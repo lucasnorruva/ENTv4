@@ -1,8 +1,8 @@
 import PassportDashboard from '@/components/passport-dashboard';
-import { getPassports } from '@/lib/actions';
+import { getProducts } from '@/lib/actions';
 
 export default async function Home() {
-  const initialPassports = await getPassports();
+  const initialProducts = await getProducts();
 
-  return <PassportDashboard initialPassports={initialPassports} />;
+  return <PassportDashboard initialProducts={initialProducts} />;
 }

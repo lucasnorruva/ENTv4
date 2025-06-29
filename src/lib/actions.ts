@@ -1,64 +1,64 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { passports as mockPassports } from './data';
-import type { Passport } from './types';
+import { products as mockProducts } from './data';
+import type { Product } from './types';
 import { enhancePassportInformation, type EnhancePassportInformationInput } from '@/ai/flows/enhance-passport-information';
 import { db } from './firebase';
 import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy } from 'firebase/firestore';
 
-const passportsCollection = collection(db, 'passports');
+const productsCollection = collection(db, 'products');
 
 async function seedDatabase() {
-    const passportsSnapshot = await getDocs(passportsCollection);
-    if (passportsSnapshot.empty) {
-        const promises = mockPassports.map(passport => {
-            const docRef = doc(passportsCollection, passport.id);
-            return setDoc(docRef, passport);
+    const productsSnapshot = await getDocs(productsCollection);
+    if (productsSnapshot.empty) {
+        const promises = mockProducts.map(product => {
+            const docRef = doc(productsCollection, product.id);
+            return setDoc(docRef, product);
         });
         await Promise.all(promises);
     }
 }
 
-export async function getPassports(): Promise<Passport[]> {
+export async function getProducts(): Promise<Product[]> {
   await seedDatabase();
   
-  const q = query(passportsCollection, orderBy('lastUpdated', 'desc'));
-  const passportsSnapshot = await getDocs(q);
-  const passports: Passport[] = [];
-  passportsSnapshot.forEach(doc => {
-    passports.push({ id: doc.id, ...doc.data() } as Passport);
+  const q = query(productsCollection, orderBy('lastUpdated', 'desc'));
+  const productsSnapshot = await getDocs(q);
+  const products: Product[] = [];
+  productsSnapshot.forEach(doc => {
+    products.push({ id: doc.id, ...doc.data() } as Product);
   });
-  return passports;
+  return products;
 }
 
-export async function savePassport(data: Omit<Passport, 'id' | 'lastUpdated'> & { id?: string }): Promise<Passport> {
+export async function saveProduct(data: Omit<Product, 'id' | 'lastUpdated'> & { id?: string }): Promise<Product> {
   const now = new Date().toISOString().split('T')[0];
 
   if (data.id) {
-    // Update existing passport
-    const passportRef = doc(db, 'passports', data.id);
+    // Update existing product
+    const productRef = doc(db, 'products', data.id);
     const saveData = { ...data };
     delete saveData.id;
     const updatedData = { ...saveData, lastUpdated: now };
-    await setDoc(passportRef, updatedData, { merge: true });
+    await setDoc(productRef, updatedData, { merge: true });
     revalidatePath('/');
-    return { ...data, lastUpdated: now } as Passport;
+    return { ...data, lastUpdated: now } as Product;
   } else {
-    // Create new passport
-    const newPassportData = {
+    // Create new product
+    const newProductData = {
       ...data,
       lastUpdated: now,
     };
-    const docRef = await addDoc(collection(db, 'passports'), newPassportData);
+    const docRef = await addDoc(collection(db, 'products'), newProductData);
     revalidatePath('/');
-    return { ...newPassportData, id: docRef.id };
+    return { ...newProductData, id: docRef.id };
   }
 }
 
-export async function deletePassport(id: string): Promise<{ success: boolean }> {
-  const passportRef = doc(db, 'passports', id);
-  await deleteDoc(passportRef);
+export async function deleteProduct(id: string): Promise<{ success: boolean }> {
+  const productRef = doc(db, 'products', id);
+  await deleteDoc(productRef);
   revalidatePath('/');
   return { success: true };
 }

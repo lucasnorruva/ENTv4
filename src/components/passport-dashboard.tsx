@@ -15,7 +15,7 @@ import {
   Trash2,
   UserCircle,
 } from 'lucide-react';
-import type { Passport } from '@/lib/types';
+import type { Product } from '@/lib/types';
 import {
   Sidebar,
   SidebarContent,
@@ -53,7 +53,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PassportForm from './passport-form';
-import { deletePassport } from '@/lib/actions';
+import { deleteProduct } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -77,30 +77,30 @@ function Logo() {
 }
 
 export default function PassportDashboard({
-  initialPassports,
+  initialProducts,
 }: {
-  initialPassports: Passport[];
+  initialProducts: Product[];
 }) {
-  const [passports, setPassports] = useState<Passport[]>(initialPassports);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [selectedPassport, setSelectedPassport] = useState<Passport | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const handleCreateNew = () => {
-    setSelectedPassport(null);
+    setSelectedProduct(null);
     setIsSheetOpen(true);
   };
 
-  const handleEdit = (passport: Passport) => {
-    setSelectedPassport(passport);
+  const handleEdit = (product: Product) => {
+    setSelectedProduct(product);
     setIsSheetOpen(true);
   };
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
-      await deletePassport(id);
-      setPassports(currentPassports => currentPassports.filter(p => p.id !== id));
+      await deleteProduct(id);
+      setProducts(currentProducts => currentProducts.filter(p => p.id !== id));
       toast({
         title: 'Passport Deleted',
         description: 'The product passport has been successfully deleted.',
@@ -108,20 +108,20 @@ export default function PassportDashboard({
     });
   };
 
-  const handleSave = (savedPassport: Passport) => {
-    if (selectedPassport) {
+  const handleSave = (savedProduct: Product) => {
+    if (selectedProduct) {
       // Update
-      setPassports(currentPassports =>
-        currentPassports.map(p => (p.id === savedPassport.id ? savedPassport : p))
+      setProducts(currentProducts =>
+        currentProducts.map(p => (p.id === savedProduct.id ? savedProduct : p))
       );
     } else {
       // Create
-      setPassports(currentPassports => [savedPassport, ...currentPassports]);
+      setProducts(currentProducts => [savedProduct, ...currentProducts]);
     }
     setIsSheetOpen(false);
   };
   
-  const getStatusVariant = (status: Passport['status']) => {
+  const getStatusVariant = (status: Product['status']) => {
     switch (status) {
       case 'Published':
         return 'default';
@@ -217,23 +217,23 @@ export default function PassportDashboard({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {passports.map(passport => (
-                    <TableRow key={passport.id}>
+                  {products.map(product => (
+                    <TableRow key={product.id}>
                       <TableCell>
                          <Image
-                            src={passport.productImage}
-                            alt={passport.productName}
+                            src={product.productImage}
+                            alt={product.productName}
                             width={40}
                             height={40}
                             className="rounded-md"
                             data-ai-hint="product photo"
                           />
                       </TableCell>
-                      <TableCell className="font-medium">{passport.productName}</TableCell>
+                      <TableCell className="font-medium">{product.productName}</TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(passport.status)}>{passport.status}</Badge>
+                        <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
                       </TableCell>
-                      <TableCell>{passport.lastUpdated}</TableCell>
+                      <TableCell>{product.lastUpdated}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -242,7 +242,7 @@ export default function PassportDashboard({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(passport)}>
+                            <DropdownMenuItem onClick={() => handleEdit(product)}>
                               <FilePenLine className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
@@ -257,13 +257,13 @@ export default function PassportDashboard({
                                 <AlertDialogHeader>
                                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the passport for "{passport.productName}".
+                                    This action cannot be undone. This will permanently delete the passport for "{product.productName}".
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDelete(passport.id)}
+                                    onClick={() => handleDelete(product.id)}
                                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                   >
                                     Delete
@@ -284,7 +284,7 @@ export default function PassportDashboard({
         <PassportForm
           isOpen={isSheetOpen}
           onOpenChange={setIsSheetOpen}
-          passport={selectedPassport}
+          product={selectedProduct}
           onSave={handleSave}
         />
       </SidebarInset>

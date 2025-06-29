@@ -33,11 +33,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Passport } from '@/lib/types';
-import { savePassport, runEnhancement } from '@/lib/actions';
+import type { Product } from '@/lib/types';
+import { saveProduct, runEnhancement } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
-const passportSchema = z.object({
+const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   productDescription: z.string().min(10, 'Product description is required'),
   productImage: z.string().url('Must be a valid URL'),
@@ -55,23 +55,23 @@ const passportSchema = z.object({
   status: z.enum(['Published', 'Draft', 'Archived']),
 });
 
-type PassportFormValues = z.infer<typeof passportSchema>;
+type ProductFormValues = z.infer<typeof productSchema>;
 
 interface PassportFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  passport: Passport | null;
-  onSave: (passport: Passport) => void;
+  product: Product | null;
+  onSave: (product: Product) => void;
 }
 
-export default function PassportForm({ isOpen, onOpenChange, passport, onSave }: PassportFormProps) {
+export default function PassportForm({ isOpen, onOpenChange, product, onSave }: PassportFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
   const { toast } = useToast();
 
-  const form = useForm<PassportFormValues>({
-    resolver: zodResolver(passportSchema),
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
     defaultValues: {
       productName: '',
       productDescription: '',
@@ -82,13 +82,13 @@ export default function PassportForm({ isOpen, onOpenChange, passport, onSave }:
   });
 
   useEffect(() => {
-    if (passport) {
+    if (product) {
       form.reset({
-        productName: passport.productName,
-        productDescription: passport.productDescription,
-        productImage: passport.productImage,
-        currentInformation: passport.currentInformation,
-        status: passport.status,
+        productName: product.productName,
+        productDescription: product.productDescription,
+        productImage: product.productImage,
+        currentInformation: product.currentInformation,
+        status: product.status,
       });
     } else {
       form.reset({
@@ -100,12 +100,12 @@ export default function PassportForm({ isOpen, onOpenChange, passport, onSave }:
       });
     }
     setAiSuggestion('');
-  }, [passport, isOpen, form]);
+  }, [product, isOpen, form]);
 
-  const onSubmit = (values: PassportFormValues) => {
+  const onSubmit = (values: ProductFormValues) => {
     startTransition(async () => {
       try {
-        const saved = await savePassport({ ...values, id: passport?.id });
+        const saved = await saveProduct({ ...values, id: product?.id });
         toast({
           title: 'Success!',
           description: `Passport for "${saved.productName}" has been saved.`,
@@ -160,10 +160,10 @@ export default function PassportForm({ isOpen, onOpenChange, passport, onSave }:
       <SheetContent className="sm:max-w-2xl w-full flex flex-col">
         <SheetHeader>
           <SheetTitle>
-            {passport ? 'Edit Product Passport' : 'Create Product Passport'}
+            {product ? 'Edit Product Passport' : 'Create Product Passport'}
           </SheetTitle>
           <SheetDescription>
-            {passport
+            {product
               ? 'Update the details for this product passport.'
               : 'Fill in the details for the new product passport.'}
           </SheetDescription>

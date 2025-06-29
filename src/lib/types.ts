@@ -1,4 +1,4 @@
-export interface Passport {
+export interface Product {
   id: string;
   productName: string;
   productDescription: string;
