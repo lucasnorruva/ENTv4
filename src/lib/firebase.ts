@@ -1,23 +1,26 @@
+
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
+// Attempt to parse the full config from environment variables
+let firebaseConfig: { projectId?: string } = {};
 const firebaseConfigString = process.env.NEXT_PUBLIC_FIREBASE_CONFIG;
-let firebaseConfig = {};
 
 if (firebaseConfigString) {
-  try {
-    firebaseConfig = JSON.parse(firebaseConfigString);
-  } catch (error) {
-    console.error(
-      'Failed to parse NEXT_PUBLIC_FIREBASE_CONFIG, please ensure it is a valid JSON string.',
-      error
-    );
-  }
-} else {
-  // This warning helps in debugging if the .env file is missing or the variable is not named correctly.
-  console.warn("Firebase configuration environment variable 'NEXT_PUBLIC_FIREBASE_CONFIG' not found.");
+    try {
+        firebaseConfig = JSON.parse(firebaseConfigString);
+    } catch (e) {
+        console.error("Could not parse NEXT_PUBLIC_FIREBASE_CONFIG. It's not a valid JSON string.");
+        firebaseConfig = {}; // Reset on parse error
+    }
 }
 
+// If the config from environment is missing a projectId, or if there was no config,
+// provide a default. This is a robust way to ensure the app works in a dev environment.
+if (!firebaseConfig.projectId) {
+    console.warn("Firebase projectId not found. Using default projectId 'passportflow-studio'.");
+    firebaseConfig.projectId = "passportflow-studio";
+}
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
