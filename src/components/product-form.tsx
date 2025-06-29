@@ -169,7 +169,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
     }
     setAiSuggestion('');
-  }
+  };
 
 
   return (
@@ -354,7 +354,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
           <SheetClose asChild>
             <Button variant="outline">Cancel</Button>
           </SheetClose>
-          <Button type="submit" disabled={isPending} onClick={form.handleSubmit(onSubmit)}>
+          <Button type="submit" disabled={isPending} form="product-form">
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Passport
           </Button>
