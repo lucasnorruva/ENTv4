@@ -1,4 +1,6 @@
 // src/components/dashboards/manufacturer-dashboard.tsx
+"use client";
+
 import {
   Card,
   CardContent,
