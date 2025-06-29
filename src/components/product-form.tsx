@@ -169,7 +169,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
     }
     setAiSuggestion('');
-  };
+  }
 
 
   return (

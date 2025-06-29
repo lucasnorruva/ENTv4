@@ -58,7 +58,7 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
 
   // --- Blockchain Anchoring Step ---
   // Hash the deterministic product data *before* AI enrichment.
-  const productDataHash = hashProductData(data.currentInformation);
+  const productDataHash = await hashProductData(data.currentInformation);
   const blockchainProof = await anchorToPolygon(productDataHash);
   
   const aiInput = {

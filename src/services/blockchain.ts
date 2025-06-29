@@ -1,5 +1,3 @@
-// src/services/blockchain.ts
-
 'use server';
 
 import { createHash } from 'crypto';
@@ -12,7 +10,7 @@ import { createHash } from 'crypto';
  * @param productData The stringified JSON of the product's passport information.
  * @returns A SHA-256 hash of the data.
  */
-export function hashProductData(productData: string): string {
+export async function hashProductData(productData: string): Promise<string> {
   return createHash('sha256').update(productData).digest('hex');
 }
 
