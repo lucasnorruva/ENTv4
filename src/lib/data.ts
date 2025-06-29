@@ -26,15 +26,19 @@ export let products: Product[] = [
       2,
     ),
     status: "Published",
-    lastUpdated: new Date(now.setDate(now.getDate() - 1))
+    lastUpdated: new Date(new Date(now).setDate(now.getDate() - 1))
       .toISOString()
       .split("T")[0],
-    createdAt: new Date(now.setDate(now.getDate() - 30)).toISOString(),
-    updatedAt: new Date(now.setDate(now.getDate() - 1)).toISOString(),
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 30)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
     verificationStatus: "Verified",
     lastVerificationDate: new Date(
-      now.setDate(now.getDate() - 1),
+      new Date(now).setDate(now.getDate() - 1),
     ).toISOString(),
+    blockchainProof: {
+      txHash: "0xabc123",
+      explorerUrl: "#",
+    },
   },
   {
     id: "pp-002",
@@ -60,15 +64,19 @@ export let products: Product[] = [
       2,
     ),
     status: "Published",
-    lastUpdated: new Date(now.setDate(now.getDate() - 3))
+    lastUpdated: new Date(new Date(now).setDate(now.getDate() - 3))
       .toISOString()
       .split("T")[0],
-    createdAt: new Date(now.setDate(now.getDate() - 60)).toISOString(),
-    updatedAt: new Date(now.setDate(now.getDate() - 3)).toISOString(),
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 60)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     verificationStatus: "Verified",
     lastVerificationDate: new Date(
-      now.setDate(now.getDate() - 3),
+      new Date(now).setDate(now.getDate() - 3),
     ).toISOString(),
+    blockchainProof: {
+      txHash: "0xdef456",
+      explorerUrl: "#",
+    },
   },
   {
     id: "pp-003",
@@ -89,14 +97,14 @@ export let products: Product[] = [
       2,
     ),
     status: "Draft",
-    lastUpdated: new Date(now.setDate(now.getDate() - 0))
+    lastUpdated: new Date(new Date(now).setDate(now.getDate() - 0))
       .toISOString()
       .split("T")[0],
-    createdAt: new Date(now.setDate(now.getDate() - 5)).toISOString(),
-    updatedAt: new Date(now.setDate(now.getDate() - 0)).toISOString(),
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 0)).toISOString(),
     verificationStatus: "Pending",
     lastVerificationDate: new Date(
-      now.setDate(now.getDate() - 5),
+      new Date(now).setDate(now.getDate() - 5),
     ).toISOString(),
   },
   {
@@ -121,17 +129,23 @@ export let products: Product[] = [
       2,
     ),
     status: "Archived",
-    lastUpdated: new Date(now.setFullYear(now.getFullYear() - 1))
+    lastUpdated: new Date(new Date(now).setFullYear(now.getFullYear() - 1))
       .toISOString()
       .split("T")[0],
     createdAt: new Date(
-      now.setFullYear(now.getFullYear() - 1) - 10,
+      new Date(now).setFullYear(now.getFullYear() - 1) - 10,
     ).toISOString(),
-    updatedAt: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
+    updatedAt: new Date(new Date(now).setFullYear(now.getFullYear() - 1)).toISOString(),
     verificationStatus: "Failed",
+    complianceSummary:
+      "The product contains 'Polyester' which is a banned material for the Global Organic Textile Standard.",
     lastVerificationDate: new Date(
-      now.setFullYear(now.getFullYear() - 1),
+      new Date(now).setFullYear(now.getFullYear() - 1),
     ).toISOString(),
+    blockchainProof: {
+      txHash: "0xghi789",
+      explorerUrl: "#",
+    },
   },
   {
     id: "pp-005",
@@ -155,14 +169,14 @@ export let products: Product[] = [
       2,
     ),
     status: "Published",
-    lastUpdated: new Date(now.setDate(now.getDate() - 15))
+    lastUpdated: new Date(new Date(now).setDate(now.getDate() - 15))
       .toISOString()
       .split("T")[0],
-    createdAt: new Date(now.setDate(now.getDate() - 45)).toISOString(),
-    updatedAt: new Date(now.setDate(now.getDate() - 15)).toISOString(),
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 45)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 15)).toISOString(),
     verificationStatus: "Pending",
     lastVerificationDate: new Date(
-      now.setDate(now.getDate() - 45),
+      new Date(now).setDate(now.getDate() - 45),
     ).toISOString(),
   },
 ];

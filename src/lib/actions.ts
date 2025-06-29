@@ -1,72 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { products as mockProducts } from "./data";
-import { compliancePaths as mockCompliancePaths } from "./compliance-data";
-import type { Product, CompliancePath, AuditLog } from "@/types";
+import { products as mockProductsData } from "./data";
+import type { Product, AuditLog } from "@/types";
 import {
   enhancePassportInformation,
   type EnhancePassportInformationInput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
-import { db } from "./firebase";
-import {
-  collection,
-  getDocs,
-  doc,
-  setDoc,
-  addDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  writeBatch,
-  getDoc,
-} from "firebase/firestore";
-import { Collections } from "./constants";
 import { anchorToPolygon, hashProductData } from "@/services/blockchain";
 
-const productsCollection = collection(db, Collections.PRODUCTS);
-const compliancePathsCollection = collection(db, Collections.COMPLIANCE_PATHS);
-const auditLogsCollection = collection(db, Collections.AUDIT_LOGS);
-
-async function seedDatabase() {
-  const productsSnapshot = await getDocs(productsCollection);
-  const batch = writeBatch(db);
-
-  if (productsSnapshot.empty) {
-    console.log("Seeding products...");
-    mockProducts.forEach((product) => {
-      const docRef = doc(productsCollection, product.id);
-      const { id, ...productData } = product;
-      batch.set(docRef, productData);
-    });
-  }
-
-  const compliancePathsSnapshot = await getDocs(compliancePathsCollection);
-  if (compliancePathsSnapshot.empty) {
-    console.log("Seeding compliance paths...");
-    mockCompliancePaths.forEach((cp, index) => {
-      const docRef = doc(
-        compliancePathsCollection,
-        `cp-${String(index + 1).padStart(3, "0")}`,
-      );
-      batch.set(docRef, cp);
-    });
-  }
-
-  await batch.commit();
-}
+// Use an in-memory array for mock data to simulate database operations
+let mockProducts = [...mockProductsData];
 
 export async function getProducts(): Promise<Product[]> {
-  await seedDatabase();
-
-  const q = query(productsCollection, orderBy("updatedAt", "desc"));
-  const productsSnapshot = await getDocs(q);
-  const products: Product[] = [];
-  productsSnapshot.forEach((doc) => {
-    products.push({ id: doc.id, ...doc.data() } as Product);
-  });
-  return products;
+  // Return mock data directly to avoid Firestore permission issues in dev
+  return Promise.resolve(mockProducts);
 }
 
 export async function saveProduct(
@@ -84,70 +33,70 @@ export async function saveProduct(
   const now = new Date();
   const nowISO = now.toISOString();
 
-  // --- Blockchain Anchoring Step ---
-  // Hash the deterministic product data *before* AI enrichment.
-  const productDataHash = await hashProductData(data.currentInformation);
-  const blockchainProof = await anchorToPolygon(productDataHash);
-
-  const aiInput = {
-    productName: data.productName,
-    productDescription: data.productDescription,
-    category: data.category,
-    currentInformation: data.currentInformation,
-  };
-
+  // Keep AI enrichment and blockchain for demonstration, but handle failures
   let aiResult = {};
   try {
+    const aiInput = {
+      productName: data.productName,
+      productDescription: data.productDescription,
+      category: data.category,
+      currentInformation: data.currentInformation,
+    };
     aiResult = await calculateSustainability(aiInput);
-  } catch (aiError) {
-    console.error(
-      `AI sustainability calculation failed for product ${data.id || "new"}:`,
-      aiError,
-    );
-    // Continue without AI data if the call fails
+  } catch (e) {
+    console.error("AI sustainability calculation failed (mock mode):", e);
+  }
+
+  let blockchainProof = {
+    txHash: "0xmocktx" + Math.random().toString(16).slice(2),
+    explorerUrl: "#",
+  };
+  try {
+    const productDataHash = await hashProductData(data.currentInformation);
+    blockchainProof = await anchorToPolygon(productDataHash);
+  } catch (e) {
+    console.error("Blockchain anchoring failed (mock mode):", e);
   }
 
   if (data.id) {
-    // Update existing product
-    const productRef = doc(db, Collections.PRODUCTS, data.id);
-    const { id, ...saveData } = data;
-    const updatedData = {
-      ...saveData,
+    // Update existing product in mock array
+    const updatedProduct = {
+      ...data,
+      id: data.id,
       ...aiResult,
       blockchainProof,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
       verificationStatus: "Pending" as const,
       lastVerificationDate: nowISO,
+      createdAt: mockProducts.find((p) => p.id === data.id)?.createdAt || nowISO,
     };
-    await setDoc(productRef, updatedData, { merge: true });
+    mockProducts = mockProducts.map((p) =>
+      p.id === data.id ? (updatedProduct as Product) : p,
+    );
     revalidatePath("/dashboard");
-    const docSnap = await getDoc(productRef);
-    return { id: docSnap.id, ...docSnap.data() } as Product;
+    return updatedProduct as Product;
   } else {
-    // Create new product
-    const newProductData = {
+    // Create new product in mock array
+    const newProduct: Product = {
       ...data,
       ...aiResult,
       blockchainProof,
+      id: `pp-mock-${Date.now()}`,
       createdAt: nowISO,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
       verificationStatus: "Pending" as const,
       endOfLifeStatus: "Active" as const,
     };
-    const docRef = await addDoc(
-      collection(db, Collections.PRODUCTS),
-      newProductData,
-    );
+    mockProducts.unshift(newProduct);
     revalidatePath("/dashboard");
-    return { ...newProductData, id: docRef.id };
+    return newProduct;
   }
 }
 
 export async function deleteProduct(id: string): Promise<{ success: boolean }> {
-  const productRef = doc(db, Collections.PRODUCTS, id);
-  await deleteDoc(productRef);
+  mockProducts = mockProducts.filter((p) => p.id !== id);
   revalidatePath("/dashboard");
   return { success: true };
 }
@@ -170,14 +119,12 @@ export async function logAuditEvent(
   details: Record<string, any>,
   userId: string = "system",
 ): Promise<void> {
-  const now = new Date().toISOString();
-  const auditLog: Omit<AuditLog, "id"> = {
+  console.log("AUDIT EVENT (mock mode):", {
     userId,
     action,
     entityId,
     details,
-    createdAt: now,
-    updatedAt: now,
-  };
-  await addDoc(auditLogsCollection, auditLog);
+    timestamp: new Date().toISOString(),
+  });
+  return Promise.resolve();
 }

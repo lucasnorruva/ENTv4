@@ -19,6 +19,8 @@ import {
 import RoleSwitcher from "@/components/role-switcher";
 import SWRegister from "@/components/sw-register";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
   searchParams,

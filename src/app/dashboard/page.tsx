@@ -13,6 +13,8 @@ import ManufacturerDashboard from "@/components/dashboards/manufacturer-dashboar
 import ServiceProviderDashboard from "@/components/dashboards/service-provider-dashboard";
 import OverviewDashboard from "@/components/dashboards/overview-dashboard";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage({
   searchParams,
 }: {
