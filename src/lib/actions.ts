@@ -7,7 +7,7 @@ import type { Product, CompliancePath, AuditLog } from '@/types';
 import { enhancePassportInformation, type EnhancePassportInformationInput } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { db } from './firebase';
-import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy, writeBatch, getDoc } from 'firebase/firestore';
 import { Collections } from './constants';
 
 const productsCollection = collection(db, Collections.PRODUCTS);
@@ -54,6 +54,21 @@ export async function getProducts(): Promise<Product[]> {
 export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated' | 'sustainabilityScore' | 'sustainabilityReport'> & { id?: string }): Promise<Product> {
   const now = new Date();
   const nowISO = now.toISOString();
+  
+  const aiInput = {
+    productName: data.productName,
+    productDescription: data.productDescription,
+    category: data.category,
+    currentInformation: data.currentInformation
+  };
+
+  let aiResult = {};
+  try {
+    aiResult = await calculateSustainability(aiInput);
+  } catch (aiError) {
+    console.error(`AI sustainability calculation failed for product ${data.id || 'new'}:`, aiError);
+    // Continue without AI data if the call fails
+  }
 
   if (data.id) {
     // Update existing product
@@ -61,19 +76,22 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
     const { id, ...saveData } = data;
     const updatedData = { 
         ...saveData, 
+        ...aiResult,
         updatedAt: nowISO, 
         lastUpdated: now.toISOString().split('T')[0],
-        verificationStatus: 'Pending' as const, // Reset verification on update
+        verificationStatus: 'Pending' as const,
         lastVerificationDate: nowISO,
     };
     await setDoc(productRef, updatedData, { merge: true });
-    
     revalidatePath('/dashboard');
-    return { ...updatedData, id: data.id, createdAt: 'N/A' } as Product;
+    const docSnap = await getDoc(productRef);
+    return { id: docSnap.id, ...docSnap.data() } as Product;
+
   } else {
     // Create new product
     const newProductData = {
       ...data,
+      ...aiResult,
       createdAt: nowISO,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split('T')[0],
@@ -82,34 +100,8 @@ export async function saveProduct(data: Omit<Product, 'id' | 'createdAt' | 'upda
       endOfLifeStatus: 'Active' as const,
     };
     const docRef = await addDoc(collection(db, Collections.PRODUCTS), newProductData);
-    
-    // This simulates the "on-create trigger" by immediately calling the AI flow
-    // and updating the document with the sustainability score.
-    try {
-        const aiResult = await calculateSustainability({
-            productName: data.productName,
-            productDescription: data.productDescription,
-            category: data.category,
-            currentInformation: data.currentInformation
-        });
-
-        const productWithScore = {
-            ...newProductData,
-            ...aiResult
-        };
-        
-        // Update the doc with the AI insights
-        await setDoc(docRef, productWithScore);
-        
-        revalidatePath('/dashboard');
-        return { ...productWithScore, id: docRef.id };
-
-    } catch (aiError) {
-        console.error("AI sustainability calculation failed for new product:", aiError);
-        // The product was created, but AI failed. We can still return the base product.
-        revalidatePath('/dashboard');
-        return { ...newProductData, id: docRef.id };
-    }
+    revalidatePath('/dashboard');
+    return { ...newProductData, id: docRef.id };
   }
 }
 
