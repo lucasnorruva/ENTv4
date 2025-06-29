@@ -150,7 +150,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
     if (!productName || !productDescription) {
       toast({
         title: "Missing Information",
-        description: "Please provide a product name and description before enhancing.",
+        description: "Please provide a product name and description before getting suggestions.",
         variant: "destructive",
       });
       return;
@@ -163,7 +163,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         setAiSuggestion(suggestion);
     } catch (error) {
         toast({
-            title: "AI Enhancement Failed",
+            title: "AI Suggestion Failed",
             description: "Could not get suggestion from AI. Please try again.",
             variant: "destructive"
         });
@@ -338,7 +338,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                           ) : (
                               <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
                           )}
-                          Enhance with AI
+                          Suggest Improvements
                       </Button>
                     </div>
                     <FormControl>
