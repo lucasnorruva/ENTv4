@@ -1,5 +1,5 @@
 // src/types/index.ts
-import type { Role } from '@/lib/constants';
+import type { Role } from "@/lib/constants";
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -38,16 +38,16 @@ export interface Product extends BaseEntity {
   productImage: string;
   category: string;
   supplier: string;
-  complianceLevel: 'High' | 'Medium' | 'Low';
+  complianceLevel: "High" | "Medium" | "Low";
   currentInformation: string; // A stringified JSON object with passport data
-  status: 'Published' | 'Draft' | 'Archived';
+  status: "Published" | "Draft" | "Archived";
   lastUpdated: string; // ISO 8601 date string for display purposes
   sustainabilityScore?: number;
   sustainabilityReport?: string;
   lastVerificationDate?: string; // ISO 8601 format
-  verificationStatus?: 'Verified' | 'Pending' | 'Failed';
+  verificationStatus?: "Verified" | "Pending" | "Failed";
   complianceSummary?: string;
-  endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
+  endOfLifeStatus?: "Active" | "Recycled" | "Disposed";
   blockchainProof?: {
     txHash: string;
     explorerUrl: string;
@@ -84,7 +84,7 @@ export interface Supplier extends BaseEntity {
 export interface Verification extends BaseEntity {
   productId: string;
   auditorId: string;
-  status: 'Pending' | 'Approved' | 'Rejected';
+  status: "Pending" | "Approved" | "Rejected";
   notes: string;
   verificationDate: string; // ISO 8601 format
 }

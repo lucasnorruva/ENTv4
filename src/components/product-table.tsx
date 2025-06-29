@@ -1,12 +1,17 @@
 // src/components/product-table.tsx
-'use client';
+"use client";
 
-import React from 'react';
-import Image from 'next/image';
-import { MoreHorizontal, FilePenLine, Trash2, Link as LinkIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import React from "react";
+import Image from "next/image";
+import {
+  MoreHorizontal,
+  FilePenLine,
+  Trash2,
+  Link as LinkIcon,
+} from "lucide-react";
+import { format } from "date-fns";
 
-import type { Product } from '@/types';
+import type { Product } from "@/types";
 import {
   Table,
   TableBody,
@@ -14,13 +19,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,10 +36,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from './ui/progress';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "./ui/progress";
 
 interface ProductTableProps {
   products: Product[];
@@ -42,30 +47,34 @@ interface ProductTableProps {
   onDelete: (id: string) => void;
 }
 
-export default function ProductTable({ products, onEdit, onDelete }: ProductTableProps) {
-  const getStatusVariant = (status: Product['status']) => {
+export default function ProductTable({
+  products,
+  onEdit,
+  onDelete,
+}: ProductTableProps) {
+  const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
-      case 'Published':
-        return 'default';
-      case 'Draft':
-        return 'secondary';
-      case 'Archived':
-        return 'outline';
+      case "Published":
+        return "default";
+      case "Draft":
+        return "secondary";
+      case "Archived":
+        return "outline";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
-  const getVerificationVariant = (status?: Product['verificationStatus']) => {
+  const getVerificationVariant = (status?: Product["verificationStatus"]) => {
     switch (status) {
-      case 'Verified':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Failed':
-        return 'destructive';
+      case "Verified":
+        return "default";
+      case "Pending":
+        return "secondary";
+      case "Failed":
+        return "destructive";
       default:
-        return 'outline';
+        return "outline";
     }
   };
 
@@ -83,7 +92,7 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
         </TableRow>
       </TableHeader>
       <TableBody>
-        {products.map(product => (
+        {products.map((product) => (
           <TableRow key={product.id}>
             <TableCell>
               <Image
@@ -98,23 +107,37 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
             <TableCell className="font-medium">{product.productName}</TableCell>
             <TableCell>
               {product.sustainabilityScore !== undefined ? (
-                <div className="flex items-center gap-2" title={product.sustainabilityReport}>
-                  <Progress value={product.sustainabilityScore} className="w-20 h-2" />
+                <div
+                  className="flex items-center gap-2"
+                  title={product.sustainabilityReport}
+                >
+                  <Progress
+                    value={product.sustainabilityScore}
+                    className="w-20 h-2"
+                  />
                   <span>{product.sustainabilityScore}/100</span>
                 </div>
               ) : (
-                <span className="text-muted-foreground text-xs italic">Pending...</span>
+                <span className="text-muted-foreground text-xs italic">
+                  Pending...
+                </span>
               )}
             </TableCell>
             <TableCell>
-              <Badge variant={getStatusVariant(product.status)}>{product.status}</Badge>
-            </TableCell>
-            <TableCell>
-              <Badge variant={getVerificationVariant(product.verificationStatus)}>
-                {product.verificationStatus ?? 'N/A'}
+              <Badge variant={getStatusVariant(product.status)}>
+                {product.status}
               </Badge>
             </TableCell>
-            <TableCell>{format(new Date(product.lastUpdated), 'PPP')}</TableCell>
+            <TableCell>
+              <Badge
+                variant={getVerificationVariant(product.verificationStatus)}
+              >
+                {product.verificationStatus ?? "N/A"}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              {format(new Date(product.lastUpdated), "PPP")}
+            </TableCell>
             <TableCell className="text-right">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -129,7 +152,11 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
                   </DropdownMenuItem>
                   {product.blockchainProof && (
                     <DropdownMenuItem asChild>
-                      <a href={product.blockchainProof.explorerUrl} target="_blank" rel="noopener noreferrer">
+                      <a
+                        href={product.blockchainProof.explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
                         <LinkIcon className="mr-2 h-4 w-4" />
                         View on Polygon
                       </a>
@@ -137,7 +164,7 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
                   )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Trash2 className="mr-2 h-4 w-4 text-destructive" />
                         <span className="text-destructive">Delete</span>
                       </DropdownMenuItem>
@@ -146,7 +173,8 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          This action cannot be undone. This will permanently delete the passport for "{product.productName}".
+                          This action cannot be undone. This will permanently
+                          delete the passport for "{product.productName}".
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

@@ -5,11 +5,15 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import ProductTable from '../product-table';
-import type { Product } from '@/types';
+} from "@/components/ui/card";
+import ProductTable from "../product-table";
+import type { Product } from "@/types";
 
-export default function ManufacturerDashboard({ products }: { products: Product[] }) {
+export default function ManufacturerDashboard({
+  products,
+}: {
+  products: Product[];
+}) {
   // Manufacturers would likely have a different set of actions,
   // but for now, we can show a read-only table.
   return (
@@ -21,10 +25,10 @@ export default function ManufacturerDashboard({ products }: { products: Product[
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ProductTable 
-            products={products}
-            onEdit={() => alert('Editing not available in this view.')}
-            onDelete={() => alert('Deleting not available in this view.')}
+        <ProductTable
+          products={products}
+          onEdit={() => alert("Editing not available in this view.")}
+          onDelete={() => alert("Deleting not available in this view.")}
         />
       </CardContent>
     </Card>

@@ -1,20 +1,13 @@
-import React from 'react';
-import {
-  Bell,
-  Search,
-  UserCircle,
-} from 'lucide-react';
-import type { Role } from '@/lib/constants';
-import { UserRoles } from '@/lib/constants';
-import { getCurrentUser } from '@/lib/auth';
+import React from "react";
+import { Bell, Search, UserCircle } from "lucide-react";
+import type { Role } from "@/lib/constants";
+import { UserRoles } from "@/lib/constants";
+import { getCurrentUser } from "@/lib/auth";
 
-import {
-  SidebarProvider,
-  SidebarInset,
-} from '@/components/ui/sidebar';
-import DashboardSidebar from '@/components/dashboard-sidebar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import DashboardSidebar from "@/components/dashboard-sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,9 +15,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import RoleSwitcher from '@/components/role-switcher';
-import SWRegister from '@/components/sw-register';
+} from "@/components/ui/dropdown-menu";
+import RoleSwitcher from "@/components/role-switcher";
+import SWRegister from "@/components/sw-register";
 
 export default async function DashboardLayout({
   children,
@@ -46,7 +39,7 @@ export default async function DashboardLayout({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Search passports..." className="pl-9" />
           </div>
-          
+
           <RoleSwitcher roles={allRoles} currentRole={user.roles[0]} />
 
           <Button variant="ghost" size="icon">

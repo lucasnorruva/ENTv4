@@ -1,22 +1,22 @@
 // src/components/dashboards/supplier-dashboard.tsx
-'use client';
+"use client";
 
-import React, { useState, useTransition } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useTransition } from "react";
+import { Plus } from "lucide-react";
 
-import type { Product } from '@/types';
+import type { Product } from "@/types";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import ProductForm from '../product-form';
-import ProductTable from '../product-table';
-import { deleteProduct } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import ProductForm from "../product-form";
+import ProductTable from "../product-table";
+import { deleteProduct } from "@/lib/actions";
+import { useToast } from "@/hooks/use-toast";
 
 export default function SupplierDashboard({
   initialProducts,
@@ -42,10 +42,12 @@ export default function SupplierDashboard({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id);
-      setProducts(currentProducts => currentProducts.filter(p => p.id !== id));
+      setProducts((currentProducts) =>
+        currentProducts.filter((p) => p.id !== id),
+      );
       toast({
-        title: 'Product Deleted',
-        description: 'The product passport has been successfully deleted.',
+        title: "Product Deleted",
+        description: "The product passport has been successfully deleted.",
       });
     });
   };
@@ -53,12 +55,14 @@ export default function SupplierDashboard({
   const handleSave = (savedProduct: Product) => {
     if (selectedProduct) {
       // Update
-      setProducts(currentProducts =>
-        currentProducts.map(p => (p.id === savedProduct.id ? savedProduct : p))
+      setProducts((currentProducts) =>
+        currentProducts.map((p) =>
+          p.id === savedProduct.id ? savedProduct : p,
+        ),
       );
     } else {
       // Create
-      setProducts(currentProducts => [savedProduct, ...currentProducts]);
+      setProducts((currentProducts) => [savedProduct, ...currentProducts]);
     }
     setIsSheetOpen(false);
   };
@@ -80,7 +84,7 @@ export default function SupplierDashboard({
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable 
+          <ProductTable
             products={products}
             onEdit={handleEdit}
             onDelete={handleDelete}

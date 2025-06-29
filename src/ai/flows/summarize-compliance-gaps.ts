@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 /**
  * @fileOverview An AI agent for summarizing compliance gaps in product data.
@@ -8,31 +8,51 @@
  * - SummarizeComplianceGapsOutput - The return type for the function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
 
 const SummarizeComplianceGapsInputSchema = z.object({
   productName: z.string().describe("The product's name."),
-  productInformation: z.string().describe('The JSON data associated with the product passport.'),
-  compliancePathName: z.string().describe('The name of the compliance path being checked against.'),
-  complianceRules: z.string().describe('The JSON representation of the rules for the compliance path.'),
+  productInformation: z
+    .string()
+    .describe("The JSON data associated with the product passport."),
+  compliancePathName: z
+    .string()
+    .describe("The name of the compliance path being checked against."),
+  complianceRules: z
+    .string()
+    .describe("The JSON representation of the rules for the compliance path."),
 });
-export type SummarizeComplianceGapsInput = z.infer<typeof SummarizeComplianceGapsInputSchema>;
+export type SummarizeComplianceGapsInput = z.infer<
+  typeof SummarizeComplianceGapsInputSchema
+>;
 
 const SummarizeComplianceGapsOutputSchema = z.object({
-  isCompliant: z.boolean().describe('A boolean indicating if the product is compliant with the rules.'),
-  complianceSummary: z.string().describe('A concise, human-readable summary (2-4 sentences) explaining the compliance status, detailing any gaps found or confirming adherence.'),
+  isCompliant: z
+    .boolean()
+    .describe(
+      "A boolean indicating if the product is compliant with the rules.",
+    ),
+  complianceSummary: z
+    .string()
+    .describe(
+      "A concise, human-readable summary (2-4 sentences) explaining the compliance status, detailing any gaps found or confirming adherence.",
+    ),
 });
-export type SummarizeComplianceGapsOutput = z.infer<typeof SummarizeComplianceGapsOutputSchema>;
+export type SummarizeComplianceGapsOutput = z.infer<
+  typeof SummarizeComplianceGapsOutputSchema
+>;
 
-export async function summarizeComplianceGaps(input: SummarizeComplianceGapsInput): Promise<SummarizeComplianceGapsOutput> {
+export async function summarizeComplianceGaps(
+  input: SummarizeComplianceGapsInput,
+): Promise<SummarizeComplianceGapsOutput> {
   return summarizeComplianceGapsFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: 'summarizeComplianceGapsPrompt',
-  input: {schema: SummarizeComplianceGapsInputSchema},
-  output: {schema: SummarizeComplianceGapsOutputSchema},
+  name: "summarizeComplianceGapsPrompt",
+  input: { schema: SummarizeComplianceGapsInputSchema },
+  output: { schema: SummarizeComplianceGapsOutputSchema },
   prompt: `You are an expert EU regulatory compliance auditor for Digital Product Passports. Your task is to analyze a product's data against a specific set of compliance rules and provide a clear, concise summary of your findings.
 
   Analyze the following product information:
@@ -55,12 +75,12 @@ const prompt = ai.definePrompt({
 
 const summarizeComplianceGapsFlow = ai.defineFlow(
   {
-    name: 'summarizeComplianceGapsFlow',
+    name: "summarizeComplianceGapsFlow",
     inputSchema: SummarizeComplianceGapsInputSchema,
     outputSchema: SummarizeComplianceGapsOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
+  async (input) => {
+    const { output } = await prompt(input);
     return output!;
-  }
+  },
 );

@@ -1,15 +1,15 @@
 {
-    "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "[javascript]": {
-        "editor.defaultFormatter": "eslint.eslint"
-    },
-    "[typescript]": {
-        "editor.defaultFormatter": "eslint.eslint"
-    },
-    "[typescriptreact]": {
-        "editor.defaultFormatter": "eslint.eslint"
-    }
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "eslint.eslint"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "eslint.eslint"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "eslint.eslint"
+  }
 }

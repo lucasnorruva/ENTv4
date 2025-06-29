@@ -1,16 +1,16 @@
 // src/components/dashboards/auditor-dashboard.tsx
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -18,7 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,16 +27,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import type { Product } from '@/types';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+} from "@/components/ui/alert-dialog";
+import type { Product } from "@/types";
+import { AlertCircle, CheckCircle } from "lucide-react";
 
-export default function AuditorDashboard({ products }: { products: Product[] }) {
+export default function AuditorDashboard({
+  products,
+}: {
+  products: Product[];
+}) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const productsToAudit = products.filter(
-    p => p.verificationStatus === 'Pending' || p.verificationStatus === 'Failed'
+    (p) =>
+      p.verificationStatus === "Pending" || p.verificationStatus === "Failed",
   );
 
   const handleReviewClick = (product: Product) => {
@@ -70,7 +75,7 @@ export default function AuditorDashboard({ products }: { products: Product[] }) 
               </TableRow>
             </TableHeader>
             <TableBody>
-              {productsToAudit.map(product => (
+              {productsToAudit.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="font-medium">
                     {product.productName}
@@ -79,9 +84,9 @@ export default function AuditorDashboard({ products }: { products: Product[] }) 
                   <TableCell>
                     <Badge
                       variant={
-                        product.verificationStatus === 'Failed'
-                          ? 'destructive'
-                          : 'secondary'
+                        product.verificationStatus === "Failed"
+                          ? "destructive"
+                          : "secondary"
                       }
                     >
                       {product.verificationStatus}
@@ -120,23 +125,36 @@ export default function AuditorDashboard({ products }: { products: Product[] }) 
             </AlertDialogHeader>
             <div className="space-y-4 my-4">
               <h3 className="font-semibold text-sm">Compliance Summary:</h3>
-              {selectedProduct.verificationStatus === 'Failed' ? (
+              {selectedProduct.verificationStatus === "Failed" ? (
                 <div className="flex items-start gap-3 text-sm text-destructive bg-destructive/10 p-4 rounded-md">
-                   <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                   <p>{selectedProduct.complianceSummary || 'No specific details were provided for this failure.'}</p>
+                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                  <p>
+                    {selectedProduct.complianceSummary ||
+                      "No specific details were provided for this failure."}
+                  </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 text-sm text-green-600 bg-green-500/10 p-4 rounded-md">
-                   <CheckCircle className="h-4 w-4 shrink-0"/>
-                   <p>{selectedProduct.complianceSummary || 'No issues found in the last automated check.'}</p>
+                  <CheckCircle className="h-4 w-4 shrink-0" />
+                  <p>
+                    {selectedProduct.complianceSummary ||
+                      "No issues found in the last automated check."}
+                  </p>
                 </div>
               )}
-               <div className="text-xs text-muted-foreground pt-2">
-                    Last Checked: {selectedProduct.lastVerificationDate ? new Date(selectedProduct.lastVerificationDate).toLocaleString() : 'N/A'}
-               </div>
+              <div className="text-xs text-muted-foreground pt-2">
+                Last Checked:{" "}
+                {selectedProduct.lastVerificationDate
+                  ? new Date(
+                      selectedProduct.lastVerificationDate,
+                    ).toLocaleString()
+                  : "N/A"}
+              </div>
             </div>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Close</Button>
+              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                Close
+              </Button>
               <Button onClick={handleApprove}>Approve Passport</Button>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -249,8 +249,8 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a category" />
-                            </Trigger>
+                              <SelectValue placeholder='Select a category' />
+                            </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             <SelectItem value="Electronics">Electronics</SelectItem>
@@ -288,8 +288,8 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a level" />
-                          </Trigger>
+                            <SelectValue placeholder='Select a level' />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="High">High</SelectItem>
@@ -310,8 +310,8 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                          </Trigger>
+                            <SelectValue placeholder='Select a status' />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="Draft">Draft</SelectItem>

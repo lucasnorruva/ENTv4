@@ -2,9 +2,9 @@
 
 // Placeholder for AI-assisted onboarding logic.
 // This could be a Firebase Function triggered on new user creation.
-'use server';
+"use server";
 
-import type { User } from '@/types';
+import type { User } from "@/types";
 
 /**
  * Guides a new user through the initial setup process using AI.
@@ -14,12 +14,12 @@ import type { User } from '@/types';
  */
 export async function startAiOnboarding(user: User): Promise<void> {
   console.log(`Starting AI-powered onboarding for user: ${user.email}`);
-  
+
   // In a real implementation, this would involve:
   // 1. Creating a conversation state object in Firestore for the new user.
   // 2. Using a Genkit flow to ask the user about their company, role, products, etc.
   // 3. Populating their user profile and company information in Firestore
   //    based on their answers, making setup seamless.
-  
+
   await Promise.resolve();
 }

@@ -1,6 +1,6 @@
-'use server';
+"use server";
 
-import { createHash } from 'crypto';
+import { createHash } from "crypto";
 
 /**
  * Creates a deterministic SHA-256 hash of a product's core passport data.
@@ -11,7 +11,7 @@ import { createHash } from 'crypto';
  * @returns A SHA-256 hash of the data.
  */
 export async function hashProductData(productData: string): Promise<string> {
-  return createHash('sha256').update(productData).digest('hex');
+  return createHash("sha256").update(productData).digest("hex");
 }
 
 /**
@@ -21,7 +21,9 @@ export async function hashProductData(productData: string): Promise<string> {
  * @param hash The hash to be anchored on the blockchain.
  * @returns A promise that resolves to an object with the transaction hash and a link to a block explorer.
  */
-export async function anchorToPolygon(hash: string): Promise<{ txHash: string; explorerUrl: string }> {
+export async function anchorToPolygon(
+  hash: string,
+): Promise<{ txHash: string; explorerUrl: string }> {
   console.log(`Anchoring hash ${hash} to Polygon...`);
 
   // In a real implementation, you would:
@@ -31,8 +33,8 @@ export async function anchorToPolygon(hash: string): Promise<{ txHash: string; e
   // 3. Send a transaction to a contract function like `recordHash(bytes32 hash)`.
 
   // Simulate network delay and return a mock transaction hash and explorer URL.
-  await new Promise(resolve => setTimeout(resolve, 700));
-  const mockTxHash = `0x${[...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+  await new Promise((resolve) => setTimeout(resolve, 700));
+  const mockTxHash = `0x${[...Array(64)].map(() => Math.floor(Math.random() * 16).toString(16)).join("")}`;
   const explorerUrl = `https://polygonscan.com/tx/${mockTxHash}`; // Mock PolygonScan URL
 
   console.log(`Hash anchored in transaction: ${mockTxHash}`);

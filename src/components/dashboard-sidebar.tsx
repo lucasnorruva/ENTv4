@@ -1,5 +1,5 @@
 // src/components/dashboard-sidebar.tsx
-'use client';
+"use client";
 
 import {
   LayoutGrid,
@@ -12,8 +12,8 @@ import {
   Recycle,
   Factory,
   Wrench,
-  FileQuestion
-} from 'lucide-react';
+  FileQuestion,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -21,8 +21,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { UserRoles, type Role } from '@/lib/constants';
+} from "@/components/ui/sidebar";
+import { UserRoles, type Role } from "@/lib/constants";
 
 function Logo() {
   return (
@@ -37,46 +37,48 @@ interface DashboardSidebarProps {
   userRole: Role;
 }
 
-const navConfig: Record<Role, { title: string; icon: React.ElementType, href: string }[]> = {
+const navConfig: Record<
+  Role,
+  { title: string; icon: React.ElementType; href: string }[]
+> = {
   [UserRoles.ADMIN]: [
-    { title: 'Users', icon: Users, href: '#' },
-    { title: 'Compliance Rules', icon: FileQuestion, href: '#' },
-    { title: 'System Settings', icon: Settings, href: '#' },
+    { title: "Users", icon: Users, href: "#" },
+    { title: "Compliance Rules", icon: FileQuestion, href: "#" },
+    { title: "System Settings", icon: Settings, href: "#" },
   ],
   [UserRoles.SUPPLIER]: [
-    { title: 'My Products', icon: BookCopy, href: '#' },
-    { title: 'Upload History', icon: Code, href: '#' },
+    { title: "My Products", icon: BookCopy, href: "#" },
+    { title: "Upload History", icon: Code, href: "#" },
   ],
   [UserRoles.MANUFACTURER]: [
-    { title: 'Products', icon: BookCopy, href: '#' },
-    { title: 'Production Lines', icon: Factory, href: '#' },
+    { title: "Products", icon: BookCopy, href: "#" },
+    { title: "Production Lines", icon: Factory, href: "#" },
   ],
   [UserRoles.AUDITOR]: [
-    { title: 'Audit Queue', icon: ShieldCheck, href: '#' },
-    { title: 'All Products', icon: BookCopy, href: '#' },
+    { title: "Audit Queue", icon: ShieldCheck, href: "#" },
+    { title: "All Products", icon: BookCopy, href: "#" },
   ],
   [UserRoles.COMPLIANCE_MANAGER]: [
-    { title: 'Flagged Products', icon: ShieldCheck, href: '#' },
-    { title: 'Compliance Reports', icon: BarChart3, href: '#' },
+    { title: "Flagged Products", icon: ShieldCheck, href: "#" },
+    { title: "Compliance Reports", icon: BarChart3, href: "#" },
   ],
   [UserRoles.BUSINESS_ANALYST]: [
-    { title: 'Analytics', icon: BarChart3, href: '#' },
-    { title: 'Data Export', icon: Code, href: '#' },
+    { title: "Analytics", icon: BarChart3, href: "#" },
+    { title: "Data Export", icon: Code, href: "#" },
   ],
   [UserRoles.DEVELOPER]: [
-    { title: 'API Logs', icon: Code, href: '#' },
-    { title: 'Integrations', icon: Wrench, href: '#' },
+    { title: "API Logs", icon: Code, href: "#" },
+    { title: "Integrations", icon: Wrench, href: "#" },
   ],
   [UserRoles.RECYCLER]: [
-    { title: 'EOL Products', icon: Recycle, href: '#' },
-    { title: 'Recycling Reports', icon: BarChart3, href: '#' },
+    { title: "EOL Products", icon: Recycle, href: "#" },
+    { title: "Recycling Reports", icon: BarChart3, href: "#" },
   ],
   [UserRoles.SERVICE_PROVIDER]: [
-    { title: 'Service Tickets', icon: Wrench, href: '#' },
-    { title: 'Product Manuals', icon: BookCopy, href: '#' },
+    { title: "Service Tickets", icon: Wrench, href: "#" },
+    { title: "Product Manuals", icon: BookCopy, href: "#" },
   ],
 };
-
 
 export default function DashboardSidebar({ userRole }: DashboardSidebarProps) {
   const menuItems = navConfig[userRole] || [];

@@ -5,32 +5,32 @@
  * across the application.
  */
 export const Collections = {
-  PRODUCTS: 'products',
-  COMPLIANCE_PATHS: 'compliancePaths',
-  SUPPLIERS: 'suppliers',
-  VERIFICATIONS: 'verifications',
-  USERS: 'users',
-  COMPANIES: 'companies',
-  AUDIT_LOGS: 'auditLogs',
-  WEBHOOKS: 'webhooks'
+  PRODUCTS: "products",
+  COMPLIANCE_PATHS: "compliancePaths",
+  SUPPLIERS: "suppliers",
+  VERIFICATIONS: "verifications",
+  USERS: "users",
+  COMPANIES: "companies",
+  AUDIT_LOGS: "auditLogs",
+  WEBHOOKS: "webhooks",
 } as const;
 
 /**
  * Defines the standardized user roles within the Norruva platform.
  */
 export const UserRoles = {
-  ADMIN: 'Admin',
-  SUPPLIER: 'Supplier',
-  AUDITOR: 'Auditor',
-  COMPLIANCE_MANAGER: 'Compliance Manager',
-  MANUFACTURER: 'Manufacturer',
-  SERVICE_PROVIDER: 'Service Provider',
-  RECYCLER: 'Recycler',
-  DEVELOPER: 'Developer',
-  BUSINESS_ANALYST: 'Business Analyst'
+  ADMIN: "Admin",
+  SUPPLIER: "Supplier",
+  AUDITOR: "Auditor",
+  COMPLIANCE_MANAGER: "Compliance Manager",
+  MANUFACTURER: "Manufacturer",
+  SERVICE_PROVIDER: "Service Provider",
+  RECYCLER: "Recycler",
+  DEVELOPER: "Developer",
+  BUSINESS_ANALYST: "Business Analyst",
 } as const;
 
 /**
  * A type representing one of the possible user roles.
  */
-export type Role = typeof UserRoles[keyof typeof UserRoles];
+export type Role = (typeof UserRoles)[keyof typeof UserRoles];

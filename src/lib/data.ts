@@ -1,117 +1,168 @@
-import type { Product } from '@/types';
+import type { Product } from "@/types";
 
 const now = new Date();
 
 export let products: Product[] = [
   {
-    id: 'pp-001',
-    productName: 'Eco-Friendly Smart Watch Series 5',
-    productDescription: 'A stylish and sustainable smart watch with advanced health tracking features, made from recycled materials.',
-    productImage: 'https://placehold.co/100x100.png',
-    category: 'Electronics',
-    supplier: 'GreenTech Supplies',
-    complianceLevel: 'High',
+    id: "pp-001",
+    productName: "Eco-Friendly Smart Watch Series 5",
+    productDescription:
+      "A stylish and sustainable smart watch with advanced health tracking features, made from recycled materials.",
+    productImage: "https://placehold.co/100x100.png",
+    category: "Electronics",
+    supplier: "GreenTech Supplies",
+    complianceLevel: "High",
     sustainabilityScore: 92,
-    sustainabilityReport: 'High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.',
-    currentInformation: JSON.stringify({
-      "materials": ["Recycled Aluminum", "Organic Cotton Strap"],
-      "certifications": ["EcoCert", "Fair Trade"],
-      "battery_life_hours": 72,
-      "water_resistance_atm": 5,
-    }, null, 2),
-    status: 'Published',
-    lastUpdated: new Date(now.setDate(now.getDate() - 1)).toISOString().split('T')[0],
+    sustainabilityReport:
+      "High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.",
+    currentInformation: JSON.stringify(
+      {
+        materials: ["Recycled Aluminum", "Organic Cotton Strap"],
+        certifications: ["EcoCert", "Fair Trade"],
+        battery_life_hours: 72,
+        water_resistance_atm: 5,
+      },
+      null,
+      2,
+    ),
+    status: "Published",
+    lastUpdated: new Date(now.setDate(now.getDate() - 1))
+      .toISOString()
+      .split("T")[0],
     createdAt: new Date(now.setDate(now.getDate() - 30)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 1)).toISOString(),
-    verificationStatus: 'Verified',
-    lastVerificationDate: new Date(now.setDate(now.getDate() - 1)).toISOString(),
+    verificationStatus: "Verified",
+    lastVerificationDate: new Date(
+      now.setDate(now.getDate() - 1),
+    ).toISOString(),
   },
   {
-    id: 'pp-002',
-    productName: 'Pro-Grade 4K Drone',
-    productDescription: 'Capture stunning aerial footage with our professional-grade drone, featuring a 4K camera and 3-axis gimbal.',
-    productImage: 'https://placehold.co/100x100.png',
-    category: 'Electronics',
-    supplier: 'AeroDynamics Inc.',
-    complianceLevel: 'Medium',
+    id: "pp-002",
+    productName: "Pro-Grade 4K Drone",
+    productDescription:
+      "Capture stunning aerial footage with our professional-grade drone, featuring a 4K camera and 3-axis gimbal.",
+    productImage: "https://placehold.co/100x100.png",
+    category: "Electronics",
+    supplier: "AeroDynamics Inc.",
+    complianceLevel: "Medium",
     sustainabilityScore: 65,
-    sustainabilityReport: 'Average score. High-performance components are difficult to recycle. Opportunities exist to improve packaging and use recycled plastics.',
-    currentInformation: JSON.stringify({
-      "camera_resolution": "4K",
-      "flight_time_minutes": 30,
-      "range_km": 5,
-      "weight_grams": 795,
-      "materials": ["Plastic", "Lithium"],
-    }, null, 2),
-    status: 'Published',
-    lastUpdated: new Date(now.setDate(now.getDate() - 3)).toISOString().split('T')[0],
+    sustainabilityReport:
+      "Average score. High-performance components are difficult to recycle. Opportunities exist to improve packaging and use recycled plastics.",
+    currentInformation: JSON.stringify(
+      {
+        camera_resolution: "4K",
+        flight_time_minutes: 30,
+        range_km: 5,
+        weight_grams: 795,
+        materials: ["Plastic", "Lithium"],
+      },
+      null,
+      2,
+    ),
+    status: "Published",
+    lastUpdated: new Date(now.setDate(now.getDate() - 3))
+      .toISOString()
+      .split("T")[0],
     createdAt: new Date(now.setDate(now.getDate() - 60)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 3)).toISOString(),
-    verificationStatus: 'Verified',
-    lastVerificationDate: new Date(now.setDate(now.getDate() - 3)).toISOString(),
+    verificationStatus: "Verified",
+    lastVerificationDate: new Date(
+      now.setDate(now.getDate() - 3),
+    ).toISOString(),
   },
   {
-    id: 'pp-003',
-    productName: 'Organic Cotton T-Shirt',
-    productDescription: 'A soft, comfortable, and sustainable t-shirt made from 100% organic cotton.',
-    productImage: 'https://placehold.co/100x100.png',
-    category: 'Fashion',
-    supplier: 'Sustainable Threads Co.',
-    complianceLevel: 'High',
-    currentInformation: JSON.stringify({
-      "material": "100% Organic Cotton",
-      "origin": "India",
-      "color": "White",
-    }, null, 2),
-    status: 'Draft',
-    lastUpdated: new Date(now.setDate(now.getDate() - 0)).toISOString().split('T')[0],
+    id: "pp-003",
+    productName: "Organic Cotton T-Shirt",
+    productDescription:
+      "A soft, comfortable, and sustainable t-shirt made from 100% organic cotton.",
+    productImage: "https://placehold.co/100x100.png",
+    category: "Fashion",
+    supplier: "Sustainable Threads Co.",
+    complianceLevel: "High",
+    currentInformation: JSON.stringify(
+      {
+        material: "100% Organic Cotton",
+        origin: "India",
+        color: "White",
+      },
+      null,
+      2,
+    ),
+    status: "Draft",
+    lastUpdated: new Date(now.setDate(now.getDate() - 0))
+      .toISOString()
+      .split("T")[0],
     createdAt: new Date(now.setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 0)).toISOString(),
-    verificationStatus: 'Pending',
-    lastVerificationDate: new Date(now.setDate(now.getDate() - 5)).toISOString(),
+    verificationStatus: "Pending",
+    lastVerificationDate: new Date(
+      now.setDate(now.getDate() - 5),
+    ).toISOString(),
   },
   {
-    id: 'pp-004',
-    productName: 'Recycled Plastic Backpack',
-    productDescription: 'Durable and spacious backpack made entirely from recycled plastic bottles. Perfect for daily commute or travel.',
-    productImage: 'https://placehold.co/100x100.png',
-    category: 'Fashion',
-    supplier: 'ReNew Gear',
-    complianceLevel: 'Medium',
+    id: "pp-004",
+    productName: "Recycled Plastic Backpack",
+    productDescription:
+      "Durable and spacious backpack made entirely from recycled plastic bottles. Perfect for daily commute or travel.",
+    productImage: "https://placehold.co/100x100.png",
+    category: "Fashion",
+    supplier: "ReNew Gear",
+    complianceLevel: "Medium",
     sustainabilityScore: 85,
-    sustainabilityReport: 'Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.',
-    currentInformation: JSON.stringify({
-      "capacity_liters": 25,
-      "materials": ["Recycled PET", "Polyester"],
-      "features": ["Laptop Compartment", "Water Resistant"],
-    }, null, 2),
-    status: 'Archived',
-    lastUpdated: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString().split('T')[0],
-    createdAt: new Date(now.setFullYear(now.getFullYear() - 1) - 10).toISOString(),
+    sustainabilityReport:
+      "Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.",
+    currentInformation: JSON.stringify(
+      {
+        capacity_liters: 25,
+        materials: ["Recycled PET", "Polyester"],
+        features: ["Laptop Compartment", "Water Resistant"],
+      },
+      null,
+      2,
+    ),
+    status: "Archived",
+    lastUpdated: new Date(now.setFullYear(now.getFullYear() - 1))
+      .toISOString()
+      .split("T")[0],
+    createdAt: new Date(
+      now.setFullYear(now.getFullYear() - 1) - 10,
+    ).toISOString(),
     updatedAt: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
-    verificationStatus: 'Failed',
-    lastVerificationDate: new Date(now.setFullYear(now.getFullYear() - 1)).toISOString(),
+    verificationStatus: "Failed",
+    lastVerificationDate: new Date(
+      now.setFullYear(now.getFullYear() - 1),
+    ).toISOString(),
   },
-    {
-    id: 'pp-005',
-    productName: 'Modular Shelving Unit',
-    productDescription: 'A versatile and customizable shelving unit designed to adapt to your space and needs. Made from sustainable bamboo.',
-    productImage: 'https://placehold.co/100x100.png',
-    category: 'Home Goods',
-    supplier: 'EcoHome Furnishings',
-    complianceLevel: 'High',
+  {
+    id: "pp-005",
+    productName: "Modular Shelving Unit",
+    productDescription:
+      "A versatile and customizable shelving unit designed to adapt to your space and needs. Made from sustainable bamboo.",
+    productImage: "https://placehold.co/100x100.png",
+    category: "Home Goods",
+    supplier: "EcoHome Furnishings",
+    complianceLevel: "High",
     sustainabilityScore: 88,
-    sustainabilityReport: 'Bamboo is a highly renewable resource. The modular design promotes repairability and long-term use, reducing waste.',
-    currentInformation: JSON.stringify({
-      "material": "Bamboo",
-      "dimensions_cm": { "width": 80, "height": 180, "depth": 30 },
-      "assembly_required": true
-    }, null, 2),
-    status: 'Published',
-    lastUpdated: new Date(now.setDate(now.getDate() - 15)).toISOString().split('T')[0],
+    sustainabilityReport:
+      "Bamboo is a highly renewable resource. The modular design promotes repairability and long-term use, reducing waste.",
+    currentInformation: JSON.stringify(
+      {
+        material: "Bamboo",
+        dimensions_cm: { width: 80, height: 180, depth: 30 },
+        assembly_required: true,
+      },
+      null,
+      2,
+    ),
+    status: "Published",
+    lastUpdated: new Date(now.setDate(now.getDate() - 15))
+      .toISOString()
+      .split("T")[0],
     createdAt: new Date(now.setDate(now.getDate() - 45)).toISOString(),
     updatedAt: new Date(now.setDate(now.getDate() - 15)).toISOString(),
-    verificationStatus: 'Pending',
-    lastVerificationDate: new Date(now.setDate(now.getDate() - 45)).toISOString(),
+    verificationStatus: "Pending",
+    lastVerificationDate: new Date(
+      now.setDate(now.getDate() - 45),
+    ).toISOString(),
   },
 ];

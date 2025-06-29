@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { Button } from '@/components/ui/button';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,17 +11,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  fullName: z.string().min(2, { message: 'Full name is required.' }),
-  email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(8, { message: 'Password must be at least 8 characters.' }),
+  fullName: z.string().min(2, { message: "Full name is required." }),
+  email: z.string().email({ message: "Invalid email address." }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters." }),
 });
 
 export default function SignupForm() {
@@ -31,9 +33,9 @@ export default function SignupForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: '',
-      email: '',
-      password: '',
+      fullName: "",
+      email: "",
+      password: "",
     },
   });
 
@@ -44,7 +46,7 @@ export default function SignupForm() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/dashboard');
+      router.push("/dashboard");
     }, 1000);
   }
 
@@ -53,7 +55,7 @@ export default function SignupForm() {
       <CardContent className="p-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-             <FormField
+            <FormField
               control={form.control}
               name="fullName"
               render={({ field }) => (
