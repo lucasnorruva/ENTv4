@@ -132,7 +132,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         });
       }
     });
-  };
+  }
   
   const handleEnhanceWithAI = async () => {
     const { productName, productDescription, currentInformation } = form.getValues();
@@ -159,7 +159,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
     } finally {
         setIsAiLoading(false);
     }
-  };
+  }
 
   const applySuggestion = () => {
     try {
@@ -169,7 +169,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
         form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
     }
     setAiSuggestion('');
-  };
+  }
 
 
   return (
@@ -186,7 +186,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
           </SheetDescription>
         </SheetHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 flex-1 overflow-y-auto pr-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} id="product-form" className="space-y-4 flex-1 overflow-y-auto pr-6">
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
