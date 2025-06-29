@@ -1,8 +1,5 @@
-import PassportDashboard from '@/components/passport-dashboard';
-import { getProducts } from '@/lib/actions';
+import LandingPage from '@/components/landing-page';
 
-export default async function Home() {
-  const initialProducts = await getProducts();
-
-  return <PassportDashboard initialProducts={initialProducts} />;
+export default function Home() {
+  return <LandingPage />;
 }
