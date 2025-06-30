@@ -12,7 +12,6 @@ export const Collections = {
   AUDIT_LOGS: "auditLogs",
   WEBHOOKS: "webhooks",
   API_KEYS: "apiKeys",
-  API_SETTINGS: "apiSettings",
 } as const;
 
 /**

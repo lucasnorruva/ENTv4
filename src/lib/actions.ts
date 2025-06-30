@@ -10,7 +10,6 @@ import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { apiKeys as mockApiKeys } from './api-key-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
-import { apiSettings as mockApiSettings } from './api-settings-data';
 import {
   productFormSchema,
   type ProductFormValues,
@@ -18,8 +17,6 @@ import {
   type CompliancePathFormValues,
   userFormSchema,
   type UserFormValues,
-  apiSettingsSchema,
-  type ApiSettingsFormValues,
 } from './schemas';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
@@ -45,7 +42,6 @@ import type {
   ServiceTicket,
   ApiKey,
   ComplianceGap,
-  ApiSettings,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
 import { UserRoles } from './constants';
@@ -69,8 +65,6 @@ export async function logAuditEvent(
   mockAuditLogs.unshift(newLog);
   revalidatePath('/dashboard/analytics');
   revalidatePath('/dashboard/history');
-  revalidatePath('/dashboard/logs');
-  revalidatePath('/dashboard/layout');
 }
 
 // --- AI FLOW ORCHESTRATION ---
@@ -667,28 +661,6 @@ export async function deleteApiKey(
   return { success: true };
 }
 
-// --- API SETTINGS ACTIONS ---
-export async function getApiSettings(): Promise<ApiSettings> {
-  return mockApiSettings;
-}
-
-export async function saveApiSettings(
-  settings: ApiSettingsFormValues,
-  adminUserId: string,
-): Promise<ApiSettings> {
-  const validatedData = apiSettingsSchema.parse(settings);
-  mockApiSettings.isPublicApiEnabled = validatedData.isPublicApiEnabled;
-  mockApiSettings.rateLimitPerMinute = validatedData.rateLimitPerMinute;
-  mockApiSettings.isWebhookSigningEnabled = validatedData.isWebhookSigningEnabled;
-  await logAuditEvent(
-    'settings.api.updated',
-    'global',
-    { settings: validatedData },
-    adminUserId,
-  );
-  revalidatePath('/dashboard/api-settings');
-  return mockApiSettings;
-}
 
 // --- OTHER MOCK DATA ACTIONS ---
 export async function getProductionLines(): Promise<ProductionLine[]> {
