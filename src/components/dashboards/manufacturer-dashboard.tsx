@@ -9,12 +9,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import ProductTable from "../product-table";
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 
 export default function ManufacturerDashboard({
   products,
+  user,
 }: {
   products: Product[];
+  user: User;
 }) {
   // Manufacturers would likely have a different set of actions,
   // but for now, we can show a read-only table.
@@ -31,6 +33,12 @@ export default function ManufacturerDashboard({
           products={products}
           onEdit={() => alert("Editing not available in this view.")}
           onDelete={() => alert("Deleting not available in this view.")}
+          onSubmitForReview={() =>
+            alert("Submitting not available in this view.")
+          }
+          onRecalculateScore={() =>
+            alert("Recalculating not available in this view.")
+          }
         />
       </CardContent>
     </Card>

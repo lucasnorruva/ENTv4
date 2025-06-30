@@ -5,7 +5,7 @@
 import React, { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 import {
   Card,
   CardContent,
@@ -25,8 +25,10 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function SupplierDashboard({
   initialProducts,
+  user,
 }: {
   initialProducts: Product[];
+  user: User;
 }) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function SupplierDashboard({
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
-      await deleteProduct(id);
+      await deleteProduct(id, user.id);
       setProducts((currentProducts) =>
         currentProducts.filter((p) => p.id !== id),
       );
@@ -60,7 +62,7 @@ export default function SupplierDashboard({
   const handleSubmitForReview = (id: string) => {
     startTransition(async () => {
       try {
-        const reviewedProduct = await submitForReview(id);
+        const reviewedProduct = await submitForReview(id, user.id);
         setProducts((currentProducts) =>
           currentProducts.map((p) => (p.id === id ? reviewedProduct : p)),
         );
@@ -81,7 +83,7 @@ export default function SupplierDashboard({
   const handleRecalculateScore = (id: string) => {
     startTransition(async () => {
       try {
-        const updatedProduct = await recalculateScore(id);
+        const updatedProduct = await recalculateScore(id, user.id);
         setProducts((currentProducts) =>
           currentProducts.map((p) => (p.id === id ? updatedProduct : p)),
         );
@@ -145,6 +147,7 @@ export default function SupplierDashboard({
         onOpenChange={setIsSheetOpen}
         product={selectedProduct}
         onSave={handleSave}
+        user={user}
       />
     </>
   );

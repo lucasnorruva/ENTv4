@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Product } from '@/types';
+import type { Product, User } from '@/types';
 import { saveProduct, runSuggestImprovements } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,6 +66,7 @@ interface ProductFormProps {
   onOpenChange: (isOpen: boolean) => void;
   product: Product | null;
   onSave: (product: Product) => void;
+  user: User;
 }
 
 const defaultJsonInfo = JSON.stringify(
@@ -79,7 +80,13 @@ const defaultJsonInfo = JSON.stringify(
   2
 );
 
-export default function ProductForm({ isOpen, onOpenChange, product, onSave }: ProductFormProps) {
+export default function ProductForm({
+  isOpen,
+  onOpenChange,
+  product,
+  onSave,
+  user,
+}: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState('');
@@ -132,7 +139,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
   const onSubmit = (values: ProductFormValues) => {
     startTransition(async () => {
       try {
-        const saved = await saveProduct({ ...values, id: product?.id });
+        const saved = await saveProduct({ ...values, id: product?.id }, user.id);
         toast({
           title: 'Success!',
           description: `Passport for "${saved.productName}" has been saved.`,
@@ -150,38 +157,48 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
   };
 
   const handleSuggestImprovements = async () => {
-    const { productName, productDescription, currentInformation } = form.getValues();
+    const { productName, productDescription, currentInformation } =
+      form.getValues();
     if (!productName || !productDescription) {
       toast({
-        title: "Missing Information",
-        description: "Please provide a product name and description before getting suggestions.",
-        variant: "destructive",
+        title: 'Missing Information',
+        description:
+          'Please provide a product name and description before getting suggestions.',
+        variant: 'destructive',
       });
       return;
     }
-    
+
     setIsAiLoading(true);
     setAiSuggestion('');
     try {
-        const suggestion = await runSuggestImprovements({ productName, productDescription, currentInformation });
-        setAiSuggestion(suggestion);
+      const suggestion = await runSuggestImprovements({
+        productName,
+        productDescription,
+        currentInformation,
+      });
+      setAiSuggestion(suggestion);
     } catch (error) {
-        toast({
-            title: "AI Suggestion Failed",
-            description: "Could not get suggestion from AI. Please try again.",
-            variant: "destructive"
-        });
+      toast({
+        title: 'AI Suggestion Failed',
+        description: 'Could not get suggestion from AI. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
-        setIsAiLoading(false);
+      setIsAiLoading(false);
     }
   };
 
   const applySuggestion = () => {
     try {
-        const formattedJson = JSON.stringify(JSON.parse(aiSuggestion), null, 2);
-        form.setValue('currentInformation', formattedJson, { shouldValidate: true });
+      const formattedJson = JSON.stringify(JSON.parse(aiSuggestion), null, 2);
+      form.setValue('currentInformation', formattedJson, {
+        shouldValidate: true,
+      });
     } catch (error) {
-        form.setValue('currentInformation', aiSuggestion, { shouldValidate: true });
+      form.setValue('currentInformation', aiSuggestion, {
+        shouldValidate: true,
+      });
     }
     setAiSuggestion('');
   };
@@ -200,21 +217,27 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
           </SheetDescription>
         </SheetHeader>
         <div className="flex-1 overflow-y-auto">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-6">
-                <FormField
-                  control={form.control}
-                  name="productName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Product Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g. Eco-Friendly Smart Watch" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4 p-6"
+            >
+              <FormField
+                control={form.control}
+                name="productName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. Eco-Friendly Smart Watch"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -223,7 +246,10 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   <FormItem>
                     <FormLabel>Product Description</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Describe the product..." {...field} />
+                      <Textarea
+                        placeholder="Describe the product..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -245,42 +271,50 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder='Select a category' />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Electronics">Electronics</SelectItem>
-                            <SelectItem value="Fashion">Fashion</SelectItem>
-                            <SelectItem value="Home Goods">Home Goods</SelectItem>
-                            <SelectItem value="Automotive">Automotive</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="supplier"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Supplier</FormLabel>
+                  control={form.control}
+                  name="category"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
-                          <Input placeholder="e.g. GreenTech Supplies" {...field} />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          <SelectItem value="Electronics">
+                            Electronics
+                          </SelectItem>
+                          <SelectItem value="Fashion">Fashion</SelectItem>
+                          <SelectItem value="Home Goods">Home Goods</SelectItem>
+                          <SelectItem value="Automotive">Automotive</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="supplier"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. GreenTech Supplies"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -289,10 +323,13 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Compliance Level</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='Select a level' />
+                            <SelectValue placeholder="Select a level" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -311,10 +348,13 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder='Select a status' />
+                            <SelectValue placeholder="Select a status" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -329,19 +369,21 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                 />
               </div>
 
-               <FormField
-                  control={form.control}
-                  name="ebsiVcId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>EBSI Verifiable Credential ID (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="did:ebsi:..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="ebsiVcId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      EBSI Verifiable Credential ID (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input placeholder="did:ebsi:..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -350,42 +392,62 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   <FormItem>
                     <div className="flex justify-between items-center">
                       <FormLabel>Passport Information (JSON)</FormLabel>
-                      <Button type="button" size="sm" variant="outline" onClick={handleSuggestImprovements} disabled={isAiLoading}>
-                          {isAiLoading ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                              <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
-                          )}
-                          Suggest Improvements
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={handleSuggestImprovements}
+                        disabled={isAiLoading}
+                      >
+                        {isAiLoading ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
+                        )}
+                        Suggest Improvements
                       </Button>
                     </div>
                     <FormControl>
-                      <Textarea placeholder='{ "key": "value" }' {...field} className="min-h-[150px] font-mono text-sm" />
+                      <Textarea
+                        placeholder='{ "key": "value" }'
+                        {...field}
+                        className="min-h-[150px] font-mono text-sm"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               {aiSuggestion && (
-                  <div className="space-y-2 p-4 border rounded-md bg-muted/50">
-                      <div className="flex justify-between items-center">
-                          <FormLabel>AI Suggestion</FormLabel>
-                          <Button type="button" size="sm" onClick={applySuggestion}>Apply Suggestion</Button>
-                      </div>
-                      <Textarea readOnly value={aiSuggestion} className="min-h-[150px] font-mono text-sm bg-background" />
-                  </div>
-              )}
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                    <SheetClose asChild>
-                    <Button type="button" variant="outline">Cancel</Button>
-                    </SheetClose>
-                    <Button type="submit" disabled={isPending || isAiLoading}>
-                    {(isPending || isAiLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isPending ? 'Saving...' : 'Save Passport'}
+                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+                  <div className="flex justify-between items-center">
+                    <FormLabel>AI Suggestion</FormLabel>
+                    <Button type="button" size="sm" onClick={applySuggestion}>
+                      Apply Suggestion
                     </Button>
+                  </div>
+                  <Textarea
+                    readOnly
+                    value={aiSuggestion}
+                    className="min-h-[150px] font-mono text-sm bg-background"
+                  />
                 </div>
-              </form>
-            </Form>
+              )}
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <SheetClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button type="submit" disabled={isPending || isAiLoading}>
+                  {(isPending || isAiLoading) && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isPending ? 'Saving...' : 'Save Passport'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </div>
       </SheetContent>
     </Sheet>

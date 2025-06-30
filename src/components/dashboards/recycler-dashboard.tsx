@@ -16,12 +16,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 
 export default function RecyclerDashboard({
   products,
+  user,
 }: {
   products: Product[];
+  user: User;
 }) {
   return (
     <Card>

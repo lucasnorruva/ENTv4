@@ -7,8 +7,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "../ui/button";
+import type { User } from "@/types";
 
-export default function ServiceProviderDashboard() {
+export default function ServiceProviderDashboard({ user }: { user: User }) {
   return (
     <Card>
       <CardHeader>

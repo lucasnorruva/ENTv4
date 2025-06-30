@@ -36,6 +36,7 @@ export async function saveProduct(
     | "complianceSummary"
     | "endOfLifeStatus"
   > & { id?: string },
+  userId: string,
 ): Promise<Product> {
   const now = new Date();
   const nowISO = now.toISOString();
@@ -95,7 +96,17 @@ export async function saveProduct(
           ? undefined
           : existingProduct.complianceSummary,
     };
-    mockProducts = mockProducts.map((p) => (p.id === data.id ? updatedProduct : p));
+    mockProducts = mockProducts.map((p) =>
+      p.id === data.id ? updatedProduct : p,
+    );
+
+    await logAuditEvent(
+      "product.updated",
+      updatedProduct.id,
+      { fields: Object.keys(data) },
+      userId,
+    );
+
     revalidatePath("/dashboard");
     return updatedProduct;
   } else {
@@ -117,7 +128,7 @@ export async function saveProduct(
       "product.created",
       newProduct.id,
       { productName: newProduct.productName },
-      "user-supplier", // Mock user
+      userId,
     );
 
     revalidatePath("/dashboard");
@@ -125,13 +136,28 @@ export async function saveProduct(
   }
 }
 
-export async function deleteProduct(id: string): Promise<{ success: boolean }> {
+export async function deleteProduct(
+  id: string,
+  userId: string,
+): Promise<{ success: boolean }> {
+  const productToDelete = mockProducts.find((p) => p.id === id);
+  if (productToDelete) {
+    await logAuditEvent(
+      "product.deleted",
+      id,
+      { productName: productToDelete.productName },
+      userId,
+    );
+  }
   mockProducts = mockProducts.filter((p) => p.id !== id);
   revalidatePath("/dashboard");
   return { success: true };
 }
 
-export async function submitForReview(productId: string): Promise<Product> {
+export async function submitForReview(
+  productId: string,
+  userId: string,
+): Promise<Product> {
   const productIndex = mockProducts.findIndex((p) => p.id === productId);
   if (productIndex === -1) {
     throw new Error("Product not found");
@@ -181,7 +207,7 @@ export async function submitForReview(productId: string): Promise<Product> {
     "passport.submitted",
     productId,
     { summary: complianceSummary, isCompliant },
-    "user-supplier", // Mock user
+    userId,
   );
 
   revalidatePath("/dashboard");
@@ -200,7 +226,10 @@ export async function runSuggestImprovements(
   }
 }
 
-export async function recalculateScore(productId: string): Promise<Product> {
+export async function recalculateScore(
+  productId: string,
+  userId: string,
+): Promise<Product> {
   const productIndex = mockProducts.findIndex((p) => p.id === productId);
   if (productIndex === -1) {
     throw new Error("Product not found");
@@ -234,7 +263,7 @@ export async function recalculateScore(productId: string): Promise<Product> {
     "product.recalculate_score",
     productId,
     { newScore: updatedProduct.sustainabilityScore },
-    "user-supplier", // Mock user
+    userId,
   );
 
   revalidatePath("/dashboard");

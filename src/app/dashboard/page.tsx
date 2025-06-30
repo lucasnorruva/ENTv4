@@ -31,23 +31,28 @@ export default async function DashboardPage({
   const renderDashboard = () => {
     switch (user.roles[0]) {
       case UserRoles.ADMIN:
-        return <AdminDashboard />;
+        return <AdminDashboard user={user} />;
       case UserRoles.SUPPLIER:
-        return <SupplierDashboard initialProducts={products} />;
+        return <SupplierDashboard initialProducts={products} user={user} />;
       case UserRoles.AUDITOR:
-        return <AuditorDashboard products={products} />;
+        return <AuditorDashboard products={products} user={user} />;
       case UserRoles.COMPLIANCE_MANAGER:
-        return <ComplianceManagerDashboard flaggedProducts={flaggedProducts} />;
+        return (
+          <ComplianceManagerDashboard
+            flaggedProducts={flaggedProducts}
+            user={user}
+          />
+        );
       case UserRoles.DEVELOPER:
-        return <DeveloperDashboard />;
+        return <DeveloperDashboard user={user} />;
       case UserRoles.BUSINESS_ANALYST:
-        return <BusinessAnalystDashboard products={products} />;
+        return <BusinessAnalystDashboard products={products} user={user} />;
       case UserRoles.RECYCLER:
-        return <RecyclerDashboard products={recyclingProducts} />;
+        return <RecyclerDashboard products={recyclingProducts} user={user} />;
       case UserRoles.MANUFACTURER:
-        return <ManufacturerDashboard products={products} />;
+        return <ManufacturerDashboard products={products} user={user} />;
       case UserRoles.SERVICE_PROVIDER:
-        return <ServiceProviderDashboard />;
+        return <ServiceProviderDashboard user={user} />;
       default:
         return <OverviewDashboard />;
     }

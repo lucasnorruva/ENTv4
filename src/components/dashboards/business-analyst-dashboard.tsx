@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 import ComplianceOverviewChart from "../charts/compliance-overview-chart";
 import { Button } from "../ui/button";
 import { FileDown } from "lucide-react";
@@ -14,8 +14,10 @@ import SustainabilityByCategoryChart from "../charts/sustainability-by-category-
 
 export default function BusinessAnalystDashboard({
   products,
+  user,
 }: {
   products: Product[];
+  user: User;
 }) {
   const complianceData = {
     verified: products.filter((p) => p.verificationStatus === "Verified")

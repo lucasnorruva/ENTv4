@@ -28,13 +28,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 import { AlertCircle, CheckCircle } from "lucide-react";
 
 export default function AuditorDashboard({
   products,
+  user,
 }: {
   products: Product[];
+  user: User;
 }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

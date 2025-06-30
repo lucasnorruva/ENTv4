@@ -16,13 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 
 export default function ComplianceManagerDashboard({
   flaggedProducts,
+  user,
 }: {
   flaggedProducts: Product[];
+  user: User;
 }) {
   return (
     <Card>

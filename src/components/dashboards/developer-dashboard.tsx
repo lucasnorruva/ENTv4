@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, ShieldOff } from "lucide-react";
+import type { User } from "@/types";
 
 const mockApiLogs = [
   {
@@ -92,7 +93,7 @@ const mockWebhooks = [
   },
 ];
 
-export default function DeveloperDashboard() {
+export default function DeveloperDashboard({ user }: { user: User }) {
   return (
     <div className="space-y-6">
       <Card>
@@ -162,7 +163,11 @@ export default function DeveloperDashboard() {
                           <ShieldOff className="mr-2 h-3 w-3" />
                           Revoke
                         </Button>
-                        <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                        >
                           <Trash2 className="mr-2 h-3 w-3" />
                           Delete
                         </Button>
@@ -224,7 +229,9 @@ export default function DeveloperDashboard() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">Edit</Button>
+                        <Button variant="ghost" size="sm">
+                          Edit
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
