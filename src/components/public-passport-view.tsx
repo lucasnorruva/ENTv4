@@ -31,6 +31,7 @@ import {
   AlertTriangle,
   Fingerprint,
   Quote,
+  Tag,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -211,6 +212,20 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     label="Governance Score"
                     value={`${product.esg.governance}/10`}
                   />
+                  {product.classification && (
+                    <>
+                      <InfoRow
+                        icon={Tag}
+                        label="ESG Category"
+                        value={product.classification.esgCategory}
+                      />
+                      <InfoRow
+                        icon={ShieldAlert}
+                        label="ESG Risk Score"
+                        value={`${product.classification.riskScore}/10`}
+                      />
+                    </>
+                  )}
                 </>
               ) : (
                 <p className="text-muted-foreground text-sm p-4">
