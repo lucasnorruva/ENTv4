@@ -70,6 +70,7 @@ export async function logAuditEvent(
   revalidatePath('/dashboard/analytics');
   revalidatePath('/dashboard/history');
   revalidatePath('/dashboard/logs');
+  revalidatePath('/dashboard/layout');
 }
 
 // --- AI FLOW ORCHESTRATION ---
@@ -111,7 +112,8 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     !hasRole(user, UserRoles.BUSINESS_ANALYST) &&
     !hasRole(user, UserRoles.RECYCLER) &&
     !hasRole(user, UserRoles.MANUFACTURER) &&
-    !hasRole(user, UserRoles.SERVICE_PROVIDER)
+    !hasRole(user, UserRoles.SERVICE_PROVIDER) &&
+    !hasRole(user, UserRoles.COMPLIANCE_MANAGER)
   ) {
     return mockProducts.filter(p => p.companyId === user.companyId);
   }

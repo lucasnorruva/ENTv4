@@ -86,8 +86,8 @@ export default async function ComplianceManagerDashboard({ user }: { user: User 
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
                       <p>
-                        {formatDistanceToNow(
-                          new Date(product.lastVerificationDate!),
+                        {product.lastVerificationDate && formatDistanceToNow(
+                          new Date(product.lastVerificationDate),
                           { addSuffix: true },
                         )}
                       </p>
