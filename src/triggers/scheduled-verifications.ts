@@ -8,7 +8,7 @@ import {
   logAuditEvent,
 } from "@/lib/actions";
 import { compliancePaths } from "@/lib/compliance-data";
-import type { CompliancePath } from "@/types";
+import type { Product } from "@/types";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 /**
@@ -41,22 +41,16 @@ export async function runDailyComplianceCheck(): Promise<{
     return { processed: 0, passed: 0, failed: 0 };
   }
 
-  const compliancePathsMap = new Map<
-    string,
-    Omit<CompliancePath, "id" | "createdAt" | "updatedAt">
-  >();
-  compliancePaths.forEach((path) => {
-    compliancePathsMap.set(path.category, path);
-  });
-
   let passed = 0;
   let failed = 0;
 
   for (const product of productsToVerify) {
-    const compliancePath = compliancePathsMap.get(product.category);
+    const compliancePath = compliancePaths.find(
+      (p) => p.id === product.compliancePathId,
+    );
 
     if (!compliancePath) {
-      const reason = `No compliance path is configured for the product category: "${product.category}".`;
+      const reason = `No compliance path is configured for this product.`;
       console.warn(`Skipping product ${product.id}: ${reason}`);
       await rejectPassport(product.id, reason, "system");
       failed++;
@@ -66,7 +60,8 @@ export async function runDailyComplianceCheck(): Promise<{
     try {
       const { isCompliant, complianceSummary } = await summarizeComplianceGaps({
         productName: product.productName,
-        productInformation: product.currentInformation,
+        category: product.category,
+        materials: product.materials,
         compliancePathName: compliancePath.name,
         complianceRules: JSON.stringify(compliancePath.rules),
       });
