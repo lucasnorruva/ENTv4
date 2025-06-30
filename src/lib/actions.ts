@@ -9,13 +9,6 @@ import {
   type SuggestImprovementsOutput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
-import {
-  anchorToPolygon,
-  generateEbsiCredential,
-  hashProductData,
-} from "@/services/blockchain";
-import { compliancePaths } from "./compliance-data";
-import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 // Use an in-memory array for mock data to simulate database operations
 let mockProducts = [...mockProductsData];
