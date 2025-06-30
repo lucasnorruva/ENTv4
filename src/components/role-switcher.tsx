@@ -15,6 +15,8 @@ interface RoleSwitcherProps {
   currentRole: Role;
 }
 
+const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
+
 export default function RoleSwitcher({
   roles,
   currentRole,
@@ -22,7 +24,8 @@ export default function RoleSwitcher({
   const router = useRouter();
 
   const handleRoleChange = (newRole: Role) => {
-    router.push(`/dashboard?role=${newRole}`);
+    const slug = getRoleSlug(newRole);
+    router.push(`/dashboard/${slug}`);
   };
 
   return (

@@ -297,13 +297,14 @@ interface DashboardSidebarProps {
   user: User;
 }
 
+const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
+
 export default function DashboardSidebar({
   userRole,
   user,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
 
@@ -321,15 +322,14 @@ export default function DashboardSidebar({
   };
 
   const handleNavigate = (href: string, external?: boolean) => {
-    const role = searchParams.get("role");
-    const targetUrl = role ? `${href}?role=${role}` : href;
-
     if (external) {
-      window.open(targetUrl, "_blank");
+      window.open(href, "_blank");
     } else {
-      router.push(targetUrl);
+      router.push(href);
     }
   };
+
+  const dashboardHref = `/dashboard/${getRoleSlug(userRole)}`;
 
   return (
     <Sidebar>
@@ -340,9 +340,9 @@ export default function DashboardSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={() => handleNavigate("/dashboard")}
+              onClick={() => handleNavigate(dashboardHref)}
               tooltip="Dashboard"
-              isActive={pathname === "/dashboard"}
+              isActive={pathname === dashboardHref}
             >
               <LayoutGrid />
               <span>Dashboard</span>
