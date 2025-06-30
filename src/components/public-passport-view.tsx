@@ -1,3 +1,4 @@
+
 import type { Product } from "@/types";
 import Image from "next/image";
 import {
@@ -39,6 +40,8 @@ import {
   MapPin,
   FileQuestion,
   Archive,
+  Zap,
+  BarChart3,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -283,6 +286,45 @@ export default function PublicPassportView({ product }: { product: Product }) {
                       <p>{lifecycle.carbonFootprint.summary}</p>
                     </div>
                   </InfoRow>
+                  <InfoRow
+                    icon={BarChart3}
+                    label="Lifecycle Stages Analysis"
+                  >
+                    <div className="space-y-3 mt-2 text-sm text-muted-foreground">
+                      <div className="flex items-start gap-3">
+                        <Factory className="h-4 w-4 mt-1 shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            Manufacturing
+                          </h4>
+                          <p>{lifecycle.lifecycleStages.manufacturing}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Zap className="h-4 w-4 mt-1 shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            Use Phase
+                          </h4>
+                          <p>{lifecycle.lifecycleStages.usePhase}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <Recycle className="h-4 w-4 mt-1 shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            End-of-Life
+                          </h4>
+                          <p>{lifecycle.lifecycleStages.endOfLife}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </InfoRow>
+                  <InfoRow
+                    icon={ShieldAlert}
+                    label="Highest Impact Stage"
+                    value={lifecycle.highestImpactStage}
+                  />
                   <InfoRow icon={Lightbulb} label="Improvement Opportunities">
                     <ul className="list-disc list-inside text-sm text-muted-foreground">
                       {lifecycle.improvementOpportunities.map((opp, index) => (
