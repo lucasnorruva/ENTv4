@@ -141,7 +141,7 @@ export default function SupportPage() {
                 references.
               </p>
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/docs/api.md" target="_blank">
+                <Link href="/docs/api">
                   View Docs
                 </Link>
               </Button>
