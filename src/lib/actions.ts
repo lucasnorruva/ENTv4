@@ -419,6 +419,7 @@ export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
   return snapshot.docs.map(doc => formatDoc<AuditLog>(doc));
 }
 
+
 // --- COMPLIANCE PATH ACTIONS ---
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
