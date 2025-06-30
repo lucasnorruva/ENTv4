@@ -12,18 +12,24 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 
+const MaterialSchema = z.object({
+  name: z.string(),
+  percentage: z.number().optional(),
+  recycledContent: z.number().optional(),
+});
+
 const GenerateQRLabelTextInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   supplier: z.string().describe("The name of the product supplier or brand."),
-  currentInformation: z
-    .string()
-    .describe("The current passport information as a JSON string."),
+  materials: z
+    .array(MaterialSchema)
+    .describe("List of materials in the product."),
 });
 export type GenerateQRLabelTextInput = z.infer<
   typeof GenerateQRLabelTextInputSchema
 >;
 
-const GenerateQRLabelTextOutputSchema = z.object({
+export const GenerateQRLabelTextOutputSchema = z.object({
   qrLabelText: z
     .string()
     .describe(
@@ -46,7 +52,7 @@ const prompt = ai.definePrompt({
   output: { schema: GenerateQRLabelTextOutputSchema },
   prompt: `SYSTEM: You are a copywriter assistant that explains product sustainability features in clear, positive language for consumers. Your task is to generate a concise summary for a product's public passport page.
 - The summary must be brief (1-2 sentences), engaging, and easy for a consumer to understand.
-- Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided data.
+- Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided structured data.
 - The tone should be positive and informative, but factually based on the passport information.
 - Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
@@ -54,10 +60,11 @@ USER_DATA:
 """
 Product Name: {{{productName}}}
 Supplier: {{{supplier}}}
-Passport Information:
-\`\`\`json
-{{{currentInformation}}}
-\`\`\`
+
+Materials:
+{{#each materials}}
+- Name: {{name}}, Recycled Content: {{recycledContent}}%
+{{/each}}
 """
 `,
 });

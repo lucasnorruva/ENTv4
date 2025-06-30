@@ -16,13 +16,10 @@ const ClassifyProductInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   productDescription: z.string().describe("A description of the product."),
   category: z.string().describe("The product category."),
-  currentInformation: z
-    .string()
-    .describe("The current passport information as a JSON string."),
 });
 export type ClassifyProductInput = z.infer<typeof ClassifyProductInputSchema>;
 
-const ClassifyProductOutputSchema = z.object({
+export const ClassifyProductOutputSchema = z.object({
   esgCategory: z
     .string()
     .describe(
@@ -49,7 +46,7 @@ const prompt = ai.definePrompt({
   input: { schema: ClassifyProductInputSchema },
   output: { schema: ClassifyProductOutputSchema },
   prompt: `SYSTEM: You are an ESG analyst AI specializing in product lifecycle assessment. Your task is to classify a product and assess its risk based on provided data, with alignment to ISO 14067.
-- Analyze the product's name, description, category, and passport data.
+- Analyze the product's name, description, and category.
 - Determine a relevant 'esgCategory' (e.g., 'Circular Design', 'Resource Depletion', 'Pollution Prevention').
 - Provide a 'riskScore' from 0 (low risk) to 10 (high risk), informed by ISO 14067 principles.
 - Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
@@ -59,10 +56,6 @@ USER_DATA:
 Product Name: {{{productName}}}
 Product Description: {{{productDescription}}}
 Category: {{{category}}}
-Passport Information:
-\`\`\`json
-{{{currentInformation}}}
-\`\`\`
 """
 `,
 });

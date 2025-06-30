@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -37,13 +38,16 @@ import type { Product, User } from '@/types';
 import { saveProduct, runSuggestImprovements } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
+// This is a temporary schema for the form.
+// It will be replaced in Task 12 with a more structured approach.
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   productDescription: z.string().min(10, 'Product description is required'),
   productImage: z.any(),
   category: z.string().min(1, 'Category is required'),
   supplier: z.string().min(1, 'Supplier is required'),
-  complianceLevel: z.enum(['High', 'Medium', 'Low']),
+  status: z.enum(['Published', 'Draft', 'Archived']),
+  // This JSON blob is the field we are working to eliminate.
   currentInformation: z.string().refine(
     val => {
       try {
@@ -55,7 +59,6 @@ const productSchema = z.object({
     },
     { message: 'Must be valid JSON' },
   ),
-  status: z.enum(['Published', 'Draft', 'Archived']),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -70,10 +73,25 @@ interface ProductFormProps {
 
 const defaultJsonInfo = JSON.stringify(
   {
-    materials: [],
-    manufacturing_process: 'Details about manufacturing...',
-    certifications: [],
-    packaging: 'Description of packaging...',
+    materials: [
+      {
+        name: 'Recycled Aluminum',
+        percentage: 60,
+        recycledContent: 100,
+        origin: 'Germany',
+      },
+    ],
+    manufacturing: {
+      facility: 'CleanEnergy Factory',
+      country: 'Germany',
+      emissionsKgCo2e: 5.5,
+    },
+    certifications: [{ name: 'EcoCert', issuer: 'EcoCert Group' }],
+    packaging: {
+      type: 'Recycled Cardboard',
+      recycledContent: 100,
+      recyclable: true,
+    },
   },
   null,
   2,
@@ -98,34 +116,45 @@ export default function ProductForm({
       productImage: undefined,
       category: 'Electronics',
       supplier: '',
-      complianceLevel: 'Medium',
-      currentInformation: defaultJsonInfo,
       status: 'Draft',
+      currentInformation: defaultJsonInfo,
     },
   });
 
   useEffect(() => {
     if (product) {
+      // If editing, populate the form with the product's data.
+      // We stringify the structured data back into the JSON blob for the form.
+      const info = JSON.stringify(
+        {
+          materials: product.materials,
+          manufacturing: product.manufacturing,
+          certifications: product.certifications,
+          packaging: product.packaging,
+        },
+        null,
+        2,
+      );
+
       form.reset({
         productName: product.productName,
         productDescription: product.productDescription,
         productImage: product.productImage,
         category: product.category,
         supplier: product.supplier,
-        complianceLevel: product.complianceLevel,
-        currentInformation: product.currentInformation,
         status: product.status,
+        currentInformation: info,
       });
     } else {
+      // If creating, reset to default values.
       form.reset({
         productName: '',
         productDescription: '',
         productImage: undefined,
         category: 'Electronics',
         supplier: '',
-        complianceLevel: 'Medium',
-        currentInformation: defaultJsonInfo,
         status: 'Draft',
+        currentInformation: defaultJsonInfo,
       });
     }
   }, [product, isOpen, form]);
@@ -133,25 +162,25 @@ export default function ProductForm({
   const onSubmit = (values: ProductFormValues) => {
     startTransition(async () => {
       try {
-        const formData = new FormData();
+        // This is the bridge from the old form to the new data structure.
+        // We parse the JSON blob and merge it with the other form fields.
+        const structuredInfo = JSON.parse(values.currentInformation);
+        const productData = {
+          productName: values.productName,
+          productDescription: values.productDescription,
+          productImage:
+            product?.productImage ?? 'https://placehold.co/100x100.png',
+          category: values.category,
+          supplier: values.supplier,
+          status: values.status,
+          materials: structuredInfo.materials || [],
+          manufacturing: structuredInfo.manufacturing || {},
+          certifications: structuredInfo.certifications || [],
+          packaging: structuredInfo.packaging || {},
+        };
 
-        Object.entries(values).forEach(([key, value]) => {
-          if (key === 'productImage') {
-            if (value instanceof File) {
-              formData.append('productImageFile', value);
-            } else if (typeof value === 'string') {
-              formData.append(key, value);
-            }
-          } else if (value !== undefined && value !== null) {
-            formData.append(key, value as string);
-          }
-        });
+        const saved = await saveProduct(productData, user.id, product?.id);
 
-        if (product?.id) {
-          formData.append('id', product.id);
-        }
-
-        const saved = await saveProduct(formData, user.id);
         toast({
           title: 'Success!',
           description: `Passport for "${saved.productName}" has been saved.`,
@@ -169,8 +198,7 @@ export default function ProductForm({
   };
 
   const handleSuggestImprovements = async () => {
-    const { productName, productDescription, currentInformation } =
-      form.getValues();
+    const { productName, productDescription } = form.getValues();
     if (!productName || !productDescription) {
       toast({
         title: 'Missing Information',
@@ -186,10 +214,7 @@ export default function ProductForm({
       const result = await runSuggestImprovements({
         productName,
         productDescription,
-        currentInformation,
       });
-      // For now, let's just log the recommendations.
-      // We can build UI for this later.
       console.log('AI Recommendations:', result.recommendations);
       toast({
         title: 'AI Suggestions Ready',
@@ -264,17 +289,17 @@ export default function ProductForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Product Image</FormLabel>
-                    {typeof field.value === 'string' && field.value && (
+                    {product?.productImage && (
                       <div className="mb-2">
                         <Image
-                          src={field.value}
+                          src={product.productImage}
                           alt="Current product image"
                           width={100}
                           height={100}
                           className="rounded-md object-cover"
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                          Current image. Upload a new file to replace it.
+                          Image handling will be improved in a future task.
                         </p>
                       </div>
                     )}
@@ -282,7 +307,7 @@ export default function ProductForm({
                       <Input
                         type="file"
                         accept="image/*"
-                        onChange={e => field.onChange(e.target.files?.[0])}
+                        disabled // Disabled until Task 12
                       />
                     </FormControl>
                     <FormMessage />
@@ -298,7 +323,7 @@ export default function ProductForm({
                       <FormLabel>Category</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -336,58 +361,32 @@ export default function ProductForm({
                   )}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="complianceLevel"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Compliance Level</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a level" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="High">High</SelectItem>
-                          <SelectItem value="Medium">Medium</SelectItem>
-                          <SelectItem value="Low">Low</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Draft">Draft</SelectItem>
-                          <SelectItem value="Published">Published</SelectItem>
-                          <SelectItem value="Archived">Archived</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Draft">Draft</SelectItem>
+                        <SelectItem value="Published">Published</SelectItem>
+                        <SelectItem value="Archived">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

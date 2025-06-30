@@ -143,7 +143,7 @@ export default function ProductTable({
         ),
       },
       {
-        accessorKey: "esg.score",
+        accessorKey: "sustainability",
         header: ({ column }) => (
           <Button
             variant="ghost"
@@ -154,18 +154,21 @@ export default function ProductTable({
           </Button>
         ),
         cell: ({ row }) => {
-          const score = row.original.esg?.score;
+          const score = row.original.sustainability?.score;
+          const summary = row.original.sustainability?.summary;
           return score !== undefined ? (
-            <div
-              className="flex items-center gap-2"
-              title={row.original.esg?.summary}
-            >
+            <div className="flex items-center gap-2" title={summary}>
               <Progress value={score} className="w-20 h-2" />
               <span>{score}/100</span>
             </div>
           ) : (
             <span className="text-muted-foreground text-xs italic">N/A</span>
           );
+        },
+        sortingFn: (rowA, rowB, columnId) => {
+          const scoreA = rowA.original.sustainability?.score ?? -1;
+          const scoreB = rowB.original.sustainability?.score ?? -1;
+          return scoreA - scoreB;
         },
       },
       {
@@ -326,7 +329,7 @@ export default function ProductTable({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === 'esg.score' ? 'ESG Score' : column.id}
+                    {column.id === 'sustainability' ? 'ESG Score' : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}

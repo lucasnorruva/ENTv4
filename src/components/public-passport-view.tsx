@@ -36,6 +36,9 @@ import {
   Lightbulb,
   Power,
   Package,
+  Sprout,
+  Percent,
+  MapPin,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -64,8 +67,10 @@ function InfoRow({
 }
 
 export default function PublicPassportView({ product }: { product: Product }) {
-  // In a real app, this would be filtered to show only public data.
-  const passportData = JSON.parse(product.currentInformation);
+  const { sustainability } = product;
+  const esg = sustainability;
+  const lifecycle = sustainability?.lifecycleAnalysis;
+  const classification = sustainability?.classification;
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0">
@@ -103,19 +108,19 @@ export default function PublicPassportView({ product }: { product: Product }) {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="p-4 flex flex-col justify-center">
             <h3 className="text-lg font-semibold mb-2">ESG Score</h3>
-            {product.esg ? (
+            {esg ? (
               <>
                 <div className="flex items-center gap-4">
                   <span className="text-4xl font-bold text-primary">
-                    {product.esg.score}
+                    {esg.score}
                   </span>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">/ 100</p>
-                    <Progress value={product.esg.score} className="h-2 mt-1" />
+                    <Progress value={esg.score} className="h-2 mt-1" />
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  {product.esg.summary}
+                  {esg.summary}
                 </p>
               </>
             ) : (
@@ -172,12 +177,64 @@ export default function PublicPassportView({ product }: { product: Product }) {
         >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
-              Product Details
+              Materials & Manufacturing
+            </AccordionTrigger>
+            <AccordionContent className="pt-2">
+              <InfoRow icon={Factory} label="Manufacturing">
+                <p className="text-sm text-muted-foreground">
+                  {product.manufacturing.facility} in{" "}
+                  {product.manufacturing.country}
+                </p>
+              </InfoRow>
+              <InfoRow icon={Scale} label="Material Composition">
+                {product.materials.length > 0 ? (
+                  <div className="space-y-3 mt-2">
+                    {product.materials.map((mat, index) => (
+                      <div key={index} className="text-sm">
+                        <p className="font-medium text-foreground">
+                          {mat.name}
+                        </p>
+                        <div className="flex gap-4 text-muted-foreground text-xs">
+                          {mat.percentage && (
+                            <span className="flex items-center gap-1">
+                              <Percent className="h-3 w-3" /> {mat.percentage}%
+                              of total
+                            </span>
+                          )}
+                          {mat.recycledContent !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <Recycle className="h-3 w-3" />{" "}
+                              {mat.recycledContent}% recycled
+                            </span>
+                          )}
+                          {mat.origin && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" /> Origin:{" "}
+                              {mat.origin}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  "No material data provided."
+                )}
+              </InfoRow>
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="item-2">
+            <AccordionTrigger className="text-xl font-semibold">
+              Lifecycle & Circularity
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <InfoRow icon={Package} label="Packaging">
                 <p className="text-sm text-muted-foreground">
-                  {passportData.packaging || "Not specified"}
+                  {product.packaging.type}
+                  {product.packaging.recycledContent !== undefined &&
+                    ` (${product.packaging.recycledContent}% recycled)`}
+                  . Recyclable: {product.packaging.recyclable ? "Yes" : "No"}.
                 </p>
               </InfoRow>
               <InfoRow icon={Wrench} label="Repairability & End-of-life">
@@ -186,54 +243,27 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   authorized service providers and recyclers.
                 </p>
               </InfoRow>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-2">
-            <AccordionTrigger className="text-xl font-semibold">
-              Lifecycle Impact Analysis
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              {product.lifecycleAnalysis ? (
+              {lifecycle ? (
                 <>
                   <InfoRow icon={Thermometer} label="Estimated Carbon Footprint">
                     <div className="text-sm text-muted-foreground">
                       <p className="font-bold text-foreground">
-                        {product.lifecycleAnalysis.carbonFootprint.value}{" "}
-                        {product.lifecycleAnalysis.carbonFootprint.unit}
+                        {lifecycle.carbonFootprint.value}{" "}
+                        {lifecycle.carbonFootprint.unit}
                       </p>
-                      <p>
-                        {product.lifecycleAnalysis.carbonFootprint.summary}
-                      </p>
+                      <p>{lifecycle.carbonFootprint.summary}</p>
                     </div>
-                  </InfoRow>
-                  <InfoRow icon={Factory} label="Manufacturing">
-                    <p className="text-sm text-muted-foreground">
-                      {product.lifecycleAnalysis.lifecycleStages.manufacturing}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={Power} label="Use Phase">
-                    <p className="text-sm text-muted-foreground">
-                      {product.lifecycleAnalysis.lifecycleStages.usePhase}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={Recycle} label="End-of-Life">
-                    <p className="text-sm text-muted-foreground">
-                      {product.lifecycleAnalysis.lifecycleStages.endOfLife}
-                    </p>
                   </InfoRow>
                   <InfoRow icon={Lightbulb} label="Improvement Opportunities">
                     <ul className="list-disc list-inside text-sm text-muted-foreground">
-                      {product.lifecycleAnalysis.improvementOpportunities.map(
-                        (opp, index) => (
-                          <li key={index}>{opp}</li>
-                        ),
-                      )}
+                      {lifecycle.improvementOpportunities.map((opp, index) => (
+                        <li key={index}>{opp}</li>
+                      ))}
                     </ul>
                   </InfoRow>
                 </>
               ) : (
-                <p className="text-muted-foreground text-sm p-4">
+                <p className="text-muted-foreground text-sm p-4 text-center">
                   No lifecycle analysis available.
                 </p>
               )}
@@ -245,34 +275,34 @@ export default function PublicPassportView({ product }: { product: Product }) {
               Sustainability & ESG Details
             </AccordionTrigger>
             <AccordionContent className="pt-2">
-              {product.esg ? (
+              {esg ? (
                 <>
                   <InfoRow
                     icon={Leaf}
                     label="Environmental Score"
-                    value={`${product.esg.environmental}/10`}
+                    value={`${esg.environmental}/10`}
                   />
                   <InfoRow
                     icon={Users}
                     label="Social Score"
-                    value={`${product.esg.social}/10`}
+                    value={`${esg.social}/10`}
                   />
                   <InfoRow
                     icon={Landmark}
                     label="Governance Score"
-                    value={`${product.esg.governance}/10`}
+                    value={`${esg.governance}/10`}
                   />
-                  {product.classification && (
+                  {classification && (
                     <>
                       <InfoRow
                         icon={Tag}
                         label="ESG Category"
-                        value={product.classification.esgCategory}
+                        value={classification.esgCategory}
                       />
                       <InfoRow
                         icon={ShieldAlert}
                         label="ESG Risk Score"
-                        value={`${product.classification.riskScore}/10`}
+                        value={`${classification.riskScore}/10`}
                       />
                     </>
                   )}
@@ -290,55 +320,37 @@ export default function PublicPassportView({ product }: { product: Product }) {
               Compliance & Certifications
             </AccordionTrigger>
             <AccordionContent className="pt-2 space-y-2">
-              {product.complianceGaps &&
-                product.complianceGaps.length > 0 && (
-                  <Alert variant="destructive">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>Compliance Gaps Identified</AlertTitle>
-                    <AlertDescription>
-                      <ul className="list-disc list-inside text-xs mt-2 space-y-1">
-                        {product.complianceGaps.map((gap, index) => (
-                          <li key={index}>
-                            <strong>{gap.regulation}:</strong> {gap.issue}
-                          </li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
+              {sustainability?.gaps && sustainability.gaps.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Compliance Gaps Identified</AlertTitle>
+                  <AlertDescription>
+                    <ul className="list-disc list-inside text-xs mt-2 space-y-1">
+                      {sustainability.gaps.map((gap, index) => (
+                        <li key={index}>
+                          <strong>{gap.regulation}:</strong> {gap.issue}
+                        </li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
               <InfoRow icon={Globe} label="Compliance Summary">
                 <p className="text-sm text-muted-foreground">
-                  {product.complianceSummary || "Awaiting review."}
+                  {sustainability?.complianceSummary || "Awaiting review."}
                 </p>
               </InfoRow>
               <InfoRow icon={FileText} label="Certifications">
-                {passportData.certifications &&
-                passportData.certifications.length > 0 ? (
+                {product.certifications.length > 0 ? (
                   <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {passportData.certifications.map(
-                      (cert: string, index: number) => (
-                        <li key={index}>{cert}</li>
+                    {product.certifications.map(
+                      (cert: any, index: number) => (
+                        <li key={index}>{cert.name}</li>
                       ),
                     )}
                   </ul>
                 ) : (
                   "No certifications listed."
-                )}
-              </InfoRow>
-              <InfoRow icon={Scale} label="Material Composition">
-                {passportData.materials &&
-                passportData.materials.length > 0 ? (
-                  <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {passportData.materials.map((mat: any, index: number) => (
-                      <li key={index}>
-                        {typeof mat === "object"
-                          ? `${mat.name || mat.material}`
-                          : mat}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  "No material data provided."
                 )}
               </InfoRow>
               {product.ebsiVcId && (

@@ -1,17 +1,28 @@
 "use server";
 
 import { createHash } from "crypto";
+import type { Product } from "@/types";
 
 /**
  * Creates a deterministic SHA-256 hash of a product's core passport data.
  * This function only hashes data that is deterministic and user-controlled,
  * excluding AI-generated or system-updated fields.
  *
- * @param productData The stringified JSON of the product's passport information.
- * @returns A SHA-256 hash of the data.
+ * @param product The product object to hash.
+ * @returns A SHA-256 hash of the key product data.
  */
-export async function hashProductData(productData: string): Promise<string> {
-  return createHash("sha256").update(productData).digest("hex");
+export async function hashProductData(product: Product): Promise<string> {
+  // Select only the fields that are stable and represent the core identity
+  const dataToHash = {
+    productName: product.productName,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+  };
+  const dataString = JSON.stringify(dataToHash);
+  return createHash("sha256").update(dataString).digest("hex");
 }
 
 /**

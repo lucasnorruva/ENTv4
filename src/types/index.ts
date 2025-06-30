@@ -1,6 +1,11 @@
 // src/types/index.ts
 import type { Role } from "@/lib/constants";
-import type { AnalyzeProductLifecycleOutput } from "@/ai/flows/analyze-product-lifecycle";
+import type {
+  AnalyzeProductLifecycleOutput,
+  EsgScoreOutput,
+  ClassifyProductOutput,
+  SummarizeComplianceGapsOutput,
+} from "@/types/ai-outputs";
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -30,8 +35,46 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
 }
 
+// --- NEW STRUCTURED DATA SCHEMAS ---
+
+export interface Material {
+  name: string;
+  percentage?: number;
+  recycledContent?: number;
+  origin?: string;
+}
+
+export interface Certification {
+  name: string;
+  issuer: string;
+  validUntil?: string;
+  documentUrl?: string;
+}
+
+export interface Manufacturing {
+  facility: string;
+  country: string;
+  emissionsKgCo2e?: number;
+}
+
+export interface Packaging {
+  type: string;
+  recycledContent?: number;
+  recyclable: boolean;
+}
+
 /**
- * The core Digital Product Passport entity.
+ * Groups all AI-generated and compliance-related data.
+ */
+export interface SustainabilityData
+  extends EsgScoreOutput,
+    SummarizeComplianceGapsOutput {
+  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+  classification?: ClassifyProductOutput;
+}
+
+/**
+ * The core Digital Product Passport entity, now with a structured data model.
  */
 export interface Product extends BaseEntity {
   productName: string;
@@ -39,27 +82,22 @@ export interface Product extends BaseEntity {
   productImage: string;
   category: string;
   supplier: string;
-  complianceLevel: "High" | "Medium" | "Low";
-  currentInformation: string; // A stringified JSON object with passport data
   status: "Published" | "Draft" | "Archived";
   lastUpdated: string; // ISO 8601 date string for display purposes
-  classification?: {
-    esgCategory: string;
-    riskScore: number;
-  };
+
+  // Structured Data Fields
+  materials: Material[];
+  manufacturing: Manufacturing;
+  certifications: Certification[];
+  packaging: Packaging;
+
+  // AI-Generated & Compliance Data
+  sustainability?: SustainabilityData;
   qrLabelText?: string; // AI-generated consumer-friendly summary
-  esg?: {
-    score: number;
-    environmental: number;
-    social: number;
-    governance: number;
-    summary: string;
-  };
-  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+
+  // Lifecycle & Verification
   lastVerificationDate?: string; // ISO 8601 format
-  verificationStatus?: "Verified" | "Pending" | "Failed" | "Draft";
-  complianceSummary?: string;
-  complianceGaps?: Array<{ regulation: string; issue: string }>;
+  verificationStatus?: "Verified" | "Pending" | "Failed" | "Not Submitted";
   endOfLifeStatus?: "Active" | "Recycled" | "Disposed";
   blockchainProof?: {
     txHash: string;

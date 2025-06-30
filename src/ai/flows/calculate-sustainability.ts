@@ -5,26 +5,49 @@
  * @fileOverview An AI agent for calculating a product's ESG score.
  *
  * - calculateSustainability - A function that handles the ESG calculation.
- * - CalculateSustainabilityInput - The input type for the function.
- * - EsgScoreOutput - The return type for the function.
+ * - CalculateSustainabilityInputSchema - The input type for the function.
+ * - EsgScoreOutputSchema - The return type for the function.
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "genkit";
+import { z } from "zod";
+
+const MaterialSchema = z.object({
+  name: z.string(),
+  percentage: z.number().optional(),
+  recycledContent: z.number().optional(),
+  origin: z.string().optional(),
+});
+
+const CertificationSchema = z.object({
+  name: z.string(),
+  issuer: z.string(),
+  validUntil: z.string().optional(),
+});
+
+const ManufacturingSchema = z.object({
+  facility: z.string(),
+  country: z.string(),
+  emissionsKgCo2e: z.number().optional(),
+});
 
 const CalculateSustainabilityInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   productDescription: z.string().describe("A description of the product."),
   category: z.string().describe("The product category."),
-  currentInformation: z
-    .string()
-    .describe("The current passport information as a JSON string."),
+  materials: z
+    .array(MaterialSchema)
+    .describe("List of materials in the product."),
+  manufacturing: ManufacturingSchema.describe("Manufacturing details."),
+  certifications: z
+    .array(CertificationSchema)
+    .describe("List of certifications."),
 });
 export type CalculateSustainabilityInput = z.infer<
   typeof CalculateSustainabilityInputSchema
 >;
 
-const EsgScoreOutputSchema = z.object({
+export const EsgScoreOutputSchema = z.object({
   score: z
     .number()
     .min(0)
@@ -61,10 +84,10 @@ const prompt = ai.definePrompt({
   name: "calculateEsgScorePrompt",
   input: { schema: CalculateSustainabilityInputSchema },
   output: { schema: EsgScoreOutputSchema },
-  prompt: `SYSTEM: You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate an ESG score.
-- Analyze the product's name, description, category, and JSON data.
-- Consider factors like materials (recycled, organic), energy efficiency, repairability, end-of-life options, and certifications (e.g., ISO 14001, Fair Trade).
-- If data is insufficient for a pillar, provide a lower score for that pillar and note the lack of data in the summary.
+  prompt: `SYSTEM: You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided structured product information and generate an ESG score.
+- Analyze the product's name, description, category, and all structured data.
+- Consider factors like materials (recycled content, origin), energy efficiency, repairability, end-of-life options, manufacturing details (country, emissions), and certifications (e.g., ISO 14001, Fair Trade).
+- If data is insufficient for a pillar (e.g. no social certifications), provide a lower score for that pillar and note the lack of data in the summary.
 - The summary must be a neutral, factual justification for the scores.
 - Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
@@ -73,10 +96,19 @@ USER_DATA:
 Product Name: {{{productName}}}
 Product Description: {{{productDescription}}}
 Category: {{{category}}}
-Passport Information:
-\`\`\`json
-{{{currentInformation}}}
-\`\`\`
+
+Materials:
+{{#each materials}}
+- Name: {{name}}, Recycled: {{recycledContent}}%, Origin: {{origin}}
+{{/each}}
+
+Manufacturing:
+- Facility: {{manufacturing.facility}}, Country: {{manufacturing.country}}
+
+Certifications:
+{{#each certifications}}
+- Name: {{name}}, Issuer: {{issuer}}
+{{/each}}
 """
 `,
 });

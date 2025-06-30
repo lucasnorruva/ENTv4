@@ -95,6 +95,8 @@ export function AuditReviewDialog({
 
   if (!product) return null;
 
+  const complianceGaps = product.sustainability?.gaps;
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl flex flex-col h-full md:h-[90vh]">
@@ -124,8 +126,8 @@ export function AuditReviewDialog({
         )}
 
         {!showRejectionForm &&
-          product.complianceGaps &&
-          product.complianceGaps.length > 0 && (
+          complianceGaps &&
+          complianceGaps.length > 0 && (
             <Alert variant="destructive" className="mt-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Potential Compliance Gaps Detected</AlertTitle>
@@ -133,7 +135,7 @@ export function AuditReviewDialog({
                 The AI has flagged potential issues. Please review carefully
                 before approving.
                 <ul className="list-disc list-inside text-xs mt-2">
-                  {product.complianceGaps.map((gap, index) => (
+                  {complianceGaps.map((gap, index) => (
                     <li key={index}>
                       <strong>{gap.regulation}:</strong> {gap.issue}
                     </li>

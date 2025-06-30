@@ -15,9 +15,6 @@ import { z } from "genkit";
 const SuggestImprovementsInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   productDescription: z.string().describe("A description of the product."),
-  currentInformation: z
-    .string()
-    .describe("The current passport information as a JSON string."),
 });
 export type SuggestImprovementsInput = z.infer<
   typeof SuggestImprovementsInputSchema
@@ -32,7 +29,7 @@ const RecommendationSchema = z.object({
   text: z.string().describe("The actionable recommendation text."),
 });
 
-const SuggestImprovementsOutputSchema = z.object({
+export const SuggestImprovementsOutputSchema = z.object({
   recommendations: z
     .array(RecommendationSchema)
     .describe("A list of actionable recommendations for the product."),
@@ -52,7 +49,7 @@ const suggestImprovementsPrompt = ai.definePrompt({
   input: { schema: SuggestImprovementsInputSchema },
   output: { schema: SuggestImprovementsOutputSchema },
   prompt: `SYSTEM: You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to provide a list of actionable recommendations to improve a product's passport.
-- Analyze the product's name, description, and JSON data.
+- Analyze the product's name and description.
 - Generate a list of 3-5 concrete suggestions.
 - The 'text' for each recommendation must be concise and start with an action verb.
 - Focus on high-level advice for improving the product or its data quality, not just adding new JSON fields.
@@ -62,10 +59,6 @@ USER_DATA:
 """
 Product Name: {{{productName}}}
 Product Description: {{{productDescription}}}
-Current Passport Information:
-\`\`\`json
-{{{currentInformation}}}
-\`\`\`
 """
 `,
 });

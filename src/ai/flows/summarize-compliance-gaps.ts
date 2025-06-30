@@ -12,11 +12,18 @@
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 
+const MaterialSchema = z.object({
+  name: z.string(),
+  percentage: z.number().optional(),
+  recycledContent: z.number().optional(),
+});
+
 const SummarizeComplianceGapsInputSchema = z.object({
   productName: z.string().describe("The product's name."),
-  productInformation: z
-    .string()
-    .describe("The JSON data associated with the product passport."),
+  category: z.string().describe("The product's category."),
+  materials: z
+    .array(MaterialSchema)
+    .describe("List of materials in the product."),
   compliancePathName: z
     .string()
     .describe("The name of the compliance path being checked against."),
@@ -35,7 +42,7 @@ const GapSchema = z.object({
   issue: z.string().describe("A detailed description of the compliance gap."),
 });
 
-const SummarizeComplianceGapsOutputSchema = z.object({
+export const SummarizeComplianceGapsOutputSchema = z.object({
   isCompliant: z
     .boolean()
     .describe(
@@ -69,20 +76,21 @@ const prompt = ai.definePrompt({
   input: { schema: SummarizeComplianceGapsInputSchema },
   output: { schema: SummarizeComplianceGapsOutputSchema },
   prompt: `SYSTEM: You are an expert EU regulatory compliance auditor AI. Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
-- Analyze the product's data against the given compliance rules.
-- Identify every rule that is not met by the product data.
+- Analyze the product's structured data against the given compliance rules.
+- Identify every rule that is not met by the product data. For example, if a rule bans a material, check if that material is in the materials list.
 - If data is insufficient to verify a rule, treat it as a gap.
 - Your summary should be neutral and factual.
 
 USER_DATA:
 """
 Product Name: {{{productName}}}
+Category: {{{category}}}
 Compliance Path: {{{compliancePathName}}}
 
-Product Passport Data (JSON):
-\`\`\`json
-{{{productInformation}}}
-\`\`\`
+Materials:
+{{#each materials}}
+- Name: {{name}}
+{{/each}}
 
 Compliance Rules (JSON):
 \`\`\`json

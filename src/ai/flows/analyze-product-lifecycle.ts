@@ -6,24 +6,36 @@
  *
  * - analyzeProductLifecycle - A function that handles the lifecycle analysis.
  * - AnalyzeProductLifecycleInput - The input type for the function.
- * - AnalyzeProductLifecycleOutput - The return type for the function.
+ * - AnalyzeProductLifecycleOutputSchema - The return type for the function.
  */
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 
+const MaterialSchema = z.object({
+  name: z.string(),
+  percentage: z.number().optional(),
+});
+
+const ManufacturingSchema = z.object({
+  country: z.string(),
+  emissionsKgCo2e: z.number().optional(),
+});
+
 const AnalyzeProductLifecycleInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   productDescription: z.string().describe("A description of the product."),
-  currentInformation: z
-    .string()
-    .describe("The current passport information as a JSON string."),
+  category: z.string().describe("The product category."),
+  materials: z
+    .array(MaterialSchema)
+    .describe("List of materials in the product."),
+  manufacturing: ManufacturingSchema.describe("Manufacturing details."),
 });
 export type AnalyzeProductLifecycleInput = z.infer<
   typeof AnalyzeProductLifecycleInputSchema
 >;
 
-const AnalyzeProductLifecycleOutputSchema = z.object({
+export const AnalyzeProductLifecycleOutputSchema = z.object({
   carbonFootprint: z.object({
     value: z.number().describe("The estimated carbon footprint value."),
     unit: z
@@ -61,9 +73,9 @@ const prompt = ai.definePrompt({
   name: "analyzeProductLifecyclePrompt",
   input: { schema: AnalyzeProductLifecycleInputSchema },
   output: { schema: AnalyzeProductLifecycleOutputSchema },
-  prompt: `SYSTEM: You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze product information and generate a lifecycle impact summary.
-- Analyze the product's name, description, and JSON data.
-- Consider factors like materials, weight, manufacturing processes, energy consumption during use, and end-of-life options.
+  prompt: `SYSTEM: You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze structured product information and generate a lifecycle impact summary.
+- Analyze the product's name, description, category, and structured data.
+- Consider factors like materials, weight, manufacturing processes/country, and typical end-of-life options for the category.
 - For 'carbonFootprint', if exact data isn't available, use reasonable industry averages to make an estimation and note this in the summary.
 - The 'improvementOpportunities' should be a list of concrete, actionable suggestions.
 - Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
@@ -72,10 +84,18 @@ USER_DATA:
 """
 Product Name: {{{productName}}}
 Product Description: {{{productDescription}}}
-Passport Information:
-\`\`\`json
-{{{currentInformation}}}
-\`\`\`
+Category: {{{category}}}
+
+Materials:
+{{#each materials}}
+- Name: {{name}}
+{{/each}}
+
+Manufacturing Info:
+- Country: {{manufacturing.country}}
+{{#if manufacturing.emissionsKgCo2e}}
+- Reported CO2e: {{manufacturing.emissionsKgCo2e}}
+{{/if}}
 """
 `,
 });
