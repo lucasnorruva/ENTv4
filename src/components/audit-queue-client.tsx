@@ -31,7 +31,6 @@ export function AuditQueueClient({
   initialProducts,
   user,
 }: AuditQueueClientProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -39,18 +38,6 @@ export function AuditQueueClient({
     setSelectedProduct(product);
     setIsDialogOpen(true);
   };
-
-  const handleUpdate = (updatedProduct: Product) => {
-    setProducts((currentProducts) =>
-      currentProducts.map((p) =>
-        p.id === updatedProduct.id ? updatedProduct : p,
-      ),
-    );
-  };
-
-  const productsToAudit = products.filter(
-    (p) => p.verificationStatus === 'Pending',
-  );
 
   return (
     <>
@@ -73,8 +60,8 @@ export function AuditQueueClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {productsToAudit.length > 0 ? (
-                productsToAudit.map((product) => (
+              {initialProducts.length > 0 ? (
+                initialProducts.map(product => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">
                       {product.productName}
@@ -113,7 +100,6 @@ export function AuditQueueClient({
         onOpenChange={setIsDialogOpen}
         product={selectedProduct}
         user={user}
-        onUpdate={handleUpdate}
       />
     </>
   );

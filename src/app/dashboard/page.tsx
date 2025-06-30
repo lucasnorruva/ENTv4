@@ -20,8 +20,12 @@ export default async function DashboardPage({
   searchParams: { role?: Role };
 }) {
   const selectedRole = searchParams.role || UserRoles.SUPPLIER;
-  const user = await getCurrentUser(selectedRole);
-  const products = await getProducts();
+  // Fetch user and products in parallel for efficiency
+  const [user, products] = await Promise.all([
+    getCurrentUser(selectedRole),
+    getProducts(),
+  ]);
+
   const flaggedProducts = products.filter(
     (p) => p.verificationStatus === "Failed",
   );

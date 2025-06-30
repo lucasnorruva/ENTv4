@@ -30,9 +30,9 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
-import { productionLines } from './manufacturing-data';
 import { getMockUsers } from './auth';
-import { serviceTickets } from './service-ticket-data';
+import { serviceTickets as mockServiceTickets } from './service-ticket-data';
+import { productionLines as mockProductionLines } from './manufacturing-data';
 
 // --- HELPERS ---
 
@@ -168,6 +168,9 @@ export async function saveProduct(
     lastUpdated: admin.firestore.FieldValue.serverTimestamp(),
   };
 
+  const productPath = '/dashboard/products';
+  const passportPath = `/products/${productId}`;
+
   if (productId) {
     const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
     await docRef.update(dataToSave);
@@ -178,8 +181,8 @@ export async function saveProduct(
       userId,
     );
     const updatedDoc = await docRef.get();
-    revalidatePath('/dashboard/products');
-    revalidatePath(`/products/${productId}`);
+    revalidatePath(productPath);
+    revalidatePath(passportPath);
     return formatDoc<Product>(updatedDoc);
   } else {
     const newProductData = {
@@ -198,7 +201,7 @@ export async function saveProduct(
       userId,
     );
     const newDoc = await docRef.get();
-    revalidatePath('/dashboard/products');
+    revalidatePath(productPath);
     return formatDoc<Product>(newDoc);
   }
 }
@@ -238,6 +241,7 @@ export async function submitForReview(
     userId,
   );
   revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/audit');
   revalidatePath(`/products/${productId}`);
   const updatedDoc = await docRef.get();
   return formatDoc<Product>(updatedDoc);
@@ -272,6 +276,7 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
+  revalidatePath('/dashboard/audit');
   revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   const updatedDoc = await docRef.get();
@@ -292,7 +297,9 @@ export async function rejectPassport(
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
+  revalidatePath('/dashboard/audit');
   revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/flagged');
   revalidatePath(`/products/${productId}`);
   const updatedDoc = await docRef.get();
   return formatDoc<Product>(updatedDoc);
@@ -367,7 +374,7 @@ export async function markAsRecycled(
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   });
   await logAuditEvent('product.recycled', productId, {}, userId);
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard/eol');
   revalidatePath(`/products/${productId}`);
   const updatedDoc = await docRef.get();
   return formatDoc<Product>(updatedDoc);
@@ -387,34 +394,38 @@ export async function logAuditEvent(
     entityId,
     details,
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
   await adminDb.collection(Collections.AUDIT_LOGS).add(logEntry);
-  console.log('AUDIT LOG:', logEntry);
+  revalidatePath('/dashboard/analytics');
+  revalidatePath('/dashboard/history');
 }
 
-export async function getAuditLogs(userId?: string): Promise<AuditLog[]> {
-  let query: admin.firestore.Query = adminDb.collection(Collections.AUDIT_LOGS);
-  if (userId) {
-    query = query.where('userId', '==', userId);
-  }
-  const snapshot = await query.orderBy('createdAt', 'desc').get();
+export async function getAuditLogs(): Promise<AuditLog[]> {
+  const snapshot = await adminDb
+    .collection(Collections.AUDIT_LOGS)
+    .orderBy('createdAt', 'desc')
+    .get();
   if (snapshot.empty) return [];
   return snapshot.docs.map(doc => formatDoc<AuditLog>(doc));
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-  return getAuditLogs(userId);
-}
-
-export async function getAllAuditLogs(): Promise<AuditLog[]> {
-  return getAuditLogs();
+  const snapshot = await adminDb
+    .collection(Collections.AUDIT_LOGS)
+    .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(doc => formatDoc<AuditLog>(doc));
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  const snapshot = await adminDb.collection(Collections.COMPLIANCE_PATHS).get();
+  const snapshot = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .orderBy('name', 'asc')
+    .get();
   if (snapshot.empty) return [];
   return snapshot.docs.map(doc => formatDoc<CompliancePath>(doc));
 }
@@ -449,6 +460,8 @@ export async function saveCompliancePath(
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
+  const compliancePath = '/dashboard/compliance';
+
   if (pathId) {
     const docRef = adminDb.collection(Collections.COMPLIANCE_PATHS).doc(pathId);
     await docRef.update(dataToSave);
@@ -459,7 +472,7 @@ export async function saveCompliancePath(
       userId,
     );
     const updatedDoc = await docRef.get();
-    revalidatePath('/dashboard/compliance');
+    revalidatePath(compliancePath);
     return formatDoc<CompliancePath>(updatedDoc);
   } else {
     const newPathData = {
@@ -476,7 +489,7 @@ export async function saveCompliancePath(
       userId,
     );
     const newDoc = await docRef.get();
-    revalidatePath('/dashboard/compliance');
+    revalidatePath(compliancePath);
     return formatDoc<CompliancePath>(newDoc);
   }
 }
@@ -484,21 +497,11 @@ export async function saveCompliancePath(
 // --- MOCK DATA ACTIONS (to be replaced later) ---
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  return Promise.resolve(JSON.parse(JSON.stringify(productionLines)));
-}
-
-export async function getMockUsersForAdmin(): Promise<
-  { id: string; fullName: string; email: string; role: string }[]
-> {
-  const users = await getMockUsers();
-  return users.map(user => ({
-    id: user.id,
-    fullName: user.fullName,
-    email: user.email,
-    role: user.roles[0],
-  }));
+  // In a real app, this would fetch from a 'productionLines' collection in Firestore.
+  return Promise.resolve(JSON.parse(JSON.stringify(mockProductionLines)));
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  return Promise.resolve(JSON.parse(JSON.stringify(serviceTickets)));
+  // In a real app, this would fetch from a 'serviceTickets' collection in Firestore.
+  return Promise.resolve(JSON.parse(JSON.stringify(mockServiceTickets)));
 }

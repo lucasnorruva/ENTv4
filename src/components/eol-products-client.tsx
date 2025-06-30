@@ -33,7 +33,6 @@ export default function EolProductsClient({
   initialProducts,
   user,
 }: EolProductsClientProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isPending, startTransition] = useTransition();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -44,11 +43,6 @@ export default function EolProductsClient({
     startTransition(async () => {
       try {
         const updatedProduct = await markAsRecycled(productId, user.id);
-        setProducts((currentProducts) =>
-          currentProducts.map((p) =>
-            p.id === updatedProduct.id ? updatedProduct : p,
-          ),
-        );
         toast({
           title: 'Success',
           description: `Product "${updatedProduct.productName}" marked as recycled.`,
@@ -84,7 +78,7 @@ export default function EolProductsClient({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map((product) => (
+            {initialProducts.map(product => (
               <TableRow key={product.id}>
                 <TableCell className="font-medium">
                   {product.productName}
@@ -106,7 +100,9 @@ export default function EolProductsClient({
                     variant="outline"
                     size="sm"
                     onClick={() => handleMarkAsRecycled(product.id)}
-                    disabled={isPending || product.endOfLifeStatus !== 'Active'}
+                    disabled={
+                      isPending || product.endOfLifeStatus === 'Recycled'
+                    }
                   >
                     {isPending && processingId === product.id && (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

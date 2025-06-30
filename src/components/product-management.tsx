@@ -19,6 +19,7 @@ import {
   deleteProduct,
   submitForReview,
   recalculateScore,
+  saveProduct,
 } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 
@@ -31,7 +32,6 @@ export default function ProductManagement({
   initialProducts,
   user,
 }: ProductManagementProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -50,9 +50,6 @@ export default function ProductManagement({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id, user.id);
-      setProducts(currentProducts =>
-        currentProducts.filter(p => p.id !== id),
-      );
       toast({
         title: "Product Deleted",
         description: "The product passport has been successfully deleted.",
@@ -64,9 +61,6 @@ export default function ProductManagement({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
-        setProducts(currentProducts =>
-          currentProducts.map(p => (p.id === id ? reviewedProduct : p)),
-        );
         toast({
           title: "Product Submitted",
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -85,9 +79,6 @@ export default function ProductManagement({
     startTransition(async () => {
       try {
         const updatedProduct = await recalculateScore(id, user.id);
-        setProducts(currentProducts =>
-          currentProducts.map(p => (p.id === id ? updatedProduct : p)),
-        );
         toast({
           title: "AI Data Recalculated",
           description: `AI-generated fields for "${updatedProduct.productName}" have been updated.`,
@@ -102,18 +93,9 @@ export default function ProductManagement({
     });
   };
 
-  const handleSave = (savedProduct: Product) => {
-    if (selectedProduct) {
-      // Update
-      setProducts(currentProducts =>
-        currentProducts.map(p =>
-          p.id === savedProduct.id ? savedProduct : p,
-        ),
-      );
-    } else {
-      // Create
-      setProducts(currentProducts => [savedProduct, ...currentProducts]);
-    }
+  const handleSave = () => {
+    // The form submission is now handled inside ProductForm,
+    // which calls a server action. The revalidation will update the table.
     setIsSheetOpen(false);
   };
 
@@ -135,7 +117,7 @@ export default function ProductManagement({
         </CardHeader>
         <CardContent>
           <ProductTable
-            products={products}
+            products={initialProducts}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}

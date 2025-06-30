@@ -26,7 +26,6 @@ interface AuditReviewDialogProps {
   user: User;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onUpdate: (updatedProduct: Product) => void;
 }
 
 export function AuditReviewDialog({
@@ -34,7 +33,6 @@ export function AuditReviewDialog({
   user,
   isOpen,
   onOpenChange,
-  onUpdate,
 }: AuditReviewDialogProps) {
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectionForm, setShowRejectionForm] = useState(false);
@@ -56,7 +54,6 @@ export function AuditReviewDialog({
           title: 'Passport Approved',
           description: `"${updatedProduct.productName}" has been verified and anchored.`,
         });
-        onUpdate(updatedProduct);
         handleClose();
       } catch (error) {
         toast({
@@ -81,7 +78,6 @@ export function AuditReviewDialog({
           title: 'Passport Rejected',
           description: `"${updatedProduct.productName}" has been marked as failed.`,
         });
-        onUpdate(updatedProduct);
         handleClose();
       } catch (error) {
         toast({
@@ -120,7 +116,7 @@ export function AuditReviewDialog({
               id="rejectionReason"
               placeholder="Provide clear feedback for the supplier..."
               value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
+              onChange={e => setRejectionReason(e.target.value)}
             />
           </div>
         )}

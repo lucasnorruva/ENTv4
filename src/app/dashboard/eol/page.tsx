@@ -6,9 +6,9 @@ import EolProductsClient from '@/components/eol-products-client';
 export const dynamic = 'force-dynamic';
 
 export default async function EolPage() {
-  const [initialProducts, user] = await Promise.all([
+  const [products, user] = await Promise.all([
     getProducts(),
     getCurrentUser('Recycler'),
   ]);
-  return <EolProductsClient initialProducts={initialProducts} user={user} />;
+  return <EolProductsClient initialProducts={products} user={user} />;
 }

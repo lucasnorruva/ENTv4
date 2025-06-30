@@ -179,9 +179,12 @@ export interface ProductionLine {
 /**
  * Represents a service or repair ticket for a product.
  */
-export interface ServiceTicket extends BaseEntity {
+export interface ServiceTicket {
+  id: string;
   productId: string;
   customerName: string;
   issue: string;
   status: "Open" | "In Progress" | "Closed";
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
