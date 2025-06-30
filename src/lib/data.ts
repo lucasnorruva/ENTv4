@@ -13,15 +13,24 @@ export let products: Product[] = [
     category: "Electronics",
     supplier: "GreenTech Supplies",
     complianceLevel: "High",
-    sustainabilityScore: 92,
-    sustainabilityReport:
-      "High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.",
+    esg: {
+      score: 92,
+      environmental: 9.5,
+      social: 9.0,
+      governance: 8.8,
+      summary:
+        "High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.",
+    },
     currentInformation: JSON.stringify(
       {
         materials: ["Recycled Aluminum", "Organic Cotton Strap"],
         certifications: ["EcoCert", "Fair Trade"],
         battery_life_hours: 72,
         water_resistance_atm: 5,
+        manufacturing: {
+          facility: "ISO 14001 certified",
+          country: "Germany",
+        },
       },
       null,
       2,
@@ -52,9 +61,14 @@ export let products: Product[] = [
     category: "Electronics",
     supplier: "AeroDynamics Inc.",
     complianceLevel: "Medium",
-    sustainabilityScore: 65,
-    sustainabilityReport:
-      "Average score. High-performance components are difficult to recycle. Opportunities exist to improve packaging and use recycled plastics.",
+    esg: {
+      score: 65,
+      environmental: 6.0,
+      social: 7.0,
+      governance: 6.8,
+      summary:
+        "Average score. High-performance components are difficult to recycle. Opportunities exist to improve packaging and use recycled plastics.",
+    },
     currentInformation: JSON.stringify(
       {
         camera_resolution: "4K",
@@ -116,9 +130,14 @@ export let products: Product[] = [
     category: "Fashion",
     supplier: "ReNew Gear",
     complianceLevel: "Medium",
-    sustainabilityScore: 85,
-    sustainabilityReport:
-      "Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.",
+    esg: {
+      score: 85,
+      environmental: 9.0,
+      social: 8.0,
+      governance: 8.2,
+      summary:
+        "Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.",
+    },
     currentInformation: JSON.stringify(
       {
         capacity_liters: 25,
@@ -159,9 +178,14 @@ export let products: Product[] = [
     category: "Home Goods",
     supplier: "EcoHome Furnishings",
     complianceLevel: "High",
-    sustainabilityScore: 88,
-    sustainabilityReport:
-      "Bamboo is a highly renewable resource. The modular design promotes repairability and long-term use, reducing waste.",
+    esg: {
+      score: 88,
+      environmental: 9.2,
+      social: 8.5,
+      governance: 8.6,
+      summary:
+        "Bamboo is a highly renewable resource. The modular design promotes repairability and long-term use, reducing waste.",
+    },
     currentInformation: JSON.stringify(
       {
         material: "Bamboo",

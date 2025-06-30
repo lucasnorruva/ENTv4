@@ -91,7 +91,7 @@ export default function ProductTable({
         <TableRow>
           <TableHead className="w-[80px]">Image</TableHead>
           <TableHead>Product Name</TableHead>
-          <TableHead>Sustainability</TableHead>
+          <TableHead>ESG Score</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Verification</TableHead>
           <TableHead>Last Updated</TableHead>
@@ -113,16 +113,13 @@ export default function ProductTable({
             </TableCell>
             <TableCell className="font-medium">{product.productName}</TableCell>
             <TableCell>
-              {product.sustainabilityScore !== undefined ? (
+              {product.esg?.score !== undefined ? (
                 <div
                   className="flex items-center gap-2"
-                  title={product.sustainabilityReport}
+                  title={product.esg.summary}
                 >
-                  <Progress
-                    value={product.sustainabilityScore}
-                    className="w-20 h-2"
-                  />
-                  <span>{product.sustainabilityScore}/100</span>
+                  <Progress value={product.esg.score} className="w-20 h-2" />
+                  <span>{product.esg.score}/100</span>
                 </div>
               ) : (
                 <span className="text-muted-foreground text-xs italic">

@@ -28,11 +28,11 @@ export default function BusinessAnalystDashboard({
 
   const categoryScores = products.reduce(
     (acc, product) => {
-      if (product.sustainabilityScore !== undefined) {
+      if (product.esg?.score !== undefined) {
         if (!acc[product.category]) {
           acc[product.category] = { totalScore: 0, count: 0 };
         }
-        acc[product.category].totalScore += product.sustainabilityScore;
+        acc[product.category].totalScore += product.esg.score;
         acc[product.category].count++;
       }
       return acc;
@@ -81,9 +81,9 @@ export default function BusinessAnalystDashboard({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Sustainability Score Distribution</CardTitle>
+            <CardTitle>ESG Score Distribution</CardTitle>
             <CardDescription>
-              Average sustainability scores by category.
+              Average ESG scores by category.
             </CardDescription>
           </CardHeader>
           <CardContent>

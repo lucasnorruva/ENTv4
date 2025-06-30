@@ -1,11 +1,12 @@
+
 "use server";
 
 /**
- * @fileOverview An AI agent for calculating a product's sustainability score.
+ * @fileOverview An AI agent for calculating a product's ESG score.
  *
- * - calculateSustainability - A function that handles the sustainability calculation.
+ * - calculateSustainability - A function that handles the ESG calculation.
  * - CalculateSustainabilityInput - The input type for the function.
- * - CalculateSustainabilityOutput - The return type for the function.
+ * - EsgScoreOutput - The return type for the function.
  */
 
 import { ai } from "@/ai/genkit";
@@ -23,40 +24,52 @@ export type CalculateSustainabilityInput = z.infer<
   typeof CalculateSustainabilityInputSchema
 >;
 
-const CalculateSustainabilityOutputSchema = z.object({
-  sustainabilityScore: z
+const EsgScoreOutputSchema = z.object({
+  score: z
     .number()
     .min(0)
     .max(100)
     .describe(
-      "A sustainability score from 0 to 100, where 100 is most sustainable.",
+      "An overall ESG score from 0 to 100, where 100 is most sustainable.",
     ),
-  sustainabilityReport: z
+  environmental: z
+    .number()
+    .min(0)
+    .max(10)
+    .describe("The environmental score from 0-10."),
+  social: z.number().min(0).max(10).describe("The social score from 0-10."),
+  governance: z
+    .number()
+    .min(0)
+    .max(10)
+    .describe("The governance score from 0-10."),
+  summary: z
     .string()
     .describe(
       "A brief report (2-3 sentences) explaining the rationale for the given score.",
     ),
 });
-export type CalculateSustainabilityOutput = z.infer<
-  typeof CalculateSustainabilityOutputSchema
->;
+export type EsgScoreOutput = z.infer<typeof EsgScoreOutputSchema>;
 
 export async function calculateSustainability(
   input: CalculateSustainabilityInput,
-): Promise<CalculateSustainabilityOutput> {
-  return calculateSustainabilityFlow(input);
+): Promise<EsgScoreOutput> {
+  return calculateEsgScoreFlow(input);
 }
 
 const prompt = ai.definePrompt({
-  name: "calculateSustainabilityPrompt",
+  name: "calculateEsgScorePrompt",
   input: { schema: CalculateSustainabilityInputSchema },
-  output: { schema: CalculateSustainabilityOutputSchema },
-  prompt: `You are an expert in product sustainability and circular economy principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate a sustainability score and a brief report.
+  output: { schema: EsgScoreOutputSchema },
+  prompt: `You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate a detailed ESG score and a brief report.
 
   Analyze the product's name, description, category, and especially the detailed JSON data in its passport.
-  Consider factors like materials used (recycled, organic, virgin), energy efficiency, repairability, end-of-life options, and certifications.
-  Based on your analysis, provide a score from 0 (not sustainable at all) to 100 (perfectly sustainable and circular).
-  Also, provide a concise report (2-3 sentences) justifying the score, highlighting both positive and negative aspects.
+  Consider factors like materials used (recycled, organic, virgin), energy efficiency, repairability, end-of-life options, certifications (like ISO 14001, Fair Trade), and manufacturing location to assess environmental, social, and governance impacts.
+  
+  Based on your analysis, provide:
+  1. An overall ESG score from 0 (not sustainable at all) to 100 (perfectly sustainable and circular).
+  2. Individual scores from 0-10 for Environmental, Social, and Governance pillars.
+  3. A concise summary (2-3 sentences) justifying the scores, highlighting both positive and negative aspects.
 
   Product Name: {{{productName}}}
   Product Description: {{{productDescription}}}
@@ -68,11 +81,11 @@ const prompt = ai.definePrompt({
   `,
 });
 
-const calculateSustainabilityFlow = ai.defineFlow(
+const calculateEsgScoreFlow = ai.defineFlow(
   {
-    name: "calculateSustainabilityFlow",
+    name: "calculateEsgScoreFlow",
     inputSchema: CalculateSustainabilityInputSchema,
-    outputSchema: CalculateSustainabilityOutputSchema,
+    outputSchema: EsgScoreOutputSchema,
   },
   async (input) => {
     const { output } = await prompt(input);

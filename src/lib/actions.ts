@@ -28,8 +28,7 @@ export async function saveProduct(
     | "createdAt"
     | "updatedAt"
     | "lastUpdated"
-    | "sustainabilityScore"
-    | "sustainabilityReport"
+    | "esg"
     | "blockchainProof"
     | "verificationStatus"
     | "lastVerificationDate"
@@ -42,7 +41,7 @@ export async function saveProduct(
   const nowISO = now.toISOString();
 
   // Keep AI enrichment and blockchain for demonstration, but handle failures
-  let aiResult = {};
+  let esgResult;
   try {
     const aiInput = {
       productName: data.productName,
@@ -50,7 +49,7 @@ export async function saveProduct(
       category: data.category,
       currentInformation: data.currentInformation,
     };
-    aiResult = await calculateSustainability(aiInput);
+    esgResult = await calculateSustainability(aiInput);
   } catch (e) {
     console.error("AI sustainability calculation failed (mock mode):", e);
   }
@@ -86,7 +85,7 @@ export async function saveProduct(
     const updatedProduct: Product = {
       ...existingProduct,
       ...data,
-      ...aiResult,
+      esg: esgResult,
       blockchainProof,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
@@ -113,7 +112,7 @@ export async function saveProduct(
     // Create new product
     const newProduct: Product = {
       ...data,
-      ...aiResult,
+      esg: esgResult,
       blockchainProof,
       id: `pp-mock-${Date.now()}`,
       createdAt: nowISO,
@@ -236,7 +235,7 @@ export async function recalculateScore(
   }
   const product = mockProducts[productIndex];
 
-  let aiResult = {};
+  let esgResult;
   try {
     const aiInput = {
       productName: product.productName,
@@ -244,7 +243,7 @@ export async function recalculateScore(
       category: product.category,
       currentInformation: product.currentInformation,
     };
-    aiResult = await calculateSustainability(aiInput);
+    esgResult = await calculateSustainability(aiInput);
   } catch (e) {
     console.error("AI sustainability re-calculation failed:", e);
     // We can decide to throw or return the product as-is
@@ -253,7 +252,7 @@ export async function recalculateScore(
 
   const updatedProduct: Product = {
     ...product,
-    ...aiResult,
+    esg: esgResult,
     updatedAt: new Date().toISOString(),
   };
 
@@ -262,7 +261,7 @@ export async function recalculateScore(
   await logAuditEvent(
     "product.recalculate_score",
     productId,
-    { newScore: updatedProduct.sustainabilityScore },
+    { newScore: updatedProduct.esg?.score },
     userId,
   );
 
