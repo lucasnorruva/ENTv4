@@ -1,3 +1,4 @@
+
 "use server";
 
 /**
@@ -43,18 +44,21 @@ const prompt = ai.definePrompt({
   name: "generateQRLabelTextPrompt",
   input: { schema: GenerateQRLabelTextInputSchema },
   output: { schema: GenerateQRLabelTextOutputSchema },
-  prompt: `You are a marketing and sustainability expert AI. Your task is to generate a concise, consumer-facing summary for a product's public passport page, which is accessed via a QR code.
-
+  prompt: `SYSTEM: You are a copywriter assistant that explains product sustainability features in clear, positive language for consumers. Your task is to generate a concise summary for a product's public passport page.
 - The summary must be brief (1-2 sentences), engaging, and easy for a consumer to understand.
 - Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided data.
 - The tone should be positive and informative, but factually based on the passport information.
+- Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
+USER_DATA:
+"""
 Product Name: {{{productName}}}
 Supplier: {{{supplier}}}
 Passport Information:
 \`\`\`json
 {{{currentInformation}}}
 \`\`\`
+"""
 `,
 });
 

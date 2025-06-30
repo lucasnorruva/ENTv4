@@ -1,3 +1,4 @@
+
 "use server";
 
 /**
@@ -67,13 +68,14 @@ const prompt = ai.definePrompt({
   name: "summarizeComplianceGapsPrompt",
   input: { schema: SummarizeComplianceGapsInputSchema },
   output: { schema: SummarizeComplianceGapsOutputSchema },
-  prompt: `You are an expert EU regulatory compliance auditor AI. Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
-
-Analyze the product's data against the given compliance rules.
+  prompt: `SYSTEM: You are an expert EU regulatory compliance auditor AI. Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
+- Analyze the product's data against the given compliance rules.
 - Identify every rule that is not met by the product data.
 - If data is insufficient to verify a rule, treat it as a gap.
 - Your summary should be neutral and factual.
 
+USER_DATA:
+"""
 Product Name: {{{productName}}}
 Compliance Path: {{{compliancePathName}}}
 
@@ -86,6 +88,7 @@ Compliance Rules (JSON):
 \`\`\`json
 {{{complianceRules}}}
 \`\`\`
+"""
 `,
 });
 
