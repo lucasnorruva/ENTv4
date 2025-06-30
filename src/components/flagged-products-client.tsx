@@ -1,7 +1,7 @@
 // src/components/flagged-products-client.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useTransition } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2 } from 'lucide-react';
@@ -27,7 +27,6 @@ export default function FlaggedProductsClient({
   initialProducts,
   user,
 }: FlaggedProductsClientProps) {
-  const [products, setProducts] = useState(initialProducts);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -35,7 +34,6 @@ export default function FlaggedProductsClient({
     startTransition(async () => {
       try {
         const updatedProduct = await resolveComplianceIssue(productId, user.id);
-        setProducts(current => current.filter(p => p.id !== productId));
         toast({
           title: 'Issue Resolved',
           description: `Product "${updatedProduct.productName}" has been sent back to the supplier for revision.`,
@@ -61,7 +59,7 @@ export default function FlaggedProductsClient({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {products.map(product => (
+        {initialProducts.map(product => (
           <TableRow key={product.id}>
             <TableCell className="font-medium">
               {product.productName}
@@ -99,7 +97,7 @@ export default function FlaggedProductsClient({
             </TableCell>
           </TableRow>
         ))}
-        {products.length === 0 && (
+        {initialProducts.length === 0 && (
           <TableRow>
             <TableCell colSpan={4} className="h-24 text-center">
               No products are currently flagged for non-compliance.
