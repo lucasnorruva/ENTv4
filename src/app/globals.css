@@ -7,104 +7,81 @@
     scroll-behavior: smooth;
   }
   :root {
-    /* High-Frequency Palette - Light Mode */
-    --background: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
-    --foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+    /* Light Mode Palette - Forest Green & Sky Blue */
+    --background: 120 17% 95%; /* #F0F4F0 - Very Light Green */
+    --foreground: 120 25% 15%; /* Dark, desaturated green */
 
-    --card: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
-    --card-foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+    --card: 120 17% 98%; /* Slightly brighter than background */
+    --card-foreground: 120 25% 15%;
 
-    --popover: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
-    --popover-foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+    --popover: 120 17% 98%;
+    --popover-foreground: 120 25% 15%;
 
-    --primary: 217 91% 60%; /* #3B82F6 primaryBlue */
-    --primary-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on primaryBlue) */
+    --primary: 122 39% 49%; /* #4CAF50 - Forest Green */
+    --primary-foreground: 120 25% 98%; /* Light text for on primary */
 
-    --secondary: 158 80% 42%; /* #10B981 emeraldGreen */
-    --secondary-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on emeraldGreen) */
+    --secondary: 197 71% 73%; /* #87CEEB - Sky Blue */
+    --secondary-foreground: 120 25% 15%; /* Dark text for on secondary */
     
-    --accent: 258 90% 66%; /* #8B5CF6 violetAccent */
-    --accent-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on violetAccent) */
+    --accent: 197 71% 73%; /* #87CEEB - Sky Blue */
+    --accent-foreground: 120 25% 15%; /* Dark text for on accent */
 
-    --muted: 220 13% 91%; /* #E2E8F0 (slate-200) derived from slateText */
-    --muted-foreground: 220 9% 46%; /* #64748B (slate-500) derived */
+    --muted: 120 15% 90%;
+    --muted-foreground: 120 10% 45%;
 
-    --destructive: 258 90% 66%; /* #8B5CF6 violetAccent (No Red!) */
-    --destructive-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%; /* #E2E8F0 (slate-200) for subtle borders */
-    --input: 220 13% 91%; /* #E2E8F0 (slate-200) */
-    --ring: 217 91% 60%; /* #3B82F6 primaryBlue for focus rings */
+    --border: 120 15% 88%;
+    --input: 120 15% 88%;
+    --ring: 122 39% 49%;
 
     --radius: 0.5rem;
 
-    /* Sidebar specific colors - Light Mode - GLASSMORPHIC */
-    --sidebar-background: 0 0% 100% / 0;   /* HSLA for transparent white */
-    --sidebar-foreground: 0 0% 100%;       /* White text */
-    --sidebar-primary: 0 0% 100% / 0.15;   /* Active item background: Slightly more opaque white */
-    --sidebar-primary-foreground: 0 0% 100%; /* Active item text: White */
-    --sidebar-accent: 0 0% 100% / 0.1;    /* Hover item background: Less opaque white */
-    --sidebar-accent-foreground: 0 0% 100%; /* Hover item text: White */
-    --sidebar-border: 0 0% 100% / 0.1;    /* Subtle white border */
-    --sidebar-ring: 217 91% 60%;         /* primaryBlue (original light mode ring for focus) */
-
-    /* Chart colors - Light Mode (No Red/Yellow) */
-    --chart-1: 217 91% 60%; /* primaryBlue */
-    --chart-2: 158 80% 42%; /* emeraldGreen */
-    --chart-3: 258 90% 66%; /* violetAccent */
-    --chart-4: 242 50% 35%; /* Darker indigoBase for variation */
-    --chart-5: 217 91% 75%; /* Lighter primaryBlue */
+    /* Chart colors */
+    --chart-1: 122 39% 49%; /* primary */
+    --chart-2: 197 71% 63%; /* darker sky blue */
+    --chart-3: 120 30% 65%; /* lighter green */
+    --chart-4: 197 50% 80%; /* lighter sky blue */
+    --chart-5: 120 25% 35%; /* darker green */
   }
 
   .dark {
-    /* High-Frequency Palette - Dark Mode */
-    --background: 222 47% 9%; /* midnightShadow - Made darker */
-    --foreground: 220 14% 80%; /* slateText - Made lighter for contrast */
+    /* Dark Mode Palette - Forest Green & Sky Blue */
+    --background: 120 10% 10%; /* Very dark green */
+    --foreground: 120 5% 85%; /* Light gray-green text */
 
-    --card: 0 0% 100% / 0.05; /* rgba(255,255,255,0.05) glassSurfaceDark */
-    --card-foreground: 220 14% 80%; /* slateText - Made lighter for contrast */
+    --card: 120 10% 13%;
+    --card-foreground: 120 5% 85%;
 
-    --popover: 222 47% 11%; /* Slightly lighter than new bg for popovers */
-    --popover-foreground: 220 14% 80%; /* slateText - Made lighter */
+    --popover: 120 10% 13%;
+    --popover-foreground: 120 5% 85%;
 
-    --primary: 217 91% 65%; /* Lighter primaryBlue for dark mode */
-    --primary-foreground: 222 47% 11%; /* midnightShadow (text on lighter primaryBlue) */
+    --primary: 122 39% 55%; /* Lighter Forest Green */
+    --primary-foreground: 120 25% 10%;
 
-    --secondary: 158 80% 48%; /* Lighter emeraldGreen for dark mode */
-    --secondary-foreground: 222 47% 11%; /* midnightShadow */
+    --secondary: 197 71% 65%; /* Lighter Sky Blue */
+    --secondary-foreground: 197 25% 10%;
     
-    --accent: 258 90% 70%; /* Lighter violetAccent for dark mode */
-    --accent-foreground: 222 47% 11%; /* midnightShadow */
+    --accent: 197 71% 65%; /* Lighter Sky Blue */
+    --accent-foreground: 197 25% 10%;
 
-    --muted: 222 47% 18%; /* slate-800 (derived from midnightShadow) */
-    --muted-foreground: 220 14% 65%; /* slate-400 (derived) - Made lighter */
+    --muted: 120 10% 18%;
+    --muted-foreground: 120 5% 60%;
 
-    --destructive: 258 90% 70%; /* Lighter violetAccent (No Red!) */
-    --destructive-foreground: 222 47% 11%; /* midnightShadow */
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 222 47% 25%;       /* slate-700 for subtle borders */
-    --input: 222 47% 25%;        /* slate-700 */
-    --ring: 217 91% 65%;         /* Lighter primaryBlue for focus rings */
+    --border: 120 10% 18%;
+    --input: 120 10% 18%;
+    --ring: 122 39% 55%;
     
-    /* Sidebar specific colors - Dark Mode - Glassmorphic */
-    --sidebar-background: 0 0% 100% / 0;   /* HSLA for transparent white */
-    --sidebar-foreground: 0 0% 100%;       /* White text */
-    
-    --sidebar-primary: 0 0% 100% / 0.15;   /* Active item background: Slightly more opaque white */
-    --sidebar-primary-foreground: 0 0% 100%; /* Active item text: White */
-    
-    --sidebar-accent: 0 0% 100% / 0.1;    /* Hover item background: Less opaque white */
-    --sidebar-accent-foreground: 0 0% 100%; /* Hover item text: White */
-    
-    --sidebar-border: 0 0% 100% / 0.1;    /* Subtle white border (rgba(255,255,255,0.1)) */
-    --sidebar-ring: 217 91% 65%;         /* Lighter primaryBlue (existing, for focus rings) */
-    
-    /* Chart colors - Dark Mode (No Red/Yellow) */
-    --chart-1: 217 91% 65%; /* Lighter primaryBlue */
-    --chart-2: 158 80% 48%; /* Lighter emeraldGreen */
-    --chart-3: 258 90% 70%; /* Lighter violetAccent */
-    --chart-4: 242 50% 50%; /* Lighter indigoBase for variation */
-    --chart-5: 217 91% 80%; /* Even Lighter primaryBlue */
+    /* Chart colors */
+    --chart-1: 122 39% 55%; /* primary */
+    --chart-2: 197 71% 65%; /* sky blue */
+    --chart-3: 120 30% 70%; /* lighter green */
+    --chart-4: 197 50% 85%; /* lighter sky blue */
+    --chart-5: 120 25% 45%; /* darker green */
   }
 
   /* Global base styles */
@@ -116,45 +93,8 @@
   }
 }
 
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 0.5;
-    transform: scale(1);
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
-  50% {
-    opacity: 0.3;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 4s infinite ease-in-out;
-}
-
-@keyframes dash {
-  to {
-    stroke-dashoffset: -16; /* Adjust this value for speed/density */
-  }
-}
-
-.animate-dash {
-  animation: dash 1s linear infinite;
-}
-
-/* Animation for the particle traveling along the SVG arc */
-@keyframes travel {
-  0% {
-    motion-offset: 0%;
-    offset-distance: 0%; /* For older browsers / SVG 1.1 animateMotion fallback */
-  }
-  100% {
-    motion-offset: 100%;
-    offset-distance: 100%; /* For older browsers / SVG 1.1 animateMotion fallback */
-  }
-}
-
-.animate-travel {
-  animation: travel 4s linear infinite; 
-  /* For direct SVG animateMotion, duration is set there. This class is for potential CSS-driven offset-path if needed. */
-  /* For <animateMotion>, the animation is defined declaratively. This class is for the <g> wrapper. */
 }
