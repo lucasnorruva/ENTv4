@@ -16,39 +16,29 @@ function getAdminApp() {
     return getApp();
   }
 
-  // When running locally with emulators, the FIRESTORE_EMULATOR_HOST env var will be set.
-  // In this case, we don't need to provide any credentials.
-  if (process.env.FIRESTORE_EMULATOR_HOST) {
+  // When running in development mode (e.g., `npm run dev`), we connect to the emulators.
+  if (process.env.NODE_ENV === 'development') {
     console.log(
-      'Firebase Emulators detected. Initializing Admin SDK for local development.',
+      'Development environment detected. Initializing Admin SDK to connect to Firebase Emulators.',
     );
+    // Setting these environment variables tells the Admin SDK to use the emulators.
+    // This is a robust way to ensure connection during local development.
+    process.env['FIRESTORE_EMULATOR_HOST'] = 'localhost:8080';
+    process.env['FIREBASE_AUTH_EMULATOR_HOST'] = 'localhost:9099';
+    process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = 'localhost:9199';
+
     return initializeApp({
-      // Using a mock projectId for emulator environment is a good practice.
-      projectId: 'passportflow-dev',
+      projectId: 'passportflow-dev', // A dummy project ID is fine for emulators
     });
   }
 
-  try {
-    // When running on Firebase servers or with GOOGLE_APPLICATION_CREDENTIALS
-    // set locally, this will initialize the default app for production.
-    console.log('Initializing Firebase Admin SDK for production...');
-    return initializeApp();
-  } catch (error: any) {
-    console.error(
-      'Firebase Admin SDK initialization failed. Ensure GOOGLE_APPLICATION_CREDENTIALS is set for local development when not using emulators.',
-      error,
-    );
-    // Throw a more specific error to prevent the application from proceeding
-    // with an uninitialized SDK, which would lead to cryptic errors downstream.
-    throw new Error(
-      'Could not initialize Firebase Admin SDK. See server logs for more details.',
-    );
-  }
+  // For production, the SDK will use the default credentials of the environment (e.g., Cloud Run).
+  console.log('Production environment detected. Initializing Firebase Admin SDK...');
+  return initializeApp();
 }
 
 const app = getAdminApp();
 
-// Explicitly use the initialized app to get the services. This is safer.
 export const adminDb = getFirestore(app);
 export const adminStorage = getStorage(app);
 export const adminAuth = getAuth(app);
