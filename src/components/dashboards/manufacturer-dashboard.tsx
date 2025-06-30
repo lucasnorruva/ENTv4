@@ -1,7 +1,4 @@
-
 // src/components/dashboards/manufacturer-dashboard.tsx
-"use client";
-
 import {
   Card,
   CardContent,
@@ -9,37 +6,33 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import ProductTable from "../product-table";
-import type { Product, User } from "@/types";
-import { getProductionLines, getProducts } from "@/lib/actions";
-import { useEffect, useState } from "react";
-import type { ProductionLine } from "@/types";
-import { Button } from "../ui/button";
-import Link from "next/link";
-import { ArrowRight, BookCopy, Factory } from "lucide-react";
-import { Skeleton } from "../ui/skeleton";
+} from '@/components/ui/card';
+import type { User } from '@/types';
+import { getProductionLines, getProducts } from '@/lib/actions';
+import { Button } from '../ui/button';
+import Link from 'next/link';
+import { ArrowRight, BookCopy, Factory, Activity, Wrench } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { formatDistanceToNow } from 'date-fns';
 
-export default function ManufacturerDashboard({ user }: { user: User }) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [lines, setLines] = useState<ProductionLine[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export default async function ManufacturerDashboard({ user }: { user: User }) {
+  const [products, lines] = await Promise.all([
+    getProducts(user.id),
+    getProductionLines(),
+  ]);
 
-  useEffect(() => {
-    async function fetchData() {
-      const [fetchedProducts, fetchedLines] = await Promise.all([
-        getProducts(user.id),
-        getProductionLines(),
-      ]);
-      setProducts(fetchedProducts);
-      setLines(fetchedLines);
-      setIsLoading(false);
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'default';
+      case 'Maintenance':
+        return 'destructive';
+      case 'Idle':
+      default:
+        return 'secondary';
     }
-    fetchData();
-  }, [user.id]);
+  };
 
-  // Manufacturers would likely have a different set of actions,
-  // but for now, we can show a read-only table.
   return (
     <div className="space-y-6">
       <div>
@@ -55,17 +48,11 @@ export default function ManufacturerDashboard({ user }: { user: User }) {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Products
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-7 w-12" />
-            ) : (
-              <div className="text-2xl font-bold">{products.length}</div>
-            )}
+            <div className="text-2xl font-bold">{products.length}</div>
             <p className="text-xs text-muted-foreground">
               Across all production lines
             </p>
@@ -79,11 +66,7 @@ export default function ManufacturerDashboard({ user }: { user: User }) {
             <Factory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-7 w-12" />
-            ) : (
-              <div className="text-2xl font-bold">{lines.length}</div>
-            )}
+            <div className="text-2xl font-bold">{lines.length}</div>
             <p className="text-xs text-muted-foreground">
               Active, Idle, and Maintenance
             </p>
@@ -100,31 +83,50 @@ export default function ManufacturerDashboard({ user }: { user: User }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Product Overview</CardTitle>
+          <CardTitle>Production Line Status</CardTitle>
           <CardDescription>
-            View all products and their lifecycle data.
+            An overview of current activity on the factory floor.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
-              <Skeleton className="h-8 w-full" />
+        <CardContent className="space-y-4">
+          {lines.map(line => (
+            <div
+              key={line.id}
+              className="flex flex-wrap items-center justify-between gap-4 p-3 border rounded-lg"
+            >
+              <div>
+                <div className="flex items-center gap-3">
+                  <h4 className="font-semibold">{line.name}</h4>
+                  <Badge variant={getStatusVariant(line.status)}>
+                    {line.status}
+                  </Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Producing: {line.currentProduct}
+                </p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  <span>{line.outputPerHour} units/hr</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Wrench className="h-3 w-3" />
+                  <span>
+                    Maint:{" "}
+                    {formatDistanceToNow(new Date(line.lastMaintenance), {
+                      addSuffix: true,
+                    })}
+                  </span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <ProductTable
-              products={products}
-              onEdit={() => alert("Editing not available in this view.")}
-              onDelete={() => alert("Deleting not available in this view.")}
-              onSubmitForReview={() =>
-                alert("Submitting not available in this view.")
-              }
-              onRecalculateScore={() =>
-                alert("Recalculating not available in this view.")
-              }
-            />
-          )}
+          ))}
+           {lines.length === 0 && (
+              <p className="text-sm text-center text-muted-foreground py-4">
+                No production lines found.
+              </p>
+            )}
         </CardContent>
       </Card>
     </div>
