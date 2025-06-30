@@ -7,7 +7,6 @@ import {
   LayoutGrid,
   BookCopy,
   ShieldCheck,
-  Code,
   Settings,
   Users,
   BarChart3,
@@ -25,6 +24,8 @@ import {
   Package,
   ShieldAlert,
   FileCode,
+  Cog,
+  Settings2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -64,19 +65,8 @@ type NavConfig = NavGroup[];
 const navConfig: Record<Role, NavConfig> = {
   [UserRoles.ADMIN]: [
     {
-      label: "Management",
+      label: "Overview",
       items: [
-        { title: "Users", icon: Users, href: "/dashboard/users" },
-        {
-          title: "Compliance Paths",
-          icon: FileQuestion,
-          href: "/dashboard/compliance",
-        },
-        {
-          title: "All Products",
-          icon: BookCopy,
-          href: "/dashboard/products",
-        },
         {
           title: "System Analytics",
           icon: BarChart3,
@@ -85,9 +75,25 @@ const navConfig: Record<Role, NavConfig> = {
       ],
     },
     {
-      label: "Configuration",
+      label: "Platform Management",
       items: [
-        { title: "API Settings", icon: Code, href: "/dashboard/api-settings" },
+        { title: "Users", icon: Users, href: "/dashboard/users" },
+        {
+          title: "All Products",
+          icon: BookCopy,
+          href: "/dashboard/products",
+        },
+        {
+          title: "Compliance Paths",
+          icon: FileQuestion,
+          href: "/dashboard/compliance",
+        },
+      ],
+    },
+    {
+      label: "System Configuration",
+      items: [
+        { title: "API Settings", icon: Cog, href: "/dashboard/api-settings" },
         {
           title: "Integrations",
           icon: Wrench,
@@ -113,8 +119,13 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Production",
       items: [
-        { title: "Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
         { title: "Production Lines", icon: Factory, href: "/dashboard/lines" },
+      ],
+    },
+    {
+      label: "Analysis",
+      items: [
         {
           title: "Material Composition",
           icon: Package,
@@ -134,6 +145,16 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         { title: "Audit Queue", icon: ShieldCheck, href: "/dashboard/audit" },
         { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
+      ],
+    },
+    {
+      label: "Reference",
+      items: [
+        {
+          title: "Compliance Paths",
+          icon: FileQuestion,
+          href: "/dashboard/compliance",
+        },
         { title: "Reports", icon: FileText, href: "/dashboard/reports" },
       ],
     },
@@ -148,13 +169,23 @@ const navConfig: Record<Role, NavConfig> = {
           href: "/dashboard/flagged",
         },
         {
+          title: "Compliance Paths",
+          icon: FileQuestion,
+          href: "/dashboard/compliance",
+        },
+      ],
+    },
+    {
+      label: "Reference",
+      items: [
+        {
           title: "All Products",
           icon: BookCopy,
           href: "/dashboard/products",
         },
         {
           title: "Compliance Reports",
-          icon: BarChart3,
+          icon: FileText,
           href: "/dashboard/reports",
         },
       ],
@@ -185,16 +216,24 @@ const navConfig: Record<Role, NavConfig> = {
   ],
   [UserRoles.DEVELOPER]: [
     {
-      label: "Development",
+      label: "Configuration",
       items: [
-        { title: "API Logs", icon: Code, href: "/dashboard/logs" },
+        { title: "API Keys", icon: KeyRound, href: "/dashboard/keys" },
+        {
+          title: "API Settings",
+          icon: Cog,
+          href: "/dashboard/api-settings",
+        },
         {
           title: "Integrations",
           icon: Wrench,
           href: "/dashboard/integrations",
         },
-        { title: "API Keys", icon: KeyRound, href: "/dashboard/keys" },
       ],
+    },
+    {
+      label: "Monitoring",
+      items: [{ title: "API Logs", icon: FileText, href: "/dashboard/logs" }],
     },
     {
       label: "Resources",
@@ -210,9 +249,14 @@ const navConfig: Record<Role, NavConfig> = {
   ],
   [UserRoles.RECYCLER]: [
     {
-      label: "Recycling",
+      label: "Operations",
       items: [
         { title: "EOL Products", icon: Recycle, href: "/dashboard/eol" },
+      ],
+    },
+    {
+      label: "Analysis",
+      items: [
         {
           title: "Material Composition",
           icon: Package,
@@ -228,10 +272,15 @@ const navConfig: Record<Role, NavConfig> = {
   ],
   [UserRoles.SERVICE_PROVIDER]: [
     {
-      label: "Services",
+      label: "Operations",
       items: [
         { title: "Service Tickets", icon: Ticket, href: "/dashboard/tickets" },
         { title: "Product Manuals", icon: BookCopy, href: "/dashboard/manuals" },
+      ],
+    },
+    {
+      label: "Analysis",
+      items: [
         {
           title: "Analytics",
           icon: BarChart3,
