@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -21,6 +22,7 @@ import {
 import { compliancePaths } from './compliance-data';
 import { productionLines } from './manufacturing-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
+import { getMockUsers } from './auth';
 
 // Note: In a real app, this would be a database. For this mock, we mutate
 // a `let` variable. `products` is imported from data.ts and reassigned here.
@@ -349,9 +351,33 @@ export async function getProductionLines(): Promise<ProductionLine[]> {
 
 export async function getAuditLogs(userId?: string): Promise<AuditLog[]> {
   await sleep(50);
+  const allLogs = [...auditLogs].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+
   if (userId) {
-    const userLogs = auditLogs.filter(log => log.userId === userId);
+    const userLogs = allLogs.filter(log => log.userId === userId);
     return JSON.parse(JSON.stringify(userLogs));
   }
-  return JSON.parse(JSON.stringify(auditLogs));
+  return JSON.parse(JSON.stringify(allLogs));
+}
+
+export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+  return getAuditLogs(userId);
+}
+
+export async function getAllAuditLogs(): Promise<AuditLog[]> {
+  return getAuditLogs();
+}
+
+export async function getMockUsersForAdmin(): Promise<
+  { id: string; fullName: string; email: string; role: string }[]
+> {
+  const users = await getMockUsers();
+  return users.map(user => ({
+    id: user.id,
+    fullName: user.fullName,
+    email: user.email,
+    role: user.roles[0],
+  }));
 }
