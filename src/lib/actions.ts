@@ -373,6 +373,8 @@ export async function runSuggestImprovements(
     materials: [],
     manufacturing: { facility: '', country: '' },
     certifications: [],
+    verificationStatus: 'Not Submitted',
+    complianceSummary: '',
   };
   return suggestImprovements({ product: aiProductInput });
 }

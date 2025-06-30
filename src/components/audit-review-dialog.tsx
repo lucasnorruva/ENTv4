@@ -56,10 +56,11 @@ export function AuditReviewDialog({
           description: `"${updatedProduct.productName}" has been verified and anchored.`,
         });
         handleClose();
-      } catch (error) {
+      } catch (error: any) {
         toast({
           title: 'Approval Failed',
-          description: 'An error occurred during the approval process.',
+          description:
+            error.message || 'An error occurred during the approval process.',
           variant: 'destructive',
         });
       }
