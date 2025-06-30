@@ -16,14 +16,26 @@ function getAdminApp() {
     return getApp();
   }
 
+  // When running locally with emulators, the FIRESTORE_EMULATOR_HOST env var will be set.
+  // In this case, we don't need to provide any credentials.
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
+    console.log(
+      'Firebase Emulators detected. Initializing Admin SDK for local development.',
+    );
+    return initializeApp({
+      // Using a mock projectId for emulator environment is a good practice.
+      projectId: 'passportflow-dev',
+    });
+  }
+
   try {
     // When running on Firebase servers or with GOOGLE_APPLICATION_CREDENTIALS
-    // set locally, this will initialize the default app.
-    console.log('Initializing Firebase Admin SDK...');
+    // set locally, this will initialize the default app for production.
+    console.log('Initializing Firebase Admin SDK for production...');
     return initializeApp();
   } catch (error: any) {
     console.error(
-      'Firebase Admin SDK initialization failed. Ensure GOOGLE_APPLICATION_CREDENTIALS is set for local development.',
+      'Firebase Admin SDK initialization failed. Ensure GOOGLE_APPLICATION_CREDENTIALS is set for local development when not using emulators.',
       error,
     );
     // Throw a more specific error to prevent the application from proceeding
