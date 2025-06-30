@@ -5,19 +5,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { Product, User } from "@/types";
-import { formatDistanceToNow } from "date-fns";
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import type { Product, User } from '@/types';
+import { AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ComplianceManagerDashboard({
   flaggedProducts,
@@ -27,54 +20,49 @@ export default function ComplianceManagerDashboard({
   user: User;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Compliance Manager Dashboard</CardTitle>
-        <CardDescription>
-          Review and resolve compliance issues for flagged products.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Supplier</TableHead>
-              <TableHead>Date Flagged</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {flaggedProducts.map((product) => (
-              <TableRow key={product.id}>
-                <TableCell className="font-medium">
-                  {product.productName}
-                </TableCell>
-                <TableCell>{product.supplier}</TableCell>
-                <TableCell>
-                  {formatDistanceToNow(
-                    new Date(product.lastVerificationDate!),
-                    { addSuffix: true },
-                  )}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="outline" size="sm" className="mr-2">
-                    View Details
-                  </Button>
-                  <Button variant="secondary" size="sm">
-                    Resolve
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {flaggedProducts.length === 0 && (
-          <div className="text-center py-10 text-muted-foreground">
-            <p>No products are currently flagged for non-compliance.</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Compliance Dashboard
+        </h1>
+        <p className="text-muted-foreground">
+          Welcome, {user.fullName}. Here is an overview of the current
+          compliance status.
+        </p>
+      </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Flagged Products
+            </CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{flaggedProducts.length}</div>
+            <p className="text-xs text-muted-foreground">
+              Products requiring immediate attention
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Manage Compliance Issues</CardTitle>
+            <CardDescription>
+              Review products that have failed verification, investigate the
+              issues, and work with suppliers to resolve them.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button asChild>
+              <Link href="/dashboard/flagged">
+                Go to Flagged Products Queue
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
   );
 }
