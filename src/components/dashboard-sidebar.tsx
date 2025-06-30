@@ -59,7 +59,7 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         { title: "Users", icon: Users, href: "/dashboard/users" },
         {
-          title: "Compliance Rules",
+          title: "Compliance Paths",
           icon: FileQuestion,
           href: "/dashboard/compliance",
         },
@@ -78,9 +78,8 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "My Passports",
       items: [
-        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
-        { title: "Create New", icon: PlusCircle, href: "/dashboard/products/new" },
-        { title: "Upload History", icon: Clock, href: "/dashboard/history" },
+        { title: "Manage Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: "Activity History", icon: Clock, href: "/dashboard/history" },
       ],
     },
   ],

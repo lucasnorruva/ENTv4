@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from '@/lib/data';
-import type { Product, ProductionLine, SustainabilityData } from '@/types';
+import type { AuditLog, Product, ProductionLine, SustainabilityData } from '@/types';
 import type { ProductFormValues } from '@/components/product-form';
 import {
   suggestImprovements,
@@ -20,10 +20,12 @@ import {
 } from '@/services/blockchain';
 import { compliancePaths } from './compliance-data';
 import { productionLines } from './manufacturing-data';
+import { auditLogs as mockAuditLogs } from './audit-log-data';
 
 // Note: In a real app, this would be a database. For this mock, we mutate
 // a `let` variable. `products` is imported from data.ts and reassigned here.
 let products = [...mockProducts];
+let auditLogs = [...mockAuditLogs];
 
 // Helper to simulate database latency
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -130,7 +132,7 @@ export async function saveProduct(
       { fields: Object.keys(productData) },
       userId,
     );
-    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/products');
     revalidatePath(`/products/${productId}`);
     return JSON.parse(JSON.stringify(updatedProduct));
   } else {
@@ -153,7 +155,7 @@ export async function saveProduct(
       { productName: newProduct.productName },
       userId,
     );
-    revalidatePath('/dashboard');
+    revalidatePath('/dashboard/products');
     return JSON.parse(JSON.stringify(newProduct));
   }
 }
@@ -173,7 +175,7 @@ export async function deleteProduct(
       userId,
     );
   }
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   return { success: true };
 }
 
@@ -193,7 +195,7 @@ export async function submitForReview(
     { status: 'Pending' },
     userId,
   );
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   return JSON.parse(JSON.stringify(products[productIndex]));
 }
@@ -225,7 +227,7 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   return JSON.parse(JSON.stringify(product));
 }
@@ -249,7 +251,7 @@ export async function rejectPassport(
   product.updatedAt = new Date().toISOString();
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   return JSON.parse(JSON.stringify(product));
 }
@@ -296,7 +298,7 @@ export async function recalculateScore(
     { newScore: sustainability.score },
     userId,
   );
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   return JSON.parse(JSON.stringify(product));
 }
@@ -313,7 +315,7 @@ export async function markAsRecycled(
   product.endOfLifeStatus = 'Recycled';
   product.updatedAt = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
   return JSON.parse(JSON.stringify(product));
 }
@@ -325,16 +327,27 @@ export async function logAuditEvent(
   userId: string = 'system',
 ): Promise<void> {
   await sleep(20);
-  console.log('AUDIT LOG:', {
+  const logEntry: AuditLog = {
+    id: `log-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
     userId,
     action,
     entityId,
     details,
-    timestamp: new Date().toISOString(),
-  });
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  auditLogs.unshift(logEntry);
+  console.log('AUDIT LOG:', logEntry);
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
   await sleep(50);
   return JSON.parse(JSON.stringify(productionLines));
+}
+
+export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+  await sleep(50);
+  // In a real app, you'd filter by userId. Here, we return all for the mock user.
+  const userLogs = auditLogs.filter(log => log.userId === userId);
+  return JSON.parse(JSON.stringify(userLogs));
 }
