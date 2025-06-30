@@ -1,8 +1,14 @@
-# Blockchain Anchoring Strategy
+# Smart Contract Deployment and Blockchain Anchoring
 
-We anchor product integrity on the Polygon PoS blockchain by storing cryptographic hashes of the product data. Below is a sample Solidity contract that records a product’s hash and emits an event. In practice you would compile and deploy this to Polygon (Mumbai testnet or mainnet) using Hardhat/Truffle or similar tools:
+We anchor product integrity on the blockchain by storing cryptographic hashes of the product data. This provides a tamper-proof, time-stamped record of the product's state at any given point.
 
-### Smart Contract Deployment Strategy
+## Core Anchoring Strategy
+
+The simplest method is to store a product's data hash on an EVM-compatible chain like Polygon PoS. The low transaction costs and fast finality make it ideal. A backend service, like a Firebase Cloud Function, is triggered when a passport is finalized. It serializes the product metadata (e.g., as JSON-LD), computes its `keccak256` hash, and calls a smart contract function to record it.
+
+### Smart Contract Example: ProductRegistry
+
+Below is a sample Solidity contract that records a product’s hash and emits an event.
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -24,49 +30,72 @@ contract ProductRegistry {
 }
 ```
 
-In this example, calling `anchorProductHash(123, data)` will compute `keccak256(data)` (a 256-bit hash) and store it. Solidity’s built-in `keccak256(bytes(data))` returns a `bytes32` hash ([quicknode.com](https://www.quicknode.com)). For instance, if `data` is a serialized JSON-LD blob of the product’s metadata, the hash serves as a tamper-proof fingerprint on-chain.
+This approach provides a solid foundation for data integrity verification.
 
-### Integration Architecture
+## Advanced Concepts & EU Alignment
 
-Use Firebase Cloud Functions (or similar backend workers) to push hashes to the blockchain. For example, when a product record is finalized in Firestore, a Cloud Function trigger can:
+For deeper integration and alignment with EU frameworks like EBSI, we employ more advanced strategies including Verifiable Credentials (VCs), Decentralized Identifiers (DIDs), and NFTs.
 
-1.  Serialize the product metadata (e.g. JSON-LD) into a canonical form.
-2.  (Optionally GZIP-compress to reduce size, if needed.)
-3.  Compute its keccak256 hash off-chain (with `ethers.js` or `web3.js`).
-4.  Call the `anchorProductHash` function on Polygon via a Web3 provider (e.g. Alchemy or Infura) and a managed service account key.
+### Cross-chain compatibility
+To maximize flexibility, our smart contracts are deployable on multiple EVM-compatible networks (e.g., Polygon, Optimism, Base) and specialized chains like EBSI’s permissioned ledger. This ledger-agnostic trust model ensures that any chosen DLT can serve as a “trust registry” under EU regulations. For example, we can use EBSI nodes to issue and verify VCs while the corresponding product "digital twin" (as an NFT) resides on a public chain like Polygon.
 
-This keeps private keys and transaction logic on the server. As Moralis illustrates, Firebase can act as a secure proxy/API for Web3 calls, keeping secrets on the backend ([developers.moralis.com](https://developers.moralis.com)). After transaction confirmation, the on-chain event or tx hash can be recorded back into Firestore as proof of anchoring. This way, the DPP workflow (“create product → compute hash → send tx”) is automated within the Firebase ecosystem.
+### Solidity contract examples for VCs
+A more advanced pattern uses issuer/verifier contracts for W3C Verifiable Credentials.
 
-### Polygon PoS
+**Issuer Contract:**
+```solidity
+contract VCIssuer {
+    mapping(address => bool) public issuers;
+    mapping(address => mapping(string => string)) public creds;  // holder → (key → value)
+    event Issued(address indexed issuer, address indexed holder, string key, string value);
 
-Deploy the contract on Polygon’s PoS (Layer 2) network. Polygon is EVM-compatible, so the same Solidity code and tools apply. Transactions on Polygon are low-cost and final.
+    constructor() { issuers[msg.sender] = true; }
+    modifier onlyIssuer() { require(issuers[msg.sender]); _; }
 
-### Workflow Example
-
-A manufacturer uploads product details to the DPP. A Cloud Function triggers, computes `bytes32 hash = keccak256(GZIP(JSON-LD))` ([quicknode.com](https://www.quicknode.com)), and calls the contract. The resulting transaction ID is stored in Firestore. Auditors can later verify by re-hashing the stored payload and comparing to `productHash[id]`.
-
-### Metadata Standard
-
-To ensure consistent hashing, define a strict data format. We recommend using JSON-LD with a fixed `@context` for all product metadata (as in UN/CEFACT’s DPP ontology) ([uncefact.github.io](https://uncefact.github.io)). For example, always sort keys and remove whitespace before hashing. (As the UN/CEFACT DPP spec shows, the product model is expressed in JSON-LD and JSON Schema ([uncefact.github.io](https://uncefact.github.io)).) Optionally compressing (GZIP) the JSON before hashing can standardize size and reduce off-chain data size.
-
-### EBSI/SSI Integration (Optional)
-
-In an advanced version, each product (and stakeholder) could have a W3C Decentralized Identifier (DID). We could issue W3C Verifiable Credentials for product attributes or compliance certificates. These VCs can be anchored on EBSI’s blockchain network. For instance, a lab could issue a VC “Product 123 is RoHS-compliant” which the DPP platform stores. The European Blockchain Services Infrastructure (EBSI) provides a Verifiable Credentials Framework (W3C VC standard) for expressing trustful info on-chain ([ec.europa.eu](https://ec.europa.eu)). In practice, we might register product DIDs via an EBSI-compatible registry and push VC hashes to EBSI. This ties the DPP to the EU-wide trust layer (useful for future regulatory interoperability).
-
-### Hash Payload Example
-
-Suppose the product payload (in JSON-LD) is:
-
-```json
-{
-  "@context": "...",
-  "id": "http://example.com/products/123",
-  "name": "EcoLamp",
-  "materials": [{"material": "plastic", "mass": 200}, ... ],
-  "certifications": ["RoHS", "REACH"]
+    function addIssuer(address newIssuer) external onlyIssuer {
+        issuers[newIssuer] = true;
+    }
+    function issueCred(address holder, string calldata key, string calldata value) external onlyIssuer {
+        creds[holder][key] = value;
+        emit Issued(msg.sender, holder, key, value);
+    }
 }
 ```
 
-We would serialize this (with stable field order), then do `bytes32 hash = keccak256(data)` in Solidity or Ethers.js. Solidity’s `keccak256` has the same output as the off-chain keccak. The UNCEFACT DPP spec highlights that DPP metadata and contexts are indeed in JSON-LD format ([uncefact.github.io](https://uncefact.github.io)), which makes it easy to interoperate with semantic web tools.
+**Verifier Contract:**
+```solidity
+contract VCVerifier {
+    mapping(address => bool) public verifiers;
+    event Verified(address indexed verifier, address indexed subject, string key, string value);
 
-By anchoring the product hash on Polygon, we obtain an immutable timestamp. Any change in the off-chain data causes a different hash, so on-chain anchoring provides a proof-of-integrity. The overall architecture thus spans Firebase (for data handling, auth, and triggers), Polygon for the immutable registry, and optional SSI layers (EBSI DIDs/VCs) for extended trust. All hashing and on-chain writes follow known crypto practices ([quicknode.com](https://www.quicknode.com), [uncefact.github.io](https://uncefact.github.io)).
+    constructor() { verifiers[msg.sender] = true; }
+    modifier onlyVerifier() { require(verifiers[msg.sender]); _; }
+
+    function addVerifier(address v) external onlyVerifier {
+        verifiers[v] = true;
+    }
+    function verifyCred(address subject, string calldata key, string calldata expected) external onlyVerifier {
+        // Note: This requires a way to reference the VCIssuerContract instance
+        // string memory actual = VCIssuerContract(issuerAddress).creds(subject, key);
+        // require(keccak256(bytes(actual)) == keccak256(bytes(expected)), "Verification failed");
+        // emit Verified(msg.sender, subject, key, actual);
+    }
+}
+```
+
+### NFT/DID architecture
+Each physical product can be represented by a unique NFT (ERC-721/1155) serving as its “digital twin.” The NFT metadata links to the DPP data, which is structured as a Verifiable Credential. The product’s globally unique identifier is a Decentralized Identifier (e.g., `did:web`, `did:ebsi`), linking the on-chain asset (NFT) to its off-chain data (VC).
+
+### Verifiable Credential workflows
+All DPPs are implemented as W3C Verifiable Credentials. The manufacturer (issuer) creates a JSON-LD credential, signs it with their private key, and makes it resolvable via the product's DID. This aligns with EU Digital Identity Wallet standards and ensures interoperability.
+
+# Compliance Document Structuring
+
+## JSON-LD and Semantic Web compliance
+To maximize interoperability, all product passports are structured in JSON-LD (JSON for Linked Data). This allows every data point (e.g., a chemical ID) to be tied to a global, semantic definition (like a GS1 or UNECE vocabulary), making the data machine-readable and verifiable.
+
+## Regulatory alignment (REACH, RoHS, ESPR, etc.)
+The DPP schema is designed to directly map to the data requirements of major EU regulations. Fields for RoHS hazardous substances, REACH SVHCs, and ESPR-mandated data are all first-class citizens in the JSON-LD structure. This allows for automated compliance checking against regulatory thresholds.
+
+## Credential signing workflow
+Each DPP document is cryptographically signed to prevent tampering. We use JSON-LD Proofs, which are compatible with the EU's trust framework (e.g., eIDAS). In our system, an “EU-verifier” node, conforming to EBSI rules, can sign the final composite DPP as a Verifiable Credential and anchor its hash on the EBSI ledger. This provides a high degree of trust and legal non-repudiation.

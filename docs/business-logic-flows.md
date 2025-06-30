@@ -1,3 +1,25 @@
+# 9. User Journeys
+
+Our platform serves a variety of user types, primarily falling into two groups: Enterprise customers (large organizations with existing systems and complex needs) and SME/Startup/Midmarket customers (smaller companies or new ventures who need quick, low-code solutions). We design user journeys to cater to both, ensuring that each type of user can easily onboard and get value from the DPP platform.
+
+## 9.1 Enterprise vs SME Portal Features
+
+### Access control (RBAC vs ABAC)
+We implement a flexible access model that combines role-based (RBAC) and attribute-based (ABAC) controls. In RBAC, users have predefined roles (Admin, Issuer, Auditor, etc.) which grant fixed permissions. In ABAC, decisions also consider attributes like user department or product category. Enterprise portals will use full RBAC, while SME portals will use simpler presets. We also support ABAC: for instance, only users from the “Recycling” department might see end-of-life data.
+
+### Permission model logic
+Within the portal we define who can edit, sign, anchor, and archive a DPP. Typically:
+*   **Edit/Create**: Only the product owner (manufacturer) or delegated partner can create or modify the DPP content.
+*   **Sign**: Each data entry or version is signed by its author; finalizing a version requires an authorized signature.
+*   **Anchor**: A blockchain anchoring transaction (on EBSI or L2) can only be triggered by a user with “Registrar” permission.
+*   **Archive**: Once a product is decommissioned, archiving rights (often read-only thereafter) go to a compliance officer or auditor role.
+
+### UI/UX differences
+The enterprise dashboard offers full visibility: multiple company accounts, detailed compliance status, analytics, and customizable reports. It integrates warnings and “AI explainability” hints. The SME interface is streamlined: wizards for DPP creation, template-based entry forms, and simpler visualization of compliance gaps. Both UIs highlight regulatory warnings (color-coded) next to data fields.
+
+### Onboarding, audit trail & versioning
+Every user action is logged. When an enterprise user onboards, they get SSO/SAML access and are assigned a role; SMEs may use email/password signup with automated KYC. The portal maintains an immutable audit trail (who changed what and when) for each DPP. Every time a DPP VC is re-issued or edited, the old version is archived and a new version is chained. This means auditors can trace the entire history of a product passport.
+
 # 10. Business Logic Flows
 
 To better understand how the system operates end-to-end, this section outlines key business logic flows in a step-by-step format. These flows describe how data and processes move through the platform for major use cases. They ensure that we (and new contributors) have a clear mental model of how everything connects, and they help identify where in the codebase each step occurs.
