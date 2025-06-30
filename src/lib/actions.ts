@@ -136,7 +136,10 @@ const runAllAiFlows = async (
 
 // --- PRODUCT ACTIONS ---
 
-export async function getProducts(userId: string): Promise<Product[]> {
+export async function getProducts(userId?: string): Promise<Product[]> {
+  if (!userId) {
+    return products;
+  }
   const user = await getUserById(userId);
   if (!user) {
     throw new Error('User not found.');

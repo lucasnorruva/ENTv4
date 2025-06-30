@@ -1,3 +1,4 @@
+
 // src/lib/service-ticket-data.ts
 import type { ServiceTicket } from "@/types";
 

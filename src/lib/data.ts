@@ -1,3 +1,4 @@
+
 import type { Product } from "@/types";
 
 const now = new Date();
