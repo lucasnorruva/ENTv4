@@ -25,8 +25,10 @@ export default function DocsLayout({
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="pr-0">
-                <Logo />
-                <DocsSidebar className="mt-5 pl-1" />
+                <div className="p-4">
+                  <Logo />
+                </div>
+                <DocsSidebar className="pl-1" />
               </SheetContent>
             </Sheet>
           </div>

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ScrollArea } from './ui/scroll-area';
 
 const docsConfig = {
   mainNav: [
@@ -105,18 +106,25 @@ export default function DocsSidebar({ className }: DocsSidebarProps) {
   const pathname = usePathname();
 
   return (
-    <div className={cn('pb-10', className)}>
-      {docsConfig.sidebarNav.map((group, index) => (
-        <div key={index} className={cn('pb-4', { 'pb-0': index === docsConfig.sidebarNav.length -1})}>
-          <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-semibold">
-            {group.title}
-          </h4>
-          {group.items?.length && (
-            <DocsSidebarNavItems items={group.items} pathname={pathname} />
-          )}
-        </div>
-      ))}
-    </div>
+    <ScrollArea className={cn('h-full', className)}>
+      <div className="pb-10">
+        {docsConfig.sidebarNav.map((group, index) => (
+          <div
+            key={index}
+            className={cn('pb-4', {
+              'pb-0': index === docsConfig.sidebarNav.length - 1,
+            })}
+          >
+            <h4 className="mb-1 rounded-md px-2 py-1 text-sm font-semibold">
+              {group.title}
+            </h4>
+            {group.items?.length && (
+              <DocsSidebarNavItems items={group.items} pathname={pathname} />
+            )}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
   );
 }
 
