@@ -33,6 +33,7 @@ export async function saveProduct(
     | "verificationStatus"
     | "lastVerificationDate"
     | "complianceSummary"
+    | "complianceGaps"
     | "endOfLifeStatus"
   > & { id?: string },
   userId: string,
@@ -74,12 +75,16 @@ export async function saveProduct(
     }
 
     let newVerificationStatus = existingProduct.verificationStatus;
+    let newComplianceSummary = existingProduct.complianceSummary;
+    let newComplianceGaps = existingProduct.complianceGaps;
     // If a verified or failed product is edited, it needs re-verification.
     if (
       newVerificationStatus === "Verified" ||
       newVerificationStatus === "Failed"
     ) {
       newVerificationStatus = undefined;
+      newComplianceSummary = undefined;
+      newComplianceGaps = undefined;
     }
 
     const updatedProduct: Product = {
@@ -90,10 +95,8 @@ export async function saveProduct(
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
       verificationStatus: newVerificationStatus,
-      complianceSummary:
-        newVerificationStatus === undefined
-          ? undefined
-          : existingProduct.complianceSummary,
+      complianceSummary: newComplianceSummary,
+      complianceGaps: newComplianceGaps,
     };
     mockProducts = mockProducts.map((p) =>
       p.id === data.id ? updatedProduct : p,
@@ -170,6 +173,7 @@ export async function submitForReview(
 
   let complianceSummary = "Compliance check passed.";
   let isCompliant = true;
+  let gaps;
 
   if (compliancePath) {
     try {
@@ -181,6 +185,7 @@ export async function submitForReview(
       });
       complianceSummary = result.complianceSummary;
       isCompliant = result.isCompliant;
+      gaps = result.gaps;
     } catch (e) {
       console.error("AI compliance check failed during submission:", e);
       complianceSummary = "AI check failed. Manual review required.";
@@ -197,6 +202,7 @@ export async function submitForReview(
     verificationStatus: "Pending",
     lastVerificationDate: now.toISOString(),
     complianceSummary: complianceSummary,
+    complianceGaps: gaps,
     updatedAt: now.toISOString(),
   };
 

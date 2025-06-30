@@ -52,6 +52,7 @@ export interface Product extends BaseEntity {
   lastVerificationDate?: string; // ISO 8601 format
   verificationStatus?: "Verified" | "Pending" | "Failed";
   complianceSummary?: string;
+  complianceGaps?: Array<{ regulation: string; issue: string }>;
   endOfLifeStatus?: "Active" | "Recycled" | "Disposed";
   blockchainProof?: {
     txHash: string;

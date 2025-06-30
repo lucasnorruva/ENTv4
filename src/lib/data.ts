@@ -159,7 +159,14 @@ export let products: Product[] = [
     ).toISOString(),
     verificationStatus: "Failed",
     complianceSummary:
-      "The product contains 'Polyester' which is a banned material for the Global Organic Textile Standard.",
+      "The product is non-compliant with 1 issue identified. The product contains 'Polyester' which is a banned material for the Global Organic Textile Standard.",
+    complianceGaps: [
+      {
+        regulation: "Global Organic Textile Standard",
+        issue:
+          "The product contains 'Polyester' which is a banned material for this standard.",
+      },
+    ],
     lastVerificationDate: new Date(
       new Date(now).setFullYear(now.getFullYear() - 1),
     ).toISOString(),

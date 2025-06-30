@@ -21,15 +21,15 @@ import {
 } from "@/components/ui/table";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Product, User } from "@/types";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, FileWarning } from "lucide-react";
 
 export default function AuditorDashboard({
   products,
@@ -116,34 +116,67 @@ export default function AuditorDashboard({
       </Card>
       {selectedProduct && (
         <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-2xl">
             <AlertDialogHeader>
               <AlertDialogTitle>
                 Review: {selectedProduct.productName}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                Below is the summary from the last automated verification check.
+                Below is the summary and detailed gaps from the last automated
+                verification check.
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="space-y-4 my-4">
-              <h3 className="font-semibold text-sm">Compliance Summary:</h3>
-              {selectedProduct.verificationStatus === "Failed" ? (
-                <div className="flex items-start gap-3 text-sm text-destructive bg-destructive/10 p-4 rounded-md">
-                  <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
-                  <p>
+            <div className="space-y-6 my-4 max-h-[60vh] overflow-y-auto pr-4">
+              <div className="space-y-2">
+                <h3 className="font-semibold text-base">Overall Summary</h3>
+                <Alert
+                  variant={
+                    selectedProduct.verificationStatus === "Failed"
+                      ? "destructive"
+                      : "default"
+                  }
+                >
+                  {selectedProduct.verificationStatus === "Failed" ? (
+                    <AlertCircle className="h-4 w-4" />
+                  ) : (
+                    <CheckCircle className="h-4 w-4" />
+                  )}
+                  <AlertTitle>
+                    {selectedProduct.verificationStatus || "Pending"}
+                  </AlertTitle>
+                  <AlertDescription>
                     {selectedProduct.complianceSummary ||
-                      "No specific details were provided for this failure."}
-                  </p>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 text-sm text-green-600 bg-green-500/10 p-4 rounded-md">
-                  <CheckCircle className="h-4 w-4 shrink-0" />
-                  <p>
-                    {selectedProduct.complianceSummary ||
-                      "No issues found in the last automated check."}
-                  </p>
-                </div>
-              )}
+                      "No summary was provided for this check."}
+                  </AlertDescription>
+                </Alert>
+              </div>
+
+              {selectedProduct.complianceGaps &&
+                selectedProduct.complianceGaps.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold text-base">
+                      Identified Gaps
+                    </h3>
+                    <div className="space-y-2">
+                      {selectedProduct.complianceGaps.map((gap, index) => (
+                        <Card key={index} className="p-3 bg-muted/50">
+                          <div className="flex items-start gap-3">
+                            <FileWarning className="h-5 w-5 mt-1 shrink-0 text-amber-600" />
+                            <div className="flex-1">
+                              <p className="font-semibold text-sm text-foreground">
+                                {gap.regulation}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {gap.issue}
+                              </p>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
               <div className="text-xs text-muted-foreground pt-2">
                 Last Checked:{" "}
                 {selectedProduct.lastVerificationDate

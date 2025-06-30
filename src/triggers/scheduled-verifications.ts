@@ -57,13 +57,14 @@ export async function runDailyComplianceCheck(): Promise<{
     let finalStatus: "Verified" | "Failed" = "Verified";
     let finalSummary =
       "Product is compliant with all known rules for its category.";
+    let finalGaps;
 
     if (!compliancePath) {
       finalStatus = "Failed";
       finalSummary = `No compliance path is configured for the product category: "${product.category}".`;
     } else {
       try {
-        const { isCompliant, complianceSummary } =
+        const { isCompliant, complianceSummary, gaps } =
           await summarizeComplianceGaps({
             productName: product.productName,
             productInformation: product.currentInformation,
@@ -73,6 +74,7 @@ export async function runDailyComplianceCheck(): Promise<{
 
         finalStatus = isCompliant ? "Verified" : "Failed";
         finalSummary = complianceSummary;
+        finalGaps = gaps;
       } catch (error) {
         console.error(
           `AI compliance check failed for product ${product.id}:`,
@@ -102,6 +104,7 @@ export async function runDailyComplianceCheck(): Promise<{
         verificationStatus: finalStatus,
         lastVerificationDate: new Date().toISOString(),
         complianceSummary: finalSummary,
+        complianceGaps: finalGaps,
       };
     }
 
