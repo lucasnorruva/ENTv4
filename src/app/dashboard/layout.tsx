@@ -33,7 +33,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = headers().get('x-next-pathname') || '/dashboard/supplier';
+  const pathname = headers().get('next-url') || '/dashboard/supplier';
   const selectedRole = getRoleFromPathname(pathname);
   const user = await getCurrentUser(selectedRole);
   const allRoles = Object.values(UserRoles);

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -30,7 +31,7 @@ export default function RoleSwitcher({
 
   return (
     <div className="w-48">
-      <Select onValueChange={handleRoleChange} defaultValue={currentRole}>
+      <Select onValueChange={handleRoleChange} value={currentRole}>
         <SelectTrigger>
           <SelectValue placeholder="Switch Role..." />
         </SelectTrigger>
