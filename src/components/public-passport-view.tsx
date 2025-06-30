@@ -190,8 +190,8 @@ export default function PublicPassportView({ product }: { product: Product }) {
             <AccordionContent className="pt-2">
               <InfoRow icon={Factory} label="Manufacturing">
                 <p className="text-sm text-muted-foreground">
-                  {product.manufacturing.facility} in{" "}
-                  {product.manufacturing.country}
+                  {product.manufacturing?.facility} in{" "}
+                  {product.manufacturing?.country}
                 </p>
               </InfoRow>
               <InfoRow icon={Scale} label="Material Composition">
@@ -241,10 +241,10 @@ export default function PublicPassportView({ product }: { product: Product }) {
             <AccordionContent className="pt-2">
               <InfoRow icon={Package} label="Packaging">
                 <p className="text-sm text-muted-foreground">
-                  {product.packaging.type}
-                  {product.packaging.recycledContent !== undefined &&
+                  {product.packaging?.type}
+                  {product.packaging?.recycledContent !== undefined &&
                     ` (${product.packaging.recycledContent}% recycled)`}
-                  . Recyclable: {product.packaging.recyclable ? "Yes" : "No"}.
+                  . Recyclable: {product.packaging?.recyclable ? "Yes" : "No"}.
                 </p>
               </InfoRow>
               <InfoRow icon={Wrench} label="Repairability">
@@ -301,7 +301,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
                 </p>
               </InfoRow>
               <InfoRow icon={FileText} label="Certifications">
-                {product.certifications.length > 0 ? (
+                {product.certifications && product.certifications.length > 0 ? (
                   <ul className="list-disc list-inside text-sm text-muted-foreground">
                     {product.certifications.map(
                       (cert: any, index: number) => (

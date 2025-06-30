@@ -24,8 +24,6 @@ import {
   ShieldAlert,
   FileCode,
   Cog,
-  Building2,
-  ClipboardCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -71,12 +69,7 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
         { title: 'Users', icon: Users, href: 'users' },
-        { title: 'Companies', icon: Building2, href: 'companies' },
-        {
-          title: 'All Products',
-          icon: BookCopy,
-          href: 'products',
-        },
+        { title: 'All Products', icon: BookCopy, href: 'products' },
         {
           title: 'Compliance Paths',
           icon: FileQuestion,
@@ -109,11 +102,6 @@ const navConfig: Record<Role, NavConfig> = {
           title: 'Compliance Report',
           icon: ShieldCheck,
           href: 'compliance',
-        },
-        {
-          title: 'Data Quality',
-          icon: ClipboardCheck,
-          href: 'data-quality',
         },
       ],
     },
