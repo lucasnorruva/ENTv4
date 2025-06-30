@@ -59,7 +59,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
   const passportData = JSON.parse(product.currentInformation);
 
   return (
-    <Card className="max-w-4xl mx-auto overflow-hidden">
+    <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0">
       <CardHeader className="bg-muted/50 p-6 flex flex-col md:flex-row gap-6 items-center">
         <Image
           src={product.productImage}
@@ -120,7 +120,9 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   variant={
                     product.verificationStatus === "Verified"
                       ? "default"
-                      : "destructive"
+                      : product.verificationStatus === "Failed"
+                        ? "destructive"
+                        : "secondary"
                   }
                   className="text-sm"
                 >
@@ -134,20 +136,25 @@ export default function PublicPassportView({ product }: { product: Product }) {
                 )}
               </div>
             </div>
-            {product.blockchainProof && (
-              <a
-                href={product.blockchainProof.explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline mt-3 flex items-center gap-1"
-              >
-                <LinkIcon className="h-3 w-3" /> View On-Chain Proof
-              </a>
-            )}
+            {product.verificationStatus === "Verified" &&
+              product.blockchainProof && (
+                <a
+                  href={product.blockchainProof.explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline mt-3 flex items-center gap-1"
+                >
+                  <LinkIcon className="h-3 w-3" /> View On-Chain Proof
+                </a>
+              )}
           </Card>
         </div>
 
-        <Accordion type="multiple" className="w-full">
+        <Accordion
+          type="multiple"
+          className="w-full"
+          defaultValue={["item-1", "item-2", "item-3"]}
+        >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
               Product Lifecycle
