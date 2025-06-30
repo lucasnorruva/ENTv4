@@ -3,8 +3,19 @@
 
 import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from '@/lib/data';
-import type { AuditLog, Product, ProductionLine, SustainabilityData } from '@/types';
-import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
+import type {
+  AuditLog,
+  Product,
+  ProductionLine,
+  SustainabilityData,
+  CompliancePath,
+} from '@/types';
+import {
+  productFormSchema,
+  type ProductFormValues,
+  compliancePathFormSchema,
+  type CompliancePathFormValues,
+} from '@/lib/schemas';
 import {
   suggestImprovements,
   type SuggestImprovementsInput,
@@ -19,7 +30,7 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
-import { compliancePaths } from './compliance-data';
+import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { productionLines } from './manufacturing-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { getMockUsers } from './auth';
@@ -28,6 +39,7 @@ import { getMockUsers } from './auth';
 // a `let` variable. `products` is imported from data.ts and reassigned here.
 let products = [...mockProducts];
 let auditLogs = [...mockAuditLogs];
+let compliancePaths = [...mockCompliancePaths];
 
 // Helper to simulate database latency
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -35,7 +47,14 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export async function getProducts(): Promise<Product[]> {
   await sleep(50);
   // Return a deep copy to prevent direct mutation of the mock data from client components.
-  return JSON.parse(JSON.stringify(products.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())));
+  return JSON.parse(
+    JSON.stringify(
+      products.sort(
+        (a, b) =>
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+      ),
+    ),
+  );
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
@@ -260,9 +279,7 @@ export async function rejectPassport(
   return JSON.parse(JSON.stringify(product));
 }
 
-export async function runSuggestImprovements(
-  data: SuggestImprovementsInput,
-) {
+export async function runSuggestImprovements(data: SuggestImprovementsInput) {
   return suggestImprovements(data);
 }
 
@@ -380,4 +397,74 @@ export async function getMockUsersForAdmin(): Promise<
     email: user.email,
     role: user.roles[0],
   }));
+}
+
+// Compliance Path Actions
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  await sleep(50);
+  return JSON.parse(JSON.stringify(compliancePaths));
+}
+
+export async function saveCompliancePath(
+  pathData: CompliancePathFormValues,
+  userId: string,
+  pathId?: string,
+): Promise<CompliancePath> {
+  await sleep(500);
+
+  const validatedData = compliancePathFormSchema.parse(pathData);
+
+  const dataToSave = {
+    ...validatedData,
+    regulations: validatedData.regulations
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
+    rules: {
+      minSustainabilityScore: validatedData.minSustainabilityScore,
+      requiredKeywords: validatedData.requiredKeywords
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean),
+      bannedKeywords: validatedData.bannedKeywords
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean),
+    },
+  };
+
+  if (pathId) {
+    const pathIndex = compliancePaths.findIndex(p => p.id === pathId);
+    if (pathIndex === -1) throw new Error('Compliance path not found');
+    const updatedPath = {
+      ...compliancePaths[pathIndex],
+      ...dataToSave,
+      updatedAt: new Date().toISOString(),
+    };
+    compliancePaths[pathIndex] = updatedPath;
+    await logAuditEvent(
+      'compliance_path.updated',
+      pathId,
+      { name: updatedPath.name },
+      userId,
+    );
+    revalidatePath('/dashboard/compliance');
+    return JSON.parse(JSON.stringify(updatedPath));
+  } else {
+    const newPath: CompliancePath = {
+      id: `cp-${Date.now()}`,
+      ...dataToSave,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    compliancePaths.push(newPath);
+    await logAuditEvent(
+      'compliance_path.created',
+      newPath.id,
+      { name: newPath.name },
+      userId,
+    );
+    revalidatePath('/dashboard/compliance');
+    return JSON.parse(JSON.stringify(newPath));
+  }
 }

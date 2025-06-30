@@ -37,3 +37,19 @@ export const productFormSchema = z.object({
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+
+export const compliancePathFormSchema = z.object({
+  name: z.string().min(5, 'Path name must be at least 5 characters long.'),
+  description: z
+    .string()
+    .min(10, 'Description must be at least 10 characters long.'),
+  category: z.string().min(1, 'Category is required.'),
+  regulations: z.string().min(1, 'At least one regulation is required.'),
+  minSustainabilityScore: z.coerce.number().optional(),
+  requiredKeywords: z.string().optional(),
+  bannedKeywords: z.string().optional(),
+});
+
+export type CompliancePathFormValues = z.infer<
+  typeof compliancePathFormSchema
+>;

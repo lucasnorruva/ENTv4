@@ -12,12 +12,9 @@ import {
 import type { User } from '@/types';
 import { compliancePaths } from '@/lib/compliance-data';
 import { getMockUsers } from '@/lib/auth';
-import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import {
   FileQuestion,
-  ScrollText,
-  Settings2,
   Users,
   ArrowRight,
 } from 'lucide-react';
@@ -73,9 +70,9 @@ export default async function AdminDashboard({ user }: { user: User }) {
             </p>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full" variant="secondary" disabled>
+            <Button asChild className="w-full">
               <Link href="/dashboard/compliance">
-                Manage Paths (soon) <ArrowRight className="ml-2 h-4 w-4" />
+                Manage Paths <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
