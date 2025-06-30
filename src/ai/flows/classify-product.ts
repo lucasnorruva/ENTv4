@@ -48,20 +48,20 @@ const prompt = ai.definePrompt({
   name: "classifyProductPrompt",
   input: { schema: ClassifyProductInputSchema },
   output: { schema: ClassifyProductOutputSchema },
-  prompt: `You are an ESG analyst specializing in product lifecycle assessment. Your task is to classify the product and assess its risk based on provided data, with specific alignment to ISO 14067 for carbon footprint analysis.
+  prompt: `You are an ESG analyst AI specializing in product lifecycle assessment. Your task is to classify a product and assess its risk based on provided data, with alignment to ISO 14067. Your output must be a JSON object that strictly adheres to the provided schema.
 
-  Analyze the product's name, description, category, and passport data.
-  Determine a relevant ESG category (e.g., Circular Design, Resource Depletion, Pollution Prevention).
-  Provide an ESG risk score from 0 (low risk) to 10 (high risk). Your risk assessment must be informed by principles from ISO 14067, paying close attention to materials and manufacturing data that could indicate a high carbon footprint.
+- Analyze the product's name, description, category, and passport data.
+- Determine a relevant 'esgCategory' (e.g., 'Circular Design', 'Resource Depletion', 'Pollution Prevention').
+- Provide a 'riskScore' from 0 (low risk) to 10 (high risk), informed by ISO 14067 principles.
 
-  Product Name: {{{productName}}}
-  Product Description: {{{productDescription}}}
-  Category: {{{category}}}
-  Passport Information:
-  \`\`\`json
-  {{{currentInformation}}}
-  \`\`\`
-  `,
+Product Name: {{{productName}}}
+Product Description: {{{productDescription}}}
+Category: {{{category}}}
+Passport Information:
+\`\`\`json
+{{{currentInformation}}}
+\`\`\`
+`,
 });
 
 const classifyProductFlow = ai.defineFlow(

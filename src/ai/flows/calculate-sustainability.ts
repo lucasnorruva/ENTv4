@@ -61,24 +61,21 @@ const prompt = ai.definePrompt({
   name: "calculateEsgScorePrompt",
   input: { schema: CalculateSustainabilityInputSchema },
   output: { schema: EsgScoreOutputSchema },
-  prompt: `You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate a detailed ESG score and a brief report.
+  prompt: `You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate an ESG score. Your output must be a JSON object that strictly adheres to the provided schema.
 
-  Analyze the product's name, description, category, and especially the detailed JSON data in its passport.
-  Consider factors like materials used (recycled, organic, virgin), energy efficiency, repairability, end-of-life options, certifications (like ISO 14001, Fair Trade), and manufacturing location to assess environmental, social, and governance impacts.
-  
-  Based on your analysis, provide:
-  1. An overall ESG score from 0 (not sustainable at all) to 100 (perfectly sustainable and circular).
-  2. Individual scores from 0-10 for Environmental, Social, and Governance pillars.
-  3. A concise summary (2-3 sentences) justifying the scores, highlighting both positive and negative aspects.
+Analyze the product's name, description, category, and JSON data.
+- Consider factors like materials (recycled, organic), energy efficiency, repairability, end-of-life options, and certifications (e.g., ISO 14001, Fair Trade).
+- If data is insufficient for a pillar, provide a lower score for that pillar and note the lack of data in the summary.
+- The summary must be a neutral, factual justification for the scores.
 
-  Product Name: {{{productName}}}
-  Product Description: {{{productDescription}}}
-  Category: {{{category}}}
-  Passport Information:
-  \`\`\`json
-  {{{currentInformation}}}
-  \`\`\`
-  `,
+Product Name: {{{productName}}}
+Product Description: {{{productDescription}}}
+Category: {{{category}}}
+Passport Information:
+\`\`\`json
+{{{currentInformation}}}
+\`\`\`
+`,
 });
 
 const calculateEsgScoreFlow = ai.defineFlow(

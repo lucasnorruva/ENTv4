@@ -68,29 +68,26 @@ const prompt = ai.definePrompt({
   name: "summarizeComplianceGapsPrompt",
   input: { schema: SummarizeComplianceGapsInputSchema },
   output: { schema: SummarizeComplianceGapsOutputSchema },
-  prompt: `You are an expert EU regulatory compliance auditor for Digital Product Passports, specializing in regulations like ESPR, REACH, RoHS, and SCIP database requirements. Your task is to analyze a product's data against a specific set of compliance rules and provide a clear, concise summary of your findings, including a list of any specific gaps.
+  prompt: `You are an expert EU regulatory compliance auditor AI. Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
-  Analyze the following product information:
-  - Product Name: {{{productName}}}
-  - Product Passport Data (JSON):
-  \`\`\`json
-  {{{productInformation}}}
-  \`\`\`
+Analyze the product's data against the given compliance rules.
+- Identify every rule that is not met by the product data.
+- If data is insufficient to verify a rule, treat it as a gap.
+- Your summary should be neutral and factual.
 
-  Compare this against the rules defined in the following compliance path:
-  - Compliance Path: {{{compliancePathName}}}
-  - Compliance Rules (JSON):
-  \`\`\`json
-  {{{complianceRules}}}
-  \`\`\`
+Product Name: {{{productName}}}
+Compliance Path: {{{compliancePathName}}}
 
-  Based on your analysis, determine if the product is compliant. For each rule, check if the product data satisfies it. Pay special attention to chemical composition and check for banned or declarable substances as defined in the rules (simulating REACH/RoHS/SCIP checks).
+Product Passport Data (JSON):
+\`\`\`json
+{{{productInformation}}}
+\`\`\`
 
-  Your output must be a JSON object containing:
-  1.  'isCompliant': A boolean. Set to false if any gaps are found.
-  2.  'gaps': An array of objects, where each object represents a single compliance gap and has 'regulation' and 'issue' fields. If there are no gaps, this should be an empty array.
-  3.  'complianceSummary': A 2-4 sentence summary explaining the overall compliance status. If there are gaps, clearly state how many were found (e.g., "The product is non-compliant with 2 issues identified."). If it is compliant, confirm that it meets all specified requirements.
-  `,
+Compliance Rules (JSON):
+\`\`\`json
+{{{complianceRules}}}
+\`\`\`
+`,
 });
 
 const summarizeComplianceGapsFlow = ai.defineFlow(

@@ -43,17 +43,19 @@ const prompt = ai.definePrompt({
   name: "generateQRLabelTextPrompt",
   input: { schema: GenerateQRLabelTextInputSchema },
   output: { schema: GenerateQRLabelTextOutputSchema },
-  prompt: `You are an expert in creating consumer-facing product summaries for Digital Product Passports, compliant with GS1 Digital Link and EU's ESPR guidelines.
-Your task is to generate a concise summary string suitable for display on a public-facing product passport page. This page will be accessed by a consumer scanning a GS1 Digital Link QR code on the product.
-The summary should be brief but informative, highlighting key sustainability facts, material composition, or end-of-life instructions, making it easy for a consumer to understand the product's key characteristics at a glance.
+  prompt: `You are a marketing and sustainability expert AI. Your task is to generate a concise, consumer-facing summary for a product's public passport page, which is accessed via a GS1 Digital Link QR code. Your output must be a JSON object that strictly adheres to the provided schema.
 
-  Product Name: {{{productName}}}
-  Supplier: {{{supplier}}}
-  Passport Information:
-  \`\`\`json
-  {{{currentInformation}}}
-  \`\`\`
-  `,
+- The summary must be brief (1-2 sentences), engaging, and easy for a consumer to understand.
+- Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided data.
+- The tone should be positive and informative, but factually based on the passport information.
+
+Product Name: {{{productName}}}
+Supplier: {{{supplier}}}
+Passport Information:
+\`\`\`json
+{{{currentInformation}}}
+\`\`\`
+`,
 });
 
 const generateQRLabelTextFlow = ai.defineFlow(

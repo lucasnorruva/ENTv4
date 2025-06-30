@@ -51,20 +51,20 @@ const suggestImprovementsPrompt = ai.definePrompt({
   name: "suggestImprovementsPrompt",
   input: { schema: SuggestImprovementsInputSchema },
   output: { schema: SuggestImprovementsOutputSchema },
-  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to analyze the current product passport information and provide a list of actionable recommendations to improve it.
+  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to provide a list of actionable recommendations to improve a product's passport. Your output must be a JSON object that strictly adheres to the provided schema.
 
-  Based on the product name and description, analyze the current JSON data.
-  Generate a list of 3-5 concrete suggestions. For each suggestion, provide a 'type' (e.g., 'Material', 'Compliance', 'Design', 'Data Quality') and the 'text' of the recommendation. The text should be concise and start with an action verb.
+Analyze the product's name, description, and JSON data.
+Generate a list of 3-5 concrete suggestions.
+- The 'text' for each recommendation must be concise and start with an action verb.
+- Focus on high-level advice for improving the product or its data quality, not just adding new JSON fields.
 
-  Do NOT suggest just adding fields to the JSON. Instead, provide high-level advice on how to improve the product or its data quality.
-
-  Product Name: {{{productName}}}
-  Product Description: {{{productDescription}}}
-  Current Passport Information:
-  \`\`\`json
-  {{{currentInformation}}}
-  \`\`\`
-  `,
+Product Name: {{{productName}}}
+Product Description: {{{productDescription}}}
+Current Passport Information:
+\`\`\`json
+{{{currentInformation}}}
+\`\`\`
+`,
 });
 
 const suggestImprovementsFlow = ai.defineFlow(

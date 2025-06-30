@@ -61,24 +61,20 @@ const prompt = ai.definePrompt({
   name: "analyzeProductLifecyclePrompt",
   input: { schema: AnalyzeProductLifecycleInputSchema },
   output: { schema: AnalyzeProductLifecycleOutputSchema },
-  prompt: `You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze the provided product information and generate a lifecycle impact summary.
+  prompt: `You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze product information and generate a lifecycle impact summary. Your output must be a JSON object that strictly adheres to the provided schema.
 
-  Analyze the product's name, description, and especially the detailed JSON data in its passport.
-  Consider factors like materials, weight, manufacturing processes, energy consumption during use, and end-of-life options (recyclability, hazardous components).
+Analyze the product's name, description, and JSON data.
+- Consider factors like materials, weight, manufacturing processes, energy consumption during use, and end-of-life options.
+- For 'carbonFootprint', if exact data isn't available, use reasonable industry averages to make an estimation and note this in the summary.
+- The 'improvementOpportunities' should be a list of concrete, actionable suggestions.
 
-  Based on your analysis, provide:
-  1.  A 'carbonFootprint' object with an estimated value, unit ('kg CO2-eq'), and a summary. If exact data isn't available, use reasonable industry averages for materials and processes to make an estimation.
-  2.  A 'lifecycleAnalysis' object with a brief summary for each stage: 'manufacturing', 'usePhase', and 'endOfLife'.
-  3.  The 'highestImpactStage' based on your analysis.
-  4.  A list of 'improvementOpportunities' with concrete suggestions.
-
-  Product Name: {{{productName}}}
-  Product Description: {{{productDescription}}}
-  Passport Information:
-  \`\`\`json
-  {{{currentInformation}}}
-  \`\`\`
-  `,
+Product Name: {{{productName}}}
+Product Description: {{{productDescription}}}
+Passport Information:
+\`\`\`json
+{{{currentInformation}}}
+\`\`\`
+`,
 });
 
 const analyzeProductLifecycleFlow = ai.defineFlow(
