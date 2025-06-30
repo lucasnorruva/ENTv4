@@ -30,28 +30,34 @@ async function seedCollection(
     // Convert date strings to Firestore Timestamps if they exist
     const dataToSeed: { [key: string]: any } = {};
     for (const key in itemData) {
-      const value = itemData[key];
-      if (typeof value === 'string' && !isNaN(Date.parse(value))) {
-        // A simple check to see if the string is a valid date
-        const date = new Date(value);
-        if (date.toISOString() === value) {
+      if (Object.prototype.hasOwnProperty.call(itemData, key)) {
+        const value = itemData[key];
+        // A simple check to see if the string is a valid ISO date string
+        if (
+          typeof value === 'string' &&
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)
+        ) {
+          const date = new Date(value);
           dataToSeed[key] = admin.firestore.Timestamp.fromDate(date);
           continue;
         }
+        dataToSeed[key] = value;
       }
-      dataToSeed[key] = value;
     }
-    // Ensure core timestamps exist
-    dataToSeed.createdAt = dataToSeed.createdAt || admin.firestore.Timestamp.now();
-    dataToSeed.updatedAt = dataToSeed.updatedAt || admin.firestore.Timestamp.now();
-
+    // Ensure core timestamps exist if they weren't in the mock
+    if (!dataToSeed.createdAt)
+      dataToSeed.createdAt = admin.firestore.Timestamp.now();
+    if (!dataToSeed.updatedAt)
+      dataToSeed.updatedAt = admin.firestore.Timestamp.now();
 
     batch.set(docRef, dataToSeed);
   }
 
   try {
     await batch.commit();
-    console.log(`✅ Successfully seeded ${data.length} documents in '${collectionName}'.`);
+    console.log(
+      `✅ Successfully seeded ${data.length} documents in '${collectionName}'.`,
+    );
   } catch (error) {
     console.error(`❌ Error seeding '${collectionName}':`, error);
     throw error;
@@ -60,7 +66,7 @@ async function seedCollection(
 
 async function seedDatabase() {
   console.log('Starting comprehensive database seeding...');
-  
+
   // The order can be important if there are dependencies
   await seedCollection(Collections.COMPANIES, mockCompanies);
   await seedCollection(Collections.USERS, mockUsers);
@@ -74,12 +80,11 @@ async function seedDatabase() {
   // Seeding a single document for settings
   console.log('Seeding API settings...');
   try {
-      await adminDb.collection('settings').doc('api').set(mockApiSettings);
-      console.log('✅ Successfully seeded API settings.');
-  } catch(error) {
-      console.error('❌ Error seeding API settings:', error);
+    await adminDb.collection('settings').doc('api').set(mockApiSettings);
+    console.log('✅ Successfully seeded API settings.');
+  } catch (error) {
+    console.error('❌ Error seeding API settings:', error);
   }
-
 
   console.log('Database seeding completed successfully.');
 }

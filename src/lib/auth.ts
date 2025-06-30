@@ -1,42 +1,57 @@
 // src/lib/auth.ts
-import { users as mockUsers } from './user-data';
-import { companies as mockCompanies } from './company-data';
-import { UserRoles, type Role } from './constants';
+import { UserRoles, type Role, Collections } from './constants';
 import type { User, Company } from '@/types';
+import { adminDb } from './firebase-admin';
 
 /**
- * Simulates fetching all users.
- * @returns A promise that resolves to an array of all mock users.
+ * Simulates fetching all users from Firestore.
+ * @returns A promise that resolves to an array of all users.
  */
 export async function getUsers(): Promise<User[]> {
-  return mockUsers;
+  const snapshot = await adminDb.collection(Collections.USERS).get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...(doc.data() as Omit<User, 'id'>),
+  }));
 }
 
 /**
- * Simulates fetching a user by their ID.
+ * Fetches a user by their ID from Firestore.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserById(id: string): Promise<User | undefined> {
-  return mockUsers.find(user => user.id === id);
+  const doc = await adminDb.collection(Collections.USERS).doc(id).get();
+  if (!doc.exists) return undefined;
+  return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
 }
 
 /**
- * Simulates fetching a user by their email address.
+ * Fetches a user by their email address from Firestore.
  * @param email The email of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  return mockUsers.find(user => user.email === email);
+  const snapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('email', '==', email)
+    .limit(1)
+    .get();
+  if (snapshot.empty) return undefined;
+  const doc = snapshot.docs[0];
+  return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
 }
 
 /**
- * Simulates fetching a company by its ID.
+ * Fetches a company by its ID from Firestore.
  * @param id The ID of the company to fetch.
  * @returns A promise that resolves to the company or undefined if not found.
  */
 export async function getCompanyById(id: string): Promise<Company | undefined> {
-  return mockCompanies.find(company => company.id === id);
+  const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
+  if (!doc.exists) return undefined;
+  return { id: doc.id, ...(doc.data() as Omit<Company, 'id'>) };
 }
 
 /**
@@ -57,10 +72,28 @@ export function hasRole(user: User, role: Role): boolean {
  * @returns A mock user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  const user = mockUsers.find(u => u.roles.includes(role));
-  if (!user) {
-    // Fallback to the first user if no specific role match is found
-    return mockUsers[0];
+  const snapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('roles', 'array-contains', role)
+    .limit(1)
+    .get();
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
   }
-  return user;
+
+  // Fallback to the first admin user if no specific role match is found
+  const adminSnapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('roles', 'array-contains', UserRoles.ADMIN)
+    .limit(1)
+    .get();
+  
+  if(!adminSnapshot.empty) {
+    const doc = adminSnapshot.docs[0];
+    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  }
+  
+  throw new Error("No suitable user found for the given role and no admin fallback available.");
 }
