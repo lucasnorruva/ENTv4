@@ -11,11 +11,10 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+import { AiProductSchema } from "../schemas";
 
 const ClassifyProductInputSchema = z.object({
-  productName: z.string().describe("The name of the product."),
-  productDescription: z.string().describe("A description of the product."),
-  category: z.string().describe("The product category."),
+  product: AiProductSchema,
 });
 export type ClassifyProductInput = z.infer<typeof ClassifyProductInputSchema>;
 
@@ -53,9 +52,9 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
-Category: {{{category}}}
+Product Name: {{{product.productName}}}
+Product Description: {{{product.productDescription}}}
+Category: {{{product.category}}}
 """
 `,
 });

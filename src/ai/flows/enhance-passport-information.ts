@@ -11,10 +11,10 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
+import { AiProductSchema } from "../schemas";
 
 const SuggestImprovementsInputSchema = z.object({
-  productName: z.string().describe("The name of the product."),
-  productDescription: z.string().describe("A description of the product."),
+  product: AiProductSchema,
 });
 export type SuggestImprovementsInput = z.infer<
   typeof SuggestImprovementsInputSchema
@@ -57,8 +57,8 @@ const suggestImprovementsPrompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
+Product Name: {{{product.productName}}}
+Product Description: {{{product.productDescription}}}
 """
 `,
 });

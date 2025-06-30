@@ -11,25 +11,12 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-
-const MaterialSchema = z.object({
-  name: z.string(),
-  percentage: z.number().optional(),
-  recycledContent: z.number().optional(),
-});
+import type { CompliancePath } from "@/types";
+import { AiProductSchema } from "../schemas";
 
 const SummarizeComplianceGapsInputSchema = z.object({
-  productName: z.string().describe("The product's name."),
-  category: z.string().describe("The product's category."),
-  materials: z
-    .array(MaterialSchema)
-    .describe("List of materials in the product."),
-  compliancePathName: z
-    .string()
-    .describe("The name of the compliance path being checked against."),
-  complianceRules: z
-    .string()
-    .describe("The JSON representation of the rules for the compliance path."),
+  product: AiProductSchema,
+  compliancePath: z.custom<CompliancePath>(),
 });
 export type SummarizeComplianceGapsInput = z.infer<
   typeof SummarizeComplianceGapsInputSchema
@@ -83,18 +70,18 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Category: {{{category}}}
-Compliance Path: {{{compliancePathName}}}
+Product Name: {{{product.productName}}}
+Category: {{{product.category}}}
+Compliance Path: {{{compliancePath.name}}}
 
 Materials:
-{{#each materials}}
+{{#each product.materials}}
 - Name: {{name}}
 {{/each}}
 
 Compliance Rules (JSON):
 \`\`\`json
-{{{complianceRules}}}
+{{{JSONstringify compliancePath.rules}}}
 \`\`\`
 """
 `,
@@ -107,7 +94,11 @@ const summarizeComplianceGapsFlow = ai.defineFlow(
     outputSchema: SummarizeComplianceGapsOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await prompt({
+      ...input,
+      // Helper to stringify JSON in Handlebars context
+      JSONstringify: (data: any) => JSON.stringify(data, null, 2),
+    });
     return output!;
   },
 );

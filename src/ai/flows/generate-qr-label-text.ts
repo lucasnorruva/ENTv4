@@ -11,19 +11,10 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-
-const MaterialSchema = z.object({
-  name: z.string(),
-  percentage: z.number().optional(),
-  recycledContent: z.number().optional(),
-});
+import { AiProductSchema } from "../schemas";
 
 const GenerateQRLabelTextInputSchema = z.object({
-  productName: z.string().describe("The name of the product."),
-  supplier: z.string().describe("The name of the product supplier or brand."),
-  materials: z
-    .array(MaterialSchema)
-    .describe("List of materials in the product."),
+  product: AiProductSchema,
 });
 export type GenerateQRLabelTextInput = z.infer<
   typeof GenerateQRLabelTextInputSchema
@@ -58,11 +49,11 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Supplier: {{{supplier}}}
+Product Name: {{{product.productName}}}
+Supplier: {{{product.supplier}}}
 
 Materials:
-{{#each materials}}
+{{#each product.materials}}
 - Name: {{name}}, Recycled Content: {{recycledContent}}%
 {{/each}}
 """

@@ -11,37 +11,10 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "zod";
-
-const MaterialSchema = z.object({
-  name: z.string(),
-  percentage: z.number().optional(),
-  recycledContent: z.number().optional(),
-  origin: z.string().optional(),
-});
-
-const CertificationSchema = z.object({
-  name: z.string(),
-  issuer: z.string(),
-  validUntil: z.string().optional(),
-});
-
-const ManufacturingSchema = z.object({
-  facility: z.string(),
-  country: z.string(),
-  emissionsKgCo2e: z.number().optional(),
-});
+import { AiProductSchema } from "../schemas";
 
 const CalculateSustainabilityInputSchema = z.object({
-  productName: z.string().describe("The name of the product."),
-  productDescription: z.string().describe("A description of the product."),
-  category: z.string().describe("The product category."),
-  materials: z
-    .array(MaterialSchema)
-    .describe("List of materials in the product."),
-  manufacturing: ManufacturingSchema.describe("Manufacturing details."),
-  certifications: z
-    .array(CertificationSchema)
-    .describe("List of certifications."),
+  product: AiProductSchema,
 });
 export type CalculateSustainabilityInput = z.infer<
   typeof CalculateSustainabilityInputSchema
@@ -93,20 +66,20 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
-Category: {{{category}}}
+Product Name: {{{product.productName}}}
+Product Description: {{{product.productDescription}}}
+Category: {{{product.category}}}
 
 Materials:
-{{#each materials}}
+{{#each product.materials}}
 - Name: {{name}}, Recycled: {{recycledContent}}%, Origin: {{origin}}
 {{/each}}
 
 Manufacturing:
-- Facility: {{manufacturing.facility}}, Country: {{manufacturing.country}}
+- Facility: {{product.manufacturing.facility}}, Country: {{product.manufacturing.country}}
 
 Certifications:
-{{#each certifications}}
+{{#each product.certifications}}
 - Name: {{name}}, Issuer: {{issuer}}
 {{/each}}
 """

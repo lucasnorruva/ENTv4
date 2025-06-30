@@ -11,25 +11,10 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-
-const MaterialSchema = z.object({
-  name: z.string(),
-  percentage: z.number().optional(),
-});
-
-const ManufacturingSchema = z.object({
-  country: z.string(),
-  emissionsKgCo2e: z.number().optional(),
-});
+import { AiProductSchema } from "../schemas";
 
 const AnalyzeProductLifecycleInputSchema = z.object({
-  productName: z.string().describe("The name of the product."),
-  productDescription: z.string().describe("A description of the product."),
-  category: z.string().describe("The product category."),
-  materials: z
-    .array(MaterialSchema)
-    .describe("List of materials in the product."),
-  manufacturing: ManufacturingSchema.describe("Manufacturing details."),
+  product: AiProductSchema,
 });
 export type AnalyzeProductLifecycleInput = z.infer<
   typeof AnalyzeProductLifecycleInputSchema
@@ -82,19 +67,19 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{productName}}}
-Product Description: {{{productDescription}}}
-Category: {{{category}}}
+Product Name: {{{product.productName}}}
+Product Description: {{{product.productDescription}}}
+Category: {{{product.category}}}
 
 Materials:
-{{#each materials}}
+{{#each product.materials}}
 - Name: {{name}}
 {{/each}}
 
 Manufacturing Info:
-- Country: {{manufacturing.country}}
-{{#if manufacturing.emissionsKgCo2e}}
-- Reported CO2e: {{manufacturing.emissionsKgCo2e}}
+- Country: {{product.manufacturing.country}}
+{{#if product.manufacturing.emissionsKgCo2e}}
+- Reported CO2e: {{product.manufacturing.emissionsKgCo2e}}
 {{/if}}
 """
 `,

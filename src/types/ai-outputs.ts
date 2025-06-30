@@ -6,24 +6,47 @@
  */
 
 import type { z } from "zod";
-import type { EsgScoreOutputSchema } from "@/ai/flows/calculate-sustainability";
-import type { AnalyzeProductLifecycleOutputSchema } from "@/ai/flows/analyze-product-lifecycle";
-import type { ClassifyProductOutputSchema } from "@/ai/flows/classify-product";
-import type { SummarizeComplianceGapsOutputSchema } from "@/ai/flows/summarize-compliance-gaps";
-import type { SuggestImprovementsOutputSchema } from "@/ai/flows/enhance-passport-information";
-import type { GenerateQRLabelTextOutputSchema } from "@/ai/flows/generate-qr-label-text";
+import type {
+  CalculateSustainabilityInput,
+  EsgScoreOutput,
+} from "@/ai/flows/calculate-sustainability";
+import type {
+  AnalyzeProductLifecycleInput,
+  AnalyzeProductLifecycleOutput,
+} from "@/ai/flows/analyze-product-lifecycle";
+import type {
+  ClassifyProductInput,
+  ClassifyProductOutput,
+} from "@/ai/flows/classify-product";
+import type {
+  SummarizeComplianceGapsInput,
+  SummarizeComplianceGapsOutput,
+} from "@/ai/flows/summarize-compliance-gaps";
+import type {
+  SuggestImprovementsInput,
+  SuggestImprovementsOutput,
+} from "@/ai/flows/enhance-passport-information";
+import type {
+  GenerateQRLabelTextInput,
+  GenerateQRLabelTextOutput,
+} from "@/ai/flows/generate-qr-label-text";
 
-export type EsgScoreOutput = z.infer<typeof EsgScoreOutputSchema>;
-export type AnalyzeProductLifecycleOutput = z.infer<
-  typeof AnalyzeProductLifecycleOutputSchema
->;
-export type ClassifyProductOutput = z.infer<typeof ClassifyProductOutputSchema>;
-export type SummarizeComplianceGapsOutput = z.infer<
-  typeof SummarizeComplianceGapsOutputSchema
->;
-export type SuggestImprovementsOutput = z.infer<
-  typeof SuggestImprovementsOutputSchema
->;
-export type GenerateQRLabelTextOutput = z.infer<
-  typeof GenerateQRLabelTextOutputSchema
->;
+// Export Input types
+export type {
+  CalculateSustainabilityInput,
+  AnalyzeProductLifecycleInput,
+  ClassifyProductInput,
+  SummarizeComplianceGapsInput,
+  SuggestImprovementsInput,
+  GenerateQRLabelTextInput,
+};
+
+// Export Output types
+export type {
+  EsgScoreOutput,
+  AnalyzeProductLifecycleOutput,
+  ClassifyProductOutput,
+  SummarizeComplianceGapsOutput,
+  SuggestImprovementsOutput,
+  GenerateQRLabelTextOutput,
+};
