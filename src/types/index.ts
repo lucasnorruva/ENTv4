@@ -57,7 +57,7 @@ export interface Product extends BaseEntity {
   };
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
   lastVerificationDate?: string; // ISO 8601 format
-  verificationStatus?: "Verified" | "Pending" | "Failed";
+  verificationStatus?: "Verified" | "Pending" | "Failed" | "Draft";
   complianceSummary?: string;
   complianceGaps?: Array<{ regulation: string; issue: string }>;
   endOfLifeStatus?: "Active" | "Recycled" | "Disposed";

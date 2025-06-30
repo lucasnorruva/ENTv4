@@ -130,7 +130,7 @@ export default function ProductTable({
                 </div>
               ) : (
                 <span className="text-muted-foreground text-xs italic">
-                  Pending...
+                  N/A
                 </span>
               )}
             </TableCell>
@@ -165,13 +165,13 @@ export default function ProductTable({
                     onClick={() => onRecalculateScore(product.id)}
                   >
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    Recalculate Score
+                    Recalculate AI Data
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => onSubmitForReview(product.id)}
                     disabled={
-                      product.status !== "Draft" ||
-                      product.verificationStatus === "Pending"
+                      product.verificationStatus === "Pending" ||
+                      product.verificationStatus === "Verified"
                     }
                   >
                     <Send className="mr-2 h-4 w-4" />
@@ -211,6 +211,13 @@ export default function ProductTable({
             </TableCell>
           </TableRow>
         ))}
+         {products.length === 0 && (
+          <TableRow>
+            <TableCell colSpan={7} className="h-24 text-center">
+              No product passports found.
+            </TableCell>
+          </TableRow>
+        )}
       </TableBody>
     </Table>
   );

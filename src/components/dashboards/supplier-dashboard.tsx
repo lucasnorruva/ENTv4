@@ -1,7 +1,7 @@
 // src/components/dashboards/supplier-dashboard.tsx
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { Plus } from "lucide-react";
 
 import type { Product, User } from "@/types";
@@ -21,6 +21,7 @@ import {
   recalculateScore,
 } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "../ui/skeleton";
 
 export default function SupplierDashboard({
   initialProducts,
@@ -34,6 +35,13 @@ export default function SupplierDashboard({
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setProducts(initialProducts);
+    setIsLoading(false);
+  }, [initialProducts]);
+
 
   const handleCreateNew = () => {
     setSelectedProduct(null);
@@ -87,8 +95,8 @@ export default function SupplierDashboard({
           currentProducts.map((p) => (p.id === id ? updatedProduct : p)),
         );
         toast({
-          title: "Score Recalculated",
-          description: `The sustainability score for "${updatedProduct.productName}" has been updated.`,
+          title: "AI Data Recalculated",
+          description: `AI-generated fields for "${updatedProduct.productName}" have been updated.`,
         });
       } catch (error) {
         toast({
@@ -132,13 +140,21 @@ export default function SupplierDashboard({
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable
-            products={products}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onSubmitForReview={handleSubmitForReview}
-            onRecalculateScore={handleRecalculateScore}
-          />
+          {isLoading ? (
+             <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+          ) : (
+            <ProductTable
+              products={products}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onSubmitForReview={handleSubmitForReview}
+              onRecalculateScore={handleRecalculateScore}
+            />
+          )}
         </CardContent>
       </Card>
       <ProductForm

@@ -1,7 +1,22 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { products as mockProductsData } from './data';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  Timestamp,
+  DocumentSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
 import { compliancePaths } from './compliance-data';
 import type { Product } from '@/types';
 import {
@@ -20,16 +35,72 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 
-// Use an in-memory array for mock data to simulate database operations
-let mockProducts = [...mockProductsData];
+// Helper function to convert Firestore doc to a client-side friendly Product object.
+// It handles Firestore Timestamps and ensures all necessary fields are present.
+function toProduct(docSnap: DocumentSnapshot): Product {
+  const data = docSnap.data();
+  if (!data) {
+    throw new Error('Document data is empty');
+  }
+
+  // Helper to safely convert a Timestamp to an ISO string
+  const toISOString = (timestamp: any): string | undefined => {
+    if (timestamp instanceof Timestamp) {
+      return timestamp.toDate().toISOString();
+    }
+    return timestamp; // It might already be a string
+  };
+
+  const toDateString = (timestamp: any): string | undefined => {
+    if (timestamp instanceof Timestamp) {
+      return timestamp.toDate().toISOString().split('T')[0];
+    }
+    return timestamp;
+  };
+
+  return {
+    id: docSnap.id,
+    productName: data.productName,
+    productDescription: data.productDescription,
+    productImage: data.productImage,
+    category: data.category,
+    supplier: data.supplier,
+    complianceLevel: data.complianceLevel,
+    currentInformation: data.currentInformation,
+    status: data.status,
+    lastUpdated: toDateString(data.lastUpdated)!,
+    createdAt: toISOString(data.createdAt)!,
+    updatedAt: toISOString(data.updatedAt)!,
+    classification: data.classification,
+    qrLabelText: data.qrLabelText,
+    esg: data.esg,
+    lifecycleAnalysis: data.lifecycleAnalysis,
+    lastVerificationDate: toISOString(data.lastVerificationDate),
+    verificationStatus: data.verificationStatus,
+    complianceSummary: data.complianceSummary,
+    complianceGaps: data.complianceGaps,
+    endOfLifeStatus: data.endOfLifeStatus,
+    blockchainProof: data.blockchainProof,
+    ebsiVcId: data.ebsiVcId,
+  };
+}
 
 export async function getProducts(): Promise<Product[]> {
-  // Return mock data directly to avoid Firestore permission issues in dev
-  return Promise.resolve(mockProducts);
+  const productsRef = collection(db, Collections.PRODUCTS);
+  const q = query(productsRef, orderBy('createdAt', 'desc'));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(toProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
-  return Promise.resolve(mockProducts.find(p => p.id === id));
+  const docRef = doc(db, Collections.PRODUCTS, id);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return toProduct(docSnap);
+  } else {
+    return undefined;
+  }
 }
 
 export async function saveProduct(
@@ -50,11 +121,8 @@ export async function saveProduct(
     | 'classification'
     | 'lifecycleAnalysis'
   > & { id?: string },
-  userId: string
+  userId: string,
 ): Promise<Product> {
-  const now = new Date();
-  const nowISO = now.toISOString();
-
   // AI enrichments running in parallel
   const [
     esgResult,
@@ -78,7 +146,7 @@ export async function saveProduct(
       compliancePathName:
         compliancePaths.find(p => p.category === data.category)?.name || '',
       complianceRules: JSON.stringify(
-        compliancePaths.find(p => p.category === data.category)?.rules || {}
+        compliancePaths.find(p => p.category === data.category)?.rules || {},
       ),
     }).catch(e => {
       console.error('AI compliance check failed:', e);
@@ -113,35 +181,33 @@ export async function saveProduct(
 
   if (data.id) {
     // Update existing product
-    const existingProduct = mockProducts.find(p => p.id === data.id);
-    if (!existingProduct) {
-      throw new Error('Product not found');
-    }
-
-    const updatedProduct: Product = {
-      ...existingProduct,
+    const docRef = doc(db, Collections.PRODUCTS, data.id);
+    const productData = {
       ...data,
-      esg: esgResult || existingProduct.esg,
-      complianceSummary:
-        complianceResult?.complianceSummary || existingProduct.complianceSummary,
-      complianceGaps: complianceResult?.gaps || existingProduct.complianceGaps,
-      classification: classificationResult || existingProduct.classification,
-      qrLabelText: qrLabelResult?.qrLabelText || existingProduct.qrLabelText,
-      lifecycleAnalysis:
-        lifecycleAnalysisResult || existingProduct.lifecycleAnalysis,
-      blockchainProof: existingProduct.blockchainProof,
-      updatedAt: nowISO,
-      lastUpdated: now.toISOString().split('T')[0],
+      updatedAt: Timestamp.now(),
+      lastUpdated: Timestamp.now(),
+      ...(esgResult && { esg: esgResult }),
+      ...(complianceResult && {
+        complianceSummary: complianceResult.complianceSummary,
+        complianceGaps: complianceResult.gaps,
+      }),
+      ...(qrLabelResult && { qrLabelText: qrLabelResult.qrLabelText }),
+      ...(classificationResult && { classification: classificationResult }),
+      ...(lifecycleAnalysisResult && {
+        lifecycleAnalysis: lifecycleAnalysisResult,
+      }),
     };
-    mockProducts = mockProducts.map(p =>
-      p.id === data.id ? updatedProduct : p
-    );
+
+    await setDoc(docRef, productData, { merge: true });
+    const updatedProduct = await getProductById(data.id);
+    if (!updatedProduct)
+      throw new Error('Failed to retrieve product after update.');
 
     await logAuditEvent(
       'product.updated',
       updatedProduct.id,
       { fields: Object.keys(data) },
-      userId
+      userId,
     );
 
     revalidatePath('/dashboard');
@@ -149,7 +215,7 @@ export async function saveProduct(
     return updatedProduct;
   } else {
     // Create new product
-    const newProduct: Product = {
+    const newProductData = {
       ...data,
       esg: esgResult,
       complianceSummary: complianceResult?.complianceSummary,
@@ -157,21 +223,27 @@ export async function saveProduct(
       classification: classificationResult,
       qrLabelText: qrLabelResult?.qrLabelText,
       lifecycleAnalysis: lifecycleAnalysisResult,
-      id: `pp-mock-${Date.now()}`,
-      createdAt: nowISO,
-      updatedAt: nowISO,
-      lastUpdated: now.toISOString().split('T')[0],
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      lastUpdated: Timestamp.now(),
+      verificationStatus: 'Pending' as const, // Start as pending auto-verification
       endOfLifeStatus: 'Active' as const,
     };
-    mockProducts.unshift(newProduct);
+    const docRef = await addDoc(
+      collection(db, Collections.PRODUCTS),
+      newProductData,
+    );
 
-    // Fire 'product.created' event
     await logAuditEvent(
       'product.created',
-      newProduct.id,
-      { productName: newProduct.productName },
-      userId
+      docRef.id,
+      { productName: newProductData.productName },
+      userId,
     );
+
+    const newProduct = await getProductById(docRef.id);
+    if (!newProduct)
+      throw new Error('Failed to retrieve product after creation.');
 
     revalidatePath('/dashboard');
     return newProduct;
@@ -180,47 +252,46 @@ export async function saveProduct(
 
 export async function deleteProduct(
   id: string,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean }> {
-  const productToDelete = mockProducts.find(p => p.id === id);
+  const productToDelete = await getProductById(id);
   if (productToDelete) {
     await logAuditEvent(
       'product.deleted',
       id,
       { productName: productToDelete.productName },
-      userId
+      userId,
     );
   }
-  mockProducts = mockProducts.filter(p => p.id !== id);
+  await deleteDoc(doc(db, Collections.PRODUCTS, id));
   revalidatePath('/dashboard');
   return { success: true };
 }
 
 export async function submitForReview(
   productId: string,
-  userId: string
+  userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) {
-    throw new Error('Product not found');
-  }
-
-  const product = mockProducts[productIndex];
-
-  const updatedProduct: Product = {
-    ...product,
-    verificationStatus: 'Pending',
-    updatedAt: new Date().toISOString(),
-  };
-
-  mockProducts[productIndex] = updatedProduct;
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  await setDoc(
+    docRef,
+    {
+      verificationStatus: 'Pending',
+      updatedAt: Timestamp.now(),
+    },
+    { merge: true },
+  );
 
   await logAuditEvent(
     'passport.submitted',
     productId,
     { status: 'Pending' },
-    userId
+    userId,
   );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after submitting for review.');
 
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
@@ -228,7 +299,7 @@ export async function submitForReview(
 }
 
 export async function runSuggestImprovements(
-  data: SuggestImprovementsInput
+  data: SuggestImprovementsInput,
 ): Promise<SuggestImprovementsOutput> {
   try {
     const result = await suggestImprovements(data);
@@ -241,43 +312,51 @@ export async function runSuggestImprovements(
 
 export async function recalculateScore(
   productId: string,
-  userId: string
+  userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) {
+  const product = await getProductById(productId);
+  if (!product) {
     throw new Error('Product not found');
   }
-  const product = mockProducts[productIndex];
 
-  let esgResult;
-  try {
-    const aiInput = {
+  const [esgResult, lifecycleAnalysisResult] = await Promise.all([
+    calculateSustainability({
       productName: product.productName,
       productDescription: product.productDescription,
       category: product.category,
       currentInformation: product.currentInformation,
-    };
-    esgResult = await calculateSustainability(aiInput);
-  } catch (e) {
-    console.error('AI sustainability re-calculation failed:', e);
-    // We can decide to throw or return the product as-is
-    throw new Error('Failed to recalculate sustainability score.');
-  }
+    }),
+    analyzeProductLifecycle({
+      productName: product.productName,
+      productDescription: product.productDescription,
+      currentInformation: product.currentInformation,
+    }),
+  ]).catch(e => {
+    console.error('AI recalculation failed:', e);
+    throw new Error('Failed to recalculate score or lifecycle.');
+  });
 
-  const updatedProduct: Product = {
-    ...product,
-    esg: esgResult,
-    updatedAt: new Date().toISOString(),
-  };
-
-  mockProducts[productIndex] = updatedProduct;
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  await setDoc(
+    docRef,
+    {
+      esg: esgResult,
+      lifecycleAnalysis: lifecycleAnalysisResult,
+      updatedAt: Timestamp.now(),
+    },
+    { merge: true },
+  );
 
   await logAuditEvent(
     'product.recalculate_score',
     productId,
-    { newScore: updatedProduct.esg?.score },
-    userId
+    { newScore: esgResult?.score },
+    userId,
   );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after recalculating score.');
 
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
@@ -288,9 +367,10 @@ export async function logAuditEvent(
   action: string,
   entityId: string,
   details: Record<string, any>,
-  userId: string = 'system'
+  userId: string = 'system',
 ): Promise<void> {
-  console.log('AUDIT EVENT (mock mode):', {
+  // This will be implemented properly in a future task.
+  console.log('AUDIT EVENT:', {
     userId,
     action,
     entityId,
@@ -302,34 +382,40 @@ export async function logAuditEvent(
 
 export async function approvePassport(
   productId: string,
-  userId: string
+  userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) {
+  const product = await getProductById(productId);
+  if (!product) {
     throw new Error('Product not found');
   }
-  const product = mockProducts[productIndex];
 
-  // Hash and anchor data to blockchain
   const productDataHash = await hashProductData(product.currentInformation);
   const blockchainProof = await anchorToPolygon(product.id, productDataHash);
   const ebsiVcId = await generateEbsiCredential(product.id);
 
-  const updatedProduct: Product = {
-    ...product,
-    verificationStatus: 'Verified',
-    lastVerificationDate: new Date().toISOString(),
-    blockchainProof,
-    ebsiVcId,
-  };
-  mockProducts[productIndex] = updatedProduct;
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  await setDoc(
+    docRef,
+    {
+      verificationStatus: 'Verified',
+      lastVerificationDate: Timestamp.now(),
+      blockchainProof,
+      ebsiVcId,
+      updatedAt: Timestamp.now(),
+    },
+    { merge: true },
+  );
 
   await logAuditEvent(
     'passport.verified',
     productId,
     { status: 'Verified', auditorId: userId, blockchainProof },
-    userId
+    userId,
   );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after approval.');
 
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
@@ -339,28 +425,33 @@ export async function approvePassport(
 export async function rejectPassport(
   productId: string,
   feedback: string,
-  userId: string
+  userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) {
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  const product = await getProductById(productId);
+  if (!product) {
     throw new Error('Product not found');
   }
-  const product = mockProducts[productIndex];
 
-  const updatedProduct: Product = {
-    ...product,
-    verificationStatus: 'Failed', // Or maybe 'NeedsRevision'
-    lastVerificationDate: new Date().toISOString(),
-    // We could add a field for audit feedback
+  const updatedData = {
+    verificationStatus: 'Failed' as const,
+    lastVerificationDate: Timestamp.now(),
+    complianceSummary: feedback,
+    updatedAt: Timestamp.now(),
   };
-  mockProducts[productIndex] = updatedProduct;
+
+  await setDoc(docRef, updatedData, { merge: true });
 
   await logAuditEvent(
     'passport.rejected',
     productId,
     { status: 'Failed', auditorId: userId, feedback },
-    userId
+    userId,
   );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after rejection.');
 
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
