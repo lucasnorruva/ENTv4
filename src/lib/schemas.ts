@@ -74,3 +74,10 @@ export const apiSettingsSchema = z.object({
 });
 
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
+
+export const companyFormSchema = z.object({
+  name: z.string().min(2, 'Company name is required.'),
+  ownerId: z.string().min(1, 'Owner ID is required.'),
+});
+
+export type CompanyFormValues = z.infer<typeof companyFormSchema>;

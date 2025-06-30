@@ -25,7 +25,7 @@ import {
   ShieldAlert,
   FileCode,
   Cog,
-  Settings2,
+  Building2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -78,6 +78,7 @@ const navConfig: Record<Role, NavConfig> = {
       label: "Platform Management",
       items: [
         { title: "Users", icon: Users, href: "/dashboard/users" },
+        { title: "Companies", icon: Building2, href: "/dashboard/companies" },
         {
           title: "All Products",
           icon: BookCopy,

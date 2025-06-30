@@ -5,28 +5,28 @@
  * across the application.
  */
 export const Collections = {
-  PRODUCTS: "products",
-  COMPLIANCE_PATHS: "compliancePaths",
-  COMPANIES: "companies",
-  USERS: "users",
-  AUDIT_LOGS: "auditLogs",
-  WEBHOOKS: "webhooks",
-  API_KEYS: "apiKeys",
+  PRODUCTS: 'products',
+  COMPLIANCE_PATHS: 'compliancePaths',
+  COMPANIES: 'companies',
+  USERS: 'users',
+  AUDIT_LOGS: 'auditLogs',
+  WEBHOOKS: 'webhooks',
+  API_KEYS: 'apiKeys',
 } as const;
 
 /**
  * Defines the standardized user roles within the Norruva platform.
  */
 export const UserRoles = {
-  ADMIN: "Admin",
-  SUPPLIER: "Supplier",
-  AUDITOR: "Auditor",
-  COMPLIANCE_MANAGER: "Compliance Manager",
-  MANUFACTURER: "Manufacturer",
-  SERVICE_PROVIDER: "Service Provider",
-  RECYCLER: "Recycler",
-  DEVELOPER: "Developer",
-  BUSINESS_ANALYST: "Business Analyst",
+  ADMIN: 'Admin',
+  SUPPLIER: 'Supplier',
+  AUDITOR: 'Auditor',
+  COMPLIANCE_MANAGER: 'Compliance Manager',
+  MANUFACTURER: 'Manufacturer',
+  SERVICE_PROVIDER: 'Service Provider',
+  RECYCLER: 'Recycler',
+  DEVELOPER: 'Developer',
+  BUSINESS_ANALYST: 'Business Analyst',
 } as const;
 
 /**

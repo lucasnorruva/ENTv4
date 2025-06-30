@@ -6,6 +6,7 @@ import { randomBytes } from 'crypto';
 import { products as mockProducts } from './data';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { users as mockUsers } from './user-data';
+import { companies as mockCompanies } from './company-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { apiKeys as mockApiKeys } from './api-key-data';
 import { apiSettings as mockApiSettings } from './api-settings-data';
@@ -20,6 +21,8 @@ import {
   type UserFormValues,
   apiSettingsSchema,
   type ApiSettingsFormValues,
+  companyFormSchema,
+  type CompanyFormValues,
 } from './schemas';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
@@ -48,6 +51,7 @@ import type {
   ComplianceGap,
   ApiSettings,
   DataQualityWarning,
+  Company,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
 import { UserRoles } from './constants';
@@ -576,6 +580,63 @@ export async function deleteUser(
   revalidatePath('/dashboard/users');
   return { success: true };
 }
+
+// --- COMPANY ACTIONS ---
+export async function getCompanies(): Promise<Company[]> {
+  return mockCompanies;
+}
+
+export async function saveCompany(
+  companyData: CompanyFormValues,
+  adminUserId: string,
+  companyId?: string,
+): Promise<Company> {
+  const validatedData = companyFormSchema.parse(companyData);
+  const now = new Date().toISOString();
+  const dataToSave = {
+    name: validatedData.name,
+    ownerId: validatedData.ownerId,
+    updatedAt: now,
+  };
+
+  if (companyId) {
+    const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
+    if (companyIndex === -1) throw new Error('Company not found');
+    mockCompanies[companyIndex] = { ...mockCompanies[companyIndex], ...dataToSave };
+    await logAuditEvent('company.updated', companyId, { name: dataToSave.name }, adminUserId);
+    revalidatePath('/dashboard/companies');
+    return mockCompanies[companyIndex];
+  } else {
+    const newCompany: Company = {
+      ...dataToSave,
+      id: `comp-${randomBytes(2).toString('hex')}`,
+      createdAt: now,
+    };
+    mockCompanies.unshift(newCompany);
+    await logAuditEvent('company.created', newCompany.id, { name: newCompany.name }, adminUserId);
+    revalidatePath('/dashboard/companies');
+    return newCompany;
+  }
+}
+
+export async function deleteCompany(
+  companyId: string,
+  adminUserId: string,
+): Promise<{ success: boolean }> {
+  const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
+  if (companyIndex > -1) {
+    await logAuditEvent(
+      'company.deleted',
+      companyId,
+      { name: mockCompanies[companyIndex].name },
+      adminUserId,
+    );
+    mockCompanies.splice(companyIndex, 1);
+  }
+  revalidatePath('/dashboard/companies');
+  return { success: true };
+}
+
 
 // --- NOTIFICATION ACTIONS ---
 export async function markAllNotificationsAsRead(
