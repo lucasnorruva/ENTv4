@@ -24,7 +24,7 @@ export default function Logo({ className }: LogoProps) {
         <path d="M17 7v10"></path>
         <path d="M7 17V7"></path>
       </svg>
-      <h1 className={cn("text-2xl font-bold", className)}>PassportFlow</h1>
+      <h1 className={cn("text-2xl font-bold", className)}>Norruva</h1>
     </Link>
   );
 }

@@ -77,7 +77,7 @@ export default function PrivacyPage() {
       </main>
       <footer className="border-t py-6 px-4 md:px-6">
         <div className="container mx-auto text-center text-xs text-muted-foreground">
-          © 2024 PassportFlow. All rights reserved.
+          © 2024 Norruva. All rights reserved.
         </div>
       </footer>
     </div>

@@ -1,6 +1,6 @@
 # EU Alignment, Funding Readiness, Monetization & Governance
 
-This document outlines the strategic positioning of the PassportFlow platform concerning EU directives, public funding opportunities, business models, and the governance framework designed to ensure trust and data integrity.
+This document outlines the strategic positioning of the Norruva platform concerning EU directives, public funding opportunities, business models, and the governance framework designed to ensure trust and data integrity.
 
 ## EU Alignment & Public Funding Readiness
 
