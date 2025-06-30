@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -28,6 +29,7 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
+import { verifyProductAgainstPath } from '@/services/compliance';
 
 import type {
   Product,
@@ -237,6 +239,27 @@ export async function approvePassport(
 ): Promise<Product> {
   const product = mockProducts.find(p => p.id === productId);
   if (!product) throw new Error('Product not found');
+
+  // Final compliance gatekeeper check
+  const compliancePath = mockCompliancePaths.find(
+    p => p.id === product.compliancePathId,
+  );
+  if (!compliancePath) {
+    throw new Error('Compliance path not configured for this product.');
+  }
+
+  const { isCompliant, gaps } = await verifyProductAgainstPath(
+    product,
+    compliancePath,
+  );
+  if (!isCompliant) {
+    // If it fails the final check, reject it automatically and throw an error.
+    const summary = `Product failed final verification with ${gaps.length} issue(s).`;
+    await rejectPassport(product.id, summary, gaps, 'system:gatekeeper');
+    throw new Error(
+      `Cannot approve: Product is not compliant. Issues found: ${gaps.map(g => g.issue).join(', ')}`,
+    );
+  }
 
   const dataHash = await hashProductData(product);
   const [blockchainProof, ebsiVcId] = await Promise.all([
