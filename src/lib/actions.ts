@@ -405,30 +405,6 @@ export async function rejectPassport(
   return product;
 }
 
-export async function resolveComplianceIssue(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
-
-  product.status = 'Draft';
-  product.verificationStatus = 'Not Submitted';
-  product.updatedAt = new Date().toISOString();
-
-  await logAuditEvent(
-    'compliance.resolved',
-    productId,
-    { newStatus: 'Draft' },
-    userId,
-  );
-  revalidatePath('/dashboard/flagged');
-  revalidatePath('/dashboard/products');
-  revalidatePath(`/products/${productId}`);
-  return product;
-}
-
 export async function runSuggestImprovements(
   data: ProductFormValues,
 ): Promise<any> {
