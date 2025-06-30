@@ -1,3 +1,4 @@
+
 // src/components/dashboards/compliance-manager-dashboard.tsx
 import {
   Card,
@@ -14,7 +15,11 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { getProducts } from '@/lib/actions';
 
-export default async function ComplianceManagerDashboard({ user }: { user: User }) {
+export default async function ComplianceManagerDashboard({
+  user,
+}: {
+  user: User;
+}) {
   const allProducts = await getProducts(user.id);
   const flaggedProducts = allProducts.filter(
     p => p.verificationStatus === 'Failed',
@@ -84,13 +89,15 @@ export default async function ComplianceManagerDashboard({ user }: { user: User 
                           'Reason not specified.'}
                       </p>
                     </div>
-                    <div className="text-right text-xs text-muted-foreground">
-                      <p>
-                        {product.lastVerificationDate && formatDistanceToNow(
+                    <div
+                      className="text-right text-xs text-muted-foreground"
+                      suppressHydrationWarning
+                    >
+                      {product.lastVerificationDate &&
+                        formatDistanceToNow(
                           new Date(product.lastVerificationDate),
                           { addSuffix: true },
                         )}
-                      </p>
                     </div>
                   </div>
                 ))}

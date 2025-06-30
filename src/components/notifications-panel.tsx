@@ -1,7 +1,7 @@
+
 // src/components/notifications-panel.tsx
 
 import { getAuditLogs, getUsers, getProducts } from '@/lib/actions';
-import { formatDistanceToNow } from 'date-fns';
 import NotificationsClient from './notifications-client';
 import type { User } from '@/types';
 
@@ -17,7 +17,7 @@ export interface ProcessedNotification {
   action: string;
   title: string;
   description: string;
-  timestamp: string;
+  createdAt: string; // Pass raw date string
   isRead: boolean;
 }
 
@@ -52,9 +52,7 @@ export default async function NotificationsPanel({ user }: { user: User }) {
         action: log.action,
         title,
         description,
-        timestamp: formatDistanceToNow(new Date(log.createdAt), {
-          addSuffix: true,
-        }),
+        createdAt: log.createdAt, // Pass the ISO date string
         isRead,
       };
     },

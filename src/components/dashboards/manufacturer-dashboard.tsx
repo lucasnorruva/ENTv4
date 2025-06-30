@@ -1,3 +1,4 @@
+
 // src/components/dashboards/manufacturer-dashboard.tsx
 import {
   Card,
@@ -112,8 +113,8 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
                 </div>
                 <div className="flex items-center gap-1">
                   <Wrench className="h-3 w-3" />
-                  <span>
-                    Maint:{" "}
+                  <span suppressHydrationWarning>
+                    Maint:{' '}
                     {formatDistanceToNow(new Date(line.lastMaintenance), {
                       addSuffix: true,
                     })}
@@ -122,11 +123,11 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
               </div>
             </div>
           ))}
-           {lines.length === 0 && (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                No production lines found.
-              </p>
-            )}
+          {lines.length === 0 && (
+            <p className="text-sm text-center text-muted-foreground py-4">
+              No production lines found.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

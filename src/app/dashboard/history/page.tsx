@@ -1,3 +1,4 @@
+
 // src/app/dashboard/history/page.tsx
 import { redirect } from 'next/navigation';
 import {
@@ -101,7 +102,10 @@ export default async function HistoryPage({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{label}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p
+                        className="text-xs text-muted-foreground"
+                        suppressHydrationWarning
+                      >
                         {formatDistanceToNow(new Date(log.createdAt), {
                           addSuffix: true,
                         })}

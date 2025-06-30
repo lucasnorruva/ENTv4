@@ -1,3 +1,4 @@
+
 // src/app/dashboard/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getMockUsers, hasRole } from '@/lib/auth';
@@ -8,6 +9,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import {
   Activity,
@@ -289,7 +291,10 @@ export default async function AnalyticsPage({
                       Product: {product}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground shrink-0">
+                  <p
+                    className="text-xs text-muted-foreground shrink-0"
+                    suppressHydrationWarning
+                  >
                     {formatDistanceToNow(new Date(log.createdAt), {
                       addSuffix: true,
                     })}

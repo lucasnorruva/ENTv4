@@ -1,3 +1,4 @@
+
 // src/components/dashboards/service-provider-dashboard.tsx
 import {
   Card,
@@ -6,14 +7,14 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "../ui/button";
-import type { User } from "@/types";
-import { getProducts, getServiceTickets } from "@/lib/actions";
-import { ArrowRight, Wrench, Ticket } from "lucide-react";
-import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
-import { Badge } from "../ui/badge";
+} from '@/components/ui/card';
+import { Button } from '../ui/button';
+import type { User } from '@/types';
+import { getProducts, getServiceTickets } from '@/lib/actions';
+import { ArrowRight, Wrench, Ticket } from 'lucide-react';
+import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
+import { Badge } from '../ui/badge';
 
 export default async function ServiceProviderDashboard({
   user,
@@ -25,8 +26,8 @@ export default async function ServiceProviderDashboard({
     getServiceTickets(),
   ]);
 
-  const availableManuals = products.filter((p) => p.manualUrl).length;
-  const openTickets = tickets.filter((t) => t.status === "Open");
+  const availableManuals = products.filter(p => p.manualUrl).length;
+  const openTickets = tickets.filter(t => t.status === 'Open');
 
   const recentOpenTickets = openTickets
     .sort(
@@ -35,7 +36,7 @@ export default async function ServiceProviderDashboard({
     )
     .slice(0, 5);
 
-  const productMap = new Map(products.map((p) => [p.id, p.productName]));
+  const productMap = new Map(products.map(p => [p.id, p.productName]));
 
   return (
     <div className="space-y-6">
@@ -102,21 +103,21 @@ export default async function ServiceProviderDashboard({
         <CardContent>
           {recentOpenTickets.length > 0 ? (
             <div className="space-y-4">
-              {recentOpenTickets.map((ticket) => (
+              {recentOpenTickets.map(ticket => (
                 <div
                   key={ticket.id}
                   className="flex items-center justify-between gap-4"
                 >
                   <div>
                     <p className="font-medium">
-                      {productMap.get(ticket.productId) || "Unknown Product"}
+                      {productMap.get(ticket.productId) || 'Unknown Product'}
                     </p>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">
                       {ticket.issue}
                     </p>
                   </div>
                   <div className="text-right text-xs text-muted-foreground shrink-0">
-                    <p>
+                    <p suppressHydrationWarning>
                       {formatDistanceToNow(new Date(ticket.createdAt), {
                         addSuffix: true,
                       })}

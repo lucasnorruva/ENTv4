@@ -1,10 +1,10 @@
+
 // src/components/dashboards/admin-dashboard.tsx
 import Link from 'next/link';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -184,7 +184,10 @@ export default async function AdminDashboard({ user }: { user: User }) {
                           : `Entity: ${product}`}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground shrink-0">
+                    <p
+                      className="text-xs text-muted-foreground shrink-0"
+                      suppressHydrationWarning
+                    >
                       {formatDistanceToNow(new Date(log.createdAt), {
                         addSuffix: true,
                       })}

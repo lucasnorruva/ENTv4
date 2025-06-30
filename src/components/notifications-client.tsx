@@ -1,3 +1,4 @@
+
 // src/components/notifications-client.tsx
 'use client';
 
@@ -17,6 +18,7 @@ import {
   Recycle,
   ShieldX,
 } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 import {
   DropdownMenu,
@@ -118,8 +120,13 @@ export default function NotificationsClient({
                   <p className="text-xs text-muted-foreground">
                     {notification.description}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {notification.timestamp}
+                  <p
+                    className="text-xs text-muted-foreground mt-1"
+                    suppressHydrationWarning
+                  >
+                    {formatDistanceToNow(new Date(notification.createdAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
               </DropdownMenuItem>

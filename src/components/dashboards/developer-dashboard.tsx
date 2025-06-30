@@ -1,3 +1,4 @@
+
 // src/components/dashboards/developer-dashboard.tsx
 import {
   Card,
@@ -114,7 +115,10 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
                   <Badge variant={getStatusVariant(log.details.status)}>
                     {log.details.status}
                   </Badge>
-                  <p className="text-xs text-muted-foreground shrink-0 w-28 text-right">
+                  <p
+                    className="text-xs text-muted-foreground shrink-0 w-28 text-right"
+                    suppressHydrationWarning
+                  >
                     {formatDistanceToNow(new Date(log.createdAt), {
                       addSuffix: true,
                     })}

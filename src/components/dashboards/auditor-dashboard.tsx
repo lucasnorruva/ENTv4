@@ -1,3 +1,4 @@
+
 // src/components/dashboards/auditor-dashboard.tsx
 import {
   Card,
@@ -23,7 +24,10 @@ export default async function AuditorDashboard({ user }: { user: User }) {
 
   const recentPending = products
     .filter(p => p.verificationStatus === 'Pending')
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
     .slice(0, 5);
 
   return (
@@ -31,7 +35,8 @@ export default async function AuditorDashboard({ user }: { user: User }) {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Auditor Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user.fullName}. Here is an overview of the current audit queue.
+          Welcome back, {user.fullName}. Here is an overview of the current
+          audit queue.
         </p>
       </div>
 
@@ -48,7 +53,7 @@ export default async function AuditorDashboard({ user }: { user: User }) {
             </p>
           </CardContent>
           <CardFooter>
-             <Button asChild size="sm" className="w-full">
+            <Button asChild size="sm" className="w-full">
               <Link href="/dashboard/audit">
                 Go to Full Audit Queue <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
@@ -82,7 +87,10 @@ export default async function AuditorDashboard({ user }: { user: User }) {
           {recentPending.length > 0 ? (
             <div className="space-y-4">
               {recentPending.map(product => (
-                <div key={product.id} className="flex items-center justify-between">
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between"
+                >
                   <div>
                     <p className="font-medium">{product.productName}</p>
                     <p className="text-sm text-muted-foreground">
@@ -90,8 +98,13 @@ export default async function AuditorDashboard({ user }: { user: User }) {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(product.updatedAt), { addSuffix: true })}
+                    <p
+                      className="text-xs text-muted-foreground"
+                      suppressHydrationWarning
+                    >
+                      {formatDistanceToNow(new Date(product.updatedAt), {
+                        addSuffix: true,
+                      })}
                     </p>
                   </div>
                 </div>
