@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from '@/lib/data';
 import type { AuditLog, Product, ProductionLine, SustainabilityData } from '@/types';
-import type { ProductFormValues } from '@/components/product-form';
+import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import {
   suggestImprovements,
   type SuggestImprovementsInput,
@@ -110,7 +110,9 @@ export async function saveProduct(
 ): Promise<Product> {
   await sleep(500);
 
-  const { sustainability, qrLabelText } = await runAllAiFlows(productData);
+  const validatedData = productFormSchema.parse(productData);
+
+  const { sustainability, qrLabelText } = await runAllAiFlows(validatedData);
 
   if (productId) {
     const productIndex = products.findIndex(p => p.id === productId);
@@ -119,7 +121,7 @@ export async function saveProduct(
     }
     const updatedProduct = {
       ...products[productIndex],
-      ...productData,
+      ...validatedData,
       sustainability,
       qrLabelText,
       lastUpdated: new Date().toISOString(),
@@ -129,7 +131,7 @@ export async function saveProduct(
     await logAuditEvent(
       'product.updated',
       productId,
-      { fields: Object.keys(productData) },
+      { fields: Object.keys(validatedData) },
       userId,
     );
     revalidatePath('/dashboard/products');
@@ -138,7 +140,7 @@ export async function saveProduct(
   } else {
     const newProduct: Product = {
       id: `pp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      ...productData,
+      ...validatedData,
       productImage: 'https://placehold.co/100x100.png',
       sustainability,
       qrLabelText,
@@ -345,9 +347,11 @@ export async function getProductionLines(): Promise<ProductionLine[]> {
   return JSON.parse(JSON.stringify(productionLines));
 }
 
-export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+export async function getAuditLogs(userId?: string): Promise<AuditLog[]> {
   await sleep(50);
-  // In a real app, you'd filter by userId. Here, we return all for the mock user.
-  const userLogs = auditLogs.filter(log => log.userId === userId);
-  return JSON.parse(JSON.stringify(userLogs));
+  if (userId) {
+    const userLogs = auditLogs.filter(log => log.userId === userId);
+    return JSON.parse(JSON.stringify(userLogs));
+  }
+  return JSON.parse(JSON.stringify(auditLogs));
 }

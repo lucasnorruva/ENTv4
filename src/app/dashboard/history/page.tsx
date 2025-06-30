@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuditLogsForUser, getProducts } from '@/lib/actions';
+import { getAuditLogs, getProducts } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import {
   Clock,
@@ -44,7 +44,7 @@ const getActionLabel = (action: string): string => {
 export default async function HistoryPage() {
   const user = await getCurrentUser('Supplier');
   const [logs, products] = await Promise.all([
-    getAuditLogsForUser(user.id),
+    getAuditLogs(user.id),
     getProducts(),
   ]);
 
