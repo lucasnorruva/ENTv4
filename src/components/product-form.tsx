@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useEffect, useTransition } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -34,12 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 import type { Product, User } from '@/types';
-import { saveProduct, runSuggestImprovements } from '@/lib/actions';
+import { saveProduct } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
-// This is a temporary schema for the form.
-// It will be replaced in Task 12 with a more structured approach.
+// Updated schema to match the new structured Product type
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   productDescription: z.string().min(10, 'Product description is required'),
@@ -47,18 +49,31 @@ const productSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   supplier: z.string().min(1, 'Supplier is required'),
   status: z.enum(['Published', 'Draft', 'Archived']),
-  // This JSON blob is the field we are working to eliminate.
-  currentInformation: z.string().refine(
-    val => {
-      try {
-        JSON.parse(val);
-        return true;
-      } catch (e) {
-        return false;
-      }
-    },
-    { message: 'Must be valid JSON' },
+  materials: z.array(
+    z.object({
+      name: z.string().min(1, 'Material name is required'),
+      percentage: z.coerce.number().optional(),
+      recycledContent: z.coerce.number().optional(),
+      origin: z.string().optional(),
+    }),
   ),
+  manufacturing: z.object({
+    facility: z.string().min(1, 'Facility name is required'),
+    country: z.string().min(1, 'Country is required'),
+    emissionsKgCo2e: z.coerce.number().optional(),
+  }),
+  certifications: z.array(
+    z.object({
+      name: z.string().min(1, 'Certificate name is required'),
+      issuer: z.string().min(1, 'Issuer is required'),
+      validUntil: z.string().optional(),
+    }),
+  ),
+  packaging: z.object({
+    type: z.string().min(1, 'Packaging type is required'),
+    recycledContent: z.coerce.number().optional(),
+    recyclable: z.boolean(),
+  }),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -71,32 +86,6 @@ interface ProductFormProps {
   user: User;
 }
 
-const defaultJsonInfo = JSON.stringify(
-  {
-    materials: [
-      {
-        name: 'Recycled Aluminum',
-        percentage: 60,
-        recycledContent: 100,
-        origin: 'Germany',
-      },
-    ],
-    manufacturing: {
-      facility: 'CleanEnergy Factory',
-      country: 'Germany',
-      emissionsKgCo2e: 5.5,
-    },
-    certifications: [{ name: 'EcoCert', issuer: 'EcoCert Group' }],
-    packaging: {
-      type: 'Recycled Cardboard',
-      recycledContent: 100,
-      recyclable: true,
-    },
-  },
-  null,
-  2,
-);
-
 export default function ProductForm({
   isOpen,
   onOpenChange,
@@ -105,78 +94,83 @@ export default function ProductForm({
   user,
 }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
-  const [isAiLoading, setIsAiLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
-    defaultValues: {
-      productName: '',
-      productDescription: '',
-      productImage: undefined,
-      category: 'Electronics',
-      supplier: '',
-      status: 'Draft',
-      currentInformation: defaultJsonInfo,
-    },
+    defaultValues: product
+      ? {
+          ...product,
+          manufacturing: product.manufacturing || { facility: '', country: '' },
+          packaging: product.packaging || { type: '', recyclable: false },
+        }
+      : {
+          productName: '',
+          productDescription: '',
+          productImage: undefined,
+          category: 'Electronics',
+          supplier: '',
+          status: 'Draft',
+          materials: [],
+          manufacturing: { facility: '', country: '' },
+          certifications: [],
+          packaging: { type: '', recyclable: false },
+        },
+  });
+
+  const {
+    fields: materialFields,
+    append: appendMaterial,
+    remove: removeMaterial,
+  } = useFieldArray({
+    control: form.control,
+    name: 'materials',
+  });
+
+  const {
+    fields: certFields,
+    append: appendCert,
+    remove: removeCert,
+  } = useFieldArray({
+    control: form.control,
+    name: 'certifications',
   });
 
   useEffect(() => {
-    if (product) {
-      // If editing, populate the form with the product's data.
-      // We stringify the structured data back into the JSON blob for the form.
-      const info = JSON.stringify(
-        {
-          materials: product.materials,
-          manufacturing: product.manufacturing,
-          certifications: product.certifications,
-          packaging: product.packaging,
-        },
-        null,
-        2,
+    if (isOpen) {
+      form.reset(
+        product
+          ? {
+              ...product,
+              manufacturing: product.manufacturing || {
+                facility: '',
+                country: '',
+              },
+              packaging: product.packaging || { type: '', recyclable: false },
+            }
+          : {
+              productName: '',
+              productDescription: '',
+              productImage: undefined,
+              category: 'Electronics',
+              supplier: '',
+              status: 'Draft',
+              materials: [],
+              manufacturing: { facility: '', country: '' },
+              certifications: [],
+              packaging: { type: '', recyclable: false },
+            },
       );
-
-      form.reset({
-        productName: product.productName,
-        productDescription: product.productDescription,
-        productImage: product.productImage,
-        category: product.category,
-        supplier: product.supplier,
-        status: product.status,
-        currentInformation: info,
-      });
-    } else {
-      // If creating, reset to default values.
-      form.reset({
-        productName: '',
-        productDescription: '',
-        productImage: undefined,
-        category: 'Electronics',
-        supplier: '',
-        status: 'Draft',
-        currentInformation: defaultJsonInfo,
-      });
     }
   }, [product, isOpen, form]);
 
   const onSubmit = (values: ProductFormValues) => {
     startTransition(async () => {
       try {
-        // This is the bridge from the old form to the new data structure.
-        // We parse the JSON blob and merge it with the other form fields.
-        const structuredInfo = JSON.parse(values.currentInformation);
         const productData = {
-          productName: values.productName,
-          productDescription: values.productDescription,
+          ...values,
           productImage:
             product?.productImage ?? 'https://placehold.co/100x100.png',
-          category: values.category,
-          supplier: values.supplier,
-          status: values.status,
-          materials: structuredInfo.materials || [],
-          manufacturing: structuredInfo.manufacturing || {},
-          certifications: structuredInfo.certifications || [],
-          packaging: structuredInfo.packaging || {},
         };
 
         const saved = await saveProduct(productData, user.id, product?.id);
@@ -197,43 +191,9 @@ export default function ProductForm({
     });
   };
 
-  const handleSuggestImprovements = async () => {
-    const { productName, productDescription } = form.getValues();
-    if (!productName || !productDescription) {
-      toast({
-        title: 'Missing Information',
-        description:
-          'Please provide a product name and description before getting suggestions.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsAiLoading(true);
-    try {
-      const result = await runSuggestImprovements({
-        productName,
-        productDescription,
-      });
-      console.log('AI Recommendations:', result.recommendations);
-      toast({
-        title: 'AI Suggestions Ready',
-        description: 'Check the browser console for recommendations.',
-      });
-    } catch (error) {
-      toast({
-        title: 'AI Suggestion Failed',
-        description: 'Could not get suggestion from AI. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsAiLoading(false);
-    }
-  };
-
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-xl w-full flex flex-col p-0">
+      <SheetContent className="w-full flex flex-col p-0 sm:max-w-2xl">
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>
             {product ? 'Edit Product Passport' : 'Create Product Passport'}
@@ -244,12 +204,13 @@ export default function ProductForm({
               : 'Fill in the details for the new product passport.'}
           </SheetDescription>
         </SheetHeader>
-        <div className="flex-1 overflow-y-auto">
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-6 p-6"
-            >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex-1 overflow-y-auto"
+          >
+            <div className="space-y-6 p-6">
+              {/* Basic Info */}
               <FormField
                 control={form.control}
                 name="productName"
@@ -266,7 +227,6 @@ export default function ProductForm({
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="productDescription"
@@ -307,7 +267,7 @@ export default function ProductForm({
                       <Input
                         type="file"
                         accept="image/*"
-                        disabled // Disabled until Task 12
+                        disabled // Disabled until image upload is implemented
                       />
                     </FormControl>
                     <FormMessage />
@@ -323,7 +283,7 @@ export default function ProductForm({
                       <FormLabel>Category</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        defaultValue={field.value}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -336,8 +296,6 @@ export default function ProductForm({
                           </SelectItem>
                           <SelectItem value="Fashion">Fashion</SelectItem>
                           <SelectItem value="Home Goods">Home Goods</SelectItem>
-                          <SelectItem value="Automotive">Automotive</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -362,82 +320,259 @@ export default function ProductForm({
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Draft">Draft</SelectItem>
-                        <SelectItem value="Published">Published</SelectItem>
-                        <SelectItem value="Archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <Separator />
 
-              <FormField
-                control={form.control}
-                name="currentInformation"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex justify-between items-center">
-                      <FormLabel>Passport Information (JSON)</FormLabel>
+              {/* Manufacturing */}
+              <h3 className="text-lg font-semibold">Manufacturing</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="manufacturing.facility"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Facility</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. CleanEnergy Factory"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="manufacturing.country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g. Germany" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <Separator />
+
+              {/* Materials */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Materials</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      appendMaterial({
+                        name: '',
+                        percentage: 0,
+                        recycledContent: 0,
+                        origin: '',
+                      })
+                    }
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add Material
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {materialFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-4 gap-2 items-start border p-4 rounded-md relative"
+                    >
+                      <FormItem className="col-span-4">
+                        <FormLabel>Material Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...form.register(`materials.${index}.name`)}
+                            placeholder="e.g. Recycled Aluminum"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Percentage</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...form.register(`materials.${index}.percentage`)}
+                            placeholder="e.g. 60"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Recycled %</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...form.register(
+                              `materials.${index}.recycledContent`,
+                            )}
+                            placeholder="e.g. 100"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Origin</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...form.register(`materials.${index}.origin`)}
+                            placeholder="e.g. Germany"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                       <Button
                         type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={handleSuggestImprovements}
-                        disabled={isAiLoading}
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeMaterial(index)}
                       >
-                        {isAiLoading ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
-                        )}
-                        Get Recommendations
+                        <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Certifications */}
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Certifications</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => appendCert({ name: '', issuer: '' })}
+                  >
+                    <Plus className="mr-2 h-4 w-4" /> Add Certificate
+                  </Button>
+                </div>
+                <div className="space-y-4">
+                  {certFields.map((field, index) => (
+                    <div
+                      key={field.id}
+                      className="grid grid-cols-2 gap-2 border p-4 rounded-md relative"
+                    >
+                      <FormItem>
+                        <FormLabel>Certificate Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...form.register(`certifications.${index}.name`)}
+                            placeholder="e.g. EcoCert"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <FormItem>
+                        <FormLabel>Issuer</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...form.register(`certifications.${index}.issuer`)}
+                            placeholder="e.g. EcoCert Group"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => removeCert(index)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Packaging */}
+              <h3 className="text-lg font-semibold">Packaging</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="packaging.type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Recycled Cardboard"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="packaging.recycledContent"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recycled Content (%)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g. 100" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="packaging.recyclable"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Recyclable</FormLabel>
+                      <FormDescription>
+                        Is the packaging material recyclable?
+                      </FormDescription>
+                    </div>
                     <FormControl>
-                      <Textarea
-                        placeholder='{ "key": "value" }'
-                        {...field}
-                        className="min-h-[200px] font-mono text-sm"
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
-                    <FormMessage />
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
-                <SheetClose asChild>
-                  <Button type="button" variant="outline">
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <Button type="submit" disabled={isPending || isAiLoading}>
-                  {(isPending || isAiLoading) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isPending ? 'Saving...' : 'Save Passport'}
+            </div>
+
+            {/* Footer with actions */}
+            <div className="flex justify-end gap-2 p-6 mt-auto border-t bg-background sticky bottom-0">
+              <SheetClose asChild>
+                <Button type="button" variant="outline">
+                  Cancel
                 </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
+              </SheetClose>
+              <Button type="submit" disabled={isPending}>
+                {isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isPending ? 'Saving...' : 'Save Passport'}
+              </Button>
+            </div>
+          </form>
+        </Form>
       </SheetContent>
     </Sheet>
   );
 }
+
+    
