@@ -47,6 +47,7 @@ import { validateProductData } from '@/ai/flows/validate-product-data';
 import type {
   SuggestImprovementsInput,
   SuggestImprovementsOutput,
+  AiProduct,
 } from '@/types/ai-outputs';
 import { getUserById } from './auth';
 import { verifyProductAgainstPath } from '@/services/compliance';
@@ -207,11 +208,31 @@ export async function recalculateScore(
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
 
-  const { productName, productDescription, category, supplier, materials, manufacturing, certifications, verificationStatus, sustainability } = product;
+  const {
+    productName,
+    productDescription,
+    category,
+    supplier,
+    materials,
+    manufacturing,
+    certifications,
+    verificationStatus,
+    sustainability,
+  } = product;
 
-  const aiProductInput = { productName, productDescription, category, supplier, materials, manufacturing: manufacturing!, certifications: certifications!, verificationStatus, complianceSummary: sustainability?.complianceSummary };
+  const aiProductInput: AiProduct = {
+    productName,
+    productDescription,
+    category,
+    supplier,
+    materials,
+    manufacturing: manufacturing!,
+    certifications: certifications!,
+    verificationStatus,
+    complianceSummary: sustainability?.complianceSummary,
+  };
 
-  const [ esgResult, qrLabelResult, validationResult ] = await Promise.all([
+  const [esgResult, qrLabelResult, validationResult] = await Promise.all([
     calculateSustainability({ product: aiProductInput }),
     generateQRLabelText({ product: aiProductInput }),
     validateProductData({ product: aiProductInput }),
@@ -246,7 +267,7 @@ export async function approvePassport(
 ): Promise<Product> {
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
-  
+
   const productHash = await hashProductData(product);
   const [blockchainProof, ebsiVcId] = await Promise.all([
     anchorToPolygon(product.id, productHash),
@@ -258,7 +279,12 @@ export async function approvePassport(
   product.blockchainProof = blockchainProof;
   product.ebsiVcId = ebsiVcId;
 
-  await logAuditEvent('passport.approved', productId, { approver: userId }, userId);
+  await logAuditEvent(
+    'passport.approved',
+    productId,
+    { approver: userId },
+    userId,
+  );
   revalidatePath('/dashboard', 'layout');
   return product;
 }
@@ -274,19 +300,24 @@ export async function rejectPassport(
   product.verificationStatus = 'Failed';
   product.lastVerificationDate = new Date().toISOString();
   if (!product.sustainability) {
-      product.sustainability = { 
-        score: 0, 
-        environmental: 0, 
-        social: 0, 
-        governance: 0, 
-        summary: '',
-        isCompliant: false,
-        complianceSummary: ''
-      };
+    product.sustainability = {
+      score: 0,
+      environmental: 0,
+      social: 0,
+      governance: 0,
+      summary: '',
+      isCompliant: false,
+      complianceSummary: '',
+    };
   }
   product.sustainability.complianceSummary = reason;
   product.sustainability.gaps = gaps;
-  await logAuditEvent('passport.rejected', productId, { reason, gaps }, userId);
+  await logAuditEvent(
+    'passport.rejected',
+    productId,
+    { reason, gaps },
+    userId,
+  );
   revalidatePath('/dashboard', 'layout');
   return product;
 }
@@ -295,43 +326,52 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
-    const product = await getProductById(productId, userId);
-    if (!product) throw new Error("Product not found");
-    product.verificationStatus = "Not Submitted";
-    product.lastUpdated = new Date().toISOString();
-    await logAuditEvent("compliance.resolved", productId, {}, userId);
-    revalidatePath("/dashboard", "layout");
-    return product;
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+  product.verificationStatus = 'Not Submitted';
+  product.lastUpdated = new Date().toISOString();
+  await logAuditEvent('compliance.resolved', productId, {}, userId);
+  revalidatePath('/dashboard', 'layout');
+  return product;
 }
 
-export async function markAsRecycled(productId: string, userId: string): Promise<Product> {
-    const product = await getProductById(productId, userId);
-    if (!product) throw new Error("Product not found");
-    product.endOfLifeStatus = 'Recycled';
-    await logAuditEvent("product.recycled", productId, {}, userId);
-    revalidatePath("/dashboard", "layout");
-    return product;
+export async function markAsRecycled(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+  product.endOfLifeStatus = 'Recycled';
+  await logAuditEvent('product.recycled', productId, {}, userId);
+  revalidatePath('/dashboard', 'layout');
+  return product;
 }
 
 export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
-    const products = await getProducts();
-    if (format === 'json') {
-      return JSON.stringify(products, null, 2);
-    }
-    // Simple CSV conversion
-    const headers = Object.keys(products[0]).join(',');
-    const rows = products.map(p => {
-        return Object.values(p).map(value => {
-            if(typeof value === 'object' && value !== null) {
-                return `"${JSON.stringify(value).replace(/"/g, '""')}"`
-            }
-            return `"${value}"`;
-        }).join(',')
-    })
-    return [headers, ...rows].join('\n');
+  const products = await getProducts();
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+  // Simple CSV conversion
+  const headers = Object.keys(products[0]).join(',');
+  const rows = products.map(p => {
+    return Object.values(p)
+      .map(value => {
+        if (typeof value === 'object' && value !== null) {
+          return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+        }
+        return `"${value}"`;
+      })
+      .join(',');
+  });
+  return [headers, ...rows].join('\n');
 }
 
 // --- USER & COMPANY ACTIONS ---
+
+export async function getCompanies(): Promise<Company[]> {
+  return mockCompanies;
+}
 
 export async function createUserAndCompany(
   fullName: string,
@@ -364,40 +404,53 @@ export async function saveUser(
   adminUserId: string,
   userId?: string,
 ): Promise<User> {
-    if (userId) {
-        const user = await getUserById(userId);
-        if (!user) throw new Error("User not found");
-        user.fullName = values.fullName;
-        user.email = values.email;
-        user.companyId = values.companyId;
-        user.roles = [values.role];
-        user.updatedAt = new Date().toISOString();
-        await logAuditEvent('user.updated', userId, { by: adminUserId }, adminUserId);
-        revalidatePath('/dashboard/admin/users');
-        return user;
-    }
-    const newUser: User = {
-        id: `user-${randomBytes(3).toString('hex')}`,
-        ...values,
-        roles: [values.role],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-    mockUsers.push(newUser);
-    await logAuditEvent('user.created', newUser.id, { by: adminUserId }, adminUserId);
+  if (userId) {
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+    user.fullName = values.fullName;
+    user.email = values.email;
+    user.companyId = values.companyId;
+    user.roles = [values.role];
+    user.updatedAt = new Date().toISOString();
+    await logAuditEvent(
+      'user.updated',
+      userId,
+      { by: adminUserId },
+      adminUserId,
+    );
     revalidatePath('/dashboard/admin/users');
-    return newUser;
+    return user;
+  }
+  const newUser: User = {
+    id: `user-${randomBytes(3).toString('hex')}`,
+    ...values,
+    roles: [values.role],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockUsers.push(newUser);
+  await logAuditEvent(
+    'user.created',
+    newUser.id,
+    { by: adminUserId },
+    adminUserId,
+  );
+  revalidatePath('/dashboard/admin/users');
+  return newUser;
 }
 
-export async function deleteUser(userId: string, adminUserId: string): Promise<void> {
-    const index = mockUsers.findIndex(u => u.id === userId);
-    if (index > -1) {
-        mockUsers.splice(index, 1);
-        await logAuditEvent('user.deleted', userId, { by: adminUserId }, adminUserId);
-        revalidatePath('/dashboard/admin/users');
-    } else {
-        throw new Error('User not found');
-    }
+export async function deleteUser(
+  userId: string,
+  adminUserId: string,
+): Promise<void> {
+  const index = mockUsers.findIndex(u => u.id === userId);
+  if (index > -1) {
+    mockUsers.splice(index, 1);
+    await logAuditEvent('user.deleted', userId, { by: adminUserId }, adminUserId);
+    revalidatePath('/dashboard/admin/users');
+  } else {
+    throw new Error('User not found');
+  }
 }
 
 export async function saveCompany(
@@ -405,37 +458,55 @@ export async function saveCompany(
   adminUserId: string,
   companyId?: string,
 ): Promise<Company> {
-    if (companyId) {
-        const company = mockCompanies.find(c => c.id === companyId);
-        if (!company) throw new Error("Company not found");
-        company.name = values.name;
-        company.ownerId = values.ownerId;
-        company.updatedAt = new Date().toISOString();
-        await logAuditEvent('company.updated', companyId, { by: adminUserId }, adminUserId);
-        revalidatePath('/dashboard/admin/companies');
-        return company;
-    }
-    const newCompany: Company = {
-        id: `comp-${randomBytes(2).toString('hex')}`,
-        ...values,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-    mockCompanies.push(newCompany);
-    await logAuditEvent('company.created', newCompany.id, { by: adminUserId }, adminUserId);
+  if (companyId) {
+    const company = mockCompanies.find(c => c.id === companyId);
+    if (!company) throw new Error('Company not found');
+    company.name = values.name;
+    company.ownerId = values.ownerId;
+    company.updatedAt = new Date().toISOString();
+    await logAuditEvent(
+      'company.updated',
+      companyId,
+      { by: adminUserId },
+      adminUserId,
+    );
     revalidatePath('/dashboard/admin/companies');
-    return newCompany;
+    return company;
+  }
+  const newCompany: Company = {
+    id: `comp-${randomBytes(2).toString('hex')}`,
+    ...values,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockCompanies.push(newCompany);
+  await logAuditEvent(
+    'company.created',
+    newCompany.id,
+    { by: adminUserId },
+    adminUserId,
+  );
+  revalidatePath('/dashboard/admin/companies');
+  return newCompany;
 }
 
-export async function deleteCompany(companyId: string, adminUserId: string): Promise<void> {
-    const index = mockCompanies.findIndex(c => c.id === companyId);
-    if (index > -1) {
-        mockCompanies.splice(index, 1);
-        await logAuditEvent('company.deleted', companyId, { by: adminUserId }, adminUserId);
-        revalidatePath('/dashboard/admin/companies');
-    } else {
-        throw new Error('Company not found');
-    }
+export async function deleteCompany(
+  companyId: string,
+  adminUserId: string,
+): Promise<void> {
+  const index = mockCompanies.findIndex(c => c.id === companyId);
+  if (index > -1) {
+    mockCompanies.splice(index, 1);
+    await logAuditEvent(
+      'company.deleted',
+      companyId,
+      { by: adminUserId },
+      adminUserId,
+    );
+    revalidatePath('/dashboard/admin/companies');
+  } else {
+    throw new Error('Company not found');
+  }
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
@@ -443,51 +514,64 @@ export async function getCompliancePaths(): Promise<CompliancePath[]> {
   return mockCompliancePaths;
 }
 
-export async function getCompliancePathById(id: string): Promise<CompliancePath | undefined> {
-    return mockCompliancePaths.find(p => p.id === id);
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
+  return mockCompliancePaths.find(p => p.id === id);
 }
 
 export async function saveCompliancePath(
-    values: CompliancePathFormValues,
-    userId: string,
-    pathId?: string
+  values: CompliancePathFormValues,
+  userId: string,
+  pathId?: string,
 ): Promise<CompliancePath> {
-    const now = new Date().toISOString();
-    const regulations = values.regulations.split(',').map(s => s.trim());
-    const rules = {
-        minSustainabilityScore: values.minSustainabilityScore,
-        requiredKeywords: values.requiredKeywords?.split(',').map(s => s.trim()) || [],
-        bannedKeywords: values.bannedKeywords?.split(',').map(s => s.trim()) || [],
-    };
+  const now = new Date().toISOString();
+  const regulations = values.regulations.split(',').map(s => s.trim());
+  const rules = {
+    minSustainabilityScore: values.minSustainabilityScore,
+    requiredKeywords:
+      values.requiredKeywords?.split(',').map(s => s.trim()) || [],
+    bannedKeywords: values.bannedKeywords?.split(',').map(s => s.trim()) || [],
+  };
 
-    if (pathId) {
-        const path = mockCompliancePaths.find(p => p.id === pathId);
-        if (!path) throw new Error("Compliance path not found");
-        path.name = values.name;
-        path.description = values.description;
-        path.category = values.category;
-        path.regulations = regulations;
-        path.rules = rules;
-        path.updatedAt = now;
-        await logAuditEvent('compliance_path.updated', pathId, { by: userId }, userId);
-        revalidatePath('/dashboard/admin/compliance');
-        return path;
-    }
-
-    const newPath: CompliancePath = {
-        id: `cp-${randomBytes(3).toString('hex')}`,
-        name: values.name,
-        description: values.description,
-        category: values.category,
-        regulations,
-        rules,
-        createdAt: now,
-        updatedAt: now,
-    };
-    mockCompliancePaths.push(newPath);
-    await logAuditEvent('compliance_path.created', newPath.id, { by: userId }, userId);
+  if (pathId) {
+    const path = mockCompliancePaths.find(p => p.id === pathId);
+    if (!path) throw new Error('Compliance path not found');
+    path.name = values.name;
+    path.description = values.description;
+    path.category = values.category;
+    path.regulations = regulations;
+    path.rules = rules;
+    path.updatedAt = now;
+    await logAuditEvent(
+      'compliance_path.updated',
+      pathId,
+      { by: userId },
+      userId,
+    );
     revalidatePath('/dashboard/admin/compliance');
-    return newPath;
+    return path;
+  }
+
+  const newPath: CompliancePath = {
+    id: `cp-${randomBytes(3).toString('hex')}`,
+    name: values.name,
+    description: values.description,
+    category: values.category,
+    regulations,
+    rules,
+    createdAt: now,
+    updatedAt: now,
+  };
+  mockCompliancePaths.push(newPath);
+  await logAuditEvent(
+    'compliance_path.created',
+    newPath.id,
+    { by: userId },
+    userId,
+  );
+  revalidatePath('/dashboard/admin/compliance');
+  return newPath;
 }
 
 // --- API & SETTINGS ACTIONS ---
@@ -496,55 +580,68 @@ export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   return mockApiKeys.filter(key => key.userId === userId);
 }
 
-export async function createApiKey(label: string, userId: string): Promise<{ apiKey: ApiKey; rawToken: string }> {
-    const rawToken = `nor_prod_${randomBytes(16).toString('hex')}`;
-    const newApiKey: ApiKey = {
-        id: `key-${randomBytes(3).toString('hex')}`,
-        label,
-        token: `nor_prod_******************${rawToken.slice(-4)}`,
-        status: 'Active',
-        userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-    mockApiKeys.push(newApiKey);
-    await logAuditEvent('api_key.created', newApiKey.id, { by: userId }, userId);
-    revalidatePath('/dashboard/developer/keys');
-    return { apiKey: newApiKey, rawToken };
+export async function createApiKey(
+  label: string,
+  userId: string,
+): Promise<{ apiKey: ApiKey; rawToken: string }> {
+  const rawToken = `nor_prod_${randomBytes(16).toString('hex')}`;
+  const newApiKey: ApiKey = {
+    id: `key-${randomBytes(3).toString('hex')}`,
+    label,
+    token: `nor_prod_******************${rawToken.slice(-4)}`,
+    status: 'Active',
+    userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockApiKeys.push(newApiKey);
+  await logAuditEvent(
+    'api_key.created',
+    newApiKey.id,
+    { by: userId },
+    userId,
+  );
+  revalidatePath('/dashboard/developer/keys');
+  return { apiKey: newApiKey, rawToken };
 }
 
 export async function revokeApiKey(keyId: string, userId: string): Promise<ApiKey> {
-    const apiKey = mockApiKeys.find(k => k.id === keyId && k.userId === userId);
-    if (!apiKey) throw new Error("API Key not found");
-    apiKey.status = 'Revoked';
-    apiKey.updatedAt = new Date().toISOString();
-    await logAuditEvent('api_key.revoked', keyId, { by: userId }, userId);
-    revalidatePath('/dashboard/developer/keys');
-    return apiKey;
+  const apiKey = mockApiKeys.find(k => k.id === keyId && k.userId === userId);
+  if (!apiKey) throw new Error('API Key not found');
+  apiKey.status = 'Revoked';
+  apiKey.updatedAt = new Date().toISOString();
+  await logAuditEvent('api_key.revoked', keyId, { by: userId }, userId);
+  revalidatePath('/dashboard/developer/keys');
+  return apiKey;
 }
 
 export async function deleteApiKey(keyId: string, userId: string): Promise<void> {
-    const index = mockApiKeys.findIndex(k => k.id === keyId && k.userId === userId);
-    if (index > -1) {
-        mockApiKeys.splice(index, 1);
-        await logAuditEvent('api_key.deleted', keyId, { by: userId }, userId);
-        revalidatePath('/dashboard/developer/keys');
-    } else {
-        throw new Error('API Key not found');
-    }
+  const index = mockApiKeys.findIndex(
+    k => k.id === keyId && k.userId === userId,
+  );
+  if (index > -1) {
+    mockApiKeys.splice(index, 1);
+    await logAuditEvent('api_key.deleted', keyId, { by: userId }, userId);
+    revalidatePath('/dashboard/developer/keys');
+  } else {
+    throw new Error('API Key not found');
+  }
 }
 
 export async function getApiSettings(): Promise<ApiSettings> {
-    return mockApiSettings;
+  return mockApiSettings;
 }
 
-export async function saveApiSettings(values: ApiSettingsFormValues, userId: string): Promise<ApiSettings> {
-    mockApiSettings.isPublicApiEnabled = values.isPublicApiEnabled;
-    mockApiSettings.rateLimitPerMinute = values.rateLimitPerMinute;
-    mockApiSettings.isWebhookSigningEnabled = values.isWebhookSigningEnabled;
-    await logAuditEvent('settings.api.updated', 'global', { by: userId }, userId);
-    revalidatePath('/dashboard/admin/api-settings');
-    return mockApiSettings;
+export async function saveApiSettings(
+  values: ApiSettingsFormValues,
+  userId: string,
+): Promise<ApiSettings> {
+  mockApiSettings.isPublicApiEnabled = values.isPublicApiEnabled;
+  mockApiSettings.rateLimitPerMinute = values.rateLimitPerMinute;
+  mockApiSettings.isWebhookSigningEnabled = values.isWebhookSigningEnabled;
+  await logAuditEvent('settings.api.updated', 'global', { by: userId }, userId);
+  revalidatePath('/dashboard/admin/api-settings');
+  return mockApiSettings;
 }
 
 // --- MISC DATA ACTIONS ---
@@ -557,8 +654,12 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-    return mockAuditLogs.filter(log => log.userId === userId)
-        .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return mockAuditLogs
+    .filter(log => log.userId === userId)
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
@@ -569,7 +670,9 @@ export async function getServiceTickets(): Promise<ServiceTicket[]> {
   return mockServiceTickets;
 }
 
-export async function runSuggestImprovements(input: SuggestImprovementsInput): Promise<SuggestImprovementsOutput> {
+export async function runSuggestImprovements(
+  input: SuggestImprovementsInput,
+): Promise<SuggestImprovementsOutput> {
   return suggestImprovements({
     productName: input.productName,
     productDescription: input.productDescription,
@@ -577,37 +680,54 @@ export async function runSuggestImprovements(input: SuggestImprovementsInput): P
 }
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-    const user = await getUserById(userId);
-    if (!user) throw new Error("User not found");
-    
-    const allLogs = await getAuditLogs();
-    const allLogIds = allLogs.map(log => log.id);
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
 
-    user.readNotificationIds = [...new Set([...(user.readNotificationIds || []), ...allLogIds])];
-    console.log(`User ${userId} notifications marked as read.`);
-    // No revalidation needed for this, as it will trigger a client-side re-render.
+  const allLogs = await getAuditLogs();
+  const allLogIds = allLogs.map(log => log.id);
+
+  user.readNotificationIds = [
+    ...new Set([...(user.readNotificationIds || []), ...allLogIds]),
+  ];
+  console.log(`User ${userId} notifications marked as read.`);
+  // No revalidation needed for this, as it will trigger a client-side re-render.
 }
 
-export async function updateUserProfile(userId: string, fullName: string): Promise<void> {
-    const user = await getUserById(userId);
-    if (!user) throw new Error("User not found");
-    user.fullName = fullName;
-    await logAuditEvent('user.profile.updated', userId, { by: userId }, userId);
-    revalidatePath('/dashboard', 'layout');
+export async function updateUserProfile(
+  userId: string,
+  fullName: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  user.fullName = fullName;
+  await logAuditEvent('user.profile.updated', userId, { by: userId }, userId);
+  revalidatePath('/dashboard', 'layout');
 }
 
-export async function updateUserPassword(userId: string, current: string, newPass: string): Promise<void> {
-    // This is a mock. In a real app, this would involve Firebase Auth admin SDK
-    // to verify the current password and set a new one.
-    if (current !== 'password123') {
-        throw new Error("Incorrect current password.");
-    }
-    console.log(`Password for user ${userId} updated.`);
-    await logAuditEvent('user.password.updated', userId, { by: userId }, userId);
+export async function updateUserPassword(
+  userId: string,
+  current: string,
+  newPass: string,
+): Promise<void> {
+  // This is a mock. In a real app, this would involve Firebase Auth admin SDK
+  // to verify the current password and set a new one.
+  if (current !== 'password123') {
+    throw new Error('Incorrect current password.');
+  }
+  console.log(`Password for user ${userId} updated.`);
+  await logAuditEvent('user.password.updated', userId, { by: userId }, userId);
 }
 
-export async function saveNotificationPreferences(userId: string, prefs: any): Promise<void> {
-    // This is a mock.
-    console.log(`Notification preferences for user ${userId} saved.`);
-    await logAuditEvent('user.notifications.updated', userId, { prefs, by: userId }, userId);
+export async function saveNotificationPreferences(
+  userId: string,
+  prefs: any,
+): Promise<void> {
+  // This is a mock.
+  console.log(`Notification preferences for user ${userId} saved.`);
+  await logAuditEvent(
+    'user.notifications.updated',
+    userId,
+    { prefs, by: userId },
+    userId,
+  );
 }
