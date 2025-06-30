@@ -7,7 +7,6 @@ import type { Product, SustainabilityData } from '@/types';
 import {
   suggestImprovements,
   type SuggestImprovementsInput,
-  type SuggestImprovementsOutput,
 } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
@@ -19,6 +18,7 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
+import { compliancePaths } from './compliance-data';
 
 // In-memory data store for mock implementation
 let products = [...mockProducts];
@@ -52,11 +52,18 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 }
 
 // Type for the data coming from the form, before it becomes a full Product
-type ProductFormData = Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated'>;
+type ProductFormData = Omit<
+  Product,
+  'id' | 'createdAt' | 'updatedAt' | 'lastUpdated'
+>;
 
 async function runAllAiFlows(
   productData: ProductFormData,
 ): Promise<{ sustainability: SustainabilityData; qrLabelText: string }> {
+  const selectedCompliancePath = compliancePaths.find(
+    p => p.id === productData.compliancePathId,
+  );
+
   const [
     esgResult,
     complianceResult,
@@ -76,8 +83,10 @@ async function runAllAiFlows(
       productName: productData.productName,
       category: productData.category,
       materials: productData.materials,
-      compliancePathName: 'Mock Compliance Path',
-      complianceRules: JSON.stringify({}),
+      compliancePathName: selectedCompliancePath?.name ?? 'Default Compliance',
+      complianceRules: selectedCompliancePath
+        ? JSON.stringify(selectedCompliancePath.rules)
+        : '{}',
     }),
     generateQRLabelText({
       productName: productData.productName,
@@ -234,7 +243,7 @@ export async function rejectPassport(
 ): Promise<Product> {
   const product = findProduct(productId);
   if (!product) throw new Error('Product not found for rejection.');
-  
+
   const updatedProduct = findAndUpdateProduct(productId, {
     verificationStatus: 'Failed',
     lastVerificationDate: new Date().toISOString(),
@@ -254,7 +263,7 @@ export async function rejectPassport(
 
 export async function runSuggestImprovements(
   data: SuggestImprovementsInput,
-): Promise<SuggestImprovementsOutput> {
+) {
   return suggestImprovements(data);
 }
 

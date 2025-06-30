@@ -23,6 +23,7 @@ export let products: Product[] = [
     lastVerificationDate: new Date(
       new Date(now).setDate(now.getDate() - 1),
     ).toISOString(),
+    compliancePathId: "cp-electronics-01",
     blockchainProof: {
       txHash: "0xabc123",
       explorerUrl: "#",
@@ -117,6 +118,7 @@ export let products: Product[] = [
     lastVerificationDate: new Date(
       new Date(now).setDate(now.getDate() - 3),
     ).toISOString(),
+    compliancePathId: "cp-electronics-01",
     blockchainProof: {
       txHash: "0xdef456",
       explorerUrl: "#",
@@ -164,6 +166,7 @@ export let products: Product[] = [
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 0)).toISOString(),
     verificationStatus: "Not Submitted",
+    compliancePathId: "cp-fashion-01",
     endOfLifeStatus: "Active",
     materials: [
       {
@@ -199,6 +202,7 @@ export let products: Product[] = [
       new Date(now).setFullYear(now.getFullYear() - 1),
     ).toISOString(),
     verificationStatus: "Failed",
+    compliancePathId: "cp-fashion-01",
     lastVerificationDate: new Date(
       new Date(now).setFullYear(now.getFullYear() - 1),
     ).toISOString(),
@@ -258,6 +262,7 @@ export let products: Product[] = [
     lastVerificationDate: new Date(
       new Date(now).setDate(now.getDate() - 45),
     ).toISOString(),
+    compliancePathId: "cp-homegoods-01",
     endOfLifeStatus: "Active",
     materials: [{ name: "Bamboo", percentage: 100, origin: "China" }],
     manufacturing: { facility: "EcoHome Workshop", country: "China" },

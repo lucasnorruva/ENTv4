@@ -39,9 +39,11 @@ import {
   Sprout,
   Percent,
   MapPin,
+  FileQuestion,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { compliancePaths } from "@/lib/compliance-data";
 
 function InfoRow({
   icon: Icon,
@@ -71,6 +73,9 @@ export default function PublicPassportView({ product }: { product: Product }) {
   const esg = sustainability;
   const lifecycle = sustainability?.lifecycleAnalysis;
   const classification = sustainability?.classification;
+  const compliancePath = compliancePaths.find(
+    p => p.id === product.compliancePathId,
+  );
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0">
@@ -335,6 +340,11 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   </AlertDescription>
                 </Alert>
               )}
+              <InfoRow icon={FileQuestion} label="Compliance Path">
+                <p className="text-sm text-muted-foreground">
+                  {compliancePath?.name ?? "No path selected."}
+                </p>
+              </InfoRow>
               <InfoRow icon={Globe} label="Compliance Summary">
                 <p className="text-sm text-muted-foreground">
                   {sustainability?.complianceSummary || "Awaiting review."}

@@ -84,6 +84,7 @@ export interface Product extends BaseEntity {
   supplier: string;
   status: "Published" | "Draft" | "Archived";
   lastUpdated: string; // ISO 8601 date string for display purposes
+  compliancePathId?: string;
 
   // Structured Data Fields
   materials: Material[];

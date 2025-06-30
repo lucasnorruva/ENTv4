@@ -1,14 +1,9 @@
 // src/lib/compliance-data.ts
 import type { CompliancePath } from "@/types";
 
-// Omit the BaseEntity properties as they will be added by Firestore
-type MockCompliancePath = Omit<
-  CompliancePath,
-  "id" | "createdAt" | "updatedAt"
->;
-
-export const compliancePaths: MockCompliancePath[] = [
+export const compliancePaths: Omit<CompliancePath, "createdAt" | "updatedAt">[] = [
   {
+    id: "cp-electronics-01",
     name: "EU Electronics Sustainability Standard (ESPR, RoHS)",
     description:
       "Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions.",
@@ -20,6 +15,7 @@ export const compliancePaths: MockCompliancePath[] = [
     },
   },
   {
+    id: "cp-fashion-01",
     name: "Global Organic Textile Standard",
     description:
       "Ensures organic status of textiles, from harvesting of raw materials, through environmentally and socially responsible manufacturing.",
@@ -32,6 +28,7 @@ export const compliancePaths: MockCompliancePath[] = [
     },
   },
   {
+    id: "cp-homegoods-01",
     name: "General Product Safety Regulation",
     description:
       "Baseline safety requirements for all consumer goods sold in the EU.",

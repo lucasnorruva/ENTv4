@@ -40,6 +40,7 @@ import { Separator } from '@/components/ui/separator';
 import type { Product, User } from '@/types';
 import { saveProduct } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { compliancePaths } from '@/lib/compliance-data';
 
 // Updated schema to match the new structured Product type
 const productSchema = z.object({
@@ -49,6 +50,7 @@ const productSchema = z.object({
   category: z.string().min(1, 'Category is required'),
   supplier: z.string().min(1, 'Supplier is required'),
   status: z.enum(['Published', 'Draft', 'Archived']),
+  compliancePathId: z.string().optional(),
   materials: z.array(
     z.object({
       name: z.string().min(1, 'Material name is required'),
@@ -322,6 +324,41 @@ export default function ProductForm({
 
               <Separator />
 
+              {/* Compliance Path */}
+              <FormField
+                control={form.control}
+                name="compliancePathId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compliance Path</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a compliance standard..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {compliancePaths.map(path => (
+                          <SelectItem key={path.id} value={path.id}>
+                            {path.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Select the primary regulatory standard this product must
+                      adhere to.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Separator />
+
               {/* Manufacturing */}
               <h3 className="text-lg font-semibold">Manufacturing</h3>
               <div className="grid grid-cols-2 gap-4">
@@ -574,5 +611,3 @@ export default function ProductForm({
     </Sheet>
   );
 }
-
-    
