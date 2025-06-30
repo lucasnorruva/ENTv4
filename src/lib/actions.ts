@@ -36,6 +36,11 @@ import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import { classifyProduct } from '@/ai/flows/classify-product';
 import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
+import {
+  anchorToPolygon,
+  generateEbsiCredential,
+  hashProductData,
+} from '@/services/blockchain';
 
 // Helper function to convert Firestore doc to a client-side friendly Product object.
 // It handles Firestore Timestamps and ensures all necessary fields are present.
@@ -329,6 +334,86 @@ export async function submitForReview(
   revalidatePath(`/products/${productId}`);
   return updatedProduct;
 }
+
+export async function approvePassport(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  const product = await getProductById(productId);
+
+  if (!product) {
+    throw new Error('Product not found for approval.');
+  }
+
+  // Core business logic for approval: Hash, Anchor, and Credentialize
+  const dataHash = await hashProductData(product.currentInformation);
+  const [blockchainProof, ebsiVcId] = await Promise.all([
+    anchorToPolygon(productId, dataHash),
+    generateEbsiCredential(productId),
+  ]);
+
+  await setDoc(
+    docRef,
+    {
+      verificationStatus: 'Verified',
+      lastVerificationDate: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      blockchainProof: { ...blockchainProof, dataHash },
+      ebsiVcId: ebsiVcId,
+    },
+    { merge: true },
+  );
+
+  await logAuditEvent(
+    'passport.approved',
+    productId,
+    { txHash: blockchainProof.txHash },
+    userId,
+  );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after approval.');
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/products/${productId}`);
+  return updatedProduct;
+}
+
+export async function rejectPassport(
+  productId: string,
+  reason: string,
+  userId: string,
+): Promise<Product> {
+  const docRef = doc(db, Collections.PRODUCTS, productId);
+  await setDoc(
+    docRef,
+    {
+      verificationStatus: 'Failed',
+      lastVerificationDate: Timestamp.now(),
+      complianceSummary: `Rejected: ${reason}`, // Storing reason in summary
+      updatedAt: Timestamp.now(),
+    },
+    { merge: true },
+  );
+
+  await logAuditEvent(
+    'passport.rejected',
+    productId,
+    { reason },
+    userId,
+  );
+
+  const updatedProduct = await getProductById(productId);
+  if (!updatedProduct)
+    throw new Error('Failed to find product after rejection.');
+
+  revalidatePath('/dashboard');
+  revalidatePath(`/products/${productId}`);
+  return updatedProduct;
+}
+
 
 export async function runSuggestImprovements(
   data: SuggestImprovementsInput,
