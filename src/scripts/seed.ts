@@ -1,17 +1,16 @@
-// scripts/seed.ts
+// src/scripts/seed.ts
 import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top
 
-import { adminDb } from '../lib/firebase-admin';
+import admin, { adminDb } from '../lib/firebase-admin';
 import { products as mockProducts } from '../lib/data';
 import { Collections } from '../lib/constants';
-import * as admin from 'firebase-admin';
 
 async function seedDatabase() {
   console.log('Starting to seed database...');
   const collectionRef = adminDb.collection(Collections.PRODUCTS);
   console.log(
-    `This will write ${mockProducts.length} documents to the '${Collections.PRODUCTS}' collection in Firestore.`,
+    `This will write ${mockProducts.length} documents to the '${Collections.PRODUCTS}' collection.`,
   );
 
   const batch = adminDb.batch();
