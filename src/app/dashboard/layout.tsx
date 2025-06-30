@@ -27,7 +27,11 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <DashboardSidebar userRole={user.roles[0]} user={user} />
+      <DashboardSidebar
+        key={user.roles[0]}
+        userRole={user.roles[0]}
+        user={user}
+      />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-6">
           <SidebarTrigger />
