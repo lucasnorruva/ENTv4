@@ -54,6 +54,7 @@ import { apiSettings as mockApiSettings } from './api-settings-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
 import { getCurrentUser, getUserById } from './auth';
+import { UserRoles } from './constants';
 
 // --- PRODUCT ACTIONS ---
 
@@ -66,12 +67,17 @@ export async function getProducts(userId?: string): Promise<Product[]> {
   if (!userId) {
     return allProducts;
   }
-  
+
   const user = await getUserById(userId);
-  if (user?.roles.includes('Admin')) {
+  if (!user) {
+    // Return no products if user not found, or handle as an error
+    return [];
+  }
+
+  if (user?.roles.includes(UserRoles.ADMIN)) {
     return allProducts;
   }
-  
+
   return allProducts.filter(p => p.companyId === user?.companyId);
 }
 
@@ -87,11 +93,11 @@ export async function getProductById(
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
   }
-  const user = await getUserById(userId); 
-  if(!user) return undefined;
-  
+  const user = await getUserById(userId);
+  if (!user) return undefined;
+
   // Admins can see everything. Others can see their own company's products.
-  if (user.roles.includes('Admin') || user.companyId === product.companyId) {
+  if (user.roles.includes(UserRoles.ADMIN) || user.companyId === product.companyId) {
     return product;
   }
   // Fallback for other roles to only see published products (e.g., an Auditor from another company)
@@ -106,6 +112,9 @@ export async function saveProduct(
   const validatedData = productFormSchema.parse(values);
   const now = new Date().toISOString();
   let product: Product;
+
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
 
   if (productId) {
     const index = mockProducts.findIndex(p => p.id === productId);
@@ -130,12 +139,11 @@ export async function saveProduct(
       userId,
     );
   } else {
-    const user = await getUserById(userId);
     product = {
       id: `pp-${Date.now().toString().slice(-6)}`,
-      companyId: user!.companyId,
+      companyId: user.companyId,
       ...validatedData,
-      supplier: 'GreenTech Supplies',
+      supplier: 'GreenTech Supplies', // This could be derived from the user's company
       productImage:
         validatedData.productImage || 'https://placehold.co/400x400.png',
       createdAt: now,
@@ -558,7 +566,9 @@ export async function createApiKey(
   userId: string,
 ): Promise<{ key: ApiKey; rawToken: string }> {
   const now = new Date().toISOString();
-  const rawToken = `nor_prod_${[...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+  const rawToken = `nor_prod_${[...Array(32)]
+    .map(() => Math.floor(Math.random() * 16).toString(16))
+    .join('')}`;
   const key: ApiKey = {
     id: `key-${Date.now().toString().slice(-6)}`,
     label,
@@ -591,7 +601,9 @@ export async function deleteApiKey(
   keyId: string,
   userId: string,
 ): Promise<void> {
-  const index = mockApiKeys.findIndex(k => k.id === keyId && k.userId === userId);
+  const index = mockApiKeys.findIndex(
+    k => k.id === keyId && k.userId === userId,
+  );
   if (index > -1) {
     mockApiKeys.splice(index, 1);
     await logAuditEvent('api_key.deleted', keyId, {}, userId);
@@ -631,49 +643,59 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
     user.readNotificationIds = [];
   }
   const allLogIds = mockAuditLogs.map(log => log.id);
-  user.readNotificationIds = [...new Set([...user.readNotificationIds, ...allLogIds])];
+  user.readNotificationIds = [
+    ...new Set([...user.readNotificationIds, ...allLogIds]),
+  ];
   revalidatePath('/dashboard', 'layout');
 }
 
-export async function createUserAndCompany(name: string, email: string, userId: string) {
-    const company: Company = {
-        id: `comp-${userId.slice(0,6)}`,
-        name: `${name}'s Company`,
-        ownerId: userId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    };
-    mockCompanies.push(company);
+export async function createUserAndCompany(
+  name: string,
+  email: string,
+  userId: string,
+) {
+  const company: Company = {
+    id: `comp-${userId.slice(0, 6)}`,
+    name: `${name}'s Company`,
+    ownerId: userId,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockCompanies.push(company);
 
-    const user: User = {
-        id: userId,
-        fullName: name,
-        email: email,
-        companyId: company.id,
-        roles: [UserRoles.SUPPLIER],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-    }
-    mockUsers.push(user);
+  const user: User = {
+    id: userId,
+    fullName: name,
+    email: email,
+    companyId: company.id,
+    roles: [UserRoles.SUPPLIER],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockUsers.push(user);
 }
 
 export async function updateUserProfile(userId: string, fullName: string) {
-    const user = mockUsers.find(u => u.id === userId);
-    if (!user) throw new Error("User not found");
-    user.fullName = fullName;
-    user.updatedAt = new Date().toISOString();
-    revalidatePath('/dashboard', 'layout');
+  const user = mockUsers.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.fullName = fullName;
+  user.updatedAt = new Date().toISOString();
+  revalidatePath('/dashboard', 'layout');
 }
 
-export async function updateUserPassword(userId: string, current: string, newPass: string) {
-    // This is a mock. In a real app, you'd use Firebase Auth admin SDK to verify
-    // the current password and update it.
-    console.log(`Updating password for ${userId}. Mock action successful.`);
-    if(current !== 'password123') throw new Error("Incorrect current password.");
-    await new Promise(res => setTimeout(res, 500));
+export async function updateUserPassword(
+  userId: string,
+  current: string,
+  newPass: string,
+) {
+  // This is a mock. In a real app, you'd use Firebase Auth admin SDK to verify
+  // the current password and update it.
+  console.log(`Updating password for ${userId}. Mock action successful.`);
+  if (current !== 'password123') throw new Error('Incorrect current password.');
+  await new Promise(res => setTimeout(res, 500));
 }
 
 export async function saveNotificationPreferences(userId: string, prefs: any) {
-    console.log(`Saving notification preferences for ${userId}`, prefs);
-    await new Promise(res => setTimeout(res, 500));
+  console.log(`Saving notification preferences for ${userId}`, prefs);
+  await new Promise(res => setTimeout(res, 500));
 }

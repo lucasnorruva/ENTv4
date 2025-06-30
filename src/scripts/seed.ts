@@ -4,55 +4,88 @@ dotenv.config(); // Explicitly load .env file at the top
 
 import admin, { adminDb } from '../lib/firebase-admin';
 import { products as mockProducts } from '../lib/data';
+import { users as mockUsers } from '../lib/user-data';
+import { companies as mockCompanies } from '../lib/company-data';
+import { compliancePaths as mockCompliancePaths } from '../lib/compliance-data';
+import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
+import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
+import { apiKeys as mockApiKeys } from '../lib/api-key-data';
+import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
+import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
 import { Collections } from '../lib/constants';
 
-async function seedDatabase() {
-  console.log('Starting to seed database...');
-  const collectionRef = adminDb.collection(Collections.PRODUCTS);
-  console.log(
-    `This will write ${mockProducts.length} documents to the '${Collections.PRODUCTS}' collection.`,
-  );
-
+async function seedCollection(
+  collectionName: string,
+  data: any[],
+  idField = 'id',
+) {
+  console.log(`Seeding '${collectionName}' collection...`);
+  const collectionRef = adminDb.collection(collectionName);
   const batch = adminDb.batch();
 
-  for (const product of mockProducts) {
-    const { id, ...productData } = product;
+  for (const item of data) {
+    const { [idField]: id, ...itemData } = item;
     const docRef = collectionRef.doc(id);
 
-    // Convert date strings to Firestore Timestamps for proper querying
-    const dataToSeed = {
-      ...productData,
-      lastUpdated: admin.firestore.Timestamp.fromDate(
-        new Date(productData.lastUpdated),
-      ),
-      createdAt: productData.createdAt
-        ? admin.firestore.Timestamp.fromDate(new Date(productData.createdAt))
-        : admin.firestore.Timestamp.now(),
-      updatedAt: productData.updatedAt
-        ? admin.firestore.Timestamp.fromDate(new Date(productData.updatedAt))
-        : admin.firestore.Timestamp.now(),
-      ...(productData.lastVerificationDate && {
-        lastVerificationDate: admin.firestore.Timestamp.fromDate(
-          new Date(productData.lastVerificationDate),
-        ),
-      }),
-    };
+    // Convert date strings to Firestore Timestamps if they exist
+    const dataToSeed: { [key: string]: any } = {};
+    for (const key in itemData) {
+      const value = itemData[key];
+      if (typeof value === 'string' && !isNaN(Date.parse(value))) {
+        // A simple check to see if the string is a valid date
+        const date = new Date(value);
+        if (date.toISOString() === value) {
+          dataToSeed[key] = admin.firestore.Timestamp.fromDate(date);
+          continue;
+        }
+      }
+      dataToSeed[key] = value;
+    }
+    // Ensure core timestamps exist
+    dataToSeed.createdAt = dataToSeed.createdAt || admin.firestore.Timestamp.now();
+    dataToSeed.updatedAt = dataToSeed.updatedAt || admin.firestore.Timestamp.now();
+
 
     batch.set(docRef, dataToSeed);
   }
 
   try {
     await batch.commit();
-    console.log(`✅ Successfully seeded ${mockProducts.length} products.`);
+    console.log(`✅ Successfully seeded ${data.length} documents in '${collectionName}'.`);
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error(`❌ Error seeding '${collectionName}':`, error);
     throw error;
   }
 }
 
+async function seedDatabase() {
+  console.log('Starting comprehensive database seeding...');
+  
+  // The order can be important if there are dependencies
+  await seedCollection(Collections.COMPANIES, mockCompanies);
+  await seedCollection(Collections.USERS, mockUsers);
+  await seedCollection(Collections.PRODUCTS, mockProducts);
+  await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
+  await seedCollection('serviceTickets', mockServiceTickets);
+  await seedCollection('productionLines', mockProductionLines);
+  await seedCollection(Collections.API_KEYS, mockApiKeys);
+  await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
+
+  // Seeding a single document for settings
+  console.log('Seeding API settings...');
+  try {
+      await adminDb.collection('settings').doc('api').set(mockApiSettings);
+      console.log('✅ Successfully seeded API settings.');
+  } catch(error) {
+      console.error('❌ Error seeding API settings:', error);
+  }
+
+
+  console.log('Database seeding completed successfully.');
+}
+
 seedDatabase()
   .then(() => {
-    console.log('Database seeding completed successfully.');
     process.exit(0);
   })
   .catch(error => {

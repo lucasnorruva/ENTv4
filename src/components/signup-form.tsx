@@ -51,27 +51,30 @@ export default function SignupForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    createUserWithEmailAndPassword(auth, values.email, values.password)
-      .then(async (userCredential) => {
-        const user = userCredential.user;
-        // After signup, create the user profile and company in our mock DB
-        await createUserAndCompany(values.fullName, user.email!, user.uid);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password,
+      );
+      const user = userCredential.user;
 
-        // Redirect to the default new user dashboard.
-        router.push("/dashboard");
-      })
-      .catch((error) => {
-        toast({
-          title: "Signup Failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      })
-      .finally(() => {
-        setIsLoading(false);
+      // After signup, create the user profile and company in our mock DB
+      await createUserAndCompany(values.fullName, user.email!, user.uid);
+
+      // Redirect to the default new user dashboard.
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Signup Failed",
+        description: error.message,
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
