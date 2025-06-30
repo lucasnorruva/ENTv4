@@ -11,6 +11,7 @@ import {
 } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
+import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -43,40 +44,45 @@ export async function saveProduct(
     | 'complianceSummary'
     | 'complianceGaps'
     | 'endOfLifeStatus'
+    | 'qrLabelText'
   > & { id?: string },
   userId: string
 ): Promise<Product> {
   const now = new Date();
   const nowISO = now.toISOString();
 
-  // AI enrichment for sustainability score
-  let esgResult;
-  try {
-    esgResult = await calculateSustainability({
+  // AI enrichments running in parallel
+  const [esgResult, complianceResult, qrLabelResult] = await Promise.all([
+    calculateSustainability({
       productName: data.productName,
       productDescription: data.productDescription,
       category: data.category,
       currentInformation: data.currentInformation,
-    });
-  } catch (e) {
-    console.error('AI sustainability calculation failed:', e);
-  }
-
-  // AI compliance check for immediate feedback
-  let complianceResult;
-  const compliancePath = compliancePaths.find(p => p.category === data.category);
-  if (compliancePath) {
-    try {
-      complianceResult = await summarizeComplianceGaps({
-        productName: data.productName,
-        productInformation: data.currentInformation,
-        compliancePathName: compliancePath.name,
-        complianceRules: JSON.stringify(compliancePath.rules),
-      });
-    } catch (e) {
+    }).catch(e => {
+      console.error('AI sustainability calculation failed:', e);
+      return undefined;
+    }),
+    summarizeComplianceGaps({
+      productName: data.productName,
+      productInformation: data.currentInformation,
+      compliancePathName:
+        compliancePaths.find(p => p.category === data.category)?.name || '',
+      complianceRules: JSON.stringify(
+        compliancePaths.find(p => p.category === data.category)?.rules || {}
+      ),
+    }).catch(e => {
       console.error('AI compliance check failed:', e);
-    }
-  }
+      return undefined;
+    }),
+    generateQRLabelText({
+      productName: data.productName,
+      supplier: data.supplier,
+      currentInformation: data.currentInformation,
+    }).catch(e => {
+      console.error('AI QR label text generation failed:', e);
+      return undefined;
+    }),
+  ]);
 
   if (data.id) {
     // Update existing product
@@ -88,11 +94,11 @@ export async function saveProduct(
     const updatedProduct: Product = {
       ...existingProduct,
       ...data,
-      esg: esgResult || existingProduct.esg, // Keep old ESG if new one fails
+      esg: esgResult || existingProduct.esg,
       complianceSummary:
         complianceResult?.complianceSummary || existingProduct.complianceSummary,
       complianceGaps: complianceResult?.gaps || existingProduct.complianceGaps,
-      // Note: Blockchain proof is NOT updated here. It's updated upon verification.
+      qrLabelText: qrLabelResult?.qrLabelText || existingProduct.qrLabelText,
       blockchainProof: existingProduct.blockchainProof,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split('T')[0],
@@ -118,6 +124,7 @@ export async function saveProduct(
       esg: esgResult,
       complianceSummary: complianceResult?.complianceSummary,
       complianceGaps: complianceResult?.gaps,
+      qrLabelText: qrLabelResult?.qrLabelText,
       id: `pp-mock-${Date.now()}`,
       createdAt: nowISO,
       updatedAt: nowISO,

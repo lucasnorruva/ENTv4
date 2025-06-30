@@ -42,6 +42,7 @@ export interface Product extends BaseEntity {
   currentInformation: string; // A stringified JSON object with passport data
   status: "Published" | "Draft" | "Archived";
   lastUpdated: string; // ISO 8601 date string for display purposes
+  qrLabelText?: string; // AI-generated consumer-friendly summary
   esg?: {
     score: number;
     environmental: number;

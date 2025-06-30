@@ -12,6 +12,8 @@ export let products: Product[] = [
     category: "Electronics",
     supplier: "GreenTech Supplies",
     complianceLevel: "High",
+    qrLabelText:
+      "Crafted with recycled aluminum and an organic cotton strap, this smart watch combines style with sustainability.",
     esg: {
       score: 92,
       environmental: 9.5,
@@ -61,6 +63,8 @@ export let products: Product[] = [
     category: "Electronics",
     supplier: "AeroDynamics Inc.",
     complianceLevel: "Medium",
+    qrLabelText:
+      "Engineered for performance, this 4K drone offers professional-grade features for creators and enthusiasts.",
     esg: {
       score: 65,
       environmental: 6.0,
@@ -106,6 +110,8 @@ export let products: Product[] = [
     category: "Fashion",
     supplier: "Sustainable Threads Co.",
     complianceLevel: "High",
+    qrLabelText:
+      "Experience pure comfort with our classic t-shirt, ethically crafted from 100% GOTS-certified organic cotton.",
     currentInformation: JSON.stringify(
       {
         material: "100% Organic Cotton",
@@ -132,6 +138,8 @@ export let products: Product[] = [
     category: "Fashion",
     supplier: "ReNew Gear",
     complianceLevel: "Medium",
+    qrLabelText:
+      "Carry your essentials in a backpack that makes a difference, constructed from 100% recycled PET bottles.",
     esg: {
       score: 85,
       environmental: 9.0,
@@ -188,6 +196,8 @@ export let products: Product[] = [
     category: "Home Goods",
     supplier: "EcoHome Furnishings",
     complianceLevel: "High",
+    qrLabelText:
+      "Organize your space with this stylish and durable shelving unit, built from 100% sustainably sourced bamboo.",
     esg: {
       score: 88,
       environmental: 9.2,

@@ -30,6 +30,7 @@ import {
   Scale,
   AlertTriangle,
   Fingerprint,
+  Quote,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -82,6 +83,12 @@ export default function PublicPassportView({ product }: { product: Product }) {
           <CardDescription className="mt-2 text-base">
             {product.productDescription}
           </CardDescription>
+          {product.qrLabelText && (
+            <blockquote className="mt-4 border-l-2 pl-4 italic text-muted-foreground flex gap-2">
+              <Quote className="h-4 w-4 shrink-0" />
+              <span>{product.qrLabelText}</span>
+            </blockquote>
+          )}
           <p className="text-sm text-muted-foreground mt-4">
             Supplied by: <strong>{product.supplier}</strong>
           </p>
