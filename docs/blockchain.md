@@ -1,3 +1,31 @@
+# Digital Product Passport – Advanced Architecture and Strategy
+
+## Advanced Cryptographic Infrastructure
+To ensure both compliance and privacy, the DPP should use cutting-edge cryptography. Zero-knowledge proofs (ZKPs) can prove statements (e.g. "material X ≥ Y% recycled") without revealing sensitive data [circularise.com](https://circularise.com). For instance, zk-SNARK or zk-STARK circuits can encode certified attributes (origin, composition) so verifiers learn only “true/false,” not the underlying details [circularise.com](https://circularise.com). Popular libraries (e.g. Circom, ZoKrates for SNARKs; StarkWare tools for STARKs) or frameworks (like Aztec or Zcash primitives) can be leveraged for on-chain proofs.
+
+### Zero-Knowledge Compliance
+Implement ZK-SNARK/STARK protocols so a manufacturer can attest to regulatory facts (e.g. “substance levels below legal limits”) without exposing full supplier lists. ZKP schemes differ in trust assumptions: SNARKs (e.g. Groth16) need a setup, STARKs (e.g. from StarkWare) do not [circularise.com](https://circularise.com). The choice depends on performance and auditability.
+
+### Scalable Revocation
+Use cryptographic accumulators or the W3C Status List v2021 to revoke credentials at scale. An accumulator (as in Hyperledger Indy) assigns each issued VC a secret factor; revoking removes its factor from the public accumulator, and holders can prove non-revocation [hyperledger-indy.readthedocs.io](https://hyperledger-indy.readthedocs.io). Alternatively, follow W3C’s Status List 2021 approach: publish one compressed bitstring per issuer where each bit index corresponds to a VC. A bit=1 marks revocation, 0 = valid. This bundles millions of statuses in one list, preserving privacy while enabling fast checks [w3.org](https://w3.org).
+
+### Selective Disclosure (VC Privacy)
+Support BBS+ signature suites with JSON-LD to let holders reveal only needed attributes. The W3C’s Data Integrity BBS Cryptosuite uses BBS+ to create unlinkable derived proofs [w3.org](https://w3.org). In practice, issuers sign a full JSON-LD credential with BBS+ (on curve BLS12-381 [decentralized-id.com](https://decentralized-id.com)) and holders can selectively reveal fields (e.g. only “meets certification” without supplier ID). This JSON-LD + BBS+ pipeline meets privacy mandates: data minimization and holder-control of disclosure.
+
+## Regulatory Interoperability and Global Standards Mapping
+The DPP must align with international traceability and circular-economy standards. For supply chain events, GS1 EPCIS 2.0 is a natural fit: it tracks production, shipping, and logistics events. For example, a proof-of-concept DPP uses “EPCIS 2.0 for batch and transport event logs” [cryptokastaar.com](https://cryptokastaar.com). Likewise, ISO 22005 (feed/food chain traceability) provides a proven framework for recording each link in a product’s lineage [cryptokastaar.com](https://cryptokastaar.com). It is advisable to encode product IDs via GS1 Digital Link URIs (with GTINs) and embed them in QR/NFC carriers to meet ESPR requirements [cryptokastaar.com](https://cryptokastaar.com).
+
+### Global Traceability Standards
+Adopt EPCIS 2.0 and GS1 Digital Link to interoperate with existing supply-chain systems [cryptokastaar.com](https://cryptokastaar.com). Ensure data formats follow ISO/IEC 19944 (cloud data flows) or ISO 22005 (chain-of-custody) principles to facilitate integration. For instance, a DPP might use ISO 22005-derived schemas for product batch records, and link them into a distributed ledger. An example DPP pilot explicitly notes it “follows ISO 22005 (food chain traceability)” and uses GS1 standards to encode and share data [cryptokastaar.com](https://cryptokastaar.com).
+
+### US Regulatory Mapping
+Map DPP data fields to US chemical and safety regimes. Key attributes like substance composition or hazard info should correspond to TSCA (EPA’s Toxic Substances Control Act) inventory fields and California Prop 65 warning lists [3eco.com](https://3eco.com). For example, the DPP schema should flag any chemicals listed under TSCA or Prop 65, so US customers can automatically see compliance status. Aligning to these schemas enables U.S. OEMs and consumers to use the DPP for regulatory reporting [3eco.com](https://3eco.com).
+
+### Harmonization with UNECE/OECD
+Leverage global data models and circular-economy metrics. UNECE’s UN/CEFACT team has published JSON-LD vocabularies for DPP (traceability, circularity) to ensure cross-border semantic compatibility [jargon-sh.medium.com](https://jargon-sh.medium.com). The DPP should reuse or align with these open vocabularies to facilitate interoperability. Similarly, OECD and EU reports emphasize that DPPs must capture material composition and life-cycle data for sustainability indicators [oecd.org](https://oecd.org). Thus, use common ontologies (e.g. UN sustainability goals, OECD indicators) for reporting environmental impact, so the DPP serves both EU ESPR and global circular-economy datasets [oecd.org](https://jargon-sh.medium.com).
+
+---
+
 # Smart Contract Deployment and Blockchain Anchoring
 
 We anchor product integrity on the blockchain by storing cryptographic hashes of the product data. This provides a tamper-proof, time-stamped record of the product's state at any given point.
@@ -35,70 +63,6 @@ This approach provides a solid foundation for data integrity verification.
 ## Advanced Concepts & EU Alignment
 
 For deeper integration and alignment with EU frameworks like EBSI, we employ more advanced strategies including Verifiable Credentials (VCs), Decentralized Identifiers (DIDs), and NFTs.
-
-### Cross-chain Validation and Modular Contracts
-The DPP smart contracts should be blockchain-agnostic, enabling deployment on both EVM chains (Ethereum, Polygon, EBSI’s Ethereum-based network, etc.) and non-EVM ledgers (e.g. Hyperledger Fabric, Tezos, etc.). A modular architecture is recommended: separate the credential logic (issuance, revocation, verification) from chain-specific implementations. For example, a core library of credential verification (in Solidity or WebAssembly) could be reused, while adapters handle the transaction finality and identity method of each chain. The goal is that a Verifiable Credential issued on one network can be trusted on another, through either cross-chain proofs or common DID resolution. One strategy is to use decentralized identity as an abstraction layer: e.g., a product’s DID Document could contain multiple service endpoints or blockchain proofs (one per chain), and verifiers simply check whichever chain they have access to. For cross-chain verification, the platform might leverage interoperability protocols or bridges – for instance, using a notary smart contract on Chain B that accepts a cryptographic proof (perhaps a Merkle proof or simplified payment verification) of an anchor that originally lives on Chain A. Another approach is to anchor the same Merkle root on multiple chains for redundancy, so a credential can be verified against any of them. The EBSI network, for example, is EVM-compatible (built on Hyperledger Besu) [hub.ebsi.eu](https://hub.ebsi.eu), meaning Solidity contracts on EBSI can interoperate with Ethereum tooling, but the platform might also need to support non-EVM national blockchains or consortium ledgers. By designing an extendable anchor registry interface, the DPP can plug in new blockchain connectors as needed (e.g. one module for EVM chains, one for a Substrate-based chain, etc.), ensuring the core credential format remains consistent. This modular, cross-chain approach not only avoids vendor lock-in but also increases resilience – if one ledger is down or too expensive, critical passport validations can occur on an alternative network. The smart contracts thus act as one component in a broader distributed trust architecture, rather than a monolithic on-chain system.
-
-### Solidity contract examples for VCs
-A more advanced pattern uses issuer/verifier contracts for W3C Verifiable Credentials.
-
-**Issuer Contract:**
-```solidity
-contract VCIssuer {
-    mapping(address => bool) public issuers;
-    mapping(address => mapping(string => string)) public creds;  // holder → (key → value)
-    event Issued(address indexed issuer, address indexed holder, string key, string value);
-
-    constructor() { issuers[msg.sender] = true; }
-    modifier onlyIssuer() { require(issuers[msg.sender]); _; }
-
-    function addIssuer(address newIssuer) external onlyIssuer {
-        issuers[newIssuer] = true;
-    }
-    function issueCred(address holder, string calldata key, string calldata value) external onlyIssuer {
-        creds[holder][key] = value;
-        emit Issued(msg.sender, holder, key, value);
-    }
-}
-```
-
-**Verifier Contract:**
-```solidity
-contract VCVerifier {
-    mapping(address => bool) public verifiers;
-    event Verified(address indexed verifier, address indexed subject, string key, string value);
-
-    constructor() { verifiers[msg.sender] = true; }
-    modifier onlyVerifier() { require(verifiers[msg.sender]); _; }
-
-    function addVerifier(address v) external onlyVerifier {
-        verifiers[v] = true;
-    }
-    function verifyCred(address subject, string calldata key, string calldata expected) external onlyVerifier {
-        // Note: This requires a way to reference the VCIssuerContract instance
-        // string memory actual = VCIssuerContract(issuerAddress).creds(subject, key);
-        // require(keccak256(bytes(actual)) == keccak256(bytes(expected)), "Verification failed");
-        // emit Verified(msg.sender, subject, key, actual);
-    }
-}
-```
-
-### NFT/DID architecture
-Each physical product can be represented by a unique NFT (ERC-721/1155) serving as its “digital twin.” The NFT metadata links to the DPP data, which is structured as a Verifiable Credential. The product’s globally unique identifier is a Decentralized Identifier (e.g., `did:web`, `did:ebsi`), linking the on-chain asset (NFT) to its off-chain data (VC).
-
-### Verifiable Credential workflows
-All DPPs are implemented as W3C Verifiable Credentials. The manufacturer (issuer) creates a JSON-LD credential, signs it with their private key, and makes it resolvable via the product's DID. This aligns with EU Digital Identity Wallet standards and ensures interoperability.
-
-# Compliance Document Structuring
-
-## JSON-LD and Semantic Web compliance
-To maximize interoperability, all product passports are structured in JSON-LD (JSON for Linked Data). This allows every data point (e.g., a chemical ID) to be tied to a global, semantic definition (like a GS1 or UNECE vocabulary), making the data machine-readable and verifiable.
-
-## Regulatory alignment (REACH, RoHS, ESPR, etc.)
-The DPP schema is designed to directly map to the data requirements of major EU regulations. Fields for RoHS hazardous substances, REACH SVHCs, and ESPR-mandated data are all first-class citizens in the JSON-LD structure. This allows for automated compliance checking against regulatory thresholds.
-
-## Credential signing workflow
-Each DPP document is cryptographically signed to prevent tampering. We use JSON-LD Proofs, which are compatible with the EU's trust framework (e.g., eIDAS). In our system, an “EU-verifier” node, conforming to EBSI rules, can sign the final composite DPP as a Verifiable Credential and anchor its hash on the EBSI ledger. This provides a high degree of trust and legal non-repudiation.
 
 # Smart Contract Architecture and Anchoring Models
 
