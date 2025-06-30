@@ -91,7 +91,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
           <Badge variant="secondary" className="mb-2">
             {product.category}
           </Badge>
-          <CardTitle className="text-3xl font-bold">
+          <CardTitle as="h1" className="text-3xl font-bold">
             {product.productName}
           </CardTitle>
           <CardDescription className="mt-2 text-base">
@@ -111,8 +111,10 @@ export default function PublicPassportView({ product }: { product: Product }) {
       <CardContent className="p-6">
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Card className="p-4 flex flex-col justify-center">
-            <h3 className="text-lg font-semibold mb-2">ESG Score</h3>
-            {esg ? (
+            <CardTitle as="h2" className="text-lg mb-2">
+              ESG Score
+            </CardTitle>
+            {esg?.score ? (
               <>
                 <div className="flex items-center gap-4">
                   <span className="text-4xl font-bold text-primary">
@@ -123,16 +125,20 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     <Progress value={esg.score} className="h-2 mt-1" />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {esg.summary}
-                </p>
+                {esg.summary && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {esg.summary}
+                  </p>
+                )}
               </>
             ) : (
               <p className="text-muted-foreground">Score not available.</p>
             )}
           </Card>
           <Card className="p-4 flex flex-col justify-center">
-            <h3 className="text-lg font-semibold mb-2">Verification Status</h3>
+            <CardTitle as="h2" className="text-lg mb-2">
+              Verification Status
+            </CardTitle>
             <div className="flex items-center gap-3">
               {product.verificationStatus === "Verified" ? (
                 <ShieldCheck className="h-10 w-10 text-green-600" />
@@ -199,7 +205,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
                           {mat.name}
                         </p>
                         <div className="flex gap-4 text-muted-foreground text-xs">
-                          {mat.percentage && (
+                          {mat.percentage !== undefined && (
                             <span className="flex items-center gap-1">
                               <Percent className="h-3 w-3" /> {mat.percentage}%
                               of total
@@ -222,7 +228,9 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     ))}
                   </div>
                 ) : (
-                  "No material data provided."
+                  <p className="text-muted-foreground">
+                    No material data provided.
+                  </p>
                 )}
               </InfoRow>
             </AccordionContent>
@@ -247,16 +255,26 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   authorized service providers and recyclers.
                 </p>
               </InfoRow>
-              {product.endOfLifeStatus && product.endOfLifeStatus !== 'Active' && (
-                 <InfoRow icon={Archive} label="End-of-Life Status">
-                   <Badge variant={product.endOfLifeStatus === 'Recycled' ? 'default' : 'secondary'}>
-                     {product.endOfLifeStatus}
-                   </Badge>
-                 </InfoRow>
-              )}
+              {product.endOfLifeStatus &&
+                product.endOfLifeStatus !== "Active" && (
+                  <InfoRow icon={Archive} label="End-of-Life Status">
+                    <Badge
+                      variant={
+                        product.endOfLifeStatus === "Recycled"
+                          ? "default"
+                          : "secondary"
+                      }
+                    >
+                      {product.endOfLifeStatus}
+                    </Badge>
+                  </InfoRow>
+                )}
               {lifecycle ? (
                 <>
-                  <InfoRow icon={Thermometer} label="Estimated Carbon Footprint">
+                  <InfoRow
+                    icon={Thermometer}
+                    label="Estimated Carbon Footprint"
+                  >
                     <div className="text-sm text-muted-foreground">
                       <p className="font-bold text-foreground">
                         {lifecycle.carbonFootprint.value}{" "}
@@ -366,7 +384,9 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     )}
                   </ul>
                 ) : (
-                  "No certifications listed."
+                  <p className="text-muted-foreground">
+                    No certifications listed.
+                  </p>
                 )}
               </InfoRow>
               {product.ebsiVcId && (
