@@ -27,8 +27,9 @@ import {
 } from "lucide-react";
 import ComplianceOverviewChart from "@/components/charts/compliance-overview-chart";
 import ProductsOverTimeChart from "@/components/charts/products-over-time-chart";
+import ComplianceRateChart from "@/components/charts/compliance-rate-chart";
 import { format, subDays, formatDistanceToNow } from "date-fns";
-import type { AuditLog } from "@/types";
+import type { AuditLog, Product } from "@/types";
 
 const actionIcons: Record<string, React.ElementType> = {
   "product.created": FilePlus,
@@ -48,6 +49,25 @@ const getActionLabel = (action: string): string => {
     .split(".")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+// Helper to generate mock compliance rate data
+const generateComplianceRateData = (products: Product[]) => {
+  const data: { date: string; rate: number }[] = [];
+  const sortedProducts = products.sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+
+  let verifiedCount = 0;
+  sortedProducts.forEach((p, index) => {
+    if (p.verificationStatus === "Verified") {
+      verifiedCount++;
+    }
+    const rate = Math.round((verifiedCount / (index + 1)) * 100);
+    data.push({ date: format(new Date(p.createdAt), "yyyy-MM-dd"), rate });
+  });
+
+  return data;
 };
 
 export default async function AnalyticsPage() {
@@ -80,6 +100,8 @@ export default async function AnalyticsPage() {
   const productsOverTimeData = Object.entries(productsByDate)
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  const complianceRateData = generateComplianceRateData(products);
 
   const recentActivity = auditLogs.slice(0, 5);
   const productMap = new Map(products.map((p) => [p.id, p.productName]));
@@ -153,7 +175,7 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
@@ -175,6 +197,17 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ComplianceOverviewChart data={complianceData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Compliance Rate Over Time</CardTitle>
+            <CardDescription>
+              The percentage of total products that are verified.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ComplianceRateChart data={complianceRateData} />
           </CardContent>
         </Card>
       </div>

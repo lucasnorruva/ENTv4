@@ -20,6 +20,7 @@ import {
   FileText,
   LifeBuoy,
   LogOut,
+  FileDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -144,16 +145,16 @@ const navConfig: Record<Role, NavConfig> = {
       label: "Analytics",
       items: [
         {
-          title: "Product Trends",
+          title: "System Analytics",
           icon: BarChart3,
-          href: "/dashboard/trends",
+          href: "/dashboard/analytics",
         },
         {
           title: "Sustainability Metrics",
           icon: Recycle,
           href: "/dashboard/sustainability",
         },
-        { title: "Data Export", icon: Code, href: "/dashboard/export" },
+        { title: "Data Export", icon: FileDown, href: "/dashboard/export" },
       ],
     },
   ],
