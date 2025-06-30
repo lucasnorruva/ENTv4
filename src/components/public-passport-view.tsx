@@ -28,8 +28,11 @@ import {
   Globe,
   FileText,
   Scale,
+  AlertTriangle,
+  Fingerprint,
 } from "lucide-react";
 import { format } from "date-fns";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 function InfoRow({
   icon: Icon,
@@ -214,7 +217,28 @@ export default function PublicPassportView({ product }: { product: Product }) {
             <AccordionTrigger className="text-xl font-semibold">
               Compliance & Certifications
             </AccordionTrigger>
-            <AccordionContent className="pt-2">
+            <AccordionContent className="pt-2 space-y-2">
+              {product.complianceGaps &&
+                product.complianceGaps.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertTitle>Compliance Gaps Identified</AlertTitle>
+                    <AlertDescription>
+                      <ul className="list-disc list-inside text-xs mt-2 space-y-1">
+                        {product.complianceGaps.map((gap, index) => (
+                          <li key={index}>
+                            <strong>{gap.regulation}:</strong> {gap.issue}
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+              <InfoRow icon={Globe} label="Compliance Summary">
+                <p className="text-sm text-muted-foreground">
+                  {product.complianceSummary || "Awaiting review."}
+                </p>
+              </InfoRow>
               <InfoRow icon={FileText} label="Certifications">
                 {passportData.certifications &&
                 passportData.certifications.length > 0 ? (
@@ -245,11 +269,17 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   "No material data provided."
                 )}
               </InfoRow>
-              <InfoRow icon={Globe} label="Compliance Summary">
-                <p className="text-sm text-muted-foreground">
-                  {product.complianceSummary || "Awaiting review."}
-                </p>
-              </InfoRow>
+              {product.ebsiVcId && (
+                <InfoRow
+                  icon={Fingerprint}
+                  label="EBSI Credential ID"
+                  value={
+                    <span className="font-mono text-xs break-all">
+                      {product.ebsiVcId}
+                    </span>
+                  }
+                />
+              )}
             </AccordionContent>
           </AccordionItem>
         </Accordion>
