@@ -180,3 +180,12 @@ sequenceDiagram
     UI-->>U: Displays error message with explanation
 ```
 *Figure: Sequence of Gemini AI providing an error explanation. The UI receives an error code from the backend and queries the AI module for a human-readable explanation, which is then shown to the user.*
+### Admin Overrides and Rollbacks
+In scenarios where strict validations or automated flows impede urgent business needs, administrators have tools to override or rollback changes:
+- Override Workflows: An admin user can manually override certain validation failures. For example, if a regulatory field is missing but the product must be shipped, an admin might mark the passport as “provisionally valid” with a justification. The system logs who overrode what and why (for audit trail).
+- Version History: Every DPP record can maintain a history of changes (versions). If a new update renders a passport invalid or if incorrect data was uploaded, an admin can rollback to a prior version. The UI provides a version list with timestamps and the user who made changes, akin to document version control.
+- Approval Gates: For sensitive actions like deletion or forced expiry of a passport, the platform can require dual approval (two different admin users confirming) to avoid accidental or malicious overrides.
+- Maintenance Mode: In cases of widespread issues (say a faulty integration corrupts many records), the platform can be put into a “maintenance mode” for a tenant, where normal users see a friendly maintenance message while admins work to repair data or rollback en masse.
+- Audit and Accountability: All overrides and rollbacks trigger notifications to key personnel (e.g., the compliance officer of that tenant). This way, manual interventions are transparent. The platform might also require entering a reason for override so that later audits can review why it was done.
+- Gemini’s Role: The AI is also useful here – it can assist admins by highlighting what changed between versions (“This field X changed from 5.0 to 0, which is outside expected range”) to help decide if a rollback is needed. It can even recommend which version seems “most correct” if anomalies are detected.
+By combining careful UX design for errors and empowering admins with override capabilities, the platform ensures that even when things go wrong, users are informed and the situation can be corrected with minimal disruption.
