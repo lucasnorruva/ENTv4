@@ -10,6 +10,8 @@ export let productionLines: ProductionLine[] = [
     outputPerHour: 50,
     currentProduct: "Eco-Friendly Smart Watch Series 5",
     lastMaintenance: "2024-07-15T08:00:00Z",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "line-02",
@@ -19,6 +21,8 @@ export let productionLines: ProductionLine[] = [
     outputPerHour: 20,
     currentProduct: "Pro-Grade 4K Drone",
     lastMaintenance: "2024-06-20T10:00:00Z",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "line-03",
@@ -28,6 +32,8 @@ export let productionLines: ProductionLine[] = [
     outputPerHour: 30,
     currentProduct: "Modular Shelving Unit",
     lastMaintenance: "2024-07-01T14:00:00Z",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
   {
     id: "line-04",
@@ -37,5 +43,7 @@ export let productionLines: ProductionLine[] = [
     outputPerHour: 150,
     currentProduct: "Organic Cotton T-Shirt",
     lastMaintenance: "2024-07-22T09:00:00Z",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   },
 ];
