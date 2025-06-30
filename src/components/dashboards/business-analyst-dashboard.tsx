@@ -52,23 +52,14 @@ export default function BusinessAnalystDashboard({
 
   return (
     <div className="grid gap-6">
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>Business Analyst Dashboard</CardTitle>
-              <CardDescription>
-                Welcome, {user.fullName}. Analyze compliance trends, product
-                lifecycle status, and generate reports.
-              </CardDescription>
-            </div>
-            <Button variant="outline">
-              <FileDown className="mr-2" />
-              Export Report
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Analyst Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome, {user.fullName}. Analyze compliance trends, product
+          lifecycle status, and generate reports.
+        </p>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
