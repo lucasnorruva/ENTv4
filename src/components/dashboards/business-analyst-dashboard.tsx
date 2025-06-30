@@ -49,7 +49,9 @@ export default async function BusinessAnalystDashboard({ user }: { user: User })
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Analyst Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Business Analyst Dashboard
+        </h1>
         <p className="text-muted-foreground">
           Welcome, {user.fullName}. Analyze compliance trends, product
           lifecycle status, and generate reports.
