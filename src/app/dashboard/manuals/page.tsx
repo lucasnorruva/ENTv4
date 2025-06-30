@@ -1,4 +1,3 @@
-
 // src/app/dashboard/manuals/page.tsx
 import { getProducts } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth";
