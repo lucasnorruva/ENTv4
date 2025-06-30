@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -78,6 +77,19 @@ const defaultJsonInfo = JSON.stringify(
   },
   null,
   2
+);
+
+const FormSectionHeader = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative pt-6">
+    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+      <div className="w-full border-t" />
+    </div>
+    <div className="relative flex justify-start">
+      <span className="bg-background px-3 text-sm font-semibold text-muted-foreground">
+        {children}
+      </span>
+    </div>
+  </div>
 );
 
 export default function ProductForm({
@@ -210,6 +222,8 @@ export default function ProductForm({
               onSubmit={form.handleSubmit(onSubmit)}
               className="space-y-4 p-6"
             >
+              <FormSectionHeader>Basic Information</FormSectionHeader>
+
               <FormField
                 control={form.control}
                 name="productName"
@@ -256,6 +270,8 @@ export default function ProductForm({
                   </FormItem>
                 )}
               />
+
+              <FormSectionHeader>Classification &amp; Status</FormSectionHeader>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField
@@ -357,6 +373,8 @@ export default function ProductForm({
                 />
               </div>
 
+              <FormSectionHeader>Technical Details</FormSectionHeader>
+
               <FormField
                 control={form.control}
                 name="ebsiVcId"
@@ -372,6 +390,8 @@ export default function ProductForm({
                   </FormItem>
                 )}
               />
+
+              <FormSectionHeader>Passport Data &amp; AI Tools</FormSectionHeader>
 
               <FormField
                 control={form.control}
@@ -435,7 +455,7 @@ export default function ProductForm({
                   </ul>
                 </div>
               )}
-              <div className="flex justify-end gap-2 pt-4 border-t">
+              <div className="flex justify-end gap-2 pt-4 mt-6 border-t">
                 <SheetClose asChild>
                   <Button type="button" variant="outline">
                     Cancel
