@@ -8,7 +8,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getCompliancePaths, getProducts, getAuditLogs } from '@/lib/actions';
+import {
+  getCompliancePaths,
+  getProducts,
+  getAuditLogs,
+  getCompanies,
+} from '@/lib/actions';
 import { getUsers } from '@/lib/auth';
 import { Button } from '../ui/button';
 import {
@@ -27,8 +32,12 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Building2,
+  Hourglass,
+  Cog,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import ComplianceOverviewChart from '../charts/compliance-overview-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -51,28 +60,38 @@ const getActionLabel = (action: string): string => {
 };
 
 export default async function AdminDashboard({ user }: { user: User }) {
-  const [allUsers, allCompliancePaths, allProducts, auditLogs] =
+  const [allUsers, allCompliancePaths, allProducts, auditLogs, allCompanies] =
     await Promise.all([
       getUsers(),
       getCompliancePaths(),
       getProducts(),
       getAuditLogs(),
+      getCompanies(),
     ]);
 
   const stats = {
-    totalUsers: allUsers.length,
+    totalCompanies: allCompanies.length,
     totalCompliancePaths: allCompliancePaths.length,
     totalProducts: allProducts.length,
     verifiedPassports: allProducts.filter(
       p => p.verificationStatus === 'Verified',
     ).length,
+    pendingReviews: allProducts.filter(p => p.verificationStatus === 'Pending')
+      .length,
+    failedVerifications: allProducts.filter(
+      p => p.verificationStatus === 'Failed',
+    ).length,
+  };
+
+  const complianceChartData = {
+    verified: stats.verifiedPassports,
+    pending: stats.pendingReviews,
+    failed: stats.failedVerifications,
   };
 
   const recentActivity = auditLogs.slice(0, 5);
   const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
-  const productMap = new Map(
-    allProducts.map(p => [p.id, p.productName]),
-  );
+  const productMap = new Map(allProducts.map(p => [p.id, p.productName]));
 
   return (
     <div className="space-y-6">
@@ -84,24 +103,22 @@ export default async function AdminDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Total Companies
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all companies
-            </p>
+            <div className="text-2xl font-bold">{stats.totalCompanies}</div>
+            <p className="text-xs text-muted-foreground">Active tenants</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Products
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -119,11 +136,35 @@ export default async function AdminDashboard({ user }: { user: User }) {
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.verifiedPassports}
-            </div>
+            <div className="text-2xl font-bold">{stats.verifiedPassports}</div>
             <p className="text-xs text-muted-foreground">
               Successfully anchored
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingReviews}</div>
+            <p className="text-xs text-muted-foreground">In the audit queue</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Failed Verifications
+            </CardTitle>
+            <ShieldX className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.failedVerifications}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Require compliance action
             </p>
           </CardContent>
         </Card>
@@ -138,15 +179,13 @@ export default async function AdminDashboard({ user }: { user: User }) {
             <div className="text-2xl font-bold">
               {stats.totalCompliancePaths}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Active rule sets
-            </p>
+            <p className="text-xs text-muted-foreground">Active rule sets</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Recent Platform Activity</CardTitle>
             <CardDescription>
@@ -199,34 +238,53 @@ export default async function AdminDashboard({ user }: { user: User }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Jump to key administrative sections.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <Button asChild variant="outline">
-              <Link href="/dashboard/admin/users">
-                Manage Users
-                <ArrowRight className="ml-auto h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/admin/compliance">
-                Manage Compliance Paths
-                <ArrowRight className="ml-auto h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link href="/dashboard/admin/analytics">
-                View Full Analytics
-                <ArrowRight className="ml-auto h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Verification Status</CardTitle>
+              <CardDescription>
+                A breakdown of all products by verification status.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ComplianceOverviewChart data={complianceChartData} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>
+                Jump to key administrative sections.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/users">
+                  Manage Users
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/companies">
+                  Manage Companies
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/compliance">
+                  Manage Compliance
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/api-settings">
+                  Configure API Settings
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
