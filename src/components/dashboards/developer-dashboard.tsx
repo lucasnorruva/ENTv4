@@ -63,7 +63,7 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/docs/api.md" target="_blank">
+              <Link href="/docs/api" target="_blank">
                 View API Docs
               </Link>
             </Button>

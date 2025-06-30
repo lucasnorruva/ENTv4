@@ -7,7 +7,7 @@ export let apiKeys: ApiKey[] = [
   {
     id: "key-001",
     label: "My Production Server",
-    token: "nor_prod_xxxxxxxxxxxxxxxxxxxxxxxxxxxx1234",
+    token: "nor_prod_******************1234",
     status: "Active",
     userId: "user-developer",
     createdAt: new Date(new Date(now).setDate(now.getDate() - 10)).toISOString(),
@@ -17,7 +17,7 @@ export let apiKeys: ApiKey[] = [
   {
     id: "key-002",
     label: "Old Integration (Revoked)",
-    token: "nor_rev_xxxxxxxxxxxxxxxxxxxxxxxxxxxx5678",
+    token: "nor_rev_******************5678",
     status: "Revoked",
     userId: "user-developer",
     createdAt: new Date(new Date(now).setDate(now.getDate() - 90)).toISOString(),

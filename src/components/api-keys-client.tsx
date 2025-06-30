@@ -135,10 +135,6 @@ export default function ApiKeysClient({
     setNewlyCreatedKey(null);
   };
 
-  const getRedactedToken = (token: string) => {
-    return `${token.slice(0, 10)}******************${token.slice(-4)}`;
-  };
-
   return (
     <>
       <div className="flex justify-end mb-4">
@@ -192,7 +188,7 @@ export default function ApiKeysClient({
             <TableRow key={key.id}>
               <TableCell className="font-medium">{key.label}</TableCell>
               <TableCell className="font-mono text-xs">
-                {getRedactedToken(key.token)}
+                {key.token}
               </TableCell>
               <TableCell>
                 <Badge
