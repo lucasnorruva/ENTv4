@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import MaterialUsageChart from "@/components/charts/material-usage-chart";
-import type { Product, Material } from "@/types";
+import type { Product } from "@/types";
 
 interface AggregatedMaterial {
   name: string;
@@ -38,8 +38,10 @@ const aggregateMaterials = (
       const existing = materialMap.get(material.name);
       if (existing) {
         existing.count++;
-        existing.totalRecycledContent += material.recycledContent ?? 0;
-        existing.productCount++;
+        if (material.recycledContent !== undefined) {
+          existing.totalRecycledContent += material.recycledContent;
+          existing.productCount++;
+        }
         if (!existing.inProducts.includes(product.productName)) {
             existing.inProducts.push(product.productName);
         }
@@ -48,7 +50,7 @@ const aggregateMaterials = (
           name: material.name,
           count: 1,
           totalRecycledContent: material.recycledContent ?? 0,
-          productCount: 1,
+          productCount: material.recycledContent !== undefined ? 1 : 0,
           inProducts: [product.productName],
         });
       }

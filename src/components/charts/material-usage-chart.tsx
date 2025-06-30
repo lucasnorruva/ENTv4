@@ -37,6 +37,7 @@ export default function MaterialUsageChart({ data }: { data: ChartData[] }) {
           tickMargin={10}
           axisLine={false}
           className="text-xs"
+          width={100}
         />
         <XAxis dataKey="count" type="number" hide />
         <Tooltip cursor={false} content={<ChartTooltipContent />} />

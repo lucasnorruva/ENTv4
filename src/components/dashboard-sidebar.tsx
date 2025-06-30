@@ -23,6 +23,7 @@ import {
   LogOut,
   FileDown,
   Ticket,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -108,6 +109,11 @@ const navConfig: Record<Role, NavConfig> = {
         { title: "Products", icon: BookCopy, href: "/dashboard/products" },
         { title: "Production Lines", icon: Factory, href: "/dashboard/lines" },
         {
+          title: "Material Composition",
+          icon: Package,
+          href: "/dashboard/composition",
+        },
+        {
           title: "Analytics",
           icon: BarChart3,
           href: "/dashboard/analytics",
@@ -156,6 +162,11 @@ const navConfig: Record<Role, NavConfig> = {
           icon: Recycle,
           href: "/dashboard/sustainability",
         },
+        {
+          title: "Material Composition",
+          icon: Package,
+          href: "/dashboard/composition",
+        },
         { title: "Data Export", icon: FileDown, href: "/dashboard/export" },
       ],
     },
@@ -181,7 +192,7 @@ const navConfig: Record<Role, NavConfig> = {
         { title: "EOL Products", icon: Recycle, href: "/dashboard/eol" },
         {
           title: "Material Composition",
-          icon: FileText,
+          icon: Package,
           href: "/dashboard/composition",
         },
         {
