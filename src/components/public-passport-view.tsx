@@ -34,9 +34,7 @@ import {
   Tag,
   Thermometer,
   Lightbulb,
-  Power,
   Package,
-  Sprout,
   Percent,
   MapPin,
   FileQuestion,
@@ -78,7 +76,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
   );
 
   return (
-    <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0">
+    <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">
       <CardHeader className="bg-muted/50 p-6 flex flex-col md:flex-row gap-6 items-center">
         <Image
           src={product.productImage}

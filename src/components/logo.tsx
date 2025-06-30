@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 interface LogoProps {
   className?: string;
@@ -9,7 +10,7 @@ interface LogoProps {
 // but for SEO on most pages this is fine.
 export default function Logo({ className }: LogoProps) {
   return (
-    <div className="flex items-center gap-2">
+    <Link href="/" className="flex items-center gap-2">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
@@ -25,6 +26,6 @@ export default function Logo({ className }: LogoProps) {
         <path d="M7 17V7"></path>
       </svg>
       <h1 className={cn("text-2xl font-bold", className)}>Norruva</h1>
-    </div>
+    </Link>
   );
 }
