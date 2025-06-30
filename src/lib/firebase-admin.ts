@@ -7,11 +7,12 @@ if (!admin.apps.length) {
     // For local development, it relies on the GOOGLE_APPLICATION_CREDENTIALS
     // environment variable pointing to your service-account.json file.
     admin.initializeApp();
-  } catch (error: any)
-    {
+  } catch (error: any) {
     console.error(
       '❌ Firebase Admin SDK initialization failed. This usually means your service account key is missing or has incorrect permissions.',
     );
+    // Re-throwing the error to stop execution if initialization fails.
+    throw error;
   }
 }
 
