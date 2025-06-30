@@ -1,10 +1,10 @@
+// src/lib/actions.ts
 
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
-import { adminDb } from './firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { products as mockProducts } from './data';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
@@ -25,8 +25,13 @@ import {
   companyFormSchema,
   type CompanyFormValues,
 } from './schemas';
-import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
+import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
+import { classifyProduct } from '@/ai/flows/classify-product';
+import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
+import { validateProductData } from '@/ai/flows/validate-product-data';
+
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -47,9 +52,10 @@ import type {
   ComplianceGap,
   ApiSettings,
   Company,
+  DataQualityWarning,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
-import { UserRoles, Collections } from './constants';
+import { UserRoles } from './constants';
 
 // --- AUDIT LOGGING ---
 export async function logAuditEvent(
@@ -58,7 +64,8 @@ export async function logAuditEvent(
   details: Record<string, any>,
   userId: string = 'system',
 ) {
-  const newLog: Omit<AuditLog, 'id'> = {
+  const newLog: AuditLog = {
+    id: `log-${randomBytes(4).toString('hex')}`,
     userId,
     action,
     entityId,
@@ -66,16 +73,86 @@ export async function logAuditEvent(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  await adminDb.collection(Collections.AUDIT_LOGS).add(newLog);
+  mockAuditLogs.unshift(newLog);
   revalidatePath('/dashboard/admin/analytics');
   revalidatePath('/dashboard/developer/logs');
   revalidatePath('/dashboard/supplier/history');
 }
 
+// --- AI ORCHESTRATION ---
+async function runAiEnhancements(
+  product: Product,
+): Promise<Partial<Product>> {
+  console.log(`Running AI flows for product: ${product.productName}`);
+  const company = await getCompanyById(product.companyId);
+  if (!company) {
+    console.error(
+      `Company with ID ${product.companyId} not found for product ${product.id}`,
+    );
+    return {};
+  }
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const [
+    esgResult,
+    qrLabelResult,
+    classificationResult,
+    lifecycleAnalysisResult,
+    validationResult,
+    compliancePath,
+  ] = await Promise.all([
+    calculateSustainability({ product: aiProductInput }),
+    generateQRLabelText({ product: aiProductInput }),
+    classifyProduct({ product: aiProductInput }),
+    analyzeProductLifecycle({ product: aiProductInput }),
+    validateProductData({ product: aiProductInput }),
+    product.compliancePathId
+      ? getCompliancePathById(product.compliancePathId)
+      : Promise.resolve(null),
+  ]);
+
+  const sustainability: SustainabilityData = {
+    ...esgResult,
+    classification: classificationResult,
+    lifecycleAnalysis: lifecycleAnalysisResult,
+    isCompliant: false, // Default value
+    complianceSummary: 'Awaiting compliance analysis.',
+  };
+
+  if (compliancePath) {
+    const complianceResult = await summarizeComplianceGaps({
+      product: aiProductInput,
+      compliancePath,
+    });
+    sustainability.isCompliant = complianceResult.isCompliant;
+    sustainability.complianceSummary = complianceResult.complianceSummary;
+    sustainability.gaps = complianceResult.gaps;
+  }
+
+  console.log(`AI flows completed for product: ${product.productName}`);
+
+  return {
+    sustainability,
+    qrLabelText: qrLabelResult.qrLabelText,
+    dataQualityWarnings: validationResult.warnings,
+  };
+}
+
 // --- PRODUCT ACTIONS ---
 export async function getProducts(userId?: string): Promise<Product[]> {
   const user = userId ? await getUserById(userId) : null;
-  let productsQuery = adminDb.collection(Collections.PRODUCTS);
+  let products = [...mockProducts];
 
   if (
     user &&
@@ -87,15 +164,12 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     !hasRole(user, UserRoles.SERVICE_PROVIDER) &&
     !hasRole(user, UserRoles.COMPLIANCE_MANAGER)
   ) {
-    productsQuery = productsQuery.where('companyId', '==', user.companyId);
+    products = products.filter(p => p.companyId === user.companyId);
   }
 
-  const snapshot = await productsQuery.orderBy('createdAt', 'desc').get();
-  if (snapshot.empty) {
-    return [];
-  }
-  return snapshot.docs.map(
-    doc => ({ id: doc.id, ...doc.data() }) as Product,
+  return products.sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 }
 
@@ -103,14 +177,11 @@ export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
-  const docSnap = await docRef.get();
+  const product = mockProducts.find(p => p.id === id);
 
-  if (!docSnap.exists) {
+  if (!product) {
     return undefined;
   }
-
-  const product = { id: docSnap.id, ...docSnap.data() } as Product;
 
   // If a userId is provided, we do an ownership check
   if (userId) {
@@ -145,66 +216,74 @@ export async function saveProduct(
   if (!company) throw new Error('Company not found');
 
   const validatedData = productFormSchema.parse(productData);
-
   const now = new Date().toISOString();
 
-  // Create the core data object
-  const dataToSave = {
-    ...validatedData,
-    supplier: company.name,
-    lastUpdated: now,
-    updatedAt: now,
-  };
+  let savedProduct: Product;
+  let eventType = '';
 
   if (productId) {
-    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-    await docRef.update(dataToSave);
-    await logAuditEvent(
-      'product.updated',
-      productId,
-      { fields: Object.keys(validatedData) },
-      userId,
-    );
-    const updatedDoc = await docRef.get();
-    revalidatePath('/dashboard', 'layout');
-    revalidatePath(`/products/${productId}`);
-    return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found');
+    savedProduct = {
+      ...mockProducts[productIndex],
+      ...validatedData,
+      supplier: company.name,
+      lastUpdated: now,
+      updatedAt: now,
+    };
+    mockProducts[productIndex] = savedProduct;
+    eventType = 'product.updated';
   } else {
-    const newProductData: Omit<Product, 'id'> = {
-      ...dataToSave,
+    savedProduct = {
+      id: `pp-${randomBytes(6).toString('hex')}`,
+      ...validatedData,
       companyId: user.companyId,
+      supplier: company.name,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
       createdAt: now,
+      lastUpdated: now,
+      updatedAt: now,
     };
-    const docRef = await adminDb
-      .collection(Collections.PRODUCTS)
-      .add(newProductData);
-    await logAuditEvent(
-      'product.created',
-      docRef.id,
-      { productName: newProductData.productName },
-      userId,
-    );
-    revalidatePath('/dashboard', 'layout');
-    return { id: docRef.id, ...newProductData } as Product;
+    mockProducts.unshift(savedProduct);
+    eventType = 'product.created';
   }
+
+  await logAuditEvent(
+    eventType,
+    savedProduct.id,
+    { fields: Object.keys(validatedData) },
+    userId,
+  );
+
+  // Run AI enhancements and update the in-memory object
+  const aiUpdates = await runAiEnhancements(savedProduct);
+  Object.assign(savedProduct, aiUpdates);
+
+  const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
+  if (productIndex !== -1) {
+    mockProducts[productIndex] = savedProduct;
+  }
+
+  revalidatePath('/dashboard', 'layout');
+  revalidatePath(`/products/${savedProduct.id}`);
+
+  return savedProduct;
 }
 
 export async function deleteProduct(
   id: string,
   userId: string,
 ): Promise<{ success: boolean }> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
-  const docSnap = await docRef.get();
-  if (docSnap.exists) {
+  const productIndex = mockProducts.findIndex(p => p.id === id);
+  if (productIndex > -1) {
     await logAuditEvent(
       'product.deleted',
       id,
-      { productName: docSnap.data()?.productName },
+      { productName: mockProducts[productIndex].productName },
       userId,
     );
-    await docRef.delete();
+    mockProducts.splice(productIndex, 1);
   }
   revalidatePath('/dashboard', 'layout');
   return { success: true };
@@ -214,11 +293,11 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    verificationStatus: 'Pending',
-    updatedAt: new Date().toISOString(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  mockProducts[productIndex].verificationStatus = 'Pending';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent(
     'passport.submitted',
@@ -228,16 +307,16 @@ export async function submitForReview(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+  return mockProducts[productIndex];
 }
 
 export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found to approve.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found to approve.');
+  const product = mockProducts[productIndex];
 
   const compliancePath = product.compliancePathId
     ? await getCompliancePathById(product.compliancePathId)
@@ -267,14 +346,14 @@ export async function approvePassport(
     generateEbsiCredential(productId),
   ]);
 
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
+  mockProducts[productIndex] = {
+    ...product,
     verificationStatus: 'Verified',
     lastVerificationDate: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     blockchainProof,
     ebsiVcId,
-  });
+  };
 
   await logAuditEvent(
     'passport.approved',
@@ -284,8 +363,7 @@ export async function approvePassport(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+  return mockProducts[productIndex];
 }
 
 export async function rejectPassport(
@@ -294,15 +372,21 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  mockProducts[productIndex] = {
+    ...mockProducts[productIndex],
     verificationStatus: 'Failed',
     lastVerificationDate: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    'sustainability.isCompliant': false,
-    'sustainability.complianceSummary': summary,
-    'sustainability.gaps': gaps,
-  });
+    sustainability: {
+      ...mockProducts[productIndex].sustainability!,
+      isCompliant: false,
+      complianceSummary: summary,
+      gaps: gaps,
+    },
+  };
 
   await logAuditEvent(
     'passport.rejected',
@@ -312,83 +396,58 @@ export async function rejectPassport(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
-}
-
-export async function runSuggestImprovements(
-  data: Pick<ProductFormValues, 'productName' | 'productDescription'>,
-): Promise<any> {
-  const aiProductInput: AiProduct = {
-    ...data,
-    category: '',
-    supplier: 'Mock Company Name',
-    materials: [],
-    manufacturing: { facility: '', country: '' },
-    certifications: [],
-    verificationStatus: 'Not Submitted',
-    complianceSummary: '',
-  };
-  return suggestImprovements({ product: aiProductInput });
+  return mockProducts[productIndex];
 }
 
 export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    'sustainability.score': -1, // A sentinel value to trigger recalc
-  });
-  await logAuditEvent(
-    'product.recalculate_score.requested',
-    productId,
-    {},
-    userId,
-  );
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = mockProducts[productIndex];
+
+  const aiUpdates = await runAiEnhancements(product);
+  Object.assign(product, aiUpdates);
+  mockProducts[productIndex] = product;
+
+  await logAuditEvent('product.recalculate_score.done', productId, {}, userId);
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+  return product;
 }
 
 export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    endOfLifeStatus: 'Recycled',
-    updatedAt: new Date().toISOString(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  mockProducts[productIndex].endOfLifeStatus = 'Recycled';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+  return mockProducts[productIndex];
 }
 
 // --- AUDIT LOG ACTIONS ---
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  // Using mock data for now as this is a read-only, non-critical path
   return mockAuditLogs;
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-  // Using mock data for now
   return mockAuditLogs.filter(log => log.userId === userId);
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  // Using mock data for now
   return mockCompliancePaths;
 }
 
 export async function getCompliancePathById(
   id: string,
 ): Promise<CompliancePath | null> {
-  // Using mock data for now
   return mockCompliancePaths.find(p => p.id === id) || null;
 }
 
@@ -865,11 +924,12 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    verificationStatus: 'Draft',
-    updatedAt: new Date().toISOString(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  mockProducts[productIndex].verificationStatus = 'Draft';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
+
   await logAuditEvent(
     'compliance.resolved',
     productId,
@@ -877,6 +937,5 @@ export async function resolveComplianceIssue(
     userId,
   );
   revalidatePath('/dashboard', 'layout');
-  const updatedDoc = await docRef.get();
-  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
+  return mockProducts[productIndex];
 }

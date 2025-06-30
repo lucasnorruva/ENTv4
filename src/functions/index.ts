@@ -7,4 +7,5 @@
  */
 
 import "./ai-onboarding";
-export * from "../triggers/on-product-change";
+// Removed on-product-change trigger as we are using mock data for now.
+// export * from "../triggers/on-product-change";
