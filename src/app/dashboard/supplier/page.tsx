@@ -1,7 +1,11 @@
-import OverviewDashboard from '@/components/dashboards/overview-dashboard';
+// src/app/dashboard/supplier/page.tsx
+import SupplierDashboard from '@/components/dashboards/supplier-dashboard';
+import { getCurrentUser } from '@/lib/auth';
+import { UserRoles } from '@/lib/constants';
 
-export default function Page() {
-  // This page will be built out into the full Supplier Dashboard.
-  // For now, it shows a placeholder.
-  return <OverviewDashboard />;
+export const dynamic = 'force-dynamic';
+
+export default async function Page() {
+  const user = await getCurrentUser(UserRoles.SUPPLIER);
+  return <SupplierDashboard user={user} />;
 }
