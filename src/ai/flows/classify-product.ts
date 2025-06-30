@@ -1,4 +1,3 @@
-
 "use server";
 
 /**
@@ -48,7 +47,7 @@ const prompt = ai.definePrompt({
   name: "classifyProductPrompt",
   input: { schema: ClassifyProductInputSchema },
   output: { schema: ClassifyProductOutputSchema },
-  prompt: `You are an ESG analyst AI specializing in product lifecycle assessment. Your task is to classify a product and assess its risk based on provided data, with alignment to ISO 14067. Your output must be a JSON object that strictly adheres to the provided schema.
+  prompt: `You are an ESG analyst AI specializing in product lifecycle assessment. Your task is to classify a product and assess its risk based on provided data, with alignment to ISO 14067.
 
 - Analyze the product's name, description, category, and passport data.
 - Determine a relevant 'esgCategory' (e.g., 'Circular Design', 'Resource Depletion', 'Pollution Prevention').

@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import SWRegister from "@/components/sw-register";
 
 export const metadata: Metadata = {
-  title: "Norruva",
+  title: "PassportFlow",
   description: "The Future of Product Transparency",
 };
 

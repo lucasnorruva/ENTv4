@@ -1,4 +1,3 @@
-
 "use server";
 
 /**
@@ -61,7 +60,7 @@ const prompt = ai.definePrompt({
   name: "analyzeProductLifecyclePrompt",
   input: { schema: AnalyzeProductLifecycleInputSchema },
   output: { schema: AnalyzeProductLifecycleOutputSchema },
-  prompt: `You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze product information and generate a lifecycle impact summary. Your output must be a JSON object that strictly adheres to the provided schema.
+  prompt: `You are an expert in Life Cycle Assessment (LCA) for consumer products. Your task is to analyze product information and generate a lifecycle impact summary.
 
 Analyze the product's name, description, and JSON data.
 - Consider factors like materials, weight, manufacturing processes, energy consumption during use, and end-of-life options.

@@ -1,4 +1,3 @@
-
 "use server";
 
 /**
@@ -61,7 +60,7 @@ const prompt = ai.definePrompt({
   name: "calculateEsgScorePrompt",
   input: { schema: CalculateSustainabilityInputSchema },
   output: { schema: EsgScoreOutputSchema },
-  prompt: `You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate an ESG score. Your output must be a JSON object that strictly adheres to the provided schema.
+  prompt: `You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided product information and generate an ESG score.
 
 Analyze the product's name, description, category, and JSON data.
 - Consider factors like materials (recycled, organic), energy efficiency, repairability, end-of-life options, and certifications (e.g., ISO 14001, Fair Trade).

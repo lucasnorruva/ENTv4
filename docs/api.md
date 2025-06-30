@@ -1,6 +1,6 @@
-# Norruva REST API Documentation
+# PassportFlow REST API Documentation
 
-The Norruva API provides programmatic access to create, manage, and verify Digital Product Passports.
+The PassportFlow API provides programmatic access to create, manage, and verify Digital Product Passports.
 
 ## Authentication
 

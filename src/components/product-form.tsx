@@ -4,7 +4,7 @@ import React, { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Sparkles, FileText } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -55,7 +55,6 @@ const productSchema = z.object({
     { message: 'Must be valid JSON' }
   ),
   status: z.enum(['Published', 'Draft', 'Archived']),
-  ebsiVcId: z.string().optional(),
 });
 
 type ProductFormValues = z.infer<typeof productSchema>;
@@ -79,19 +78,6 @@ const defaultJsonInfo = JSON.stringify(
   2
 );
 
-const FormSectionHeader = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative pt-6">
-    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-      <div className="w-full border-t" />
-    </div>
-    <div className="relative flex justify-start">
-      <span className="bg-background px-3 text-sm font-semibold text-muted-foreground">
-        {children}
-      </span>
-    </div>
-  </div>
-);
-
 export default function ProductForm({
   isOpen,
   onOpenChange,
@@ -101,9 +87,6 @@ export default function ProductForm({
 }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiRecommendations, setAiRecommendations] = useState<
-    { type: string; text: string }[]
-  >([]);
   const { toast } = useToast();
 
   const form = useForm<ProductFormValues>({
@@ -117,7 +100,6 @@ export default function ProductForm({
       complianceLevel: 'Medium',
       currentInformation: defaultJsonInfo,
       status: 'Draft',
-      ebsiVcId: '',
     },
   });
 
@@ -132,7 +114,6 @@ export default function ProductForm({
         complianceLevel: product.complianceLevel,
         currentInformation: product.currentInformation,
         status: product.status,
-        ebsiVcId: product.ebsiVcId || '',
       });
     } else {
       form.reset({
@@ -144,10 +125,8 @@ export default function ProductForm({
         complianceLevel: 'Medium',
         currentInformation: defaultJsonInfo,
         status: 'Draft',
-        ebsiVcId: '',
       });
     }
-    setAiRecommendations([]);
   }, [product, isOpen, form]);
 
   const onSubmit = (values: ProductFormValues) => {
@@ -184,14 +163,19 @@ export default function ProductForm({
     }
 
     setIsAiLoading(true);
-    setAiRecommendations([]);
     try {
       const result = await runSuggestImprovements({
         productName,
         productDescription,
         currentInformation,
       });
-      setAiRecommendations(result.recommendations);
+      // For now, let's just log the recommendations.
+      // We can build UI for this later.
+      console.log('AI Recommendations:', result.recommendations);
+      toast({
+        title: 'AI Suggestions Ready',
+        description: 'Check the browser console for recommendations.',
+      });
     } catch (error) {
       toast({
         title: 'AI Suggestion Failed',
@@ -205,7 +189,7 @@ export default function ProductForm({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-2xl w-full flex flex-col p-0">
+      <SheetContent className="sm:max-w-xl w-full flex flex-col p-0">
         <SheetHeader className="p-6 pb-2">
           <SheetTitle>
             {product ? 'Edit Product Passport' : 'Create Product Passport'}
@@ -220,10 +204,8 @@ export default function ProductForm({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 p-6"
+              className="space-y-6 p-6"
             >
-              <FormSectionHeader>Basic Information</FormSectionHeader>
-
               <FormField
                 control={form.control}
                 name="productName"
@@ -270,9 +252,6 @@ export default function ProductForm({
                   </FormItem>
                 )}
               />
-
-              <FormSectionHeader>Classification &amp; Status</FormSectionHeader>
-
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -373,26 +352,6 @@ export default function ProductForm({
                 />
               </div>
 
-              <FormSectionHeader>Technical Details</FormSectionHeader>
-
-              <FormField
-                control={form.control}
-                name="ebsiVcId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      EBSI Verifiable Credential ID (Optional)
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="did:ebsi:..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormSectionHeader>Passport Data &amp; AI Tools</FormSectionHeader>
-
               <FormField
                 control={form.control}
                 name="currentInformation"
@@ -419,43 +378,14 @@ export default function ProductForm({
                       <Textarea
                         placeholder='{ "key": "value" }'
                         {...field}
-                        className="min-h-[150px] font-mono text-sm"
+                        className="min-h-[200px] font-mono text-sm"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {aiRecommendations.length > 0 && (
-                <div className="space-y-3 p-4 border rounded-md bg-muted/50">
-                  <div className="flex justify-between items-center">
-                    <FormLabel className="flex items-center gap-2">
-                      <FileText className="h-4 w-4" />
-                      AI Recommendations
-                    </FormLabel>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setAiRecommendations([])}
-                    >
-                      Dismiss
-                    </Button>
-                  </div>
-                  <ul className="space-y-2 text-sm">
-                    {aiRecommendations.map((rec, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <div className="mt-1 font-semibold text-primary">{`•`}</div>
-                        <div className="flex-1">
-                          <strong className="font-semibold">{rec.type}:</strong>{' '}
-                          {rec.text}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <div className="flex justify-end gap-2 pt-4 mt-6 border-t">
+              <div className="flex justify-end gap-2 pt-4 mt-4 border-t">
                 <SheetClose asChild>
                   <Button type="button" variant="outline">
                     Cancel

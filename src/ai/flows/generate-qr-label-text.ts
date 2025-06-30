@@ -26,7 +26,7 @@ const GenerateQRLabelTextOutputSchema = z.object({
   qrLabelText: z
     .string()
     .describe(
-      "A concise, consumer-facing summary for a Digital Product Passport page, accessed via a GS1 Digital Link QR code. It should highlight key sustainability or material facts.",
+      "A concise, consumer-facing summary for a Digital Product Passport page, accessed via a QR code. It should highlight key sustainability or material facts.",
     ),
 });
 export type GenerateQRLabelTextOutput = z.infer<
@@ -43,7 +43,7 @@ const prompt = ai.definePrompt({
   name: "generateQRLabelTextPrompt",
   input: { schema: GenerateQRLabelTextInputSchema },
   output: { schema: GenerateQRLabelTextOutputSchema },
-  prompt: `You are a marketing and sustainability expert AI. Your task is to generate a concise, consumer-facing summary for a product's public passport page, which is accessed via a GS1 Digital Link QR code. Your output must be a JSON object that strictly adheres to the provided schema.
+  prompt: `You are a marketing and sustainability expert AI. Your task is to generate a concise, consumer-facing summary for a product's public passport page, which is accessed via a QR code.
 
 - The summary must be brief (1-2 sentences), engaging, and easy for a consumer to understand.
 - Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided data.

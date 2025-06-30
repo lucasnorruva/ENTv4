@@ -16,7 +16,7 @@ export const Collections = {
 } as const;
 
 /**
- * Defines the standardized user roles within the Norruva platform.
+ * Defines the standardized user roles within the PassportFlow platform.
  */
 export const UserRoles = {
   ADMIN: "Admin",

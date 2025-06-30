@@ -1,4 +1,3 @@
-
 "use server";
 
 /**
@@ -51,7 +50,7 @@ const suggestImprovementsPrompt = ai.definePrompt({
   name: "suggestImprovementsPrompt",
   input: { schema: SuggestImprovementsInputSchema },
   output: { schema: SuggestImprovementsOutputSchema },
-  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to provide a list of actionable recommendations to improve a product's passport. Your output must be a JSON object that strictly adheres to the provided schema.
+  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to provide a list of actionable recommendations to improve a product's passport.
 
 Analyze the product's name, description, and JSON data.
 Generate a list of 3-5 concrete suggestions.

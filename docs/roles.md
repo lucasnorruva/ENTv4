@@ -1,6 +1,6 @@
 # User Roles and Access Control
 
-Norruva uses a role-based access control (RBAC) system to manage user permissions and workflows.
+PassportFlow uses a role-based access control (RBAC) system to manage user permissions and workflows.
 
 | Role                  | Key Responsibilities                                                              |
 | --------------------- | --------------------------------------------------------------------------------- |

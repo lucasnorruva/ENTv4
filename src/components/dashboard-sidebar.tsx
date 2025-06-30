@@ -55,7 +55,7 @@ function Logo() {
         <path d="M7 17V7"></path>
       </svg>
       <h1 className="text-xl font-bold group-data-[collapsible=icon]:hidden">
-        Norruva
+        PassportFlow
       </h1>
     </div>
   );

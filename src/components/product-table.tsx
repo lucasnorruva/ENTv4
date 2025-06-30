@@ -1,4 +1,3 @@
-
 // src/components/product-table.tsx
 "use client";
 
@@ -9,7 +8,6 @@ import {
   MoreHorizontal,
   FilePenLine,
   Trash2,
-  Link as LinkIcon,
   Send,
   RefreshCw,
 } from "lucide-react";
@@ -112,15 +110,7 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
             </TableCell>
-            <TableCell className="font-medium">
-              <Link
-                href={`/products/${product.id}`}
-                className="hover:underline"
-                target="_blank"
-              >
-                {product.productName}
-              </Link>
-            </TableCell>
+            <TableCell className="font-medium">{product.productName}</TableCell>
             <TableCell>
               {product.esg?.score !== undefined ? (
                 <div
@@ -169,45 +159,24 @@ export default function ProductTable({
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Recalculate Score
                   </DropdownMenuItem>
-                  {product.status === "Draft" &&
-                    product.verificationStatus !== "Pending" && (
-                      <DropdownMenuItem
-                        onClick={() => onSubmitForReview(product.id)}
-                      >
-                        <Send className="mr-2 h-4 w-4" />
-                        Submit for Review
-                      </DropdownMenuItem>
-                    )}
-                  {product.blockchainProof && (
-                    <DropdownMenuItem asChild>
-                      <a
-                        href={product.blockchainProof.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        View on Polygon
-                      </a>
-                    </DropdownMenuItem>
-                  )}
-                  {product.ebsiVcId && (
-                    <DropdownMenuItem asChild>
-                      <a
-                        href="#"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={product.ebsiVcId}
-                      >
-                        <LinkIcon className="mr-2 h-4 w-4" />
-                        View EBSI Credential
-                      </a>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem
+                    onClick={() => onSubmitForReview(product.id)}
+                    disabled={
+                      product.status !== "Draft" ||
+                      product.verificationStatus === "Pending"
+                    }
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit for Review
+                  </DropdownMenuItem>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Trash2 className="mr-2 h-4 w-4 text-destructive" />
-                        <span className="text-destructive">Delete</span>
+                      <DropdownMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
                       </DropdownMenuItem>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
