@@ -1,4 +1,3 @@
-
 // src/components/eol-products-client.tsx
 'use client';
 
