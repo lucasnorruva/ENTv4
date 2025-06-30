@@ -58,10 +58,21 @@ import { getCurrentUser, getUserById } from './auth';
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(userId?: string): Promise<Product[]> {
-  return mockProducts.sort(
+  const allProducts = mockProducts.sort(
     (a, b) =>
       new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
   );
+
+  if (!userId) {
+    return allProducts;
+  }
+  
+  const user = await getUserById(userId);
+  if (user?.roles.includes('Admin')) {
+    return allProducts;
+  }
+  
+  return allProducts.filter(p => p.companyId === user?.companyId);
 }
 
 export async function getProductById(
@@ -76,7 +87,9 @@ export async function getProductById(
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
   }
-  const user = await getCurrentUser(); // Assuming this gets the current authenticated user
+  const user = await getUserById(userId); 
+  if(!user) return undefined;
+  
   // Admins can see everything. Others can see their own company's products.
   if (user.roles.includes('Admin') || user.companyId === product.companyId) {
     return product;
