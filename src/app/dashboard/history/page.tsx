@@ -47,7 +47,7 @@ export default async function HistoryPage() {
   const user = await getCurrentUser('Supplier');
   const [logs, products] = await Promise.all([
     getAuditLogsForUser(user.id),
-    getProducts(),
+    getProducts(user.id),
   ]);
 
   const productMap = new Map(products.map(p => [p.id, p.productName]));
