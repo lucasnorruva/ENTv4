@@ -200,8 +200,24 @@ export async function saveProduct(
     ...validatedData,
     supplier: company.name,
   };
-  
+
+  // Run the general AI flows first, which initializes the sustainability object.
   const { sustainability, qrLabelText } = await runAllAiFlows(aiProductInput);
+
+  // If a compliance path is selected, run the gap analysis flow.
+  if (validatedData.compliancePathId) {
+    const path = await getCompliancePathById(validatedData.compliancePathId);
+    if (path) {
+      const complianceResult = await summarizeComplianceGaps({
+        product: aiProductInput,
+        compliancePath: path,
+      });
+      // Merge the specific compliance results into the sustainability object
+      sustainability.isCompliant = complianceResult.isCompliant;
+      sustainability.complianceSummary = complianceResult.complianceSummary;
+      sustainability.gaps = complianceResult.gaps;
+    }
+  }
 
   if (productId) {
     await checkProductOwnership(productId, userId);
@@ -214,7 +230,7 @@ export async function saveProduct(
       ...existingProduct,
       ...validatedData,
       supplier: company.name,
-      sustainability,
+      sustainability, // This now contains the merged data
       qrLabelText,
       updatedAt: now,
       lastUpdated: now,
@@ -236,7 +252,7 @@ export async function saveProduct(
       ...validatedData,
       companyId: user.companyId,
       supplier: company.name,
-      sustainability,
+      sustainability, // This now contains the merged data
       qrLabelText,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
@@ -368,6 +384,8 @@ export async function rejectPassport(
       environmental: 0,
       social: 0,
       governance: 0,
+      isCompliant: false,
+      complianceSummary: 'Analysis not performed.',
     };
   }
   product.sustainability.isCompliant = false;
@@ -414,15 +432,13 @@ export async function resolveComplianceIssue(
 export async function runSuggestImprovements(
   data: ProductFormValues,
 ): Promise<any> {
-  const company = await getCompanyById(data.supplier); // This is wrong, supplier is not companyId
-  
   // This needs fixing. The form doesn't have the user/company context directly.
   // For now, let's use a mock supplier name.
   const aiProductInput: AiProduct = {
-      ...data,
-      supplier: "Mock Company Name", // Temporary fix
+    ...data,
+    supplier: 'Mock Company Name', // Temporary fix
   };
-  return suggestImprovements({product: aiProductInput});
+  return suggestImprovements({ product: aiProductInput });
 }
 
 export async function recalculateScore(
