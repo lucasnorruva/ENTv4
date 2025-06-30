@@ -5,6 +5,42 @@ const now = new Date();
 
 export const auditLogs: AuditLog[] = [
   {
+    id: "log-api-001",
+    userId: "user-developer",
+    action: "api.get",
+    entityId: "pp-001",
+    details: { method: "GET", endpoint: "/api/products/pp-001", status: 200 },
+    createdAt: new Date(new Date(now).setMinutes(now.getMinutes() - 5)).toISOString(),
+    updatedAt: new Date(new Date(now).setMinutes(now.getMinutes() - 5)).toISOString(),
+  },
+  {
+    id: "log-api-002",
+    userId: "user-developer",
+    action: "api.post",
+    entityId: "pp-new",
+    details: { method: "POST", endpoint: "/api/products", status: 201 },
+    createdAt: new Date(new Date(now).setMinutes(now.getMinutes() - 15)).toISOString(),
+    updatedAt: new Date(new Date(now).setMinutes(now.getMinutes() - 15)).toISOString(),
+  },
+  {
+    id: "log-api-003",
+    userId: "user-developer",
+    action: "api.get",
+    entityId: "all",
+    details: { method: "GET", endpoint: "/api/products", status: 200 },
+    createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+  },
+  {
+    id: "log-api-004",
+    userId: "user-developer",
+    action: "api.get",
+    entityId: "invalid-id",
+    details: { method: "GET", endpoint: "/api/products/invalid-id", status: 404 },
+    createdAt: new Date(new Date(now).setHours(now.getHours() - 2)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 2)).toISOString(),
+  },
+  {
     id: "log-001",
     userId: "user-supplier",
     action: "product.created",
