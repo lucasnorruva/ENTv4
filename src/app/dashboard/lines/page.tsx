@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Cog, Factory, Tag, Wrench } from "lucide-react";
+import { Activity, Factory, Tag, Wrench } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 function Stat({
