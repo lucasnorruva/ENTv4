@@ -1,3 +1,4 @@
+
 // src/lib/auth.ts
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
@@ -19,6 +20,15 @@ export async function getUsers(): Promise<User[]> {
  */
 export async function getUserById(id: string): Promise<User | undefined> {
   return mockUsers.find(user => user.id === id);
+}
+
+/**
+ * Simulates fetching a user by their email address.
+ * @param email The email of the user to fetch.
+ * @returns A promise that resolves to the user or undefined if not found.
+ */
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  return mockUsers.find(user => user.email === email);
 }
 
 /**

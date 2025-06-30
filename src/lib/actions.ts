@@ -1,3 +1,4 @@
+
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -36,7 +37,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { verifyProductAgainstPath } from '@/services/compliance';
-import { getUserById, getCompanyById, hasRole, getMockUsers } from './auth';
+import { getUserById, getCompanyById, hasRole } from './auth';
 
 import type {
   Product,
@@ -553,6 +554,42 @@ export async function saveUser(
     return newUser;
   }
 }
+
+export async function createUserAndCompany(
+  fullName: string,
+  email: string,
+  uid: string,
+): Promise<User> {
+  // 1. Create a new company for the user
+  const newCompany: Company = {
+    id: `comp-${randomBytes(2).toString('hex')}`,
+    name: `${fullName}'s Company`,
+    ownerId: uid,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockCompanies.push(newCompany);
+  await logAuditEvent('company.created', newCompany.id, { name: newCompany.name }, uid);
+
+  // 2. Create the new user profile
+  const newUser: User = {
+    id: uid, // Use the Firebase Auth UID as the user ID
+    fullName,
+    email,
+    companyId: newCompany.id,
+    roles: [UserRoles.SUPPLIER], // Default new users to Supplier
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  mockUsers.push(newUser);
+  await logAuditEvent('user.created', newUser.id, { email: newUser.email }, uid);
+
+  revalidatePath('/dashboard/admin/users');
+  revalidatePath('/dashboard/admin/companies');
+
+  return newUser;
+}
+
 
 export async function deleteUser(
   userId: string,

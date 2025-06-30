@@ -21,6 +21,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { createUserAndCompany } from "@/lib/actions";
 
 const formSchema = z
   .object({
@@ -54,10 +55,13 @@ export default function SignupForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     createUserWithEmailAndPassword(auth, values.email, values.password)
-      .then((userCredential) => {
-        // After signup, we might want to create a user profile in Firestore.
-        // For now, we just redirect to the dashboard.
-        router.push("/dashboard");
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+        // After signup, create the user profile and company in our mock DB
+        await createUserAndCompany(values.fullName, user.email!, user.uid);
+
+        // Redirect to the default new user dashboard.
+        router.push("/dashboard/supplier");
       })
       .catch((error) => {
         toast({

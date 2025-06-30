@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { getUserByEmail } from "@/lib/auth";
+import type { Role } from "@/lib/constants";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -28,6 +30,8 @@ const formSchema = z.object({
     .string()
     .min(6, { message: "Password must be at least 6 characters." }),
 });
+
+const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,10 +49,15 @@ export default function LoginForm() {
   function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     signInWithEmailAndPassword(auth, values.email, values.password)
-      .then((userCredential) => {
-        // In a real app with session management, you'd create a session cookie here.
-        // For now, we'll just redirect.
-        router.push("/dashboard");
+      .then(async (userCredential) => {
+        // After login, fetch the user's profile to get their role
+        const profile = await getUserByEmail(userCredential.user.email!);
+        
+        // Determine the redirect path based on the user's primary role
+        const primaryRole = profile?.roles[0] || 'Supplier'; // Default to supplier
+        const dashboardPath = `/dashboard/${getRoleSlug(primaryRole)}`;
+
+        router.push(dashboardPath);
       })
       .catch((error) => {
         toast({
