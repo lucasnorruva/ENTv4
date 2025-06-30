@@ -22,6 +22,7 @@ import {
   LifeBuoy,
   LogOut,
   FileDown,
+  Ticket,
 } from "lucide-react";
 import {
   Sidebar,
@@ -195,7 +196,7 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Services",
       items: [
-        { title: "Service Tickets", icon: Wrench, href: "/dashboard/tickets" },
+        { title: "Service Tickets", icon: Ticket, href: "/dashboard/tickets" },
         { title: "Product Manuals", icon: BookCopy, href: "/dashboard/manuals" },
         {
           title: "Analytics",
