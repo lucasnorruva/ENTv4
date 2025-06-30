@@ -130,9 +130,8 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProductById(
   id: string,
 ): Promise<Product | undefined> {
-  return JSON.parse(
-    JSON.stringify(mockProducts.find(p => p.id === id)),
-  ) as Product | undefined;
+  const product = mockProducts.find(p => p.id === id);
+  return product ? JSON.parse(JSON.stringify(product)) : undefined;
 }
 
 export async function saveProduct(

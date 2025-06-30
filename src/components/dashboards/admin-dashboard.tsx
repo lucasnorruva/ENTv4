@@ -9,14 +9,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getCompliancePaths } from '@/lib/actions';
-import { getMockUsers } from '@/lib/auth';
+import { getCompliancePaths, getUsers } from '@/lib/actions';
 import { Button } from '../ui/button';
 import { FileQuestion, Users, ArrowRight } from 'lucide-react';
 
 export default async function AdminDashboard({ user }: { user: User }) {
   const [allUsers, allCompliancePaths] = await Promise.all([
-    getMockUsers(),
+    getUsers(),
     getCompliancePaths(),
   ]);
 
