@@ -687,6 +687,86 @@ export async function saveApiSettings(
   return mockApiSettings;
 }
 
+// --- DATA EXPORT ACTIONS ---
+function convertToCsv(data: Product[]): string {
+  if (data.length === 0) {
+    return '';
+  }
+  const headers = [
+    'id',
+    'productName',
+    'category',
+    'supplier',
+    'status',
+    'verificationStatus',
+    'lastUpdated',
+    'esgScore',
+    'envScore',
+    'socScore',
+    'govScore',
+    'complianceSummary',
+    'materials',
+    'manufacturingCountry',
+    'packagingType',
+    'packagingRecyclable',
+  ];
+
+  const escapeCsvField = (field: any) => {
+    if (field === null || field === undefined) {
+      return '';
+    }
+    const stringField = String(field);
+    if (
+      stringField.includes(',') ||
+      stringField.includes('"') ||
+      stringField.includes('\n')
+    ) {
+      return `"${stringField.replace(/"/g, '""')}"`;
+    }
+    return stringField;
+  };
+
+  const rows = data.map(p => {
+    const materials = p.materials.map(m => m.name).join(' | ');
+    const row = [
+      escapeCsvField(p.id),
+      escapeCsvField(p.productName),
+      escapeCsvField(p.category),
+      escapeCsvField(p.supplier),
+      escapeCsvField(p.status),
+      escapeCsvField(p.verificationStatus),
+      escapeCsvField(p.lastUpdated),
+      escapeCsvField(p.sustainability?.score),
+      escapeCsvField(p.sustainability?.environmental),
+      escapeCsvField(p.sustainability?.social),
+      escapeCsvField(p.sustainability?.governance),
+      escapeCsvField(p.sustainability?.complianceSummary),
+      escapeCsvField(materials),
+      escapeCsvField(p.manufacturing.country),
+      escapeCsvField(p.packaging.type),
+      escapeCsvField(p.packaging.recyclable),
+    ];
+    return row.join(',');
+  });
+
+  return [headers.join(','), ...rows].join('\n');
+}
+
+export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
+  // In a real app, user ID would come from session, but for this mock we hardcode it.
+  await logAuditEvent('export.products', 'all', { format }, 'user-analyst');
+  const products = await getProducts(); // This gets all products for an admin-like role
+
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+
+  if (format === 'csv') {
+    return convertToCsv(products);
+  }
+
+  throw new Error('Invalid export format');
+}
 
 // --- OTHER MOCK DATA ACTIONS ---
 export async function getProductionLines(): Promise<ProductionLine[]> {

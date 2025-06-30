@@ -1,7 +1,7 @@
 // src/app/dashboard/export/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import {
   Card,
   CardContent,
@@ -15,28 +15,74 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { exportProducts } from '@/lib/actions';
 
 export default function DataExportPage() {
   const [productFormat, setProductFormat] = useState('csv');
   const [complianceFormat, setComplianceFormat] = useState('pdf');
-  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const [isGenerating, startTransition] = useTransition();
+  const [generatingType, setGeneratingType] = useState<string | null>(null);
+
   const { toast } = useToast();
 
-  const handleGenerateExport = (exportType: string) => {
-    setIsGenerating(exportType);
-    toast({
-      title: 'Generating Report...',
-      description: `Your ${exportType} export is being prepared and will be available shortly.`,
-    });
+  const handleDownload = (
+    content: string,
+    fileName: string,
+    mimeType: string,
+  ) => {
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', fileName);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
-    // Simulate a delay for report generation
-    setTimeout(() => {
-      setIsGenerating(null);
-      toast({
-        title: 'Report Ready!',
-        description: `Your ${exportType} export has been generated. (This is a mock action)`,
-      });
-    }, 2500);
+  const handleGenerateExport = (exportType: string, format: string) => {
+    setGeneratingType(exportType);
+    startTransition(async () => {
+      try {
+        if (exportType === 'Product') {
+          toast({
+            title: 'Generating Product Report...',
+            description: `Your product data is being prepared as a .${format} file.`,
+          });
+          const fileContent = await exportProducts(format as 'csv' | 'json');
+          const mimeType = format === 'csv' ? 'text/csv' : 'application/json';
+          const fileName = `norruva-products-${
+            new Date().toISOString().split('T')[0]
+          }.${format}`;
+          handleDownload(fileContent, fileName, mimeType);
+          toast({
+            title: 'Product Report Downloaded!',
+            description: 'Your export has been successfully generated.',
+          });
+        } else {
+          // Mock for Compliance report
+          toast({
+            title: 'Generating Compliance Report...',
+            description:
+              'This is a mock action. A real report would download shortly.',
+          });
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          toast({
+            title: 'Compliance Report Ready!',
+            description: 'Mock compliance report generated.',
+          });
+        }
+      } catch (error) {
+        toast({
+          title: 'Export Failed',
+          description: 'An error occurred while preparing your file.',
+          variant: 'destructive',
+        });
+      } finally {
+        setGeneratingType(null);
+      }
+    });
   };
 
   return (
@@ -81,10 +127,10 @@ export default function DataExportPage() {
           </CardContent>
           <CardFooter>
             <Button
-              onClick={() => handleGenerateExport('Product')}
-              disabled={!!isGenerating}
+              onClick={() => handleGenerateExport('Product', productFormat)}
+              disabled={isGenerating}
             >
-              {isGenerating === 'Product' && (
+              {isGenerating && generatingType === 'Product' && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Generate Product Export
@@ -123,10 +169,12 @@ export default function DataExportPage() {
           </CardContent>
           <CardFooter>
             <Button
-              onClick={() => handleGenerateExport('Compliance')}
-              disabled={!!isGenerating}
+              onClick={() =>
+                handleGenerateExport('Compliance', complianceFormat)
+              }
+              disabled={isGenerating}
             >
-              {isGenerating === 'Compliance' && (
+              {isGenerating && generatingType === 'Compliance' && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Generate Compliance Export
