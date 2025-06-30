@@ -1,4 +1,3 @@
-
 // src/components/dashboards/admin-dashboard.tsx
 import Link from 'next/link';
 import {
@@ -10,19 +9,19 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { compliancePaths } from '@/lib/compliance-data';
+import { getCompliancePaths } from '@/lib/actions';
 import { getMockUsers } from '@/lib/auth';
 import { Button } from '../ui/button';
-import {
-  FileQuestion,
-  Users,
-  ArrowRight,
-} from 'lucide-react';
+import { FileQuestion, Users, ArrowRight } from 'lucide-react';
 
 export default async function AdminDashboard({ user }: { user: User }) {
-  const allUsers = await getMockUsers();
+  const [allUsers, allCompliancePaths] = await Promise.all([
+    getMockUsers(),
+    getCompliancePaths(),
+  ]);
+
   const totalUsers = allUsers.length;
-  const totalCompliancePaths = compliancePaths.length;
+  const totalCompliancePaths = allCompliancePaths.length;
 
   return (
     <div className="space-y-6">
