@@ -601,3 +601,46 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
   user.readNotificationIds = [...new Set([...user.readNotificationIds, ...allLogIds])];
   revalidatePath('/dashboard', 'layout');
 }
+
+export async function createUserAndCompany(name: string, email: string, userId: string) {
+    const company: Company = {
+        id: `comp-${userId.slice(0,6)}`,
+        name: `${name}'s Company`,
+        ownerId: userId,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    };
+    mockCompanies.push(company);
+
+    const user: User = {
+        id: userId,
+        fullName: name,
+        email: email,
+        companyId: company.id,
+        roles: [UserRoles.SUPPLIER],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }
+    mockUsers.push(user);
+}
+
+export async function updateUserProfile(userId: string, fullName: string) {
+    const user = mockUsers.find(u => u.id === userId);
+    if (!user) throw new Error("User not found");
+    user.fullName = fullName;
+    user.updatedAt = new Date().toISOString();
+    revalidatePath('/dashboard', 'layout');
+}
+
+export async function updateUserPassword(userId: string, current: string, newPass: string) {
+    // This is a mock. In a real app, you'd use Firebase Auth admin SDK to verify
+    // the current password and update it.
+    console.log(`Updating password for ${userId}. Mock action successful.`);
+    if(current !== 'password123') throw new Error("Incorrect current password.");
+    await new Promise(res => setTimeout(res, 500));
+}
+
+export async function saveNotificationPreferences(userId: string, prefs: any) {
+    console.log(`Saving notification preferences for ${userId}`, prefs);
+    await new Promise(res => setTimeout(res, 500));
+}
