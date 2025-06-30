@@ -35,7 +35,7 @@ export default async function ProductPassportPage({
               <path d="M17 7v10"></path>
               <path d="M7 17V7"></path>
             </svg>
-            <h1 className="text-xl font-bold">Norruva</h1>
+            <h1 className="text-xl font-bold">PassportFlow</h1>
           </div>
           <Button asChild variant="outline">
             <Link href="/dashboard">

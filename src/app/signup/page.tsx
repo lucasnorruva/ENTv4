@@ -9,7 +9,7 @@ export default function SignupPage() {
           Create an Account
         </h1>
         <p className="text-muted-foreground text-center mb-8">
-          Get started with Norruva for free.
+          Get started with PassportFlow for free.
         </p>
         <SignupForm />
         <p className="mt-4 text-center text-sm text-muted-foreground">

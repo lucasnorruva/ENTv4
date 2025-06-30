@@ -19,7 +19,7 @@ function Logo() {
         <path d="M17 7v10"></path>
         <path d="M7 17V7"></path>
       </svg>
-      <h1 className="text-2xl font-bold">Norruva</h1>
+      <h1 className="text-2xl font-bold">PassportFlow</h1>
     </div>
   );
 }
@@ -49,7 +49,7 @@ export default function TermsPage() {
             <div className="space-y-4 text-foreground/80">
               <h2 className="text-2xl font-semibold pt-4">1. Introduction</h2>
               <p>
-                Welcome to Norruva! These Terms of Service ("Terms") govern your
+                Welcome to PassportFlow! These Terms of Service ("Terms") govern your
                 use of our website and services. By accessing or using our
                 service, you agree to be bound by these Terms. This is a
                 placeholder document and is not legally binding.
@@ -80,7 +80,7 @@ export default function TermsPage() {
               <p>
                 The service and its original content, features, and
                 functionality are and will remain the exclusive property of
-                Norruva and its licensors. The content generated here is for
+                PassportFlow and its licensors. The content generated here is for
                 demonstration purposes only.
               </p>
 
@@ -96,7 +96,7 @@ export default function TermsPage() {
       </main>
       <footer className="border-t py-6 px-4 md:px-6">
         <div className="container mx-auto text-center text-xs text-muted-foreground">
-          © 2024 Norruva. All rights reserved.
+          © 2024 PassportFlow. All rights reserved.
         </div>
       </footer>
     </div>
