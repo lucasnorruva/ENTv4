@@ -5,6 +5,19 @@ const now = new Date();
 
 export const auditLogs: AuditLog[] = [
   {
+    id: "log-sys-001",
+    userId: "user-admin",
+    action: "settings.api.updated",
+    entityId: "global",
+    details: { rateLimitPerMinute: 120 },
+    createdAt: new Date(
+      new Date(now).setHours(now.getHours() - 4),
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(now).setHours(now.getHours() - 4),
+    ).toISOString(),
+  },
+  {
     id: "log-api-001",
     userId: "user-developer",
     action: "api.get",

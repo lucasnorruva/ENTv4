@@ -62,3 +62,13 @@ export const userFormSchema = z.object({
 });
 
 export type UserFormValues = z.infer<typeof userFormSchema>;
+
+export const apiSettingsSchema = z.object({
+  isPublicApiEnabled: z.boolean(),
+  rateLimitPerMinute: z.coerce
+    .number()
+    .min(0, 'Rate limit must be non-negative.'),
+  isWebhookSigningEnabled: z.boolean(),
+});
+
+export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;

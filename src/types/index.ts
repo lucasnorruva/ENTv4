@@ -173,6 +173,15 @@ export interface ApiKey extends BaseEntity {
 }
 
 /**
+ * Defines the global API settings for the platform.
+ */
+export interface ApiSettings {
+  isPublicApiEnabled: boolean;
+  rateLimitPerMinute: number;
+  isWebhookSigningEnabled: boolean;
+}
+
+/**
  * Configuration for a webhook to notify external systems of events.
  */
 export interface Webhook extends BaseEntity {
