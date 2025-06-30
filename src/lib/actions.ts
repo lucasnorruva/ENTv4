@@ -8,6 +8,7 @@ import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { users as mockUsers } from './user-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { apiKeys as mockApiKeys } from './api-key-data';
+import { apiSettings as mockApiSettings } from './api-settings-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
 import {
@@ -17,6 +18,8 @@ import {
   type CompliancePathFormValues,
   userFormSchema,
   type UserFormValues,
+  apiSettingsSchema,
+  type ApiSettingsFormValues,
 } from './schemas';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
@@ -42,6 +45,7 @@ import type {
   ServiceTicket,
   ApiKey,
   ComplianceGap,
+  ApiSettings,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
 import { UserRoles } from './constants';
@@ -659,6 +663,28 @@ export async function deleteApiKey(
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
   return { success: true };
+}
+
+// --- API SETTINGS ACTIONS ---
+export async function getApiSettings(): Promise<ApiSettings> {
+  return mockApiSettings;
+}
+
+export async function saveApiSettings(
+  settings: ApiSettingsFormValues,
+  userId: string,
+): Promise<ApiSettings> {
+  const validatedData = apiSettingsSchema.parse(settings);
+  // In a real app, this would update a specific document in Firestore
+  Object.assign(mockApiSettings, validatedData);
+  await logAuditEvent(
+    'settings.api.updated',
+    'global',
+    { settings: validatedData },
+    userId,
+  );
+  revalidatePath('/dashboard/api-settings');
+  return mockApiSettings;
 }
 
 
