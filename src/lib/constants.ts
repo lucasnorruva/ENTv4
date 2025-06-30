@@ -5,7 +5,7 @@
  * across the application.
  */
 export const Collections = {
-  PRODUCTS: "Norruva_Mock_Data",
+  PRODUCTS: "products",
   COMPLIANCE_PATHS: "compliancePaths",
   SUPPLIERS: "suppliers",
   VERIFICATIONS: "verifications",
@@ -13,6 +13,7 @@ export const Collections = {
   COMPANIES: "companies",
   AUDIT_LOGS: "auditLogs",
   WEBHOOKS: "webhooks",
+  API_KEYS: "apiKeys",
 } as const;
 
 /**

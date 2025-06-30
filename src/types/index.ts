@@ -155,6 +155,17 @@ export interface AuditLog extends BaseEntity {
 }
 
 /**
+ * Represents a developer API key for programmatic access.
+ */
+export interface ApiKey extends BaseEntity {
+  label: string;
+  token: string; // This would be a hashed token in a real DB
+  status: "Active" | "Revoked";
+  userId: string;
+  lastUsed?: string;
+}
+
+/**
  * Configuration for a webhook to notify external systems of events.
  */
 export interface Webhook extends BaseEntity {

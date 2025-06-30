@@ -1,4 +1,7 @@
 // src/app/dashboard/keys/page.tsx
+import { getApiKeys } from '@/lib/actions';
+import { getCurrentUser } from '@/lib/auth';
+import ApiKeysClient from '@/components/api-keys-client';
 import {
   Card,
   CardContent,
@@ -6,25 +9,24 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { KeyRound } from 'lucide-react';
 
-export default function ApiKeysPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function ApiKeysPage() {
+  const user = await getCurrentUser('Developer');
+  const apiKeys = await getApiKeys(user.id);
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>API Keys</CardTitle>
         <CardDescription>
-          Manage API keys for accessing the Norruva API. This feature is under
-          construction.
+          Manage API keys for accessing the Norruva API. Use these keys for
+          server-to-server integrations.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-lg">
-          <KeyRound className="w-12 h-12 text-muted-foreground" />
-          <p className="mt-4 text-muted-foreground">
-            API Key management will be available here.
-          </p>
-        </div>
+        <ApiKeysClient initialApiKeys={apiKeys} user={user} />
       </CardContent>
     </Card>
   );

@@ -1,10 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { randomBytes } from 'crypto';
 import { products as mockProducts } from './data';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { users as mockUsers } from './user-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
+import { apiKeys as mockApiKeys } from './api-key-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
 import {
@@ -35,6 +37,7 @@ import type {
   AuditLog,
   ProductionLine,
   ServiceTicket,
+  ApiKey,
 } from '@/types';
 import { UserRoles } from './constants';
 
@@ -354,7 +357,8 @@ export async function markAsRecycled(
 // --- AUDIT LOG ACTIONS ---
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  return JSON.parse(JSON.stringify(mockAuditLogs));
+  const logs = mockAuditLogs;
+  return JSON.parse(JSON.stringify(logs));
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
@@ -507,6 +511,76 @@ export async function deleteUser(
     );
   }
   revalidatePath('/dashboard/users');
+  return { success: true };
+}
+
+// --- API KEY ACTIONS ---
+
+export async function getApiKeys(userId: string): Promise<ApiKey[]> {
+  const userKeys = mockApiKeys.filter(key => key.userId === userId);
+  return JSON.parse(JSON.stringify(userKeys));
+}
+
+export async function createApiKey(
+  label: string,
+  userId: string,
+): Promise<{ rawToken: string; apiKey: ApiKey }> {
+  const now = new Date().toISOString();
+  // Generate a secure random token for the user to see once.
+  const rawToken = `nor_live_${randomBytes(16).toString('hex')}`;
+  // In a real app, you would SHA-256 hash this token before storing.
+  // For this mock, we'll just store a redacted-looking version.
+  const storedToken = `${rawToken.slice(0, 10)}******************${rawToken.slice(
+    -4,
+  )}`;
+
+  const newApiKey: ApiKey = {
+    id: `key-${Date.now()}`,
+    label,
+    token: storedToken,
+    status: 'Active',
+    userId,
+    createdAt: now,
+    updatedAt: now,
+  };
+  mockApiKeys.push(newApiKey);
+  await logAuditEvent('api_key.created', newApiKey.id, { label }, userId);
+  revalidatePath('/dashboard/keys');
+  revalidatePath('/dashboard');
+  return { rawToken, apiKey: newApiKey };
+}
+
+export async function revokeApiKey(
+  id: string,
+  userId: string,
+): Promise<ApiKey> {
+  const key = mockApiKeys.find(k => k.id === id && k.userId === userId);
+  if (!key) throw new Error('API Key not found or access denied.');
+  key.status = 'Revoked';
+  key.updatedAt = new Date().toISOString();
+  await logAuditEvent('api_key.revoked', id, { label: key.label }, userId);
+  revalidatePath('/dashboard/keys');
+  return key;
+}
+
+export async function deleteApiKey(
+  id: string,
+  userId: string,
+): Promise<{ success: true }> {
+  const keyIndex = mockApiKeys.findIndex(
+    k => k.id === id && k.userId === userId,
+  );
+  if (keyIndex === -1) throw new Error('API Key not found or access denied.');
+  const deletedKey = mockApiKeys[keyIndex];
+  mockApiKeys.splice(keyIndex, 1);
+  await logAuditEvent(
+    'api_key.deleted',
+    id,
+    { label: deletedKey.label },
+    userId,
+  );
+  revalidatePath('/dashboard/keys');
+  revalidatePath('/dashboard');
   return { success: true };
 }
 
