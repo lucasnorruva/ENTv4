@@ -111,6 +111,15 @@ export async function saveProduct(
       endOfLifeStatus: "Active" as const,
     };
     mockProducts.unshift(newProduct);
+
+    // Fire 'product.created' event
+    await logAuditEvent(
+      "product.created",
+      newProduct.id,
+      { productName: newProduct.productName },
+      "user-supplier", // Mock user
+    );
+
     revalidatePath("/dashboard");
     return newProduct;
   }
@@ -169,7 +178,7 @@ export async function submitForReview(productId: string): Promise<Product> {
   mockProducts[productIndex] = updatedProduct;
 
   await logAuditEvent(
-    "product.submit_for_review",
+    "passport.submitted",
     productId,
     { summary: complianceSummary, isCompliant },
     "user-supplier", // Mock user

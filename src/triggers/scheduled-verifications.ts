@@ -105,8 +105,11 @@ export async function runDailyComplianceCheck(): Promise<{
       };
     }
 
+    const eventName =
+      finalStatus === "Verified" ? "passport.verified" : "compliance.updated";
+
     await logAuditEvent(
-      "product.verify",
+      eventName,
       product.id,
       { status: finalStatus, summary: finalSummary },
       "system",
