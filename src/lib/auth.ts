@@ -87,6 +87,16 @@ const mockUsers: Record<Role, User> = {
 };
 
 /**
+ * Mocks fetching all users in the system.
+ * @returns A promise that resolves to an array of all mock users.
+ */
+export async function getMockUsers(): Promise<User[]> {
+  // Simulate network delay
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  return Object.values(mockUsers);
+}
+
+/**
  * Mocks fetching the current user based on a role.
  * In a real application, this would involve validating a session token
  * and fetching user data from Firestore.
