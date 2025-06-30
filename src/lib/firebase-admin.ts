@@ -1,39 +1,63 @@
 // src/lib/firebase-admin.ts
+import * as dotenv from 'dotenv';
+dotenv.config(); // Load environment variables from .env file
 
 import * as admin from 'firebase-admin';
-import { getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getApp, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 /**
- * This function ensures that we initialize the Firebase Admin App only once.
- * It's a common pattern for Next.js server environments.
+ * Ensures a single initialization of the Firebase Admin App.
+ *
+ * This function handles three scenarios in order of priority:
+ * 1.  **Development with Emulators:** If emulator host variables are set,
+ *     it connects to the local emulators.
+ * 2.  **Local Development against Live Project:** If local credentials are
+ *     provided in a .env file, it uses them to connect.
+ * 3.  **Production Environment:** In a deployed environment (like App Hosting),
+ *     it uses the Application Default Credentials provided by the infrastructure.
+ *
  * @returns The initialized Firebase Admin App.
  */
-function getAdminApp() {
+function getAdminApp(): App {
   if (getApps().length > 0) {
     return getApp();
   }
 
-  // When running in development mode (e.g., `npm run dev`), we connect to the emulators.
-  if (process.env.NODE_ENV === 'development') {
+  // Priority 1: Connect to Emulators if host variables are set
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
     console.log(
-      'Development environment detected. Initializing Admin SDK to connect to Firebase Emulators.',
+      'Emulator environment detected. Initializing Admin SDK for emulators.',
     );
-    // Setting these environment variables tells the Admin SDK to use the emulators.
-    // This is a robust way to ensure connection during local development.
-    process.env['FIRESTORE_EMULATOR_HOST'] = 'localhost:8080';
-    process.env['FIREBASE_AUTH_EMULATOR_HOST'] = 'localhost:9099';
-    process.env['FIREBASE_STORAGE_EMULATOR_HOST'] = 'localhost:9199';
+    return initializeApp({ projectId: 'passportflow-dev' });
+  }
 
+  // Priority 2: Use local service account credentials if provided in .env
+  if (
+    process.env.FIREBASE_PROJECT_ID &&
+    process.env.FIREBASE_CLIENT_EMAIL &&
+    process.env.FIREBASE_PRIVATE_KEY
+  ) {
+    console.log(
+      'Local Firebase credentials found. Initializing Admin SDK for live project.',
+    );
+    const serviceAccount = {
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Replace escaped newlines from .env file with actual newlines
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
     return initializeApp({
-      projectId: 'passportflow-dev', // A dummy project ID is fine for emulators
+      credential: admin.credential.cert(serviceAccount),
     });
   }
 
-  // For production, the SDK will use the default credentials of the environment (e.g., Cloud Run).
-  console.log('Production environment detected. Initializing Firebase Admin SDK...');
+  // Priority 3: Default to production environment credentials
+  console.log(
+    'Production environment detected. Initializing Admin SDK with default credentials.',
+  );
   return initializeApp();
 }
 
