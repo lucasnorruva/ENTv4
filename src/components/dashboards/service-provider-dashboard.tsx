@@ -121,9 +121,9 @@ export default async function ServiceProviderDashboard({
                         addSuffix: true,
                       })}
                     </p>
-                    <p className="mt-1">
+                    <div className="mt-1">
                       <Badge variant="destructive">{ticket.status}</Badge>
-                    </p>
+                    </div>
                   </div>
                 </div>
               ))}
