@@ -67,11 +67,14 @@ Product Description: {{{productDescription}}}
 const suggestImprovementsFlow = ai.defineFlow(
   {
     name: "suggestImprovementsFlow",
-    inputSchema: SuggestImprovementsInputSchema,
+    inputSchema: z.object({ product: AiProductSchema }),
     outputSchema: SuggestImprovementsOutputSchema,
   },
   async (input) => {
-    const { output } = await suggestImprovementsPrompt(input);
+    const { output } = await suggestImprovementsPrompt({
+      productName: input.product.productName,
+      productDescription: input.product.productDescription,
+    });
     return output!;
   },
 );

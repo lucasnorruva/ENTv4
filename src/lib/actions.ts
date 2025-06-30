@@ -354,6 +354,7 @@ export async function runSuggestImprovements(
     materials: [],
     manufacturing: { facility: '', country: '' },
     certifications: [],
+    packaging: { type: '', recyclable: false },
   };
   return suggestImprovements({ product: aiProductInput });
 }
