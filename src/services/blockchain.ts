@@ -17,21 +17,24 @@ export async function hashProductData(productData: string): Promise<string> {
 
 /**
  * Anchors a data hash to the Polygon blockchain for immutability.
- * In a real implementation, this would interact with a smart contract.
+ * In a real implementation, this would interact with a smart contract
+ * like `registerPassport(bytes32 productId, bytes32 dataHash)`.
  *
+ * @param productId The ID of the product being anchored.
  * @param hash The hash to be anchored on the blockchain.
  * @returns A promise that resolves to an object with the transaction hash and a link to a block explorer.
  */
 export async function anchorToPolygon(
+  productId: string,
   hash: string,
 ): Promise<{ txHash: string; explorerUrl: string; blockHeight: number }> {
-  console.log(`Anchoring hash ${hash} to Polygon...`);
+  console.log(`Anchoring hash for product ${productId}: ${hash} to Polygon...`);
 
   // In a real implementation, you would:
   // 1. Connect to a Polygon node via an RPC provider (e.g., Infura, Alchemy)
   //    using a library like `ethers.js` or `viem`.
   // 2. Load your pre-deployed smart contract instance.
-  // 3. Send a transaction to a contract function like `recordHash(bytes32 hash)`.
+  // 3. Send a transaction to a contract function like `registerPassport(bytes32 productId, bytes32 hash)`.
 
   // Simulate network delay and return a mock transaction hash and explorer URL.
   await new Promise((resolve) => setTimeout(resolve, 700));

@@ -93,8 +93,10 @@ export async function runDailyComplianceCheck(): Promise<{
       passed++;
       // Anchor to blockchain on successful verification
       try {
-        const productDataHash = await hashProductData(product.currentInformation);
-        blockchainProof = await anchorToPolygon(productDataHash);
+        const productDataHash = await hashProductData(
+          product.currentInformation,
+        );
+        blockchainProof = await anchorToPolygon(product.id, productDataHash);
       } catch (e) {
         console.error("Blockchain anchoring failed (mock mode):", e);
         // Decide if this should fail the verification. For now, just log it.
@@ -127,7 +129,11 @@ export async function runDailyComplianceCheck(): Promise<{
     await logAuditEvent(
       eventName,
       product.id,
-      { status: finalStatus, summary: finalSummary },
+      {
+        status: finalStatus,
+        summary: finalSummary,
+        blockchainProof: blockchainProof,
+      },
       "system",
     );
   }
