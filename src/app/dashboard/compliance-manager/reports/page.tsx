@@ -1,0 +1,21 @@
+// src/app/dashboard/compliance-manager/reports/page.tsx
+import { redirect } from 'next/navigation';
+import { getCurrentUser, hasRole } from '@/lib/auth';
+import { UserRoles } from '@/lib/constants';
+import ReportsClient from '@/components/reports-client';
+
+export default async function ReportsPage() {
+  const user = await getCurrentUser(UserRoles.COMPLIANCE_MANAGER);
+
+  const allowedRoles = [
+    UserRoles.AUDITOR,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.COMPLIANCE_MANAGER,
+  ];
+
+  if (!allowedRoles.some(role => hasRole(user, role))) {
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  }
+
+  return <ReportsClient />;
+}

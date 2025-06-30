@@ -1,8 +1,7 @@
-
 // src/components/dashboard-sidebar.tsx
-"use client";
+'use client';
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutGrid,
   BookCopy,
@@ -26,7 +25,7 @@ import {
   FileCode,
   Cog,
   Building2,
-} from "lucide-react";
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -38,15 +37,15 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarSeparator,
-} from "@/components/ui/sidebar";
-import { UserRoles, type Role } from "@/lib/constants";
-import type { User } from "@/types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import Logo from "@/components/logo";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
+} from '@/components/ui/sidebar';
+import { UserRoles, type Role } from '@/lib/constants';
+import type { User } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import Logo from '@/components/logo';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 interface NavItem {
   title: string;
@@ -62,187 +61,180 @@ interface NavGroup {
 
 type NavConfig = NavGroup[];
 
+const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
+
 const navConfig: Record<Role, NavConfig> = {
   [UserRoles.ADMIN]: [
     {
-      label: "Overview",
+      label: 'Platform Management',
       items: [
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Users', icon: Users, href: 'users' },
+        { title: 'Companies', icon: Building2, href: 'companies' },
         {
-          title: "System Analytics",
-          icon: BarChart3,
-          href: "/dashboard/analytics",
-        },
-      ],
-    },
-    {
-      label: "Platform Management",
-      items: [
-        { title: "Users", icon: Users, href: "/dashboard/users" },
-        { title: "Companies", icon: Building2, href: "/dashboard/companies" },
-        {
-          title: "All Products",
+          title: 'All Products',
           icon: BookCopy,
-          href: "/dashboard/products",
+          href: 'products',
         },
         {
-          title: "Compliance Paths",
+          title: 'Compliance Paths',
           icon: FileQuestion,
-          href: "/dashboard/compliance",
+          href: 'compliance',
         },
       ],
     },
     {
-      label: "System Configuration",
+      label: 'System Configuration',
       items: [
-        { title: "API Settings", icon: Cog, href: "/dashboard/api-settings" },
+        { title: 'API Settings', icon: Cog, href: 'api-settings' },
         {
-          title: "Integrations",
+          title: 'Integrations',
           icon: Wrench,
-          href: "/dashboard/integrations",
+          href: 'integrations',
         },
       ],
     },
   ],
   [UserRoles.SUPPLIER]: [
     {
-      label: "My Passports",
+      label: 'My Passports',
       items: [
         {
-          title: "Manage Products",
+          title: 'Manage Products',
           icon: BookCopy,
-          href: "/dashboard/products",
+          href: 'products',
         },
-        { title: "Activity History", icon: Clock, href: "/dashboard/history" },
+        { title: 'Activity History', icon: Clock, href: 'history' },
       ],
     },
   ],
   [UserRoles.MANUFACTURER]: [
     {
-      label: "Production",
+      label: 'Production',
       items: [
-        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
-        { title: "Production Lines", icon: Factory, href: "/dashboard/lines" },
+        { title: 'All Products', icon: BookCopy, href: 'products' },
+        { title: 'Production Lines', icon: Factory, href: 'lines' },
       ],
     },
     {
-      label: "Analysis",
+      label: 'Analysis',
       items: [
         {
-          title: "Material Composition",
+          title: 'Material Composition',
           icon: Package,
-          href: "/dashboard/composition",
+          href: 'composition',
         },
         {
-          title: "Analytics",
+          title: 'Analytics',
           icon: BarChart3,
-          href: "/dashboard/analytics",
+          href: 'analytics',
         },
       ],
     },
   ],
   [UserRoles.AUDITOR]: [
     {
-      label: "Auditing",
+      label: 'Auditing',
       items: [
-        { title: "Audit Queue", icon: ShieldCheck, href: "/dashboard/audit" },
-        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
+        { title: 'All Products', icon: BookCopy, href: 'products' },
       ],
     },
     {
-      label: "Reference",
+      label: 'Reference',
       items: [
         {
-          title: "Compliance Paths",
+          title: 'Compliance Paths',
           icon: FileQuestion,
-          href: "/dashboard/compliance",
+          href: 'compliance',
         },
-        { title: "Reports", icon: FileText, href: "/dashboard/reports" },
+        { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },
   ],
   [UserRoles.COMPLIANCE_MANAGER]: [
     {
-      label: "Compliance",
+      label: 'Compliance',
       items: [
         {
-          title: "Flagged Products",
+          title: 'Flagged Products',
           icon: ShieldAlert,
-          href: "/dashboard/flagged",
+          href: 'flagged',
         },
         {
-          title: "Compliance Paths",
+          title: 'Compliance Paths',
           icon: FileQuestion,
-          href: "/dashboard/compliance",
+          href: 'compliance',
         },
       ],
     },
     {
-      label: "Reference",
+      label: 'Reference',
       items: [
         {
-          title: "All Products",
+          title: 'All Products',
           icon: BookCopy,
-          href: "/dashboard/products",
+          href: 'products',
         },
         {
-          title: "Compliance Reports",
+          title: 'Compliance Reports',
           icon: FileText,
-          href: "/dashboard/reports",
+          href: 'reports',
         },
       ],
     },
   ],
   [UserRoles.BUSINESS_ANALYST]: [
     {
-      label: "Analytics",
+      label: 'Analytics',
       items: [
         {
-          title: "System Analytics",
+          title: 'System Analytics',
           icon: BarChart3,
-          href: "/dashboard/analytics",
+          href: 'analytics',
         },
         {
-          title: "Sustainability Metrics",
+          title: 'Sustainability Metrics',
           icon: Recycle,
-          href: "/dashboard/sustainability",
+          href: 'sustainability',
         },
         {
-          title: "Material Composition",
+          title: 'Material Composition',
           icon: Package,
-          href: "/dashboard/composition",
+          href: 'composition',
         },
-        { title: "Data Export", icon: FileDown, href: "/dashboard/export" },
+        { title: 'Data Export', icon: FileDown, href: 'export' },
       ],
     },
   ],
   [UserRoles.DEVELOPER]: [
     {
-      label: "Configuration",
+      label: 'Configuration',
       items: [
-        { title: "API Keys", icon: KeyRound, href: "/dashboard/keys" },
+        { title: 'API Keys', icon: KeyRound, href: 'keys' },
         {
-          title: "API Settings",
+          title: 'API Settings',
           icon: Cog,
-          href: "/dashboard/api-settings",
+          href: 'api-settings',
         },
         {
-          title: "Integrations",
+          title: 'Integrations',
           icon: Wrench,
-          href: "/dashboard/integrations",
+          href: 'integrations',
         },
       ],
     },
     {
-      label: "Monitoring",
-      items: [{ title: "API Logs", icon: FileText, href: "/dashboard/logs" }],
+      label: 'Monitoring',
+      items: [{ title: 'API Logs', icon: FileText, href: 'logs' }],
     },
     {
-      label: "Resources",
+      label: 'Resources',
       items: [
         {
-          title: "API Documentation",
+          title: 'API Documentation',
           icon: FileCode,
-          href: "/docs/api",
+          href: '/docs/api',
           external: true,
         },
       ],
@@ -250,42 +242,42 @@ const navConfig: Record<Role, NavConfig> = {
   ],
   [UserRoles.RECYCLER]: [
     {
-      label: "Operations",
+      label: 'Operations',
       items: [
-        { title: "EOL Products", icon: Recycle, href: "/dashboard/eol" },
+        { title: 'EOL Products', icon: Recycle, href: 'eol' },
       ],
     },
     {
-      label: "Analysis",
+      label: 'Analysis',
       items: [
         {
-          title: "Material Composition",
+          title: 'Material Composition',
           icon: Package,
-          href: "/dashboard/composition",
+          href: 'composition',
         },
         {
-          title: "Analytics",
+          title: 'Analytics',
           icon: BarChart3,
-          href: "/dashboard/analytics",
+          href: 'analytics',
         },
       ],
     },
   ],
   [UserRoles.SERVICE_PROVIDER]: [
     {
-      label: "Operations",
+      label: 'Operations',
       items: [
-        { title: "Service Tickets", icon: Ticket, href: "/dashboard/tickets" },
-        { title: "Product Manuals", icon: BookCopy, href: "/dashboard/manuals" },
+        { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
+        { title: 'Product Manuals', icon: BookCopy, href: 'manuals' },
       ],
     },
     {
-      label: "Analysis",
+      label: 'Analysis',
       items: [
         {
-          title: "Analytics",
+          title: 'Analytics',
           icon: BarChart3,
-          href: "/dashboard/analytics",
+          href: 'analytics',
         },
       ],
     },
@@ -297,8 +289,6 @@ interface DashboardSidebarProps {
   user: User;
 }
 
-const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
-
 export default function DashboardSidebar({
   userRole,
   user,
@@ -307,29 +297,35 @@ export default function DashboardSidebar({
   const router = useRouter();
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
+  const roleSlug = getRoleSlug(userRole);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.push("/login");
+      router.push('/login');
     } catch (error) {
       toast({
-        title: "Logout Failed",
-        description: "An error occurred while logging out.",
-        variant: "destructive",
+        title: 'Logout Failed',
+        description: 'An error occurred while logging out.',
+        variant: 'destructive',
       });
     }
   };
 
   const handleNavigate = (href: string, external?: boolean) => {
     if (external) {
-      window.open(href, "_blank");
+      window.open(href, '_blank');
     } else {
       router.push(href);
     }
   };
 
-  const dashboardHref = `/dashboard/${getRoleSlug(userRole)}`;
+  const dashboardHref = `/dashboard/${roleSlug}`;
+  
+  const generalNavItems = [
+    { title: 'Settings', icon: Settings, href: `/dashboard/${roleSlug}/settings` },
+    { title: 'Support', icon: LifeBuoy, href: `/dashboard/${roleSlug}/support` },
+  ];
 
   return (
     <Sidebar>
@@ -350,16 +346,21 @@ export default function DashboardSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {menuConfig.map((group) => (
+        {menuConfig.map(group => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map((item) => (
+              {group.items.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    onClick={() => handleNavigate(item.href, item.external)}
+                    onClick={() =>
+                      handleNavigate(
+                        item.external ? item.href : `/dashboard/${roleSlug}/${item.href}`,
+                        item.external,
+                      )
+                    }
                     tooltip={item.title}
-                    isActive={pathname.startsWith(item.href) && !item.external}
+                    isActive={pathname.startsWith(`/dashboard/${roleSlug}/${item.href}`) && !item.external}
                   >
                     <item.icon />
                     <span>{item.title}</span>
@@ -373,26 +374,18 @@ export default function DashboardSidebar({
         <SidebarGroup>
           <SidebarGroupLabel>General</SidebarGroupLabel>
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigate("/dashboard/settings")}
-                tooltip="Settings"
-                isActive={pathname === "/dashboard/settings"}
-              >
-                <Settings />
-                <span>Settings</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={() => handleNavigate("/dashboard/support")}
-                tooltip="Support"
-                isActive={pathname === "/dashboard/support"}
-              >
-                <LifeBuoy />
-                <span>Support</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {generalNavItems.map(item => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  onClick={() => handleNavigate(item.href)}
+                  tooltip={item.title}
+                  isActive={pathname === item.href}
+                >
+                  <item.icon />
+                  <span>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
