@@ -3,13 +3,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from './data';
-import type { Product } from '@/types';
+import type { Product, User, Company, CompliancePath, AuditLog } from '@/types';
 import type { ProductFormValues } from './schemas';
 import { randomBytes } from 'crypto';
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
+import { compliancePaths as mockCompliancePaths } from './compliance-data';
+import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { UserRoles } from './constants';
-import type { User, Company } from '@/types';
 
 // In a real app, you would have a more robust way to get the current user
 // and their company. For now, we'll simulate it.
@@ -89,6 +90,9 @@ export async function saveProduct(
       ...values,
       lastUpdated: now,
       updatedAt: now,
+      // Ensure optional arrays are preserved if not in form values
+      materials: values.materials || existingProduct.materials,
+      certifications: values.certifications || existingProduct.certifications,
     };
     const index = mockProducts.findIndex(p => p.id === productId);
     mockProducts[index] = product;
@@ -99,6 +103,7 @@ export async function saveProduct(
       companyId: user.companyId,
       supplier: company.name,
       ...values,
+      productImage: 'https://placehold.co/100x100.png', // Placeholder image
       materials: values.materials || [],
       certifications: values.certifications || [],
       createdAt: now,
@@ -158,4 +163,19 @@ export async function createUserAndCompany(
     updatedAt: new Date().toISOString(),
   };
   mockUsers.push(newUser);
+}
+
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  return mockCompliancePaths;
+}
+
+export async function getAuditLogs(): Promise<AuditLog[]> {
+  return [...mockAuditLogs].sort(
+    (a, b) =>
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+}
+
+export async function getCompanies(): Promise<Company[]> {
+  return mockCompanies;
 }
