@@ -8,7 +8,7 @@ export default async function DataExportPage() {
   const user = await getCurrentUser(UserRoles.BUSINESS_ANALYST);
 
   if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
-    redirect(`/dashboard/business-analyst`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   return <DataExportClient />;

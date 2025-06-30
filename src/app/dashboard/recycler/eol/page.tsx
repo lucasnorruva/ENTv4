@@ -11,7 +11,7 @@ export default async function EolPage() {
   const user = await getCurrentUser(UserRoles.RECYCLER);
 
   if (!hasRole(user, UserRoles.RECYCLER)) {
-    redirect('/dashboard/recycler');
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const products = await getProducts(user.id);

@@ -11,7 +11,7 @@ export default async function AuditQueuePage() {
   const user = await getCurrentUser(UserRoles.AUDITOR);
 
   if (!hasRole(user, UserRoles.AUDITOR)) {
-    redirect(`/dashboard/auditor`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const allProducts = await getProducts(user.id);

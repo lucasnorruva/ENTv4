@@ -18,7 +18,7 @@ export default async function SustainabilityPage() {
   const user = await getCurrentUser(UserRoles.BUSINESS_ANALYST);
 
   if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
-    redirect(`/dashboard/business-analyst`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const products = await getProducts(user.id);

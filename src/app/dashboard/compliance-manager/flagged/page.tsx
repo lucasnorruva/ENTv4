@@ -18,7 +18,7 @@ export default async function FlaggedProductsPage() {
   const user = await getCurrentUser(UserRoles.COMPLIANCE_MANAGER);
 
   if (!hasRole(user, UserRoles.COMPLIANCE_MANAGER)) {
-    redirect(`/dashboard/compliance-manager`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const allProducts = await getProducts(user.id);

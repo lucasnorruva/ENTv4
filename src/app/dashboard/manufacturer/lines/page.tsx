@@ -36,7 +36,7 @@ export default async function ProductionLinesPage() {
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
 
   if (!hasRole(user, UserRoles.MANUFACTURER)) {
-    redirect(`/dashboard/manufacturer`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const lines = await getProductionLines();

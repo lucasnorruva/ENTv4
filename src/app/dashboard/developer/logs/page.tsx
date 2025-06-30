@@ -25,7 +25,7 @@ export default async function ApiLogsPage() {
   const user = await getCurrentUser(UserRoles.DEVELOPER);
 
   if (!hasRole(user, UserRoles.DEVELOPER)) {
-    redirect(`/dashboard/developer`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const allLogs = await getAuditLogs();

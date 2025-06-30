@@ -18,7 +18,7 @@ export default async function ApiKeysPage() {
   const user = await getCurrentUser(UserRoles.DEVELOPER);
 
   if (!hasRole(user, UserRoles.DEVELOPER)) {
-    redirect(`/dashboard/developer`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const apiKeys = await getApiKeys(user.id);

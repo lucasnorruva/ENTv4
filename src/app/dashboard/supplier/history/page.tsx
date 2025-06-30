@@ -49,7 +49,7 @@ export default async function HistoryPage() {
   const user = await getCurrentUser(UserRoles.SUPPLIER);
 
   if (!hasRole(user, UserRoles.SUPPLIER)) {
-    redirect('/dashboard/supplier');
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const [logs, products] = await Promise.all([

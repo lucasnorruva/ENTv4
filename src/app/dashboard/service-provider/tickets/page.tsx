@@ -33,7 +33,7 @@ export default async function ServiceTicketsPage() {
   const user = await getCurrentUser(UserRoles.SERVICE_PROVIDER);
 
   if (!hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-    redirect(`/dashboard/service-provider`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const [tickets, products] = await Promise.all([

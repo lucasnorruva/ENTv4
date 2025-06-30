@@ -1,4 +1,3 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -73,8 +72,9 @@ export async function logAuditEvent(
     updatedAt: new Date().toISOString(),
   };
   mockAuditLogs.unshift(newLog);
-  revalidatePath('/dashboard/analytics');
-  revalidatePath('/dashboard/history');
+  revalidatePath('/dashboard/admin/analytics');
+  revalidatePath('/dashboard/developer/logs');
+  revalidatePath('/dashboard/supplier/history');
 }
 
 // --- AI FLOW ORCHESTRATION ---
@@ -217,7 +217,7 @@ export async function saveProduct(
       { fields: Object.keys(validatedData) },
       userId,
     );
-    revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard', 'layout');
     revalidatePath(`/products/${productId}`);
     return mockProducts[productIndex];
   } else {
@@ -237,7 +237,7 @@ export async function saveProduct(
       { productName: newProduct.productName },
       userId,
     );
-    revalidatePath('/dashboard/products');
+    revalidatePath('/dashboard', 'layout');
     return newProduct;
   }
 }
@@ -256,7 +256,7 @@ export async function deleteProduct(
     );
     mockProducts.splice(productIndex, 1);
   }
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard', 'layout');
   return { success: true };
 }
 
@@ -274,8 +274,7 @@ export async function submitForReview(
     { status: 'Pending' },
     userId,
   );
-  revalidatePath('/dashboard/products');
-  revalidatePath('/dashboard/audit');
+  revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
   return mockProducts[productIndex];
 }
@@ -328,8 +327,7 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
-  revalidatePath('/dashboard/audit');
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
   return product;
 }
@@ -360,9 +358,7 @@ export async function rejectPassport(
     { reason: summary, gaps },
     userId,
   );
-  revalidatePath('/dashboard/audit');
-  revalidatePath('/dashboard/products');
-  revalidatePath('/dashboard/flagged');
+  revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
   return product;
 }
@@ -410,7 +406,7 @@ export async function recalculateScore(
     { newScore: sustainability.score },
     userId,
   );
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
   return mockProducts[productIndex];
 }
@@ -426,9 +422,8 @@ export async function markAsRecycled(
   mockProducts[productIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent('product.recycled', productId, {}, userId);
-  revalidatePath('/dashboard/eol');
+  revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  revalidatePath('/dashboard');
   return mockProducts[productIndex];
 }
 
@@ -493,7 +488,7 @@ export async function saveCompliancePath(
       { name: dataToSave.name },
       userId,
     );
-    revalidatePath('/dashboard/compliance');
+    revalidatePath('/dashboard', 'layout');
     return mockCompliancePaths[pathIndex];
   } else {
     const newPath: CompliancePath = {
@@ -508,16 +503,12 @@ export async function saveCompliancePath(
       { name: newPath.name },
       userId,
     );
-    revalidatePath('/dashboard/compliance');
+    revalidatePath('/dashboard', 'layout');
     return newPath;
   }
 }
 
 // --- USER ACTIONS ---
-export async function getUsers(): Promise<User[]> {
-  return getMockUsers();
-}
-
 export async function saveUser(
   userData: UserFormValues,
   adminUserId: string,
@@ -543,7 +534,7 @@ export async function saveUser(
       { email: validatedData.email },
       adminUserId,
     );
-    revalidatePath('/dashboard/users');
+    revalidatePath('/dashboard', 'layout');
     return mockUsers[userIndex];
   } else {
     const newUser: User = {
@@ -558,7 +549,7 @@ export async function saveUser(
       { email: newUser.email },
       adminUserId,
     );
-    revalidatePath('/dashboard/users');
+    revalidatePath('/dashboard', 'layout');
     return newUser;
   }
 }
@@ -577,7 +568,7 @@ export async function deleteUser(
     );
     mockUsers.splice(userIndex, 1);
   }
-  revalidatePath('/dashboard/users');
+  revalidatePath('/dashboard', 'layout');
   return { success: true };
 }
 
@@ -604,7 +595,7 @@ export async function saveCompany(
     if (companyIndex === -1) throw new Error('Company not found');
     mockCompanies[companyIndex] = { ...mockCompanies[companyIndex], ...dataToSave };
     await logAuditEvent('company.updated', companyId, { name: dataToSave.name }, adminUserId);
-    revalidatePath('/dashboard/companies');
+    revalidatePath('/dashboard', 'layout');
     return mockCompanies[companyIndex];
   } else {
     const newCompany: Company = {
@@ -614,7 +605,7 @@ export async function saveCompany(
     };
     mockCompanies.unshift(newCompany);
     await logAuditEvent('company.created', newCompany.id, { name: newCompany.name }, adminUserId);
-    revalidatePath('/dashboard/companies');
+    revalidatePath('/dashboard', 'layout');
     return newCompany;
   }
 }
@@ -633,7 +624,7 @@ export async function deleteCompany(
     );
     mockCompanies.splice(companyIndex, 1);
   }
-  revalidatePath('/dashboard/companies');
+  revalidatePath('/dashboard', 'layout');
   return { success: true };
 }
 
@@ -650,7 +641,7 @@ export async function markAllNotificationsAsRead(
   mockUsers[userIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent('notifications.read_all', userId, {}, userId);
-  revalidatePath('/dashboard/layout');
+  revalidatePath('/dashboard', 'layout');
   return mockUsers[userIndex];
 }
 
@@ -664,8 +655,7 @@ export async function updateUserProfile(
   mockUsers[userIndex].fullName = fullName;
   mockUsers[userIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('user.profile.updated', userId, { fullName }, userId);
-  revalidatePath('/dashboard/settings');
-  revalidatePath('/dashboard/layout');
+  revalidatePath('/dashboard', 'layout');
   return mockUsers[userIndex];
 }
 
@@ -715,8 +705,7 @@ export async function createApiKey(
   };
   mockApiKeys.unshift(newApiKey);
   await logAuditEvent('api_key.created', newApiKey.id, { label }, userId);
-  revalidatePath('/dashboard/keys');
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard', 'layout');
   return { rawToken, apiKey: newApiKey };
 }
 
@@ -731,8 +720,7 @@ export async function revokeApiKey(id: string, userId: string): Promise<ApiKey> 
     { label: mockApiKeys[keyIndex].label },
     userId,
   );
-  revalidatePath('/dashboard/keys');
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard', 'layout');
   return mockApiKeys[keyIndex];
 }
 
@@ -750,8 +738,7 @@ export async function deleteApiKey(
     );
     mockApiKeys.splice(keyIndex, 1);
   }
-  revalidatePath('/dashboard/keys');
-  revalidatePath('/dashboard');
+  revalidatePath('/dashboard', 'layout');
   return { success: true };
 }
 
@@ -773,7 +760,8 @@ export async function saveApiSettings(
     { settings: validatedData },
     userId,
   );
-  revalidatePath('/dashboard/api-settings');
+  revalidatePath('/dashboard/admin/api-settings');
+  revalidatePath('/dashboard/developer/api-settings');
   return mockApiSettings;
 }
 
@@ -881,7 +869,6 @@ export async function resolveComplianceIssue(
     { newStatus: 'Draft' },
     userId,
   );
-  revalidatePath('/dashboard/flagged');
-  revalidatePath('/dashboard/products');
+  revalidatePath('/dashboard', 'layout');
   return mockProducts[productIndex];
 }

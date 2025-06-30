@@ -11,7 +11,7 @@ export default async function UsersPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
   if (!hasRole(user, UserRoles.ADMIN)) {
-    redirect(`/dashboard/admin`);
+    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
   const initialUsers = await getUsers();
