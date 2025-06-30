@@ -1,5 +1,7 @@
 // src/app/dashboard/export/page.tsx
+'use client';
 
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -7,13 +9,36 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { FileDown, HardDriveDownload } from "lucide-react";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DataExportPage() {
+  const [productFormat, setProductFormat] = useState('csv');
+  const [complianceFormat, setComplianceFormat] = useState('pdf');
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleGenerateExport = (exportType: string) => {
+    setIsGenerating(exportType);
+    toast({
+      title: 'Generating Report...',
+      description: `Your ${exportType} export is being prepared and will be available shortly.`,
+    });
+
+    // Simulate a delay for report generation
+    setTimeout(() => {
+      setIsGenerating(null);
+      toast({
+        title: 'Report Ready!',
+        description: `Your ${exportType} export has been generated. (This is a mock action)`,
+      });
+    }, 2500);
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +62,12 @@ export default function DataExportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup defaultValue="csv" className="space-y-2">
+            <RadioGroup
+              defaultValue="csv"
+              className="space-y-2"
+              onValueChange={setProductFormat}
+              value={productFormat}
+            >
               <Label>File Format</Label>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="csv" id="product-csv" />
@@ -50,7 +80,15 @@ export default function DataExportPage() {
             </RadioGroup>
           </CardContent>
           <CardFooter>
-            <Button>Generate Product Export</Button>
+            <Button
+              onClick={() => handleGenerateExport('Product')}
+              disabled={!!isGenerating}
+            >
+              {isGenerating === 'Product' && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Generate Product Export
+            </Button>
           </CardFooter>
         </Card>
 
@@ -66,7 +104,12 @@ export default function DataExportPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup defaultValue="pdf" className="space-y-2">
+            <RadioGroup
+              defaultValue="pdf"
+              className="space-y-2"
+              onValueChange={setComplianceFormat}
+              value={complianceFormat}
+            >
               <Label>File Format</Label>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="pdf" id="compliance-pdf" />
@@ -79,7 +122,15 @@ export default function DataExportPage() {
             </RadioGroup>
           </CardContent>
           <CardFooter>
-            <Button>Generate Compliance Export</Button>
+            <Button
+              onClick={() => handleGenerateExport('Compliance')}
+              disabled={!!isGenerating}
+            >
+              {isGenerating === 'Compliance' && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Generate Compliance Export
+            </Button>
           </CardFooter>
         </Card>
       </div>
