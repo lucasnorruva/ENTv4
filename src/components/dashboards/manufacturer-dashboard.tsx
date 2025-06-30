@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import ProductTable from "../product-table";
 import type { Product, User } from "@/types";
-import { getProductionLines } from "@/lib/actions";
+import { getProductionLines, getProducts } from "@/lib/actions";
 import { useEffect, useState } from "react";
 import type { ProductionLine } from "@/types";
 import { Button } from "../ui/button";
@@ -19,23 +19,22 @@ import Link from "next/link";
 import { ArrowRight, BookCopy, Factory } from "lucide-react";
 import { Skeleton } from "../ui/skeleton";
 
-export default function ManufacturerDashboard({
-  products,
-  user,
-}: {
-  products: Product[];
-  user: User;
-}) {
+export default function ManufacturerDashboard({ user }: { user: User }) {
+  const [products, setProducts] = useState<Product[]>([]);
   const [lines, setLines] = useState<ProductionLine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchLines() {
-      const fetchedLines = await getProductionLines();
+    async function fetchData() {
+      const [fetchedProducts, fetchedLines] = await Promise.all([
+        getProducts(),
+        getProductionLines(),
+      ]);
+      setProducts(fetchedProducts);
       setLines(fetchedLines);
       setIsLoading(false);
     }
-    fetchLines();
+    fetchData();
   }, []);
 
   // Manufacturers would likely have a different set of actions,
@@ -61,7 +60,11 @@ export default function ManufacturerDashboard({
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            {isLoading ? (
+              <Skeleton className="h-7 w-12" />
+            ) : (
+              <div className="text-2xl font-bold">{products.length}</div>
+            )}
             <p className="text-xs text-muted-foreground">
               Across all production lines
             </p>
@@ -102,17 +105,25 @@ export default function ManufacturerDashboard({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductTable
-            products={products}
-            onEdit={() => alert("Editing not available in this view.")}
-            onDelete={() => alert("Deleting not available in this view.")}
-            onSubmitForReview={() =>
-              alert("Submitting not available in this view.")
-            }
-            onRecalculateScore={() =>
-              alert("Recalculating not available in this view.")
-            }
-          />
+          {isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ) : (
+            <ProductTable
+              products={products}
+              onEdit={() => alert("Editing not available in this view.")}
+              onDelete={() => alert("Deleting not available in this view.")}
+              onSubmitForReview={() =>
+                alert("Submitting not available in this view.")
+              }
+              onRecalculateScore={() =>
+                alert("Recalculating not available in this view.")
+              }
+            />
+          )}
         </CardContent>
       </Card>
     </div>

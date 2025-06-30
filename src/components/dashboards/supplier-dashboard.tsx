@@ -11,23 +11,26 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Product, User } from "@/types";
+import type { User } from "@/types";
 import { ArrowRight, BookCopy, CheckCircle, Clock, Hourglass } from "lucide-react";
+import { useEffect, useState } from "react";
+import { getProducts } from "@/lib/actions";
+import { Skeleton } from "../ui/skeleton";
 
-export default function SupplierDashboard({
-  initialProducts,
-  user,
-}: {
-  initialProducts: Product[];
-  user: User;
-}) {
-  const stats = {
-    total: initialProducts.length,
-    pending: initialProducts.filter(p => p.verificationStatus === "Pending")
-      .length,
-    verified: initialProducts.filter(p => p.verificationStatus === "Verified")
-      .length,
-  };
+export default function SupplierDashboard({ user }: { user: User }) {
+  const [stats, setStats] = useState<{ total: number, pending: number, verified: number } | null>(null);
+
+  useEffect(() => {
+    async function fetchStats() {
+      const products = await getProducts();
+      setStats({
+        total: products.length,
+        pending: products.filter(p => p.verificationStatus === "Pending").length,
+        verified: products.filter(p => p.verificationStatus === "Verified").length,
+      });
+    }
+    fetchStats();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -48,7 +51,7 @@ export default function SupplierDashboard({
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            {stats ? <div className="text-2xl font-bold">{stats.total}</div> : <Skeleton className="h-8 w-1/2" />}
             <p className="text-xs text-muted-foreground">
               Passports you are managing
             </p>
@@ -60,7 +63,7 @@ export default function SupplierDashboard({
             <Hourglass className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
+            {stats ? <div className="text-2xl font-bold">{stats.pending}</div> : <Skeleton className="h-8 w-1/2" />}
             <p className="text-xs text-muted-foreground">
               Products awaiting auditor verification
             </p>
@@ -72,7 +75,7 @@ export default function SupplierDashboard({
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.verified}</div>
+            {stats ? <div className="text-2xl font-bold">{stats.verified}</div> : <Skeleton className="h-8 w-1/2" />}
             <p className="text-xs text-muted-foreground">
               Products that are fully compliant
             </p>

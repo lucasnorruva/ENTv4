@@ -1,4 +1,3 @@
-
 // src/components/dashboards/auditor-dashboard.tsx
 import {
   Card,
@@ -8,18 +7,14 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import type { Product, User } from '@/types';
+import type { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle, Hourglass } from 'lucide-react';
 import Link from 'next/link';
+import { getProducts } from '@/lib/actions';
 
-export default function AuditorDashboard({
-  products,
-  user,
-}: {
-  products: Product[];
-  user: User;
-}) {
+export default async function AuditorDashboard({ user }: { user: User }) {
+  const products = await getProducts();
   const stats = {
     pending: products.filter(p => p.verificationStatus === 'Pending').length,
     verified: products.filter(p => p.verificationStatus === 'Verified').length,

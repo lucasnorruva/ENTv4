@@ -11,18 +11,14 @@ import { Button } from '@/components/ui/button';
 import type { Product, User } from '@/types';
 import { ArrowRight, CheckCircle, Recycle } from 'lucide-react';
 import Link from 'next/link';
+import { getProducts } from '@/lib/actions';
 
-export default function RecyclerDashboard({
-  products,
-  user,
-}: {
-  products: Product[];
-  user: User;
-}) {
+export default async function RecyclerDashboard({ user }: { user: User }) {
+  const products = await getProducts();
   const stats = {
-    recycled: products.filter((p) => p.endOfLifeStatus === 'Recycled').length,
+    recycled: products.filter(p => p.endOfLifeStatus === 'Recycled').length,
     active: products.filter(
-      (p) => p.endOfLifeStatus === 'Active' || !p.endOfLifeStatus,
+      p => p.endOfLifeStatus === 'Active' || !p.endOfLifeStatus,
     ).length,
   };
 

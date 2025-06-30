@@ -1,5 +1,4 @@
 import { Role, UserRoles } from "@/lib/constants";
-import { getProducts } from "@/lib/actions";
 import { getCurrentUser } from "@/lib/auth";
 
 import AdminDashboard from "@/components/dashboards/admin-dashboard";
@@ -20,43 +19,30 @@ export default async function DashboardPage({
   searchParams: { role?: Role };
 }) {
   const selectedRole = searchParams.role || UserRoles.SUPPLIER;
-  // Fetch user and products in parallel for efficiency
-  const [user, products] = await Promise.all([
-    getCurrentUser(selectedRole),
-    getProducts(),
-  ]);
-
-  const flaggedProducts = products.filter(
-    (p) => p.verificationStatus === "Failed",
-  );
+  const user = await getCurrentUser(selectedRole);
 
   const renderDashboard = () => {
     switch (user.roles[0]) {
       case UserRoles.ADMIN:
         return <AdminDashboard user={user} />;
       case UserRoles.SUPPLIER:
-        return <SupplierDashboard initialProducts={products} user={user} />;
+        return <SupplierDashboard user={user} />;
       case UserRoles.AUDITOR:
-        return <AuditorDashboard products={products} user={user} />;
+        return <AuditorDashboard user={user} />;
       case UserRoles.COMPLIANCE_MANAGER:
-        return (
-          <ComplianceManagerDashboard
-            flaggedProducts={flaggedProducts}
-            user={user}
-          />
-        );
+        return <ComplianceManagerDashboard user={user} />;
       case UserRoles.BUSINESS_ANALYST:
-        return <BusinessAnalystDashboard products={products} user={user} />;
+        return <BusinessAnalystDashboard user={user} />;
       case UserRoles.MANUFACTURER:
-        return <ManufacturerDashboard products={products} user={user} />;
+        return <ManufacturerDashboard user={user} />;
       case UserRoles.SERVICE_PROVIDER:
         return <ServiceProviderDashboard user={user} />;
       case UserRoles.RECYCLER:
-        return <RecyclerDashboard products={products} user={user} />;
+        return <RecyclerDashboard user={user} />;
       case UserRoles.DEVELOPER:
         return <DeveloperDashboard user={user} />;
       default:
-        return <SupplierDashboard initialProducts={products} user={user} />;
+        return <SupplierDashboard user={user} />;
     }
   };
 

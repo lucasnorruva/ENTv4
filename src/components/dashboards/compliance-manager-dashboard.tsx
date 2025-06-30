@@ -8,18 +8,18 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Product, User } from '@/types';
+import type { User } from '@/types';
 import { AlertTriangle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
+import { getProducts } from '@/lib/actions';
 
-export default function ComplianceManagerDashboard({
-  flaggedProducts,
-  user,
-}: {
-  flaggedProducts: Product[];
-  user: User;
-}) {
+export default async function ComplianceManagerDashboard({ user }: { user: User }) {
+  const allProducts = await getProducts();
+  const flaggedProducts = allProducts.filter(
+    p => p.verificationStatus === 'Failed',
+  );
+
   const recentFlagged = flaggedProducts
     .sort(
       (a, b) =>

@@ -7,20 +7,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { Product, User } from "@/types";
+import type { User } from "@/types";
 import ComplianceOverviewChart from "../charts/compliance-overview-chart";
 import { Button } from "../ui/button";
 import { FileDown, ArrowRight } from "lucide-react";
 import SustainabilityByCategoryChart from "../charts/sustainability-by-category-chart";
 import Link from "next/link";
+import { getProducts } from "@/lib/actions";
 
-export default function BusinessAnalystDashboard({
-  products,
-  user,
-}: {
-  products: Product[];
-  user: User;
-}) {
+export default async function BusinessAnalystDashboard({ user }: { user: User }) {
+  const products = await getProducts();
   const complianceData = {
     verified: products.filter((p) => p.verificationStatus === "Verified")
       .length,
