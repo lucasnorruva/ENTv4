@@ -36,30 +36,7 @@ import { UserRoles, type Role } from "@/lib/constants";
 import type { User } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-2">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-7 w-7 text-primary"
-      >
-        <path d="M17 17l-10-10"></path>
-        <path d="M17 7v10"></path>
-        <path d="M7 17V7"></path>
-      </svg>
-      <h1 className="text-xl font-bold group-data-[collapsible=icon]:hidden">
-        Norruva
-      </h1>
-    </div>
-  );
-}
+import Logo from "@/components/logo";
 
 interface NavItem {
   title: string;
@@ -197,7 +174,7 @@ export default function DashboardSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-        <Logo />
+        <Logo className="text-xl group-data-[collapsible=icon]:hidden" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

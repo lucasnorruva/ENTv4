@@ -1,28 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-
-function Logo() {
-  return (
-    <div className="flex items-center gap-2">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-7 w-7 text-primary"
-      >
-        <path d="M17 17l-10-10"></path>
-        <path d="M17 7v10"></path>
-        <path d="M7 17V7"></path>
-      </svg>
-      <h1 className="text-2xl font-bold">Norruva</h1>
-    </div>
-  );
-}
+import Logo from "@/components/logo";
 
 export default function TermsPage() {
   return (
