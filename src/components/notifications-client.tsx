@@ -1,7 +1,8 @@
 // src/components/notifications-client.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
+import Link from 'next/link';
 import {
   Bell,
   ArrowRight,
@@ -16,6 +17,7 @@ import {
   Recycle,
   ShieldX,
 } from 'lucide-react';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,9 +27,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from './ui/button';
-import type { ProcessedNotification } from './notifications-panel';
-import Link from 'next/link';
 import { Badge } from './ui/badge';
+import type { ProcessedNotification } from './notifications-panel';
+import { markAllNotificationsAsRead } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -44,15 +48,40 @@ const actionIcons: Record<string, React.ElementType> = {
 
 interface NotificationsClientProps {
   notifications: ProcessedNotification[];
+  userId: string;
 }
 
 export default function NotificationsClient({
   notifications,
+  userId,
 }: NotificationsClientProps) {
-  const unreadCount = notifications.length; // In a real app, this would track read status
+  const { toast } = useToast();
+  const [isPending, startTransition] = useTransition();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  useEffect(() => {
+    // When the dropdown is opened and there are unread notifications,
+    // call the server action to mark them as read.
+    if (isOpen && unreadCount > 0) {
+      startTransition(async () => {
+        try {
+          await markAllNotificationsAsRead(userId);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Could not mark notifications as read.',
+            variant: 'destructive',
+          });
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, unreadCount, userId]);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -76,9 +105,14 @@ export default function NotificationsClient({
             return (
               <DropdownMenuItem
                 key={notification.id}
-                className="flex items-start gap-3"
+                className="items-start gap-2"
               >
-                <Icon className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div className="w-2 flex-shrink-0 pt-[9px]">
+                  {!notification.isRead && !isPending && (
+                    <div className="h-2 w-2 rounded-full bg-primary" />
+                  )}
+                </div>
+                <Icon className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium">{notification.title}</p>
                   <p className="text-xs text-muted-foreground">

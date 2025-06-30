@@ -35,7 +35,7 @@ export default async function DashboardLayout({
 
           <RoleSwitcher roles={allRoles} currentRole={user.roles[0]} />
 
-          <NotificationsPanel />
+          <NotificationsPanel user={user} />
         </header>
         <main className="flex-1 p-6">{children}</main>
       </SidebarInset>

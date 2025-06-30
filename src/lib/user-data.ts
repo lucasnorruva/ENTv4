@@ -11,6 +11,7 @@ export let users: User[] = [
     roles: [UserRoles.ADMIN],
     createdAt: '2024-07-01T10:00:00Z',
     updatedAt: '2024-07-20T10:00:00Z',
+    readNotificationIds: ['log-api-001', 'log-api-002', 'log-003'],
   },
   {
     id: 'user-supplier',
@@ -20,6 +21,7 @@ export let users: User[] = [
     roles: [UserRoles.SUPPLIER],
     createdAt: '2024-07-02T11:00:00Z',
     updatedAt: '2024-07-19T11:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-auditor',
@@ -29,6 +31,7 @@ export let users: User[] = [
     roles: [UserRoles.AUDITOR],
     createdAt: '2024-07-03T12:00:00Z',
     updatedAt: '2024-07-18T12:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-compliance',
@@ -38,6 +41,7 @@ export let users: User[] = [
     roles: [UserRoles.COMPLIANCE_MANAGER],
     createdAt: '2024-07-04T13:00:00Z',
     updatedAt: '2024-07-17T13:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-manufacturer',
@@ -47,6 +51,7 @@ export let users: User[] = [
     roles: [UserRoles.MANUFACTURER],
     createdAt: '2024-07-05T14:00:00Z',
     updatedAt: '2024-07-16T14:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-service',
@@ -56,6 +61,7 @@ export let users: User[] = [
     roles: [UserRoles.SERVICE_PROVIDER],
     createdAt: '2024-07-06T15:00:00Z',
     updatedAt: '2024-07-15T15:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-recycler',
@@ -65,6 +71,7 @@ export let users: User[] = [
     roles: [UserRoles.RECYCLER],
     createdAt: '2024-07-07T16:00:00Z',
     updatedAt: '2024-07-14T16:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-developer',
@@ -74,6 +81,7 @@ export let users: User[] = [
     roles: [UserRoles.DEVELOPER],
     createdAt: '2024-07-08T17:00:00Z',
     updatedAt: '2024-07-13T17:00:00Z',
+    readNotificationIds: [],
   },
   {
     id: 'user-analyst',
@@ -83,5 +91,6 @@ export let users: User[] = [
     roles: [UserRoles.BUSINESS_ANALYST],
     createdAt: '2024-07-09T18:00:00Z',
     updatedAt: '2024-07-12T18:00:00Z',
+    readNotificationIds: [],
   },
 ];

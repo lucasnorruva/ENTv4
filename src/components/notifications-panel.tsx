@@ -3,6 +3,7 @@
 import { getAuditLogs, getUsers, getProducts } from '@/lib/actions';
 import { formatDistanceToNow } from 'date-fns';
 import NotificationsClient from './notifications-client';
+import type { User } from '@/types';
 
 const getActionLabel = (action: string): string => {
   return action
@@ -17,30 +18,34 @@ export interface ProcessedNotification {
   title: string;
   description: string;
   timestamp: string;
+  isRead: boolean;
 }
 
-export default async function NotificationsPanel() {
+export default async function NotificationsPanel({ user }: { user: User }) {
   // Fetch data on the server
-  const [logs, products, users] = await Promise.all([
+  const [logs, products, allUsers] = await Promise.all([
     getAuditLogs(),
     getProducts(),
     getUsers(),
   ]);
 
   const productMap = new Map(products.map(p => [p.id, p.productName]));
-  const userMap = new Map(users.map(u => [u.id, u.fullName]));
+  const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
 
+  // In a real app, you might filter logs based on user relevance
   const recentLogs = logs.slice(0, 5);
 
   const processedNotifications: ProcessedNotification[] = recentLogs.map(
     log => {
-      const user = userMap.get(log.userId) || 'System';
+      const logUser = userMap.get(log.userId) || 'System';
       const product = productMap.get(log.entityId);
       const title = getActionLabel(log.action);
-      let description = `By ${user}`;
+      let description = `By ${logUser}`;
       if (product) {
         description += ` on "${product}"`;
       }
+
+      const isRead = user.readNotificationIds?.includes(log.id) ?? false;
 
       return {
         id: log.id,
@@ -50,9 +55,15 @@ export default async function NotificationsPanel() {
         timestamp: formatDistanceToNow(new Date(log.createdAt), {
           addSuffix: true,
         }),
+        isRead,
       };
     },
   );
 
-  return <NotificationsClient notifications={processedNotifications} />;
+  return (
+    <NotificationsClient
+      notifications={processedNotifications}
+      userId={user.id}
+    />
+  );
 }

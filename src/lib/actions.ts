@@ -550,6 +550,22 @@ export async function deleteUser(
   return { success: true };
 }
 
+// --- NOTIFICATION ACTIONS ---
+export async function markAllNotificationsAsRead(
+  userId: string,
+): Promise<User> {
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex === -1) throw new Error('User not found');
+
+  const allLogIds = mockAuditLogs.map(log => log.id);
+  mockUsers[userIndex].readNotificationIds = allLogIds;
+  mockUsers[userIndex].updatedAt = new Date().toISOString();
+
+  await logAuditEvent('notifications.read_all', userId, {}, userId);
+  revalidatePath('/dashboard/layout');
+  return mockUsers[userIndex];
+}
+
 // --- SETTINGS ACTIONS ---
 export async function updateUserProfile(
   userId: string,

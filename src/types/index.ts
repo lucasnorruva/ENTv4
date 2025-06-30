@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role, UserRoles } from "@/lib/constants";
 import type {
@@ -26,6 +25,7 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: (UserRoles[keyof typeof UserRoles])[];
+  readNotificationIds?: string[];
 }
 
 /**
