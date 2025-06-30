@@ -9,7 +9,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuFooter,
 } from '@/components/ui/dropdown-menu';
 import { Button } from './ui/button';
 import type { ProcessedNotification } from './notifications-panel';
@@ -67,13 +66,13 @@ export default function NotificationsClient({
           </p>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuFooter className="p-1">
+        <div className="p-1">
           <Button variant="ghost" size="sm" className="w-full" asChild>
             <Link href="/dashboard/history">
               View All Activity <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
-        </DropdownMenuFooter>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

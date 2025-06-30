@@ -1,11 +1,7 @@
 // src/components/notifications-panel.tsx
 
-import {
-  getAuditLogs,
-  getUsers,
-  getProducts,
-  getCurrentUser,
-} from '@/lib/actions';
+import { getAuditLogs, getUsers, getProducts } from '@/lib/actions';
+import { getCurrentUser } from '@/lib/auth';
 import {
   Clock,
   Edit,
