@@ -1,7 +1,7 @@
 // src/lib/compliance-data.ts
 import type { CompliancePath } from '@/types';
 
-export let compliancePaths: CompliancePath[] = [
+export const compliancePaths: CompliancePath[] = [
   {
     id: 'cp-electronics-01',
     name: 'EU Electronics Sustainability Standard (ESPR, RoHS)',
@@ -12,10 +12,7 @@ export let compliancePaths: CompliancePath[] = [
     rules: {
       minSustainabilityScore: 60,
       bannedKeywords: ['Lead', 'Mercury', 'Cadmium', 'Hexavalent Chromium'],
-      requiredKeywords: [],
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'cp-fashion-01',
@@ -29,8 +26,6 @@ export let compliancePaths: CompliancePath[] = [
       requiredKeywords: ['Organic Cotton'],
       bannedKeywords: ['Polyester'],
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   },
   {
     id: 'cp-homegoods-01',
@@ -41,10 +36,10 @@ export let compliancePaths: CompliancePath[] = [
     category: 'Home Goods',
     rules: {
       minSustainabilityScore: 40,
-      requiredKeywords: [],
-      bannedKeywords: [],
     },
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
   },
 ];
+
+export function getCompliancePathById(id: string): CompliancePath | undefined {
+  return compliancePaths.find(p => p.id === id);
+}
