@@ -8,7 +8,6 @@ import {
   logAuditEvent,
   getCompliancePaths,
 } from "@/lib/actions";
-import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 import { verifyProductAgainstPath } from "@/services/compliance";
 
 /**
@@ -25,10 +24,9 @@ export async function runDailyComplianceCheck(): Promise<{
   console.log("Running scheduled compliance and verification checks...");
   await logAuditEvent("cron.start", "dailyComplianceCheck", {}, "system");
 
-  const [allProducts, compliancePaths] = await Promise.all([
-    getProducts(),
-    getCompliancePaths(),
-  ]);
+  // Run as an admin user to get access to all products
+  const allProducts = await getProducts("user-admin");
+  const compliancePaths = await getCompliancePaths();
 
   const productsToVerify = allProducts.filter(
     (p) => p.verificationStatus === "Pending",
@@ -62,7 +60,7 @@ export async function runDailyComplianceCheck(): Promise<{
       continue;
     }
 
-    // First, run deterministic rule-based checks
+    // Run deterministic rule-based checks
     const { isCompliant, gaps } = await verifyProductAgainstPath(
       product,
       compliancePath,
