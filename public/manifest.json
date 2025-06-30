@@ -1,9 +1,9 @@
 {
   "name": "Norruva",
   "short_name": "Norruva",
-  "description": "The Future of Product Transparency. Create, manage, and verify Digital Product Passports.",
-  "start_url": "/",
+  "description": "The Future of Product Transparency",
+  "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#F5F5F5",
-  "theme_color": "#3F51B5"
+  "background_color": "#f5f5f5",
+  "theme_color": "#4c51bf"
 }
