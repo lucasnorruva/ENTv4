@@ -7,7 +7,11 @@ import { products } from "@/lib/data"; // Import mock products
 import { compliancePaths } from "@/lib/compliance-data"; // Import mock compliance paths
 import type { CompliancePath, Product } from "@/types";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
-import { anchorToPolygon, hashProductData } from "@/services/blockchain";
+import {
+  anchorToPolygon,
+  generateEbsiCredential,
+  hashProductData,
+} from "@/services/blockchain";
 
 /**
  * Runs a daily compliance check on all products pending verification.
@@ -61,6 +65,7 @@ export async function runDailyComplianceCheck(): Promise<{
       "Product is compliant with all known rules for its category.";
     let finalGaps;
     let blockchainProof;
+    let ebsiVcId;
 
     if (!compliancePath) {
       finalStatus = "Failed";
@@ -97,10 +102,12 @@ export async function runDailyComplianceCheck(): Promise<{
           product.currentInformation,
         );
         blockchainProof = await anchorToPolygon(product.id, productDataHash);
+        // Optionally generate EBSI credential as well
+        ebsiVcId = await generateEbsiCredential(product.id);
       } catch (e) {
-        console.error("Blockchain anchoring failed (mock mode):", e);
+        console.error("Blockchain/EBSI integration failed (mock mode):", e);
         // Decide if this should fail the verification. For now, just log it.
-        finalSummary += " (Blockchain anchoring failed)";
+        finalSummary += " (Blockchain/EBSI integration failed)";
       }
     } else {
       failed++;
@@ -120,6 +127,7 @@ export async function runDailyComplianceCheck(): Promise<{
         complianceSummary: finalSummary,
         complianceGaps: finalGaps,
         blockchainProof: blockchainProof || originalProduct.blockchainProof,
+        ebsiVcId: ebsiVcId || originalProduct.ebsiVcId,
       };
     }
 
@@ -132,7 +140,8 @@ export async function runDailyComplianceCheck(): Promise<{
       {
         status: finalStatus,
         summary: finalSummary,
-        blockchainProof: blockchainProof,
+        blockchainProof,
+        ebsiVcId,
       },
       "system",
     );

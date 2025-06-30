@@ -181,6 +181,19 @@ export default function ProductTable({
                       </a>
                     </DropdownMenuItem>
                   )}
+                  {product.ebsiVcId && (
+                    <DropdownMenuItem asChild>
+                      <a
+                        href="#"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={product.ebsiVcId}
+                      >
+                        <LinkIcon className="mr-2 h-4 w-4" />
+                        View EBSI Credential
+                      </a>
+                    </DropdownMenuItem>
+                  )}
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

@@ -46,3 +46,27 @@ export async function anchorToPolygon(
 
   return { txHash: mockTxHash, explorerUrl, blockHeight };
 }
+
+/**
+ * Generates a mock Verifiable Credential ID on the EBSI network.
+ * In a real implementation, this would involve using EBSI's APIs to issue
+ * a W3C Verifiable Credential containing the product data hash.
+ *
+ * @param productId The ID of the product for which to generate the credential.
+ * @returns A promise that resolves to a mock EBSI DID string.
+ */
+export async function generateEbsiCredential(
+  productId: string,
+): Promise<string> {
+  console.log(
+    `Generating EBSI Verifiable Credential for product ${productId}...`,
+  );
+
+  // Simulate network delay for API call to EBSI
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const mockEbsiId = `did:ebsi:${[...Array(20)].map(() => Math.floor(Math.random() * 36).toString(36)).join("")}`;
+
+  console.log(`Generated EBSI Credential ID: ${mockEbsiId}`);
+
+  return mockEbsiId;
+}
