@@ -1,23 +1,40 @@
 // src/lib/firebase-admin.ts
 
 import * as admin from 'firebase-admin';
+import { getApp, getApps, initializeApp } from 'firebase-admin/app';
 
-if (!admin.apps.length) {
+/**
+ * This function ensures that we initialize the Firebase Admin App only once.
+ * It's a common pattern for Next.js server environments.
+ * @returns The initialized Firebase Admin App.
+ */
+function getAdminApp() {
+  if (getApps().length > 0) {
+    return getApp();
+  }
+
   try {
-    // When running on Firebase servers, the config is automatically provided.
-    // When running locally, you need to set the GOOGLE_APPLICATION_CREDENTIALS
-    // environment variable to point to your service account key file.
-    admin.initializeApp();
-    console.log('Firebase Admin SDK initialized successfully.');
-  } catch (error) {
+    // When running on Firebase servers or with GOOGLE_APPLICATION_CREDENTIALS
+    // set locally, this will initialize the default app.
+    console.log('Initializing Firebase Admin SDK...');
+    return initializeApp();
+  } catch (error: any) {
     console.error(
       'Firebase Admin SDK initialization failed. Ensure GOOGLE_APPLICATION_CREDENTIALS is set for local development.',
       error,
     );
+    // Throw a more specific error to prevent the application from proceeding
+    // with an uninitialized SDK, which would lead to cryptic errors downstream.
+    throw new Error(
+      'Could not initialize Firebase Admin SDK. See server logs for more details.',
+    );
   }
 }
 
-export const adminDb = admin.firestore();
-export const adminStorage = admin.storage();
-export const adminAuth = admin.auth();
+const app = getAdminApp();
+
+// Explicitly use the initialized app to get the services. This is safer.
+export const adminDb = admin.firestore(app);
+export const adminStorage = admin.storage(app);
+export const adminAuth = admin.auth(app);
 export default admin;
