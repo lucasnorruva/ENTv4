@@ -265,6 +265,21 @@ export async function recalculateScore(
   return updatedProduct;
 }
 
+export async function markAsRecycled(productId: string, userId: string): Promise<Product> {
+  const product = findProduct(productId);
+  if (!product) throw new Error('Product not found');
+
+  const updatedProduct = findAndUpdateProduct(productId, {
+    endOfLifeStatus: 'Recycled',
+    updatedAt: new Date().toISOString(),
+  });
+
+  await logAuditEvent('product.recycled', productId, {}, userId);
+  revalidatePath('/dashboard');
+  return updatedProduct;
+}
+
+
 export async function logAuditEvent(
   action: string,
   entityId: string,
