@@ -3,83 +3,158 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   :root {
-    --background: 220 20% 98%; /* Light Stone Gray */
-    --foreground: 220 25% 10%; /* Near Black Blue */
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
-    --primary: 220 40% 25%; /* Trustworthy Dark Blue */
-    --primary-foreground: 210 20% 98%;
-    --secondary: 45 70% 55%; /* Soft Gold */
-    --secondary-foreground: 45 90% 15%;
-    --muted: 220 20% 94%;
-    --muted-foreground: 220 15% 45%;
-    --accent: 150 60% 50%; /* Mint Green */
-    --accent-foreground: 150 100% 10%;
-    --destructive: 0 80% 65%; /* Gentle Coral/Red */
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 220 40% 25%; /* Ring matches primary */
+    /* High-Frequency Palette - Light Mode */
+    --background: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
+    --foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+
+    --card: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
+    --card-foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+
+    --popover: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
+    --popover-foreground: 242 50% 20%; /* #1E1B4B indigoBase */
+
+    --primary: 217 91% 60%; /* #3B82F6 primaryBlue */
+    --primary-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on primaryBlue) */
+
+    --secondary: 158 80% 42%; /* #10B981 emeraldGreen */
+    --secondary-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on emeraldGreen) */
+    
+    --accent: 258 90% 66%; /* #8B5CF6 violetAccent */
+    --accent-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight (text on violetAccent) */
+
+    --muted: 220 13% 91%; /* #E2E8F0 (slate-200) derived from slateText */
+    --muted-foreground: 220 9% 46%; /* #64748B (slate-500) derived */
+
+    --destructive: 258 90% 66%; /* #8B5CF6 violetAccent (No Red!) */
+    --destructive-foreground: 210 20% 98%; /* #F9FAFB glassSurfaceLight */
+
+    --border: 220 13% 91%; /* #E2E8F0 (slate-200) for subtle borders */
+    --input: 220 13% 91%; /* #E2E8F0 (slate-200) */
+    --ring: 217 91% 60%; /* #3B82F6 primaryBlue for focus rings */
+
     --radius: 0.5rem;
-    --chart-1: 220 40% 25%; /* Dark Blue */
-    --chart-2: 45 70% 55%;  /* Soft Gold */
-    --chart-3: 150 60% 50%; /* Mint Green */
-    --chart-4: 200 90% 60%; /* Sky Blue */
-    --chart-5: 0 80% 65%;   /* Gentle Coral */
-    --sidebar-background: 220 20% 96%;
-    --sidebar-foreground: 220 25% 10%;
-    --sidebar-primary: 220 40% 25%;
-    --sidebar-primary-foreground: 210 20% 98%;
-    --sidebar-accent: 220 20% 90%;
-    --sidebar-accent-foreground: 220 25% 10%;
-    --sidebar-border: 220 15% 85%;
-    --sidebar-ring: 220 40% 25%;
+
+    /* Sidebar specific colors - Light Mode - GLASSMORPHIC */
+    --sidebar-background: 0 0% 100% / 0;   /* HSLA for transparent white */
+    --sidebar-foreground: 0 0% 100%;       /* White text */
+    --sidebar-primary: 0 0% 100% / 0.15;   /* Active item background: Slightly more opaque white */
+    --sidebar-primary-foreground: 0 0% 100%; /* Active item text: White */
+    --sidebar-accent: 0 0% 100% / 0.1;    /* Hover item background: Less opaque white */
+    --sidebar-accent-foreground: 0 0% 100%; /* Hover item text: White */
+    --sidebar-border: 0 0% 100% / 0.1;    /* Subtle white border */
+    --sidebar-ring: 217 91% 60%;         /* primaryBlue (original light mode ring for focus) */
+
+    /* Chart colors - Light Mode (No Red/Yellow) */
+    --chart-1: 217 91% 60%; /* primaryBlue */
+    --chart-2: 158 80% 42%; /* emeraldGreen */
+    --chart-3: 258 90% 66%; /* violetAccent */
+    --chart-4: 242 50% 35%; /* Darker indigoBase for variation */
+    --chart-5: 217 91% 75%; /* Lighter primaryBlue */
   }
 
   .dark {
-    --background: 220 20% 12%; /* Dark Slate Blue */
-    --foreground: 210 20% 95%; /* Light Gray */
-    --card: 220 20% 18%;
-    --card-foreground: 210 20% 95%;
-    --popover: 220 20% 12%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 45 70% 65%; /* Bright Gold */
-    --primary-foreground: 45 90% 15%;
-    --secondary: 200 80% 70%; /* Sky Blue */
-    --secondary-foreground: 200 100% 10%;
-    --muted: 220 20% 22%;
-    --muted-foreground: 210 15% 65%;
-    --accent: 150 50% 60%; /* Mint Green */
-    --accent-foreground: 150 100% 10%;
-    --destructive: 0 85% 70%; /* Brighter Coral/Red */
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 20% 25%;
-    --input: 220 20% 25%;
-    --ring: 45 70% 65%; /* Ring matches primary */
-    --chart-1: 45 70% 65%; /* Bright Gold */
-    --chart-2: 150 50% 60%; /* Mint Green */
-    --chart-3: 200 80% 70%; /* Sky Blue */
-    --chart-4: 220 40% 70%; /* Lighter Blue */
-    --chart-5: 0 85% 70%; /* Brighter Coral */
-    --sidebar-background: 220 20% 15%;
-    --sidebar-foreground: 210 20% 95%;
-    --sidebar-primary: 45 70% 65%;
-    --sidebar-primary-foreground: 45 90% 15%;
-    --sidebar-accent: 220 20% 25%;
-    --sidebar-accent-foreground: 210 20% 95%;
-    --sidebar-border: 220 20% 25%;
-    --sidebar-ring: 45 70% 65%;
-  }
-}
+    /* High-Frequency Palette - Dark Mode */
+    --background: 222 47% 9%; /* midnightShadow - Made darker */
+    --foreground: 220 14% 80%; /* slateText - Made lighter for contrast */
 
-@layer base {
+    --card: 0 0% 100% / 0.05; /* rgba(255,255,255,0.05) glassSurfaceDark */
+    --card-foreground: 220 14% 80%; /* slateText - Made lighter for contrast */
+
+    --popover: 222 47% 11%; /* Slightly lighter than new bg for popovers */
+    --popover-foreground: 220 14% 80%; /* slateText - Made lighter */
+
+    --primary: 217 91% 65%; /* Lighter primaryBlue for dark mode */
+    --primary-foreground: 222 47% 11%; /* midnightShadow (text on lighter primaryBlue) */
+
+    --secondary: 158 80% 48%; /* Lighter emeraldGreen for dark mode */
+    --secondary-foreground: 222 47% 11%; /* midnightShadow */
+    
+    --accent: 258 90% 70%; /* Lighter violetAccent for dark mode */
+    --accent-foreground: 222 47% 11%; /* midnightShadow */
+
+    --muted: 222 47% 18%; /* slate-800 (derived from midnightShadow) */
+    --muted-foreground: 220 14% 65%; /* slate-400 (derived) - Made lighter */
+
+    --destructive: 258 90% 70%; /* Lighter violetAccent (No Red!) */
+    --destructive-foreground: 222 47% 11%; /* midnightShadow */
+
+    --border: 222 47% 25%;       /* slate-700 for subtle borders */
+    --input: 222 47% 25%;        /* slate-700 */
+    --ring: 217 91% 65%;         /* Lighter primaryBlue for focus rings */
+    
+    /* Sidebar specific colors - Dark Mode - Glassmorphic */
+    --sidebar-background: 0 0% 100% / 0;   /* HSLA for transparent white */
+    --sidebar-foreground: 0 0% 100%;       /* White text */
+    
+    --sidebar-primary: 0 0% 100% / 0.15;   /* Active item background: Slightly more opaque white */
+    --sidebar-primary-foreground: 0 0% 100%; /* Active item text: White */
+    
+    --sidebar-accent: 0 0% 100% / 0.1;    /* Hover item background: Less opaque white */
+    --sidebar-accent-foreground: 0 0% 100%; /* Hover item text: White */
+    
+    --sidebar-border: 0 0% 100% / 0.1;    /* Subtle white border (rgba(255,255,255,0.1)) */
+    --sidebar-ring: 217 91% 65%;         /* Lighter primaryBlue (existing, for focus rings) */
+    
+    /* Chart colors - Dark Mode (No Red/Yellow) */
+    --chart-1: 217 91% 65%; /* Lighter primaryBlue */
+    --chart-2: 158 80% 48%; /* Lighter emeraldGreen */
+    --chart-3: 258 90% 70%; /* Lighter violetAccent */
+    --chart-4: 242 50% 50%; /* Lighter indigoBase for variation */
+    --chart-5: 217 91% 80%; /* Even Lighter primaryBlue */
+  }
+
+  /* Global base styles */
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s infinite ease-in-out;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -16; /* Adjust this value for speed/density */
+  }
+}
+
+.animate-dash {
+  animation: dash 1s linear infinite;
+}
+
+/* Animation for the particle traveling along the SVG arc */
+@keyframes travel {
+  0% {
+    motion-offset: 0%;
+    offset-distance: 0%; /* For older browsers / SVG 1.1 animateMotion fallback */
+  }
+  100% {
+    motion-offset: 100%;
+    offset-distance: 100%; /* For older browsers / SVG 1.1 animateMotion fallback */
+  }
+}
+
+.animate-travel {
+  animation: travel 4s linear infinite; 
+  /* For direct SVG animateMotion, duration is set there. This class is for potential CSS-driven offset-path if needed. */
+  /* For <animateMotion>, the animation is defined declaratively. This class is for the <g> wrapper. */
 }
