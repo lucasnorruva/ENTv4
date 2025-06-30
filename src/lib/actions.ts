@@ -10,7 +10,11 @@ import {
   type SuggestImprovementsOutput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
-import { anchorToPolygon, hashProductData } from "@/services/blockchain";
+import {
+  anchorToPolygon,
+  generateEbsiCredential,
+  hashProductData,
+} from "@/services/blockchain";
 import { compliancePaths } from "./compliance-data";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
@@ -205,6 +209,91 @@ export async function submitForReview(
     "passport.submitted",
     productId,
     { summary: complianceSummary, isCompliant },
+    userId,
+  );
+
+  revalidatePath("/dashboard");
+  return updatedProduct;
+}
+
+export async function approvePassport(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const productIndex = mockProducts.findIndex((p) => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error("Product not found");
+  }
+
+  const product = mockProducts[productIndex];
+  const now = new Date();
+
+  // Anchor to blockchain on successful verification
+  let blockchainProof;
+  let ebsiVcId;
+  try {
+    const productDataHash = await hashProductData(product.currentInformation);
+    blockchainProof = await anchorToPolygon(product.id, productDataHash);
+    ebsiVcId = await generateEbsiCredential(product.id);
+  } catch (e) {
+    console.error("Blockchain/EBSI integration failed (mock mode):", e);
+    throw new Error("Blockchain anchoring failed during approval.");
+  }
+
+  const updatedProduct: Product = {
+    ...product,
+    verificationStatus: "Verified",
+    lastVerificationDate: now.toISOString(),
+    blockchainProof: blockchainProof,
+    ebsiVcId: ebsiVcId,
+    // Clear gaps on approval
+    complianceSummary: "Product manually verified and approved by auditor.",
+    complianceGaps: [],
+    updatedAt: now.toISOString(),
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent(
+    "passport.verified",
+    productId,
+    { status: "Verified", blockchainProof, ebsiVcId },
+    userId,
+  );
+
+  revalidatePath("/dashboard");
+  return updatedProduct;
+}
+
+export async function rejectPassport(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const productIndex = mockProducts.findIndex((p) => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error("Product not found");
+  }
+
+  const product = mockProducts[productIndex];
+  const now = new Date();
+
+  const updatedProduct: Product = {
+    ...product,
+    status: "Draft", // Allow supplier to edit
+    verificationStatus: undefined, // Reset verification status
+    lastVerificationDate: now.toISOString(),
+    // Keep compliance info for supplier to see, but add a note
+    complianceSummary: `Auditor requested changes. Please address the gaps and resubmit. Original summary: ${product.complianceSummary || "N/A"}`,
+    // Gaps are kept so supplier knows what to fix
+    updatedAt: now.toISOString(),
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent(
+    "passport.rejected",
+    productId,
+    { reason: "Auditor requested changes" },
     userId,
   );
 

@@ -1,7 +1,7 @@
 // src/components/dashboards/auditor-dashboard.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import {
   Card,
   CardContent,
@@ -29,17 +29,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Product, User } from "@/types";
-import { AlertCircle, CheckCircle, FileWarning } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle,
+  FileWarning,
+  Loader2,
+} from "lucide-react";
+import { approvePassport, rejectPassport } from "@/lib/actions";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AuditorDashboard({
-  products,
+  products: initialProducts,
   user,
 }: {
   products: Product[];
   user: User;
 }) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const productsToAudit = products.filter(
     (p) =>
@@ -52,9 +62,59 @@ export default function AuditorDashboard({
   };
 
   const handleApprove = () => {
-    // In a real app, this would trigger a server action to update the product status
-    alert(`Product ${selectedProduct?.productName} approved.`);
-    setIsDialogOpen(false);
+    if (!selectedProduct) return;
+    startTransition(async () => {
+      try {
+        const approvedProduct = await approvePassport(
+          selectedProduct.id,
+          user.id,
+        );
+        setProducts((currentProducts) =>
+          currentProducts.map((p) =>
+            p.id === approvedProduct.id ? approvedProduct : p,
+          ),
+        );
+        toast({
+          title: "Passport Approved",
+          description: `"${approvedProduct.productName}" has been successfully verified and anchored.`,
+        });
+        setIsDialogOpen(false);
+      } catch (error) {
+        toast({
+          title: "Approval Failed",
+          description: "There was an error approving the passport.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
+  const handleReject = () => {
+    if (!selectedProduct) return;
+    startTransition(async () => {
+      try {
+        const rejectedProduct = await rejectPassport(
+          selectedProduct.id,
+          user.id,
+        );
+        setProducts((currentProducts) =>
+          currentProducts.map((p) =>
+            p.id === rejectedProduct.id ? rejectedProduct : p,
+          ),
+        );
+        toast({
+          title: "Passport Returned",
+          description: `"${rejectedProduct.productName}" has been returned to the supplier for changes.`,
+        });
+        setIsDialogOpen(false);
+      } catch (error) {
+        toast({
+          title: "Action Failed",
+          description: "There was an error returning the passport.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   return (
@@ -187,10 +247,25 @@ export default function AuditorDashboard({
               </div>
             </div>
             <AlertDialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                Close
+              <Button
+                variant="ghost"
+                onClick={() => setIsDialogOpen(false)}
+                disabled={isPending}
+              >
+                Cancel
               </Button>
-              <Button onClick={handleApprove}>Approve Passport</Button>
+              <Button
+                variant="outline"
+                onClick={handleReject}
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Request Changes
+              </Button>
+              <Button onClick={handleApprove} disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Approve Passport
+              </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
