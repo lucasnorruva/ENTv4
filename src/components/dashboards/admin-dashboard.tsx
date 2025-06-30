@@ -1,4 +1,3 @@
-
 // src/components/dashboards/admin-dashboard.tsx
 import Link from 'next/link';
 import {
@@ -9,12 +8,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { User, AuditLog } from '@/types';
-import {
-  getCompliancePaths,
-  getUsers,
-  getProducts,
-  getAuditLogs,
-} from '@/lib/actions';
+import { getCompliancePaths, getProducts, getAuditLogs } from '@/lib/actions';
+import { getUsers } from '@/lib/auth';
 import { Button } from '../ui/button';
 import {
   FileQuestion,
@@ -213,19 +208,19 @@ export default async function AdminDashboard({ user }: { user: User }) {
           </CardHeader>
           <CardContent className="grid gap-4">
             <Button asChild variant="outline">
-              <Link href="/dashboard/users">
+              <Link href="/dashboard/admin/users">
                 Manage Users
                 <ArrowRight className="ml-auto h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/dashboard/compliance">
+              <Link href="/dashboard/admin/compliance">
                 Manage Compliance Paths
                 <ArrowRight className="ml-auto h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/dashboard/analytics">
+              <Link href="/dashboard/admin/analytics">
                 View Full Analytics
                 <ArrowRight className="ml-auto h-4 w-4" />
               </Link>
