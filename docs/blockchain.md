@@ -12,6 +12,17 @@ Use cryptographic accumulators or the W3C Status List v2021 to revoke credential
 ### Selective Disclosure (VC Privacy)
 Support BBS+ signature suites with JSON-LD to let holders reveal only needed attributes. The W3C’s Data Integrity BBS Cryptosuite uses BBS+ to create unlinkable derived proofs [w3.org](https://w3.org). In practice, issuers sign a full JSON-LD credential with BBS+ (on curve BLS12-381 [decentralized-id.com](https://decentralized-id.com)) and holders can selectively reveal fields (e.g. only “meets certification” without supplier ID). This JSON-LD + BBS+ pipeline meets privacy mandates: data minimization and holder-control of disclosure.
 
+### Zero-Knowledge Proof Developer Stack
+Circom – A mature, low-level DSL by Baylina/iden3 for writing R1CS circuits. It offers fine-grained control over constraints, enabling high performance via optimized WebAssembly and tools like RapidSnark [medium.com](https://medium.com) [medium.com](https://medium.com). Circom is widely used in practice (e.g. Tornado Cash, Dark Forest) and produces small proofs for on-chain verification. However, developers must manually handle non-linear constraints (e.g. the “inverse trick” for checking zero) [medium.com](https://medium.com), making it more like driving a manual-transmission car [medium.com](https://medium.com).
+
+ZoKrates – A high-level Rust-based zk-SNARK toolbox aimed at Ethereum. It provides a simple language and compiler, plus built-in tools for circuit optimization and proof generation [linea.mirror.xyz](https://linea.mirror.xyz) [linea.mirror.xyz](https://linea.mirror.xyz). ZoKrates abstracts much of the low-level detail (for example, adding two fields is just def main(field x, field y) -> field { return x + y; }), and tightly integrates with Solidity (automatic verifier contract). Its focus is developer accessibility and rapid integration into smart contracts [linea.mirror.xyz](https://linea.mirror.xyz) [linea.mirror.xyz](https://linea.mirror.xyz). As a result, ZoKrates is “user-friendly for developers of all levels” and highly customizable [linea.mirror.xyz](https://linea.mirror.xyz).
+
+SnarkyJS (o1js) – A TypeScript ZKP library from O(1)Labs (Mina Protocol). It enables writing ZK programs in JS/TS and provides rich cryptographic primitives. SnarkyJS “seamlessly integrates” with JavaScript toolchains and has VS Code support for completion and debugging [medium.com](https://medium.com) [medium.com](https://medium.com). It’s designed for full-stack ZK apps (including browser and Node), with many built-ins (hashes, curves, fields) and a growing ecosystem. The TypeScript interface lowers the barrier for web developers, and the library outputs proofs/verifiers compatible with Mina’s blockchain or custom chains [medium.com](https://medium.com).
+
+Noir – A new Rust-inspired ZKP DSL by Aztec focusing on usability. It compiles to an abstract ACIR IR and can target multiple backends (PLONK, etc.). Noir’s syntax is high-level and C-like, automatically handling constraint logic under the hood. As one author notes, Circom forces developers to “play more of a cryptographer’s role,” whereas Noir lets you write simple logic (e.g. fn isZero(x: Field) -> bool { x == 0 }) without manual R1CS gymnastics [medium.com](https://medium.com). Noir includes a rich standard library (SHA-256, Pedersen, Merkle, math ops) and auto-generates Solidity verifiers. This “automatic transmission” approach saves developer effort [medium.com](https://medium.com), though potentially at some performance cost relative to hand-optimized circuits.
+
+For real-world circuits (e.g. proving “no RoHS-banned substances”), one would encode threshold checks on chemical composition. The circuit might take hashed material data or concentration values as private inputs and enforce that each banned-substance value equals zero or below a regulatory limit. In Noir or ZoKrates this could be expressed with a high-level loop or arithmetic condition, while Circom would require combining multiplication constraints (e.g. in * out == 0) to emulate an equality check [medium.com](https://medium.com). The prover then emits a proof that all checks pass without revealing the raw values, attesting compliance privately. In practice, such circuits often output a binary pass/fail flag and may leverage commitments or Merkle proofs for data integrity. (For example, supply-chain ZKP demos show companies proving adherence to environmental standards without revealing sensitive details [meegle.com](https://meegle.com).) Circom and ZoKrates circuits can be optimized (minimize multipliers, reuse gadgets, apply built-in optimizers) to reduce proving time. ZoKrates explicitly offers optimization tools in its compiler [linea.mirror.xyz](https://linea.mirror.xyz). Circom benefits from highly-optimized backends (e.g. WASM provers, RapidSnark parallel proving) that yield impressive performance [medium.com](https://medium.com). Noir’s compiler can apply IR-level optimizations across targets. Finally, trusted-setup vs transparent trade-offs influence tooling: traditional Groth16-based pipelines require a CRS ceremony (per-circuit or universal) whereas PLONK/Sonic/Marlin use one global SRS, and zk-STARKs or Halo2/IPAs avoid any secret setup [blog.lambdaclass.com](https://blog.lambdaclass.com) [linea.mirror.xyz](https://linea.mirror.xyz). SNARKs (Groth16) give tiny proofs but need trusted setup [tlu.tarilabs.com](https://tlu.tarilabs.com), whereas transparent SNARKs/STARKs eliminate trust assumptions [linea.mirror.xyz](https://linea.mirror.xyz) at the cost of larger proofs. In choosing a stack, developers balance proof size, prover speed, and trust model, as well as ergonomics (Noir and o1js simplify development [medium.com](https://medium.com), while Circom/Zokrates may squeeze more performance at the cost of manual constraint management).
+
 ## Regulatory Interoperability and Global Standards Mapping
 The DPP must align with international traceability and circular-economy standards. For supply chain events, GS1 EPCIS 2.0 is a natural fit: it tracks production, shipping, and logistics events. For example, a proof-of-concept DPP uses “EPCIS 2.0 for batch and transport event logs” [cryptokastaar.com](https://cryptokastaar.com). Likewise, ISO 22005 (feed/food chain traceability) provides a proven framework for recording each link in a product’s lineage [cryptokastaar.com](https://cryptokastaar.com). It is advisable to encode product IDs via GS1 Digital Link URIs (with GTINs) and embed them in QR/NFC carriers to meet ESPR requirements [cryptokastaar.com](https://cryptokastaar.com).
 
@@ -25,44 +36,6 @@ Map DPP data fields to US chemical and safety regimes. Key attributes like subst
 Leverage global data models and circular-economy metrics. UNECE’s UN/CEFACT team has published JSON-LD vocabularies for DPP (traceability, circularity) to ensure cross-border semantic compatibility [jargon-sh.medium.com](https://jargon-sh.medium.com). The DPP should reuse or align with these open vocabularies to facilitate interoperability. Similarly, OECD and EU reports emphasize that DPPs must capture material composition and life-cycle data for sustainability indicators [oecd.org](https://oecd.org). Thus, use common ontologies (e.g. UN sustainability goals, OECD indicators) for reporting environmental impact, so the DPP serves both EU ESPR and global circular-economy datasets [oecd.org](https://jargon-sh.medium.com).
 
 ---
-
-# Smart Contract Deployment and Blockchain Anchoring
-
-We anchor product integrity on the blockchain by storing cryptographic hashes of the product data. This provides a tamper-proof, time-stamped record of the product's state at any given point.
-
-## Core Anchoring Strategy
-
-The simplest method is to store a product's data hash on an EVM-compatible chain like Polygon PoS. The low transaction costs and fast finality make it ideal. A backend service, like a Firebase Cloud Function, is triggered when a passport is finalized. It serializes the product metadata (e.g., as JSON-LD), computes its `keccak256` hash, and calls a smart contract function to record it.
-
-### Smart Contract Example: ProductRegistry
-
-Below is a sample Solidity contract that records a product’s hash and emits an event.
-
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract ProductRegistry {
-    // Mapping from product ID to the stored hash (e.g. keccak256 of product metadata)
-    mapping(uint256 => bytes32) public productHash;
-
-    // Event emitted when a product hash is anchored on-chain
-    event ProductAnchored(uint256 indexed productId, bytes32 hashValue);
-
-    // Anchor the hash of arbitrary data for a given productId
-    function anchorProductHash(uint256 productId, bytes calldata data) external {
-        bytes32 h = keccak256(data);
-        productHash[productId] = h;
-        emit ProductAnchored(productId, h);
-    }
-}
-```
-
-This approach provides a solid foundation for data integrity verification.
-
-## Advanced Concepts & EU Alignment
-
-For deeper integration and alignment with EU frameworks like EBSI, we employ more advanced strategies including Verifiable Credentials (VCs), Decentralized Identifiers (DIDs), and NFTs.
 
 # Smart Contract Architecture and Anchoring Models
 
