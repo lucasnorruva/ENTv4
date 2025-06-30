@@ -1,3 +1,4 @@
+
 // src/components/dashboards/admin-dashboard.tsx
 import Link from 'next/link';
 import {
@@ -72,9 +73,9 @@ export default async function AdminDashboard({ user }: { user: User }) {
             </p>
           </CardContent>
           <CardFooter>
-            <Button asChild className="w-full">
+            <Button asChild className="w-full" variant="secondary" disabled>
               <Link href="/dashboard/compliance">
-                Manage Paths <ArrowRight className="ml-2 h-4 w-4" />
+                Manage Paths (soon) <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
