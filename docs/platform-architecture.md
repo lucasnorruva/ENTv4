@@ -156,3 +156,27 @@ The table below summarizes UI behavior for different problematic passport states
 | Partial Passport (Incomplete Data) | Show available data; highlight missing fields; banner indicating passport is incomplete. Possibly provide reason (e.g., “Waiting for supplier X’s data”). | User views passport: sees most fields, but “Material Origin: (pending data)” highlighted. A message at top explains some data is missing. |
 | Expired Passport | Display passport with “Expired” label; banner warning user; data is shown but marked as possibly outdated. | User scans product QR: passport opens with a red “Expired on 2025-12-31” notice. The details are visible but a warning advises to check for updates. |
 | Invalid Passport | Do not show normal passport details; show error message and explanation; offer support contact or retry if possible. | User attempts to open passport: instead of product info, sees “Error: Passport data invalid (verification failed).” Gemini AI suggests “This could be due to data corruption. Please verify the QR code or contact support.” |
+
+## AI-Assisted Error Explanations
+One of the standout features is how the platform leverages the Gemini AI to turn technical errors or complex compliance issues into understandable explanations:
+- Dynamic Error Interpretation: When an error occurs (e.g., a validation fails on upload, or an integration record is rejected), the system generates an error code and description. Gemini AI then interprets this in plain language for the user. For example, a raw error “Field X required by regulation Y missing” can be transformed into: “The recycling information is missing, which is required under EU law. Please add the recycling details to proceed.”
+- User Suggestions: Beyond just explaining, the AI often suggests next steps: “Try editing the Materials section to include the composition details” or “Contact your compliance manager to provide the missing certificate.” These suggestions are context-aware.
+- Multi-language Explanations: In line with our i18n support (see Internationalization and Localization), Gemini can output explanations in the user’s preferred language, using terminology that local users understand.
+- Confidence and Accuracy: The AI’s explanations are based on the rules and data in the system, so it is less likely to hallucinate information. It may include references to internal documentation for further help (e.g., link to a help article or internal policy if available).
+- Admin vs User Messaging: The system differentiates between end-user messages and admin messages. End-users (like a consumer scanning a passport) get very simple, action-oriented messages (“This passport is invalid, please try again later or contact support.”). Admin or power users get more detail (“Passport invalid: signature mismatch. Possible causes: data tampering or system error. You may override this if you have verified the physical documents.”).
+- Logging: All AI-provided explanations are logged, both for improvement (learning from common issues) and for compliance (keeping a record of what was communicated to users).
+A simplified sequence for an AI-assisted error might be:
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant UI as DPP UI
+    participant API as Platform API
+    participant AI as Gemini AI
+    U->>UI: Requests a DPP or submits data
+    UI->>API: Fetch or validate data
+    API-->>UI: Returns an error code (e.g., VALIDATION_ERROR)
+    UI->>AI: Query AI with error code and context data
+    AI-->>UI: Returns friendly explanation & suggestion
+    UI-->>U: Displays error message with explanation
+```
+*Figure: Sequence of Gemini AI providing an error explanation. The UI receives an error code from the backend and queries the AI module for a human-readable explanation, which is then shown to the user.*
