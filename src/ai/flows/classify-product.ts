@@ -19,7 +19,7 @@ const ClassifyProductInputSchema = z.object({
 });
 export type ClassifyProductInput = z.infer<typeof ClassifyProductInputSchema>;
 
-export const ClassifyProductOutputSchema = z.object({
+const ClassifyProductOutputSchema = z.object({
   esgCategory: z
     .string()
     .describe(

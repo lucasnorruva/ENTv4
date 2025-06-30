@@ -35,7 +35,7 @@ export type AnalyzeProductLifecycleInput = z.infer<
   typeof AnalyzeProductLifecycleInputSchema
 >;
 
-export const AnalyzeProductLifecycleOutputSchema = z.object({
+const AnalyzeProductLifecycleOutputSchema = z.object({
   carbonFootprint: z.object({
     value: z.number().describe("The estimated carbon footprint value."),
     unit: z

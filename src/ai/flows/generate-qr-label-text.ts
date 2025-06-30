@@ -29,7 +29,7 @@ export type GenerateQRLabelTextInput = z.infer<
   typeof GenerateQRLabelTextInputSchema
 >;
 
-export const GenerateQRLabelTextOutputSchema = z.object({
+const GenerateQRLabelTextOutputSchema = z.object({
   qrLabelText: z
     .string()
     .describe(

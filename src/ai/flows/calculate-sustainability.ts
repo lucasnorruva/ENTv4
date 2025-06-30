@@ -47,7 +47,7 @@ export type CalculateSustainabilityInput = z.infer<
   typeof CalculateSustainabilityInputSchema
 >;
 
-export const EsgScoreOutputSchema = z.object({
+const EsgScoreOutputSchema = z.object({
   score: z
     .number()
     .min(0)

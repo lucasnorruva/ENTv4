@@ -29,7 +29,7 @@ const RecommendationSchema = z.object({
   text: z.string().describe("The actionable recommendation text."),
 });
 
-export const SuggestImprovementsOutputSchema = z.object({
+const SuggestImprovementsOutputSchema = z.object({
   recommendations: z
     .array(RecommendationSchema)
     .describe("A list of actionable recommendations for the product."),

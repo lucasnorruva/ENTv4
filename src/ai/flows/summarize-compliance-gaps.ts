@@ -42,7 +42,7 @@ const GapSchema = z.object({
   issue: z.string().describe("A detailed description of the compliance gap."),
 });
 
-export const SummarizeComplianceGapsOutputSchema = z.object({
+const SummarizeComplianceGapsOutputSchema = z.object({
   isCompliant: z
     .boolean()
     .describe(
