@@ -545,6 +545,36 @@ export async function deleteUser(
   return { success: true };
 }
 
+// --- SETTINGS ACTIONS ---
+
+export async function updateUserProfile(userId: string, fullName: string): Promise<User> {
+  const user = mockUsers.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.fullName = fullName;
+  user.updatedAt = new Date().toISOString();
+  await logAuditEvent('user.profile.updated', userId, { fullName }, userId);
+  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/layout'); // To update avatar/name in sidebar
+  return JSON.parse(JSON.stringify(user));
+}
+
+export async function updateUserPassword(userId: string, current: string, newPass: string): Promise<{ success: boolean }> {
+  // This is a mock. In a real app, you would verify the current password.
+  console.log(`Updating password for ${userId}. Current: ${current}, New: ${newPass}`);
+  if (current === 'password123') { // Mock current password check
+    await logAuditEvent('user.password.updated', userId, {}, userId);
+    return { success: true };
+  }
+  throw new Error("Current password does not match.");
+}
+
+export async function saveNotificationPreferences(userId: string, prefs: Record<string, boolean>): Promise<{ success: boolean }> {
+  console.log(`Saving notification preferences for ${userId}:`, prefs);
+  await logAuditEvent('user.notifications.updated', userId, { preferences: prefs }, userId);
+  return { success: true };
+}
+
+
 // --- API KEY ACTIONS ---
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {

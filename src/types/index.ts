@@ -1,5 +1,5 @@
 // src/types/index.ts
-import type { Role } from "@/lib/constants";
+import type { Role, UserRoles } from "@/lib/constants";
 import type {
   AnalyzeProductLifecycleOutput,
   EsgScoreOutput,
@@ -24,7 +24,7 @@ export interface User extends BaseEntity {
   email: string;
   fullName: string;
   companyId: string;
-  roles: Role[];
+  roles: (UserRoles[keyof typeof UserRoles])[];
 }
 
 /**
