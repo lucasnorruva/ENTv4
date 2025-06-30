@@ -51,6 +51,7 @@ export let products: Product[] = [
       blockHeight: 50123456,
     },
     ebsiVcId: "did:ebsi:z2d5c3g7h1k9j4m6p8q",
+    endOfLifeStatus: "Active",
   },
   {
     id: "pp-002",
@@ -95,6 +96,7 @@ export let products: Product[] = [
       explorerUrl: "#",
       blockHeight: 50234567,
     },
+    endOfLifeStatus: "Active",
   },
   {
     id: "pp-003",
@@ -120,6 +122,7 @@ export let products: Product[] = [
       .split("T")[0],
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 0)).toISOString(),
+    endOfLifeStatus: "Active",
   },
   {
     id: "pp-004",
@@ -175,6 +178,7 @@ export let products: Product[] = [
       explorerUrl: "#",
       blockHeight: 49876543,
     },
+    endOfLifeStatus: "Recycled",
   },
   {
     id: "pp-005",
@@ -212,5 +216,6 @@ export let products: Product[] = [
     lastVerificationDate: new Date(
       new Date(now).setDate(now.getDate() - 45),
     ).toISOString(),
+    endOfLifeStatus: "Active",
   },
 ];
