@@ -6,9 +6,8 @@ import {
   approvePassport,
   rejectPassport,
   logAuditEvent,
+  getCompliancePaths,
 } from "@/lib/actions";
-import { compliancePaths } from "@/lib/compliance-data";
-import type { Product } from "@/types";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 /**
@@ -25,7 +24,11 @@ export async function runDailyComplianceCheck(): Promise<{
   console.log("Running scheduled compliance and verification checks...");
   await logAuditEvent("cron.start", "dailyComplianceCheck", {}, "system");
 
-  const allProducts = await getProducts();
+  const [allProducts, compliancePaths] = await Promise.all([
+    getProducts(),
+    getCompliancePaths(),
+  ]);
+
   const productsToVerify = allProducts.filter(
     (p) => p.verificationStatus === "Pending",
   );
