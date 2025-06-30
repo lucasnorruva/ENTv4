@@ -28,6 +28,11 @@ if (!firebaseConfig.projectId) {
   firebaseConfig.projectId = "norruva-studio";
 }
 
+// Add a log to confirm which project we're connecting to.
+console.log(
+  `✅ Initializing connection to Firebase project: "${firebaseConfig.projectId}"`,
+);
+
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
