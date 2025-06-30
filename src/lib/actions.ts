@@ -40,8 +40,8 @@ import { validateProductData } from '@/ai/flows/validate-product-data';
 import type {
   SuggestImprovementsInput,
   SuggestImprovementsOutput,
-  AiProduct,
 } from '@/types/ai-outputs';
+import { AiProduct } from '@/ai/schemas';
 import {
   compliancePaths,
   getCompliancePathById as getPathById,
@@ -72,13 +72,16 @@ export async function getProductById(
   if (!product) {
     return undefined;
   }
+  // If no user is provided, only return published products
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
   }
-  const user = await getCurrentUser();
-  if (user.companyId === product.companyId || user.roles.includes('Admin')) {
+  const user = await getCurrentUser(); // Assuming this gets the current authenticated user
+  // Admins can see everything. Others can see their own company's products.
+  if (user.roles.includes('Admin') || user.companyId === product.companyId) {
     return product;
   }
+  // Fallback for other roles to only see published products (e.g., an Auditor from another company)
   return product.status === 'Published' ? product : undefined;
 }
 
@@ -100,6 +103,7 @@ export async function saveProduct(
       ...validatedData,
       lastUpdated: now,
       updatedAt: now,
+      // If a failed product is edited, reset its verification status
       verificationStatus:
         existingProduct.verificationStatus === 'Failed'
           ? 'Not Submitted'
@@ -426,11 +430,13 @@ export async function deleteUser(
   }
 }
 
-export async function getCompliancePaths() {
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
   return compliancePaths;
 }
 
-export async function getCompliancePathById(id: string) {
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
   return getPathById(id);
 }
 
@@ -445,8 +451,14 @@ export async function saveCompliancePath(
 
   const rules = {
     minSustainabilityScore: validatedData.minSustainabilityScore,
-    requiredKeywords: validatedData.requiredKeywords?.split(',').map(s => s.trim()).filter(Boolean),
-    bannedKeywords: validatedData.bannedKeywords?.split(',').map(s => s.trim()).filter(Boolean),
+    requiredKeywords: validatedData.requiredKeywords
+      ?.split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
+    bannedKeywords: validatedData.bannedKeywords
+      ?.split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
   };
 
   if (pathId) {
@@ -457,7 +469,10 @@ export async function saveCompliancePath(
       name: validatedData.name,
       description: validatedData.description,
       category: validatedData.category,
-      regulations: validatedData.regulations.split(',').map(s => s.trim()).filter(Boolean),
+      regulations: validatedData.regulations
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean),
       rules,
       updatedAt: now,
     };
@@ -469,7 +484,10 @@ export async function saveCompliancePath(
       name: validatedData.name,
       description: validatedData.description,
       category: validatedData.category,
-      regulations: validatedData.regulations.split(',').map(s => s.trim()).filter(Boolean),
+      regulations: validatedData.regulations
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean),
       rules,
       createdAt: now,
       updatedAt: now,
@@ -478,6 +496,8 @@ export async function saveCompliancePath(
     await logAuditEvent('compliance_path.created', path.id, {}, userId);
   }
   revalidatePath('/dashboard/admin/compliance');
+  revalidatePath('/dashboard/auditor/compliance');
+  revalidatePath('/dashboard/compliance-manager/compliance');
   return path;
 }
 

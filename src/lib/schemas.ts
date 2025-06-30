@@ -67,7 +67,9 @@ export const compliancePathFormSchema = z.object({
   requiredKeywords: z.string().optional(),
   bannedKeywords: z.string().optional(),
 });
-export type CompliancePathFormValues = z.infer<typeof compliancePathFormSchema>;
+export type CompliancePathFormValues = z.infer<
+  typeof compliancePathFormSchema
+>;
 
 export const apiSettingsSchema = z.object({
     isPublicApiEnabled: z.boolean(),
