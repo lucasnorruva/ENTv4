@@ -60,8 +60,12 @@ const checkProductOwnership = async (productId: string, userId: string) => {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found.');
 
-  if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.AUDITOR)) {
-    return true; // Admins/Auditors can access any product
+  if (
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.AUDITOR) ||
+    hasRole(user, UserRoles.RECYCLER)
+  ) {
+    return true; // Admins, Auditors, and Recyclers can access any product
   }
 
   const product = products.find(p => p.id === productId);
@@ -137,11 +141,12 @@ export async function getProducts(userId: string): Promise<Product[]> {
   if (!user) {
     throw new Error('User not found.');
   }
-  // Admins, Auditors, and Analysts can see all products
+  // Admins, Auditors, Analysts, and Recyclers can see all products
   if (
     hasRole(user, UserRoles.ADMIN) ||
     hasRole(user, UserRoles.AUDITOR) ||
-    hasRole(user, UserRoles.BUSINESS_ANALYST)
+    hasRole(user, UserRoles.BUSINESS_ANALYST) ||
+    hasRole(user, UserRoles.RECYCLER)
   ) {
     return products;
   }
@@ -165,6 +170,7 @@ export async function getProductById(
       user &&
       (hasRole(user, UserRoles.ADMIN) ||
         hasRole(user, UserRoles.AUDITOR) ||
+        hasRole(user, UserRoles.RECYCLER) ||
         product.companyId === user.companyId)
     ) {
       return product;
@@ -754,4 +760,26 @@ export async function getProductionLines(): Promise<ProductionLine[]> {
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
   return serviceTickets;
+}
+
+export async function resolveComplianceIssue(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
+
+  product.verificationStatus = 'Draft';
+  product.updatedAt = new Date().toISOString();
+
+  await logAuditEvent(
+    'compliance.resolved',
+    productId,
+    { newStatus: 'Draft' },
+    userId,
+  );
+  revalidatePath('/dashboard/flagged');
+  revalidatePath('/dashboard/products');
+  return product;
 }
