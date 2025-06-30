@@ -1,4 +1,5 @@
 // src/app/dashboard/history/page.tsx
+import { redirect } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -7,7 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getAuditLogsForUser, getProducts } from '@/lib/actions';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import {
   Clock,
   Edit,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { AuditLog } from '@/types';
+import { UserRoles, type Role } from '@/lib/constants';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -43,8 +45,18 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-export default async function HistoryPage() {
-  const user = await getCurrentUser('Supplier');
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.SUPPLIER)) {
+    redirect('/dashboard');
+  }
+
   const [logs, products] = await Promise.all([
     getAuditLogsForUser(user.id),
     getProducts(user.id),

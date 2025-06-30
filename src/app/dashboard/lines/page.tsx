@@ -1,16 +1,18 @@
-
 // src/app/dashboard/lines/page.tsx
-import { getProductionLines } from "@/lib/actions";
+import { redirect } from 'next/navigation';
+import { getProductionLines } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Activity, Factory, Tag, Wrench } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Activity, Factory, Tag, Wrench } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { UserRoles, type Role } from '@/lib/constants';
 
 function Stat({
   icon: Icon,
@@ -30,18 +32,29 @@ function Stat({
   );
 }
 
-export default async function ProductionLinesPage() {
+export default async function ProductionLinesPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.MANUFACTURER)) {
+    redirect('/dashboard');
+  }
+
   const lines = await getProductionLines();
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Active":
-        return "default";
-      case "Maintenance":
-        return "destructive";
-      case "Idle":
+      case 'Active':
+        return 'default';
+      case 'Maintenance':
+        return 'destructive';
+      case 'Idle':
       default:
-        return "secondary";
+        return 'secondary';
     }
   };
 
@@ -54,7 +67,7 @@ export default async function ProductionLinesPage() {
         </p>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {lines.map((line) => (
+        {lines.map(line => (
           <Card key={line.id}>
             <CardHeader>
               <div className="flex justify-between items-start">

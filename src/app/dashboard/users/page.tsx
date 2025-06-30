@@ -1,16 +1,25 @@
-
 // src/app/dashboard/users/page.tsx
+import { redirect } from 'next/navigation';
 import { getUsers } from '@/lib/actions';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import UserManagementClient from '@/components/user-management-client';
+import { UserRoles, type Role } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 
-export default async function UsersPage() {
-  const [users, adminUser] = await Promise.all([
-    getUsers(),
-    getCurrentUser('Admin'),
-  ]);
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
 
-  return <UserManagementClient initialUsers={users} adminUser={adminUser} />;
+  if (!hasRole(user, UserRoles.ADMIN)) {
+    redirect('/dashboard');
+  }
+
+  const initialUsers = await getUsers();
+
+  return <UserManagementClient initialUsers={initialUsers} adminUser={user} />;
 }

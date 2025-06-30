@@ -1,13 +1,15 @@
 // src/app/dashboard/manuals/page.tsx
-import { getProducts } from "@/lib/actions";
-import { getCurrentUser } from "@/lib/auth";
+import { redirect } from 'next/navigation';
+import { getProducts } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
+import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,16 +17,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Download } from "lucide-react";
-import Image from "next/image";
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Download } from 'lucide-react';
+import Image from 'next/image';
 
-export default async function ManualsPage() {
-  const user = await getCurrentUser('Service Provider');
+export default async function ManualsPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    redirect('/dashboard');
+  }
+
   const products = await getProducts(user.id);
-  const productsWithManuals = products.filter((p) => p.manualUrl);
+  const productsWithManuals = products.filter(p => p.manualUrl);
 
   return (
     <Card>
@@ -45,7 +57,7 @@ export default async function ManualsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {productsWithManuals.map((product) => (
+            {productsWithManuals.map(product => (
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

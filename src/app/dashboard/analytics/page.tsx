@@ -1,13 +1,14 @@
 // src/app/dashboard/analytics/page.tsx
-import { getProducts, getAuditLogs } from "@/lib/actions";
-import { getCurrentUser, getMockUsers } from "@/lib/auth";
+import { redirect } from 'next/navigation';
+import { getCurrentUser, getMockUsers, hasRole } from '@/lib/auth';
+import { getProducts, getAuditLogs } from '@/lib/actions';
+import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Activity,
   BookCopy,
@@ -24,33 +25,32 @@ import {
   Calculator,
   Recycle,
   ShieldX,
-  Package,
-} from "lucide-react";
-import ComplianceOverviewChart from "@/components/charts/compliance-overview-chart";
-import ProductsOverTimeChart from "@/components/charts/products-over-time-chart";
-import ComplianceRateChart from "@/components/charts/compliance-rate-chart";
-import { format, subDays, formatDistanceToNow } from "date-fns";
-import type { AuditLog, Product } from "@/types";
-import EolStatusChart from "@/components/charts/eol-status-chart";
+} from 'lucide-react';
+import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
+import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
+import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
+import { format, subDays, formatDistanceToNow } from 'date-fns';
+import type { AuditLog, Product } from '@/types';
+import EolStatusChart from '@/components/charts/eol-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
-  "product.created": FilePlus,
-  "product.updated": Edit,
-  "product.deleted": Trash2,
-  "product.recycled": Recycle,
-  "product.recalculate_score": Calculator,
-  "passport.submitted": FileUp,
-  "passport.approved": CheckCircle,
-  "passport.rejected": FileX,
-  "compliance.resolved": ShieldX,
+  'product.created': FilePlus,
+  'product.updated': Edit,
+  'product.deleted': Trash2,
+  'product.recycled': Recycle,
+  'product.recalculate_score': Calculator,
+  'passport.submitted': FileUp,
+  'passport.approved': CheckCircle,
+  'passport.rejected': FileX,
+  'compliance.resolved': ShieldX,
   default: Clock,
 };
 
 const getActionLabel = (action: string): string => {
   return action
-    .split(".")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+    .split('.')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
 // Helper to generate mock compliance rate data
@@ -62,18 +62,36 @@ const generateComplianceRateData = (products: Product[]) => {
 
   let verifiedCount = 0;
   sortedProducts.forEach((p, index) => {
-    if (p.verificationStatus === "Verified") {
+    if (p.verificationStatus === 'Verified') {
       verifiedCount++;
     }
     const rate = Math.round((verifiedCount / (index + 1)) * 100);
-    data.push({ date: format(new Date(p.createdAt), "yyyy-MM-dd"), rate });
+    data.push({ date: format(new Date(p.createdAt), 'yyyy-MM-dd'), rate });
   });
 
   return data;
 };
 
-export default async function AnalyticsPage() {
-  const user = await getCurrentUser("Admin");
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  const allowedRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.MANUFACTURER,
+    UserRoles.RECYCLER,
+    UserRoles.SERVICE_PROVIDER,
+  ];
+
+  if (!allowedRoles.some(role => hasRole(user, role))) {
+    redirect('/dashboard');
+  }
+
   const [products, users, auditLogs] = await Promise.all([
     getProducts(user.id),
     getMockUsers(),
@@ -81,24 +99,23 @@ export default async function AnalyticsPage() {
   ]);
 
   const complianceData = {
-    verified: products.filter((p) => p.verificationStatus === "Verified")
-      .length,
-    pending: products.filter((p) => p.verificationStatus === "Pending").length,
-    failed: products.filter((p) => p.verificationStatus === "Failed").length,
+    verified: products.filter(p => p.verificationStatus === 'Verified').length,
+    pending: products.filter(p => p.verificationStatus === 'Pending').length,
+    failed: products.filter(p => p.verificationStatus === 'Failed').length,
   };
 
   const eolData = {
     active: products.filter(
-      (p) => p.endOfLifeStatus === "Active" || !p.endOfLifeStatus,
+      p => p.endOfLifeStatus === 'Active' || !p.endOfLifeStatus,
     ).length,
-    recycled: products.filter((p) => p.endOfLifeStatus === "Recycled").length,
-    disposed: products.filter((p) => p.endOfLifeStatus === "Disposed").length,
+    recycled: products.filter(p => p.endOfLifeStatus === 'Recycled').length,
+    disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
   };
 
   // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
-      const date = format(new Date(product.createdAt), "yyyy-MM-dd");
+      const date = format(new Date(product.createdAt), 'yyyy-MM-dd');
       if (!acc[date]) {
         acc[date] = 0;
       }
@@ -115,8 +132,8 @@ export default async function AnalyticsPage() {
   const complianceRateData = generateComplianceRateData(products);
 
   const recentActivity = auditLogs.slice(0, 5);
-  const productMap = new Map(products.map((p) => [p.id, p.productName]));
-  const userMap = new Map(users.map((u) => [u.id, u.fullName]));
+  const productMap = new Map(products.map(p => [p.id, p.productName]));
+  const userMap = new Map(users.map(u => [u.id, u.fullName]));
 
   return (
     <div className="space-y-6">
@@ -179,18 +196,16 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Audits Today
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {
                 auditLogs.filter(
-                  (log) =>
+                  log =>
                     new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes("passport."),
+                    log.action.includes('passport.'),
                 ).length
               }
             </div>
@@ -253,9 +268,9 @@ export default async function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivity.map((log) => {
+            {recentActivity.map(log => {
               const Icon = actionIcons[log.action] || actionIcons.default;
-              const user = userMap.get(log.userId) || "System";
+              const user = userMap.get(log.userId) || 'System';
               const product = productMap.get(log.entityId) || log.entityId;
               const actionLabel = getActionLabel(log.action);
               return (
@@ -265,7 +280,7 @@ export default async function AnalyticsPage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">
-                      {actionLabel}{" "}
+                      {actionLabel}{' '}
                       <span className="font-normal text-muted-foreground">
                         by {user}
                       </span>

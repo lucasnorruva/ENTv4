@@ -1,5 +1,7 @@
 // src/app/dashboard/integrations/page.tsx
-
+import { redirect } from 'next/navigation';
+import { getCurrentUser, hasRole } from '@/lib/auth';
+import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -7,43 +9,43 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import Image from "next/image";
-import { Cog } from "lucide-react";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import Image from 'next/image';
+import { Cog } from 'lucide-react';
 
 // Mock data for integrations
 const integrations = {
   erp: [
     {
-      name: "SAP S/4HANA",
-      logo: "https://placehold.co/40x40.png",
-      description: "Sync product master data directly from your SAP system.",
-      dataAiHint: "sap logo",
+      name: 'SAP S/4HANA',
+      logo: 'https://placehold.co/40x40.png',
+      description: 'Sync product master data directly from your SAP system.',
+      dataAiHint: 'sap logo',
     },
     {
-      name: "Oracle NetSuite",
-      logo: "https://placehold.co/40x40.png",
-      description: "Automate DPP creation from NetSuite item records.",
-      dataAiHint: "oracle logo",
+      name: 'Oracle NetSuite',
+      logo: 'https://placehold.co/40x40.png',
+      description: 'Automate DPP creation from NetSuite item records.',
+      dataAiHint: 'oracle logo',
     },
   ],
   plm: [
     {
-      name: "Siemens Teamcenter",
-      logo: "https://placehold.co/40x40.png",
-      description: "Link engineering and design data from Teamcenter.",
-      dataAiHint: "siemens logo",
+      name: 'Siemens Teamcenter',
+      logo: 'https://placehold.co/40x40.png',
+      description: 'Link engineering and design data from Teamcenter.',
+      dataAiHint: 'siemens logo',
     },
   ],
   ecommerce: [
     {
-      name: "Shopify",
-      logo: "https://placehold.co/40x40.png",
-      description: "Embed DPP QR codes on your Shopify product pages.",
-      dataAiHint: "shopify logo",
+      name: 'Shopify',
+      logo: 'https://placehold.co/40x40.png',
+      description: 'Embed DPP QR codes on your Shopify product pages.',
+      dataAiHint: 'shopify logo',
     },
   ],
 };
@@ -88,7 +90,20 @@ function IntegrationCard({
   );
 }
 
-export default function IntegrationsPage() {
+export default async function IntegrationsPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  const allowedRoles: Role[] = [UserRoles.ADMIN, UserRoles.DEVELOPER];
+
+  if (!allowedRoles.some(role => hasRole(user, role))) {
+    redirect('/dashboard');
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -108,7 +123,7 @@ export default function IntegrationsPage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {integrations.erp.map((int) => (
+          {integrations.erp.map(int => (
             <IntegrationCard key={int.name} {...int} />
           ))}
         </div>
@@ -122,7 +137,7 @@ export default function IntegrationsPage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {integrations.plm.map((int) => (
+          {integrations.plm.map(int => (
             <IntegrationCard key={int.name} {...int} />
           ))}
         </div>
@@ -136,7 +151,7 @@ export default function IntegrationsPage() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {integrations.ecommerce.map((int) => (
+          {integrations.ecommerce.map(int => (
             <IntegrationCard key={int.name} {...int} />
           ))}
         </div>

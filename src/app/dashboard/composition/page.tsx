@@ -1,13 +1,15 @@
 // src/app/dashboard/composition/page.tsx
-import { getProducts } from "@/lib/actions";
-import { getCurrentUser } from "@/lib/auth";
+import { redirect } from 'next/navigation';
+import { getProducts } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
+import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,10 +17,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import MaterialUsageChart from "@/components/charts/material-usage-chart";
-import type { Product } from "@/types";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import MaterialUsageChart from '@/components/charts/material-usage-chart';
+import type { Product } from '@/types';
 
 interface AggregatedMaterial {
   name: string;
@@ -28,9 +30,7 @@ interface AggregatedMaterial {
   inProducts: string[];
 }
 
-const aggregateMaterials = (
-  products: Product[],
-): AggregatedMaterial[] => {
+const aggregateMaterials = (products: Product[]): AggregatedMaterial[] => {
   const materialMap = new Map<string, AggregatedMaterial>();
 
   products.forEach(product => {
@@ -43,7 +43,7 @@ const aggregateMaterials = (
           existing.productCount++;
         }
         if (!existing.inProducts.includes(product.productName)) {
-            existing.inProducts.push(product.productName);
+          existing.inProducts.push(product.productName);
         }
       } else {
         materialMap.set(material.name, {
@@ -60,8 +60,24 @@ const aggregateMaterials = (
   return Array.from(materialMap.values()).sort((a, b) => b.count - a.count);
 };
 
-export default async function MaterialCompositionPage() {
-  const user = await getCurrentUser('Recycler');
+export default async function MaterialCompositionPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  const allowedRoles: Role[] = [
+    UserRoles.RECYCLER,
+    UserRoles.MANUFACTURER,
+    UserRoles.BUSINESS_ANALYST,
+  ];
+
+  if (!allowedRoles.some(role => hasRole(user, role))) {
+    redirect('/dashboard');
+  }
+
   const products = await getProducts(user.id);
   const materialData = aggregateMaterials(products);
 
@@ -120,16 +136,16 @@ export default async function MaterialCompositionPage() {
                       ? `${Math.round(
                           material.totalRecycledContent / material.productCount,
                         )}%`
-                      : "N/A"}
+                      : 'N/A'}
                   </TableCell>
                 </TableRow>
               ))}
               {materialData.length === 0 && (
-                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                        No material data available.
-                    </TableCell>
-                 </TableRow>
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    No material data available.
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>

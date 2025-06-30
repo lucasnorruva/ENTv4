@@ -1,13 +1,14 @@
-
 // src/app/dashboard/tickets/page.tsx
-import { getServiceTickets, getProducts } from "@/lib/actions";
+import { redirect } from 'next/navigation';
+import { getServiceTickets, getProducts } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,35 +16,47 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { MoreHorizontal } from "lucide-react";
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
+import { UserRoles, type Role } from '@/lib/constants';
 
-export default async function ServiceTicketsPage() {
+export default async function ServiceTicketsPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    redirect('/dashboard');
+  }
+
   const [tickets, products] = await Promise.all([
     getServiceTickets(),
     getProducts(),
   ]);
 
-  const productMap = new Map(products.map((p) => [p.id, p.productName]));
+  const productMap = new Map(products.map(p => [p.id, p.productName]));
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "Open":
-        return "destructive";
-      case "In Progress":
-        return "secondary";
-      case "Closed":
+      case 'Open':
+        return 'destructive';
+      case 'In Progress':
+        return 'secondary';
+      case 'Closed':
       default:
-        return "default";
+        return 'default';
     }
   };
 
@@ -69,11 +82,11 @@ export default async function ServiceTicketsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tickets.map((ticket) => (
+            {tickets.map(ticket => (
               <TableRow key={ticket.id}>
                 <TableCell className="font-mono text-xs">{ticket.id}</TableCell>
                 <TableCell className="font-medium">
-                  {productMap.get(ticket.productId) || "Unknown Product"}
+                  {productMap.get(ticket.productId) || 'Unknown Product'}
                 </TableCell>
                 <TableCell>{ticket.customerName}</TableCell>
                 <TableCell className="max-w-[300px] truncate">
@@ -85,7 +98,7 @@ export default async function ServiceTicketsPage() {
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {format(new Date(ticket.createdAt), "PPP")}
+                  {format(new Date(ticket.createdAt), 'PPP')}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

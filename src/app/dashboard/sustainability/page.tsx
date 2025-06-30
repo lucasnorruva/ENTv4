@@ -1,19 +1,31 @@
 // src/app/dashboard/sustainability/page.tsx
-import { getProducts } from "@/lib/actions";
-import { getCurrentUser } from "@/lib/auth";
+import { redirect } from 'next/navigation';
+import { getProducts } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import SustainabilityByCategoryChart from "@/components/charts/sustainability-by-category-chart";
-import SustainabilityTable from "@/components/sustainability-table";
-import { BarChart3 } from "lucide-react";
+} from '@/components/ui/card';
+import SustainabilityByCategoryChart from '@/components/charts/sustainability-by-category-chart';
+import SustainabilityTable from '@/components/sustainability-table';
+import { BarChart3 } from 'lucide-react';
+import { UserRoles, type Role } from '@/lib/constants';
 
-export default async function SustainabilityPage() {
-  const user = await getCurrentUser('Business Analyst');
+export default async function SustainabilityPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
+    redirect('/dashboard');
+  }
+
   const products = await getProducts(user.id);
 
   const categoryScores = products.reduce(

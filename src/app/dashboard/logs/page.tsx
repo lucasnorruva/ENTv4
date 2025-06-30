@@ -1,5 +1,7 @@
 // src/app/dashboard/logs/page.tsx
+import { redirect } from 'next/navigation';
 import { getAuditLogs } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import {
   Card,
   CardContent,
@@ -17,8 +19,20 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { UserRoles, type Role } from '@/lib/constants';
 
-export default async function ApiLogsPage() {
+export default async function ApiLogsPage({
+  searchParams,
+}: {
+  searchParams: { role?: Role };
+}) {
+  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
+  const user = await getCurrentUser(selectedRole);
+
+  if (!hasRole(user, UserRoles.DEVELOPER)) {
+    redirect('/dashboard');
+  }
+
   const allLogs = await getAuditLogs();
   const apiLogs = allLogs.filter(log => log.action.startsWith('api.'));
 
