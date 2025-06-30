@@ -3,7 +3,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
-import { products as mockProducts } from './data';
+import { adminDb } from './firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
@@ -25,12 +26,7 @@ import {
   type CompanyFormValues,
 } from './schemas';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { classifyProduct } from '@/ai/flows/classify-product';
-import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
-import { validateProductData } from '@/ai/flows/validate-product-data';
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -50,11 +46,10 @@ import type {
   ApiKey,
   ComplianceGap,
   ApiSettings,
-  DataQualityWarning,
   Company,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
-import { UserRoles } from './constants';
+import { UserRoles, Collections } from './constants';
 
 // --- AUDIT LOGGING ---
 export async function logAuditEvent(
@@ -63,8 +58,7 @@ export async function logAuditEvent(
   details: Record<string, any>,
   userId: string = 'system',
 ) {
-  const newLog: AuditLog = {
-    id: `log-${randomBytes(4).toString('hex')}`,
+  const newLog: Omit<AuditLog, 'id'> = {
     userId,
     action,
     entityId,
@@ -72,51 +66,17 @@ export async function logAuditEvent(
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
-  mockAuditLogs.unshift(newLog);
+  await adminDb.collection(Collections.AUDIT_LOGS).add(newLog);
   revalidatePath('/dashboard/admin/analytics');
   revalidatePath('/dashboard/developer/logs');
   revalidatePath('/dashboard/supplier/history');
 }
 
-// --- AI FLOW ORCHESTRATION ---
-
-const runAllAiFlows = async (
-  productData: AiProduct,
-): Promise<{
-  sustainability: SustainabilityData;
-  qrLabelText: string;
-  dataQualityWarnings: DataQualityWarning[];
-}> => {
-  const [
-    esgResult,
-    qrLabelResult,
-    classificationResult,
-    lifecycleAnalysisResult,
-    validationResult,
-  ] = await Promise.all([
-    calculateSustainability({ product: productData }),
-    generateQRLabelText({ product: productData }),
-    classifyProduct({ product: productData }),
-    analyzeProductLifecycle({ product: productData }),
-    validateProductData({ product: productData }),
-  ]);
-
-  return {
-    sustainability: {
-      ...esgResult,
-      classification: classificationResult,
-      lifecycleAnalysis: lifecycleAnalysisResult,
-      isCompliant: false,
-      complianceSummary: 'Awaiting compliance analysis.',
-    },
-    qrLabelText: qrLabelResult.qrLabelText,
-    dataQualityWarnings: validationResult.warnings,
-  };
-};
-
 // --- PRODUCT ACTIONS ---
 export async function getProducts(userId?: string): Promise<Product[]> {
   const user = userId ? await getUserById(userId) : null;
+  let productsQuery = adminDb.collection(Collections.PRODUCTS);
+
   if (
     user &&
     !hasRole(user, UserRoles.ADMIN) &&
@@ -127,17 +87,31 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     !hasRole(user, UserRoles.SERVICE_PROVIDER) &&
     !hasRole(user, UserRoles.COMPLIANCE_MANAGER)
   ) {
-    return mockProducts.filter(p => p.companyId === user.companyId);
+    productsQuery = productsQuery.where('companyId', '==', user.companyId);
   }
-  return mockProducts;
+
+  const snapshot = await productsQuery.orderBy('createdAt', 'desc').get();
+  if (snapshot.empty) {
+    return [];
+  }
+  return snapshot.docs.map(
+    doc => ({ id: doc.id, ...doc.data() }) as Product,
+  );
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const product = mockProducts.find(p => p.id === id);
-  if (!product) return undefined;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
+  const docSnap = await docRef.get();
+
+  if (!docSnap.exists) {
+    return undefined;
+  }
+
+  const product = { id: docSnap.id, ...docSnap.data() } as Product;
+
   // If a userId is provided, we do an ownership check
   if (userId) {
     const user = await getUserById(userId);
@@ -172,74 +146,48 @@ export async function saveProduct(
 
   const validatedData = productFormSchema.parse(productData);
 
-  const existingProduct = productId
-    ? await getProductById(productId, userId)
-    : undefined;
+  const now = new Date().toISOString();
 
-  const aiProductInput: AiProduct = {
-    ...validatedData,
-    supplier: company.name,
-    verificationStatus: existingProduct?.verificationStatus ?? 'Not Submitted',
-    complianceSummary: existingProduct?.sustainability?.complianceSummary,
-  };
-
-  const { sustainability, qrLabelText, dataQualityWarnings } =
-    await runAllAiFlows(aiProductInput);
-
-  if (validatedData.compliancePathId) {
-    const path = await getCompliancePathById(validatedData.compliancePathId);
-    if (path) {
-      const complianceResult = await summarizeComplianceGaps({
-        product: aiProductInput,
-        compliancePath: path,
-      });
-      sustainability.isCompliant = complianceResult.isCompliant;
-      sustainability.complianceSummary = complianceResult.complianceSummary;
-      sustainability.gaps = complianceResult.gaps;
-    }
-  }
-
+  // Create the core data object
   const dataToSave = {
     ...validatedData,
     supplier: company.name,
-    sustainability,
-    qrLabelText,
-    dataQualityWarnings,
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: now,
+    updatedAt: now,
   };
 
   if (productId) {
-    const productIndex = mockProducts.findIndex(p => p.id === productId);
-    if (productIndex === -1) throw new Error('Product not found');
-    mockProducts[productIndex] = { ...mockProducts[productIndex], ...dataToSave };
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+    await docRef.update(dataToSave);
     await logAuditEvent(
       'product.updated',
       productId,
       { fields: Object.keys(validatedData) },
       userId,
     );
+    const updatedDoc = await docRef.get();
     revalidatePath('/dashboard', 'layout');
     revalidatePath(`/products/${productId}`);
-    return mockProducts[productIndex];
+    return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
   } else {
-    const newProduct: Product = {
+    const newProductData: Omit<Product, 'id'> = {
       ...dataToSave,
-      id: `pp-${randomBytes(4).toString('hex')}`,
       companyId: user.companyId,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: now,
     };
-    mockProducts.unshift(newProduct);
+    const docRef = await adminDb
+      .collection(Collections.PRODUCTS)
+      .add(newProductData);
     await logAuditEvent(
       'product.created',
-      newProduct.id,
-      { productName: newProduct.productName },
+      docRef.id,
+      { productName: newProductData.productName },
       userId,
     );
     revalidatePath('/dashboard', 'layout');
-    return newProduct;
+    return { id: docRef.id, ...newProductData } as Product;
   }
 }
 
@@ -247,15 +195,16 @@ export async function deleteProduct(
   id: string,
   userId: string,
 ): Promise<{ success: boolean }> {
-  const productIndex = mockProducts.findIndex(p => p.id === id);
-  if (productIndex > -1) {
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
+  const docSnap = await docRef.get();
+  if (docSnap.exists) {
     await logAuditEvent(
       'product.deleted',
       id,
-      { productName: mockProducts[productIndex].productName },
+      { productName: docSnap.data()?.productName },
       userId,
     );
-    mockProducts.splice(productIndex, 1);
+    await docRef.delete();
   }
   revalidatePath('/dashboard', 'layout');
   return { success: true };
@@ -265,10 +214,12 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-  mockProducts[productIndex].verificationStatus = 'Pending';
-  mockProducts[productIndex].updatedAt = new Date().toISOString();
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Pending',
+    updatedAt: new Date().toISOString(),
+  });
+
   await logAuditEvent(
     'passport.submitted',
     productId,
@@ -277,16 +228,16 @@ export async function submitForReview(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  return mockProducts[productIndex];
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
 
 export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-  const product = mockProducts[productIndex];
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found to approve.');
 
   const compliancePath = product.compliancePathId
     ? await getCompliancePathById(product.compliancePathId)
@@ -316,11 +267,14 @@ export async function approvePassport(
     generateEbsiCredential(productId),
   ]);
 
-  product.verificationStatus = 'Verified';
-  product.lastVerificationDate = new Date().toISOString();
-  product.updatedAt = new Date().toISOString();
-  product.blockchainProof = blockchainProof;
-  product.ebsiVcId = ebsiVcId;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Verified',
+    lastVerificationDate: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    blockchainProof,
+    ebsiVcId,
+  });
 
   await logAuditEvent(
     'passport.approved',
@@ -330,7 +284,8 @@ export async function approvePassport(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  return product;
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
 
 export async function rejectPassport(
@@ -339,19 +294,15 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-  const product = mockProducts[productIndex];
-
-  product.verificationStatus = 'Failed';
-  product.lastVerificationDate = new Date().toISOString();
-  product.updatedAt = new Date().toISOString();
-  if (!product.sustainability) {
-    product.sustainability = {} as SustainabilityData;
-  }
-  product.sustainability.isCompliant = false;
-  product.sustainability.complianceSummary = summary;
-  product.sustainability.gaps = gaps;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Failed',
+    lastVerificationDate: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    'sustainability.isCompliant': false,
+    'sustainability.complianceSummary': summary,
+    'sustainability.gaps': gaps,
+  });
 
   await logAuditEvent(
     'passport.rejected',
@@ -361,7 +312,8 @@ export async function rejectPassport(
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  return product;
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
 
 export async function runSuggestImprovements(
@@ -384,67 +336,59 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found');
-
-  const aiProductInput: AiProduct = {
-    ...product,
-    complianceSummary: product.sustainability?.complianceSummary,
-  };
-
-  const { sustainability, qrLabelText, dataQualityWarnings } =
-    await runAllAiFlows(aiProductInput);
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  mockProducts[productIndex].sustainability = sustainability;
-  mockProducts[productIndex].qrLabelText = qrLabelText;
-  mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
-  mockProducts[productIndex].updatedAt = new Date().toISOString();
-
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    'sustainability.score': -1, // A sentinel value to trigger recalc
+  });
   await logAuditEvent(
-    'product.recalculate_score',
+    'product.recalculate_score.requested',
     productId,
-    { newScore: sustainability.score },
+    {},
     userId,
   );
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  return mockProducts[productIndex];
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
 
 export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-
-  mockProducts[productIndex].endOfLifeStatus = 'Recycled';
-  mockProducts[productIndex].updatedAt = new Date().toISOString();
-
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    endOfLifeStatus: 'Recycled',
+    updatedAt: new Date().toISOString(),
+  });
   await logAuditEvent('product.recycled', productId, {}, userId);
   revalidatePath('/dashboard', 'layout');
   revalidatePath(`/products/${productId}`);
-  return mockProducts[productIndex];
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
 
 // --- AUDIT LOG ACTIONS ---
 export async function getAuditLogs(): Promise<AuditLog[]> {
+  // Using mock data for now as this is a read-only, non-critical path
   return mockAuditLogs;
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+  // Using mock data for now
   return mockAuditLogs.filter(log => log.userId === userId);
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  // Using mock data for now
   return mockCompliancePaths;
 }
 
 export async function getCompliancePathById(
   id: string,
 ): Promise<CompliancePath | null> {
+  // Using mock data for now
   return mockCompliancePaths.find(p => p.id === id) || null;
 }
 
@@ -467,11 +411,15 @@ export async function saveCompliancePath(
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
       requiredKeywords:
-        validatedData.requiredKeywords?.split(',').map(s => s.trim()).filter(Boolean) ||
-        [],
+        validatedData.requiredKeywords
+          ?.split(',')
+          .map(s => s.trim())
+          .filter(Boolean) || [],
       bannedKeywords:
-        validatedData.bannedKeywords?.split(',').map(s => s.trim()).filter(Boolean) ||
-        [],
+        validatedData.bannedKeywords
+          ?.split(',')
+          .map(s => s.trim())
+          .filter(Boolean) || [],
     },
     updatedAt: now,
   };
@@ -569,7 +517,12 @@ export async function createUserAndCompany(
     updatedAt: new Date().toISOString(),
   };
   mockCompanies.push(newCompany);
-  await logAuditEvent('company.created', newCompany.id, { name: newCompany.name }, uid);
+  await logAuditEvent(
+    'company.created',
+    newCompany.id,
+    { name: newCompany.name },
+    uid,
+  );
 
   // 2. Create the new user profile
   const newUser: User = {
@@ -582,14 +535,18 @@ export async function createUserAndCompany(
     updatedAt: new Date().toISOString(),
   };
   mockUsers.push(newUser);
-  await logAuditEvent('user.created', newUser.id, { email: newUser.email }, uid);
+  await logAuditEvent(
+    'user.created',
+    newUser.id,
+    { email: newUser.email },
+    uid,
+  );
 
   revalidatePath('/dashboard/admin/users');
   revalidatePath('/dashboard/admin/companies');
 
   return newUser;
 }
-
 
 export async function deleteUser(
   userId: string,
@@ -630,8 +587,16 @@ export async function saveCompany(
   if (companyId) {
     const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
     if (companyIndex === -1) throw new Error('Company not found');
-    mockCompanies[companyIndex] = { ...mockCompanies[companyIndex], ...dataToSave };
-    await logAuditEvent('company.updated', companyId, { name: dataToSave.name }, adminUserId);
+    mockCompanies[companyIndex] = {
+      ...mockCompanies[companyIndex],
+      ...dataToSave,
+    };
+    await logAuditEvent(
+      'company.updated',
+      companyId,
+      { name: dataToSave.name },
+      adminUserId,
+    );
     revalidatePath('/dashboard', 'layout');
     return mockCompanies[companyIndex];
   } else {
@@ -641,7 +606,12 @@ export async function saveCompany(
       createdAt: now,
     };
     mockCompanies.unshift(newCompany);
-    await logAuditEvent('company.created', newCompany.id, { name: newCompany.name }, adminUserId);
+    await logAuditEvent(
+      'company.created',
+      newCompany.id,
+      { name: newCompany.name },
+      adminUserId,
+    );
     revalidatePath('/dashboard', 'layout');
     return newCompany;
   }
@@ -664,7 +634,6 @@ export async function deleteCompany(
   revalidatePath('/dashboard', 'layout');
   return { success: true };
 }
-
 
 // --- NOTIFICATION ACTIONS ---
 export async function markAllNotificationsAsRead(
@@ -896,10 +865,11 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-  mockProducts[productIndex].verificationStatus = 'Draft';
-  mockProducts[productIndex].updatedAt = new Date().toISOString();
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Draft',
+    updatedAt: new Date().toISOString(),
+  });
   await logAuditEvent(
     'compliance.resolved',
     productId,
@@ -907,5 +877,6 @@ export async function resolveComplianceIssue(
     userId,
   );
   revalidatePath('/dashboard', 'layout');
-  return mockProducts[productIndex];
+  const updatedDoc = await docRef.get();
+  return { id: updatedDoc.id, ...updatedDoc.data() } as Product;
 }
