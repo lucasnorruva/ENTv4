@@ -5,7 +5,7 @@
  * across the application.
  */
 export const Collections = {
-  PRODUCTS: "products",
+  PRODUCTS: "Norruva_Mock_Data",
   COMPLIANCE_PATHS: "compliancePaths",
   SUPPLIERS: "suppliers",
   VERIFICATIONS: "verifications",
