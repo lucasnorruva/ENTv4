@@ -11,81 +11,101 @@ import {
 import { verifyProductAgainstPath } from "@/services/compliance";
 
 /**
- * Runs a daily compliance check on all products pending verification.
+ * Runs a daily compliance check on all products.
  * This function is designed to be triggered by a scheduled cron job.
- * It uses server actions to interact with the data layer, ensuring
- * consistency with manual user actions.
+ * It processes pending products and also re-scans verified products
+ * to ensure ongoing compliance.
  */
 export async function runDailyComplianceCheck(): Promise<{
   processed: number;
   passed: number;
   failed: number;
+  rescanned: number;
+  newlyFailed: number;
 }> {
   console.log("Running scheduled compliance and verification checks...");
   await logAuditEvent("cron.start", "dailyComplianceCheck", {}, "system");
 
-  // Run as an admin user to get access to all products
   const allProducts = await getProducts("user-admin");
   const compliancePaths = await getCompliancePaths();
-
-  const productsToVerify = allProducts.filter(
-    (p) => p.verificationStatus === "Pending",
-  );
-
-  if (productsToVerify.length === 0) {
-    console.log("No products are pending verification.");
-    await logAuditEvent(
-      "cron.end",
-      "dailyComplianceCheck",
-      { status: "No products to verify" },
-      "system",
-    );
-    return { processed: 0, passed: 0, failed: 0 };
-  }
+  const pathsById = new Map(compliancePaths.map((p) => [p.id, p]));
 
   let passed = 0;
   let failed = 0;
+  let newlyFailed = 0;
 
-  for (const product of productsToVerify) {
-    const compliancePath = compliancePaths.find(
-      (p) => p.id === product.compliancePathId,
-    );
+  const productsToProcess = allProducts.filter(
+    (p) =>
+      p.verificationStatus === "Pending" || p.verificationStatus === "Verified",
+  );
 
-    if (!compliancePath) {
-      const reason = `No compliance path is configured for this product.`;
-      const gaps = [{ regulation: "Configuration", issue: reason }];
-      console.warn(`Skipping product ${product.id}: ${reason}`);
-      await rejectPassport(product.id, reason, gaps, "system");
-      failed++;
+  for (const product of productsToProcess) {
+    if (!product.compliancePathId) {
+      console.warn(
+        `Product ${product.id} has no compliance path and will be skipped.`,
+      );
       continue;
     }
 
-    // Run deterministic rule-based checks
+    const compliancePath = pathsById.get(product.compliancePathId);
+    if (!compliancePath) {
+      const reason = `Compliance path '${product.compliancePathId}' not found.`;
+      console.warn(`Skipping product ${product.id}: ${reason}`);
+      if (product.verificationStatus === "Pending") {
+        await rejectPassport(
+          product.id,
+          reason,
+          [{ regulation: "Configuration", issue: reason }],
+          "system",
+        );
+        failed++;
+      }
+      continue;
+    }
+
     const { isCompliant, gaps } = await verifyProductAgainstPath(
       product,
       compliancePath,
     );
 
-    if (isCompliant) {
-      // If hard rules pass, approve the passport
-      await approvePassport(product.id, "system");
-      passed++;
-    } else {
-      // If hard rules fail, reject with specific reasons
-      const summary = `Product failed verification with ${gaps.length} issue(s).`;
-      await rejectPassport(product.id, summary, gaps, "system");
-      failed++;
+    if (product.verificationStatus === "Pending") {
+      if (isCompliant) {
+        await approvePassport(product.id, "system");
+        passed++;
+      } else {
+        const summary = `Product failed verification with ${gaps.length} issue(s).`;
+        await rejectPassport(product.id, summary, gaps, "system");
+        failed++;
+      }
+    } else if (product.verificationStatus === "Verified") {
+      if (!isCompliant) {
+        const summary = `Product is no longer compliant due to updated rules. Found ${gaps.length} issue(s).`;
+        console.log(`Product ${product.id} failed re-scan. Reason: ${summary}`);
+        await rejectPassport(product.id, summary, gaps, "system:rescanner");
+        await logAuditEvent(
+          "compliance.failed_rescan",
+          product.id,
+          { summary },
+          "system",
+        );
+        newlyFailed++;
+      }
     }
   }
 
   const result = {
-    processed: productsToVerify.length,
+    processed: productsToProcess.filter((p) => p.verificationStatus === "Pending")
+      .length,
     passed,
     failed,
+    rescanned: productsToProcess.filter(
+      (p) => p.verificationStatus === "Verified",
+    ).length,
+    newlyFailed,
   };
 
   console.log(
-    `Compliance check complete. Processed: ${result.processed}, Passed: ${result.passed}, Failed: ${result.failed}.`,
+    `Compliance check complete. Processed: ${result.processed}, Passed: ${result.passed}, Failed: ${result.failed}, Rescanned: ${result.rescanned}, Newly Failed: ${result.newlyFailed}.`,
   );
   await logAuditEvent("cron.end", "dailyComplianceCheck", result, "system");
 
