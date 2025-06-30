@@ -1,3 +1,4 @@
+
 // src/components/eol-products-client.tsx
 'use client';
 
@@ -112,6 +113,13 @@ export default function EolProductsClient({
                 </TableCell>
               </TableRow>
             ))}
+             {initialProducts.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={4} className="h-24 text-center">
+                  No products found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </CardContent>

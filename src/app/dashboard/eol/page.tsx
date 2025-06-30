@@ -1,3 +1,4 @@
+
 // src/app/dashboard/eol/page.tsx
 import { getProducts } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';

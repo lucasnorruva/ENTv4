@@ -396,6 +396,7 @@ export async function markAsRecycled(
   await logAuditEvent('product.recycled', productId, {}, userId);
   revalidatePath('/dashboard/eol');
   revalidatePath(`/products/${productId}`);
+  revalidatePath('/dashboard');
   return mockProducts[productIndex];
 }
 
