@@ -5,6 +5,7 @@ import type {
   EsgScoreOutput,
   ClassifyProductOutput,
   SummarizeComplianceGapsOutput,
+  DataQualityWarning,
 } from "@/types/ai-outputs";
 
 /**
@@ -105,6 +106,7 @@ export interface Product extends BaseEntity {
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
   qrLabelText?: string; // AI-generated consumer-friendly summary
+  dataQualityWarnings?: DataQualityWarning[];
 
   // Lifecycle & Verification
   lastVerificationDate?: string; // ISO 8601 format

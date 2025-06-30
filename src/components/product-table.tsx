@@ -12,6 +12,7 @@ import {
   RefreshCw,
   ArrowUpDown,
   ChevronDown,
+  AlertCircle,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -59,6 +60,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "./ui/progress";
 import { Input } from "./ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./ui/tooltip";
 
 interface ProductTableProps {
   products: Product[];
@@ -121,25 +128,45 @@ export default function ProductTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <Image
-              src={row.original.productImage}
-              alt={row.original.productName}
-              width={40}
-              height={40}
-              className="rounded-md object-cover"
-              data-ai-hint="product photo"
-            />
-            <Link
-              href={`/products/${row.original.id}`}
-              className="font-medium hover:underline"
-              target="_blank"
-            >
-              {row.original.productName}
-            </Link>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const warnings = row.original.dataQualityWarnings;
+          return (
+            <div className="flex items-center gap-3">
+              <Image
+                src={row.original.productImage}
+                alt={row.original.productName}
+                width={40}
+                height={40}
+                className="rounded-md object-cover"
+                data-ai-hint="product photo"
+              />
+              <Link
+                href={`/products/${row.original.id}`}
+                className="font-medium hover:underline"
+                target="_blank"
+              >
+                {row.original.productName}
+              </Link>
+              {warnings && warnings.length > 0 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <AlertCircle className="h-4 w-4 text-amber-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-bold">Data Quality Warnings:</p>
+                      <ul className="list-disc list-inside">
+                        {warnings.map((w, i) => (
+                          <li key={i}>{w.warning}</li>
+                        ))}
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "sustainability",

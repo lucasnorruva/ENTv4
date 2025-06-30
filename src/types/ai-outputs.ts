@@ -30,6 +30,11 @@ import type {
   GenerateQRLabelTextInput,
   GenerateQRLabelTextOutput,
 } from "@/ai/flows/generate-qr-label-text";
+import type {
+  ValidateProductDataInput,
+  ValidateProductDataOutput,
+  DataQualityWarning,
+} from "@/ai/flows/validate-product-data";
 
 // Export Input types
 export type {
@@ -39,6 +44,7 @@ export type {
   SummarizeComplianceGapsInput,
   SuggestImprovementsInput,
   GenerateQRLabelTextInput,
+  ValidateProductDataInput,
 };
 
 // Export Output types
@@ -49,4 +55,6 @@ export type {
   SummarizeComplianceGapsOutput,
   SuggestImprovementsOutput,
   GenerateQRLabelTextOutput,
+  ValidateProductDataOutput,
+  DataQualityWarning,
 };

@@ -27,6 +27,7 @@ import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import { classifyProduct } from '@/ai/flows/classify-product';
 import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
+import { validateProductData } from '@/ai/flows/validate-product-data';
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -46,6 +47,7 @@ import type {
   ApiKey,
   ComplianceGap,
   ApiSettings,
+  DataQualityWarning,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
 import { UserRoles } from './constants';
@@ -75,17 +77,23 @@ export async function logAuditEvent(
 
 const runAllAiFlows = async (
   productData: AiProduct,
-): Promise<{ sustainability: SustainabilityData; qrLabelText: string }> => {
+): Promise<{
+  sustainability: SustainabilityData;
+  qrLabelText: string;
+  dataQualityWarnings: DataQualityWarning[];
+}> => {
   const [
     esgResult,
     qrLabelResult,
     classificationResult,
     lifecycleAnalysisResult,
+    validationResult,
   ] = await Promise.all([
     calculateSustainability({ product: productData }),
     generateQRLabelText({ product: productData }),
     classifyProduct({ product: productData }),
     analyzeProductLifecycle({ product: productData }),
+    validateProductData({ product: productData }),
   ]);
 
   return {
@@ -97,6 +105,7 @@ const runAllAiFlows = async (
       complianceSummary: 'Awaiting compliance analysis.',
     },
     qrLabelText: qrLabelResult.qrLabelText,
+    dataQualityWarnings: validationResult.warnings,
   };
 };
 
@@ -159,7 +168,8 @@ export async function saveProduct(
   const validatedData = productFormSchema.parse(productData);
 
   const aiProductInput: AiProduct = { ...validatedData, supplier: company.name };
-  const { sustainability, qrLabelText } = await runAllAiFlows(aiProductInput);
+  const { sustainability, qrLabelText, dataQualityWarnings } =
+    await runAllAiFlows(aiProductInput);
 
   if (validatedData.compliancePathId) {
     const path = await getCompliancePathById(validatedData.compliancePathId);
@@ -179,6 +189,7 @@ export async function saveProduct(
     supplier: company.name,
     sustainability,
     qrLabelText,
+    dataQualityWarnings,
     lastUpdated: new Date().toISOString(),
   };
 
@@ -364,11 +375,13 @@ export async function recalculateScore(
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
 
-  const { sustainability, qrLabelText } = await runAllAiFlows(product);
+  const { sustainability, qrLabelText, dataQualityWarnings } =
+    await runAllAiFlows(product);
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   mockProducts[productIndex].sustainability = sustainability;
   mockProducts[productIndex].qrLabelText = qrLabelText;
+  mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
   mockProducts[productIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent(
