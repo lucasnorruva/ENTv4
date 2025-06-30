@@ -26,7 +26,6 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: (UserRoles[keyof typeof UserRoles])[];
-  readNotificationIds?: string[];
 }
 
 /**
@@ -78,8 +77,6 @@ export interface SustainabilityData
     Omit<SummarizeComplianceGapsOutput, "gaps"> {
   summary?: string;
   gaps?: ComplianceGap[];
-  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
-  classification?: ClassifyProductOutput;
 }
 
 /**
@@ -133,89 +130,4 @@ export interface CompliancePath extends BaseEntity {
     requiredKeywords?: string[];
     bannedKeywords?: string[];
   };
-}
-
-/**
- * Represents a supplier in the supply chain.
- */
-export interface Supplier extends BaseEntity {
-  name: string;
-  contactEmail: string;
-  companyId: string;
-}
-
-/**
- * Represents a verification or audit event for a product.
- */
-export interface Verification extends BaseEntity {
-  productId: string;
-  auditorId: string;
-  status: "Pending" | "Approved" | "Rejected";
-  notes: string;
-  verificationDate: string; // ISO 8601 format
-}
-
-/**
- * Logs significant actions taken within the system for auditing purposes.
- */
-export interface AuditLog extends BaseEntity {
-  userId: string; // Can be 'system' for automated actions
-  action: string; // e.g., 'product.create', 'verification.approve'
-  entityId: string;
-  details: Record<string, any>; // Stores before/after states for changes
-}
-
-/**
- * Represents a developer API key for programmatic access.
- */
-export interface ApiKey extends BaseEntity {
-  label: string;
-  token: string; // This would be a hashed token in a real DB
-  status: "Active" | "Revoked";
-  userId: string;
-  lastUsed?: string;
-}
-
-/**
- * Defines the global API settings for the platform.
- */
-export interface ApiSettings {
-  isPublicApiEnabled: boolean;
-  rateLimitPerMinute: number;
-  isWebhookSigningEnabled: boolean;
-}
-
-/**
- * Configuration for a webhook to notify external systems of events.
- */
-export interface Webhook extends BaseEntity {
-  url: string;
-  events: string[]; // e.g., ['product.published', 'verification.approved']
-  companyId: string;
-}
-
-/**
- * Represents a manufacturing production line.
- */
-export interface ProductionLine {
-  id: string;
-  name: string;
-  location: string;
-  status: "Active" | "Idle" | "Maintenance";
-  outputPerHour: number;
-  currentProduct: string; // Product name
-  lastMaintenance: string; // ISO 8601 date string
-}
-
-/**
- * Represents a service or repair ticket for a product.
- */
-export interface ServiceTicket {
-  id: string;
-  productId: string;
-  customerName: string;
-  issue: string;
-  status: "Open" | "In Progress" | "Closed";
-  createdAt: string; // ISO 8601 format
-  updatedAt: string; // ISO 8601 format
 }

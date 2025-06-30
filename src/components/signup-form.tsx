@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -61,7 +60,7 @@ export default function SignupForm() {
         await createUserAndCompany(values.fullName, user.email!, user.uid);
 
         // Redirect to the default new user dashboard.
-        router.push("/dashboard/supplier");
+        router.push("/dashboard");
       })
       .catch((error) => {
         toast({

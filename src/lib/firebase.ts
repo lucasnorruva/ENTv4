@@ -1,4 +1,3 @@
-
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -7,12 +6,12 @@ import { getStorage } from "firebase/storage";
 // This is the client-side configuration for your Firebase project.
 // It's used by the browser part of your application.
 const firebaseConfig = {
-  apiKey: "AIzaSyDOMz6BLB7pxOO1vnEIjNpcrAseTllmL_c",
-  authDomain: "passportflow.firebaseapp.com",
-  projectId: "passportflow",
-  storageBucket: "passportflow.firebasestorage.app",
-  messagingSenderId: "518086621909",
-  appId: "1:518086621909:web:2028fe5fd0d0447647405c"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 console.log(

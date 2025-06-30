@@ -1,4 +1,3 @@
-
 import { getProductById } from "@/lib/actions";
 import PublicPassportView from "@/components/public-passport-view";
 import { notFound } from "next/navigation";

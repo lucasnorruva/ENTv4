@@ -7,9 +7,6 @@ interface LogoProps {
   className?: string;
 }
 
-// This component is intentionally simple.
-// It uses an h1 tag which can be overridden by the parent if needed,
-// but for SEO on most pages this is fine.
 export default function Logo({ className }: LogoProps) {
   return (
     <Link href="/" className="flex items-center gap-2">
@@ -27,7 +24,7 @@ export default function Logo({ className }: LogoProps) {
         <path d="M17 7v10"></path>
         <path d="M7 17V7"></path>
       </svg>
-      <h1 className={cn("text-2xl font-bold", className)}>Norruva</h1>
+      <h1 className={cn("text-2xl font-bold", className)}>PassportFlow</h1>
     </Link>
   );
 }

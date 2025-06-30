@@ -1,4 +1,3 @@
-
 import type { Product } from "@/types";
 import Image from "next/image";
 import {
@@ -40,8 +39,6 @@ import {
   MapPin,
   FileQuestion,
   Archive,
-  Zap,
-  BarChart3,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -73,10 +70,8 @@ function InfoRow({
 export default function PublicPassportView({ product }: { product: Product }) {
   const { sustainability } = product;
   const esg = sustainability;
-  const lifecycle = sustainability?.lifecycleAnalysis;
-  const classification = sustainability?.classification;
   const compliancePath = compliancePaths.find(
-    p => p.id === product.compliancePathId,
+    (p) => p.id === product.compliancePathId,
   );
 
   return (
@@ -154,8 +149,8 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     product.verificationStatus === "Verified"
                       ? "default"
                       : product.verificationStatus === "Failed"
-                        ? "destructive"
-                        : "secondary"
+                      ? "destructive"
+                      : "secondary"
                   }
                   className="text-sm"
                 >
@@ -186,7 +181,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
         <Accordion
           type="multiple"
           className="w-full"
-          defaultValue={["item-1", "item-2", "item-3", "item-4"]}
+          defaultValue={["item-1", "item-2", "item-3"]}
         >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
@@ -241,7 +236,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
 
           <AccordionItem value="item-2">
             <AccordionTrigger className="text-xl font-semibold">
-              Lifecycle & Circularity
+              Circularity & Lifecycle
             </AccordionTrigger>
             <AccordionContent className="pt-2">
               <InfoRow icon={Package} label="Packaging">
@@ -272,121 +267,10 @@ export default function PublicPassportView({ product }: { product: Product }) {
                     </Badge>
                   </InfoRow>
                 )}
-              {lifecycle ? (
-                <>
-                  <InfoRow
-                    icon={Thermometer}
-                    label="Estimated Carbon Footprint"
-                  >
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-bold text-foreground">
-                        {lifecycle.carbonFootprint.value}{" "}
-                        {lifecycle.carbonFootprint.unit}
-                      </p>
-                      <p>{lifecycle.carbonFootprint.summary}</p>
-                    </div>
-                  </InfoRow>
-                  <InfoRow
-                    icon={BarChart3}
-                    label="Lifecycle Stages Analysis"
-                  >
-                    <div className="space-y-3 mt-2 text-sm text-muted-foreground">
-                      <div className="flex items-start gap-3">
-                        <Factory className="h-4 w-4 mt-1 shrink-0" />
-                        <div>
-                          <h4 className="font-semibold text-foreground">
-                            Manufacturing
-                          </h4>
-                          <p>{lifecycle.lifecycleStages.manufacturing}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Zap className="h-4 w-4 mt-1 shrink-0" />
-                        <div>
-                          <h4 className="font-semibold text-foreground">
-                            Use Phase
-                          </h4>
-                          <p>{lifecycle.lifecycleStages.usePhase}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <Recycle className="h-4 w-4 mt-1 shrink-0" />
-                        <div>
-                          <h4 className="font-semibold text-foreground">
-                            End-of-Life
-                          </h4>
-                          <p>{lifecycle.lifecycleStages.endOfLife}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </InfoRow>
-                  <InfoRow
-                    icon={ShieldAlert}
-                    label="Highest Impact Stage"
-                    value={lifecycle.highestImpactStage}
-                  />
-                  <InfoRow icon={Lightbulb} label="Improvement Opportunities">
-                    <ul className="list-disc list-inside text-sm text-muted-foreground">
-                      {lifecycle.improvementOpportunities.map((opp, index) => (
-                        <li key={index}>{opp}</li>
-                      ))}
-                    </ul>
-                  </InfoRow>
-                </>
-              ) : (
-                <p className="text-muted-foreground text-sm p-4 text-center">
-                  No lifecycle analysis available.
-                </p>
-              )}
             </AccordionContent>
           </AccordionItem>
 
           <AccordionItem value="item-3">
-            <AccordionTrigger className="text-xl font-semibold">
-              Sustainability & ESG Details
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              {esg ? (
-                <>
-                  <InfoRow
-                    icon={Leaf}
-                    label="Environmental Score"
-                    value={`${esg.environmental}/100`}
-                  />
-                  <InfoRow
-                    icon={Users}
-                    label="Social Score"
-                    value={`${esg.social}/100`}
-                  />
-                  <InfoRow
-                    icon={Landmark}
-                    label="Governance Score"
-                    value={`${esg.governance}/100`}
-                  />
-                  {classification && (
-                    <>
-                      <InfoRow
-                        icon={Tag}
-                        label="ESG Category"
-                        value={classification.esgCategory}
-                      />
-                      <InfoRow
-                        icon={ShieldAlert}
-                        label="ESG Risk Score"
-                        value={`${classification.riskScore}/10`}
-                      />
-                    </>
-                  )}
-                </>
-              ) : (
-                <p className="text-muted-foreground text-sm p-4">
-                  No ESG data available.
-                </p>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-4">
             <AccordionTrigger className="text-xl font-semibold">
               Compliance & Certifications
             </AccordionTrigger>
