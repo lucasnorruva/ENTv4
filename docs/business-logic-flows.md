@@ -83,3 +83,34 @@ This describes when someone scans a code or otherwise attempts to access and ver
             *   Compute hash of a data snapshot (if we gave them data via some standardized form like a PDF or digital file).
             *   Then manually check on a blockchain explorer if that hash exists associated with that product. But that requires knowledge of `productId` used on chain. We could publish `productId` or incorporate it in the hash (like register by `productId`).
             *   Likely easier for them to trust our verify endpoint or UI.
+
+## 10.4 Compliance Monitoring Flow
+(This is a smaller flow: how we monitor and update compliance with new standards.)
+1.  **Regulation Update**: Suppose EU publishes a new delegated act that requires an additional data field from 2026. Our compliance team updates the standardsMap config with this requirement (and maybe increments a version for our schema).
+2.  **System Flags Non-compliance**: We might run a script or scheduled function that goes through all products that fall under that category and checks if they have that field. For any missing, mark their validationStatus as “requires update” or add to validationErrors.
+3.  **Notify Users**: The system could send an automated email or dashboard alert: “New requirement: Products in category X now need Y field by 2026. The following products are missing this: ...”
+4.  **User Updates**: The manufacturer logs in, sees an alert on their product with a red indicator. They edit and fill the new field (or ask AI to help generate it if possible).
+5.  **Re-validation**: After they update, triggers run, etc., new hash anchored if needed, and status turns back to green “compliant”.
+6.  **Continuous Compliance**: We may also integrate with third-party databases for certain things (like an updated SVHC list). When SVHC list updates (every 6 months in EU, they add some chemicals):
+    -   We update our internal list.
+    -   A scheduled job scans products’ substances, finds any now flagged as SVHC. If any product contains a substance that newly became SVHC and above threshold, mark an issue (since now they need to declare/submit SCIP).
+    -   Notify those product owners to take action (like update compliance field or maybe they weren't aware).
+This proactive approach ensures the digital passport stays up-to-date with evolving compliance, a selling point of our service.
+
+## 10.5 End-of-Life / Circular Flow (Future)
+(This might not be fully implemented yet, but conceptually if our platform supports tracking lifecycle events as mentioned.)
+1.  **Event Addition**: A recycler scans a product QR/NFC at their facility. They have an app that’s integrated with our API (or maybe just uses the public data). The app could call an authenticated endpoint like POST /products/{id}/events with {type: "recycled", details: { location: "RecycleCo, NL" } }.
+2.  **Update Passport**: Our system adds this event to the product’s record. We might also set a status: "recycled" or something. Optionally anchor an updated hash for this final state.
+3.  **Consumer View**: If afterwards someone scans that product (maybe unlikely if it's recycled meaning out of circulation), the passport might show “This product reached end-of-life and was recycled on Jan 2028 at RecycleCo, NL.” This provides traceability feedback loop which is valuable for circular economy metrics.
+4.  **Analytics**: The manufacturer might get data from our system like “50% of our products were scanned as recycled” if such events are used, helping them with ESG reporting.
+
+Each of these flows is supported by different parts of our architecture:
+-   Triggers and cloud functions orchestrate creation and updates (Flow 10.1, 10.2, 10.4).
+-   REST API endpoints and front-end handle user-initiated access (Flow 10.3).
+-   Schedules and background tasks handle compliance monitoring (Flow 10.4/10.5).
+-   Webhooks and notifications keep users informed at key points.
+
+The flows also highlight how internal links occur:
+-   For example, after Step 5 of creation, the user might navigate to a "View Passport" link in the dashboard, which effectively is an internal link to either the public page or a preview mode. We ensure smooth linking (e.g., in the portal after creating, we show a button “View Live Passport” that opens the public link in a new tab).
+
+By mapping out these flows, contributors can identify where to implement a new feature. Say we want to add a step where an AI suggests improvements if a compliance check fails: we'd plug it into the creation flow between step 4 and 5 (after compliance check, if errors, call AI to generate suggestions and attach to validationErrors as advice). The flows serve as a blueprint to maintain consistency in user experience and system reliability.
