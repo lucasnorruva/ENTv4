@@ -90,6 +90,15 @@ export const auditLogs: AuditLog[] = [
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 4)).toISOString(),
   },
   {
+    id: "log-007",
+    userId: "user-recycler",
+    action: "product.recycled",
+    entityId: "pp-004",
+    details: {},
+    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
+    updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
+  },
+  {
     id: "log-006",
     userId: "user-auditor",
     action: "passport.rejected",
@@ -110,14 +119,5 @@ export const auditLogs: AuditLog[] = [
     details: { productName: "Modular Shelving Unit" },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
-  },
-  {
-    id: "log-007",
-    userId: "user-recycler",
-    action: "product.recycled",
-    entityId: "pp-004",
-    details: {},
-    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
-    updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
   },
 ];

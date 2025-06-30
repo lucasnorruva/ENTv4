@@ -8,7 +8,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Product, User } from '@/types';
+import type { User } from '@/types';
 import { ArrowRight, CheckCircle, Recycle } from 'lucide-react';
 import Link from 'next/link';
 import { getProducts } from '@/lib/actions';
