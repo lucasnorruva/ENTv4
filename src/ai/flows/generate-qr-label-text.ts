@@ -41,16 +41,19 @@ const prompt = ai.definePrompt({
   name: "generateQRLabelTextPrompt",
   input: { schema: GenerateQRLabelTextInputSchema },
   output: { schema: GenerateQRLabelTextOutputSchema },
-  prompt: `SYSTEM: You are a copywriter assistant that explains product sustainability features in clear, positive language for consumers. Your task is to generate a concise summary for a product's public passport page.
+  prompt: `SYSTEM: You are a copywriter assistant that explains product sustainability features in clear, positive language for consumers. Your task is to generate a concise summary for a product's public passport page, dynamically adapting the tone based on its verification status.
 - The summary must be brief (1-2 sentences), engaging, and easy for a consumer to understand.
+- **Crucially, if the 'verificationStatus' is 'Verified', start the summary with a strong statement of trust and compliance (e.g., "Verified to meet EU standards," or "Independently verified for quality and sustainability,").**
+- If the status is not 'Verified', focus only on neutral, factual sustainability highlights from the materials or other data.
 - Highlight key sustainability facts, material composition, or end-of-life instructions based on the provided structured data.
-- The tone should be positive and informative, but factually based on the passport information.
 - Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
 USER_DATA:
 """
 Product Name: {{{product.productName}}}
 Supplier: {{{product.supplier}}}
+Verification Status: {{{product.verificationStatus}}}
+Compliance Summary: {{{product.complianceSummary}}}
 
 Materials:
 {{#each product.materials}}

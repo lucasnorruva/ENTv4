@@ -167,7 +167,17 @@ export async function saveProduct(
 
   const validatedData = productFormSchema.parse(productData);
 
-  const aiProductInput: AiProduct = { ...validatedData, supplier: company.name };
+  const existingProduct = productId
+    ? await getProductById(productId, userId)
+    : undefined;
+
+  const aiProductInput: AiProduct = {
+    ...validatedData,
+    supplier: company.name,
+    verificationStatus: existingProduct?.verificationStatus ?? 'Not Submitted',
+    complianceSummary: existingProduct?.sustainability?.complianceSummary,
+  };
+
   const { sustainability, qrLabelText, dataQualityWarnings } =
     await runAllAiFlows(aiProductInput);
 
@@ -363,7 +373,6 @@ export async function runSuggestImprovements(
     materials: [],
     manufacturing: { facility: '', country: '' },
     certifications: [],
-    packaging: { type: '', recyclable: false },
   };
   return suggestImprovements({ product: aiProductInput });
 }
@@ -375,8 +384,13 @@ export async function recalculateScore(
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
 
+  const aiProductInput: AiProduct = {
+    ...product,
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
   const { sustainability, qrLabelText, dataQualityWarnings } =
-    await runAllAiFlows(product);
+    await runAllAiFlows(aiProductInput);
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   mockProducts[productIndex].sustainability = sustainability;

@@ -38,6 +38,16 @@ export const AiProductSchema = z.object({
       }),
     )
     .describe('List of certifications.'),
+  verificationStatus: z
+    .string()
+    .optional()
+    .describe(
+      "The product's verification status (e.g., 'Verified', 'Pending', 'Failed').",
+    ),
+  complianceSummary: z
+    .string()
+    .optional()
+    .describe("A summary of the product's compliance status."),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;
