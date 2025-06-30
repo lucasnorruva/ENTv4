@@ -21,7 +21,7 @@ export type ValidateProductDataInput = z.infer<
   typeof ValidateProductDataInputSchema
 >;
 
-export const DataQualityWarningSchema = z.object({
+const DataQualityWarningSchema = z.object({
   field: z.string().describe("The specific field with a potential issue."),
   warning: z.string().describe("A description of the potential data anomaly."),
 });
