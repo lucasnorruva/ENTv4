@@ -313,6 +313,24 @@ export default function DashboardSidebar({
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = getRoleSlug(userRole);
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: 'Logged Out',
+        description: 'You have been successfully logged out.',
+      });
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout Failed:', error);
+      toast({
+        title: 'Logout Failed',
+        description: 'An error occurred while logging out.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleNavigate = (href: string, external?: boolean) => {
     if (external) {
       window.open(href, '_blank');
@@ -322,7 +340,7 @@ export default function DashboardSidebar({
   };
 
   const dashboardHref = `/dashboard/${roleSlug}`;
-  
+
   const generalNavItems = [
     { title: 'Settings', icon: Settings, href: `/dashboard/${roleSlug}/settings` },
     { title: 'Support', icon: LifeBuoy, href: `/dashboard/${roleSlug}/support` },
