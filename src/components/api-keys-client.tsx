@@ -3,7 +3,7 @@
 
 import { useState, useTransition } from 'react';
 import { format } from 'date-fns';
-import { Plus, Trash2, ShieldOff, Copy, Check } from 'lucide-react';
+import { Plus, Trash2, ShieldOff, Copy, Check, Loader2 } from 'lucide-react';
 
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -40,6 +40,7 @@ import {
   DialogFooter,
   DialogTrigger,
   DialogDescription,
+  DialogClose,
 } from '@/components/ui/dialog';
 
 interface ApiKeysClientProps {
@@ -54,11 +55,8 @@ export default function ApiKeysClient({
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  // State for the "Create Key" dialog
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyLabel, setNewKeyLabel] = useState('');
-
-  // State for the "View New Key" dialog
   const [isViewKeyDialogOpen, setIsViewKeyDialogOpen] = useState(false);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
@@ -82,7 +80,11 @@ export default function ApiKeysClient({
           description: `New key "${newKeyLabel}" has been created.`,
         });
       } catch (error) {
-        toast({ title: 'Error', description: 'Failed to create API key.' });
+        toast({
+          title: 'Error',
+          description: 'Failed to create API key.',
+          variant: 'destructive',
+        });
       } finally {
         setIsCreateDialogOpen(false);
         setNewKeyLabel('');
@@ -96,7 +98,11 @@ export default function ApiKeysClient({
         await revokeApiKey(id, user.id);
         toast({ title: 'API Key Revoked' });
       } catch (error) {
-        toast({ title: 'Error', description: 'Failed to revoke API key.' });
+        toast({
+          title: 'Error',
+          description: 'Failed to revoke API key.',
+          variant: 'destructive',
+        });
       }
     });
   };
@@ -107,7 +113,11 @@ export default function ApiKeysClient({
         await deleteApiKey(id, user.id);
         toast({ title: 'API Key Deleted' });
       } catch (error) {
-        toast({ title: 'Error', description: 'Failed to delete API key.' });
+        toast({
+          title: 'Error',
+          description: 'Failed to delete API key.',
+          variant: 'destructive',
+        });
       }
     });
   };
@@ -142,6 +152,9 @@ export default function ApiKeysClient({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Create New API Key</DialogTitle>
+              <DialogDescription>
+                Give your key a descriptive label to help you identify it later.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <Label htmlFor="key-label">Label</Label>
@@ -153,7 +166,11 @@ export default function ApiKeysClient({
               />
             </div>
             <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
               <Button onClick={handleCreateKey} disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Key
               </Button>
             </DialogFooter>
@@ -174,7 +191,7 @@ export default function ApiKeysClient({
           {initialApiKeys.map(key => (
             <TableRow key={key.id}>
               <TableCell className="font-medium">{key.label}</TableCell>
-              <TableCell className="font-mono">
+              <TableCell className="font-mono text-xs">
                 {getRedactedToken(key.token)}
               </TableCell>
               <TableCell>
@@ -229,6 +246,13 @@ export default function ApiKeysClient({
               </TableCell>
             </TableRow>
           ))}
+           {initialApiKeys.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={5} className="h-24 text-center">
+                No API keys created yet.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
       <Dialog open={isViewKeyDialogOpen} onOpenChange={closeViewKeyDialog}>

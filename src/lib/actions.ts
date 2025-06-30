@@ -625,6 +625,7 @@ export async function revokeApiKey(
   key.updatedAt = new Date().toISOString();
   await logAuditEvent('api_key.revoked', id, { label: key.label }, userId);
   revalidatePath('/dashboard/keys');
+  revalidatePath('/dashboard');
   return key;
 }
 
