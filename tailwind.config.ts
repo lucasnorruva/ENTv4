@@ -10,13 +10,20 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        headline: ["Inter", "sans-serif"],
+        code: ["monospace"],
       },
       colors: {
         // New High-Frequency Palette
-        forestGreen: "#4CAF50",
-        lightGreen: "#F0F4F0",
-        skyBlue: "#87CEEB",
+        primaryBlue: "#3B82F6", // Trust, Digital Authority
+        indigoBase: "#1E1B4B", // Authority, Intuition, Depth
+        emeraldGreen: "#10B981", // Growth, Sustainability
+        violetAccent: "#8B5CF6", // Premium AI, Futuristic Magic
+        glassSurfaceLight: "#F9FAFB",
+        glassSurfaceDark: "rgba(255,255,255,0.05)", // For dark mode cards
+        slateText: "#CBD5E1", // Gentle Neutral Text
+        midnightShadow: "#0F172A", // Background Depth, Trust Layer (Dark Mode BG)
 
         // ShadCN UI Theming variables - will be mapped in globals.css
         background: "hsl(var(--background))",
@@ -59,6 +66,19 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
+      },
+      boxShadow: {
+        glow: "0 0 20px rgba(139,92,246,0.4)", // violetAccent glow
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -82,10 +102,15 @@ export default {
             height: "0",
           },
         },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.5s ease-out forwards",
       },
     },
   },
