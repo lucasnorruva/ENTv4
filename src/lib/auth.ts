@@ -50,14 +50,14 @@ export function hasRole(user: User, role: Role): boolean {
 export async function getCurrentUser(role: Role): Promise<User> {
   // Find a user that has the requested role.
   const user = mockUsers.find(u => u.roles.includes(role));
-  if (user) return user;
+  if (user) return { ...user, roles: [role] };
   
   // Fallback to the first admin user if the role is not found
   const admin = mockUsers.find(u => u.roles.includes(UserRoles.ADMIN));
-  if (admin) return admin;
+  if (admin) return { ...admin, roles: [role] };
 
   // Fallback to the very first user if no admin is found
-  if (mockUsers.length > 0) return mockUsers[0];
+  if (mockUsers.length > 0) return { ...mockUsers[0], roles: [role] };
 
   throw new Error('No users found in the database. Please check the mock data.');
 }

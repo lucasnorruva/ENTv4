@@ -109,7 +109,9 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     !hasRole(user, UserRoles.ADMIN) &&
     !hasRole(user, UserRoles.AUDITOR) &&
     !hasRole(user, UserRoles.BUSINESS_ANALYST) &&
-    !hasRole(user, UserRoles.RECYCLER)
+    !hasRole(user, UserRoles.RECYCLER) &&
+    !hasRole(user, UserRoles.MANUFACTURER) &&
+    !hasRole(user, UserRoles.SERVICE_PROVIDER)
   ) {
     return mockProducts.filter(p => p.companyId === user.companyId);
   }
