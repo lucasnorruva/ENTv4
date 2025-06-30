@@ -1,4 +1,3 @@
-
 // src/components/dashboards/service-provider-dashboard.tsx
 import {
   Card,
@@ -13,6 +12,8 @@ import type { User } from "@/types";
 import { getProducts, getServiceTickets } from "@/lib/actions";
 import { ArrowRight, Wrench, Ticket } from "lucide-react";
 import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { Badge } from "../ui/badge";
 
 export default async function ServiceProviderDashboard({
   user,
@@ -25,7 +26,16 @@ export default async function ServiceProviderDashboard({
   ]);
 
   const availableManuals = products.filter((p) => p.manualUrl).length;
-  const openTickets = tickets.filter((t) => t.status === "Open").length;
+  const openTickets = tickets.filter((t) => t.status === "Open");
+
+  const recentOpenTickets = openTickets
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 5);
+
+  const productMap = new Map(products.map((p) => [p.id, p.productName]));
 
   return (
     <div className="space-y-6">
@@ -68,7 +78,7 @@ export default async function ServiceProviderDashboard({
             <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{openTickets}</div>
+            <div className="text-2xl font-bold">{openTickets.length}</div>
             <p className="text-xs text-muted-foreground">
               Require immediate attention
             </p>
@@ -76,12 +86,55 @@ export default async function ServiceProviderDashboard({
           <CardFooter>
             <Button asChild variant="outline" size="sm" className="w-full">
               <Link href="/dashboard/tickets">
-                Manage Tickets <ArrowRight className="ml-2 h-4 w-4" />
+                Manage All Tickets <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
         </Card>
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recently Opened Tickets</CardTitle>
+          <CardDescription>
+            The latest service requests needing your attention.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentOpenTickets.length > 0 ? (
+            <div className="space-y-4">
+              {recentOpenTickets.map((ticket) => (
+                <div
+                  key={ticket.id}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {productMap.get(ticket.productId) || "Unknown Product"}
+                    </p>
+                    <p className="text-sm text-muted-foreground truncate max-w-xs">
+                      {ticket.issue}
+                    </p>
+                  </div>
+                  <div className="text-right text-xs text-muted-foreground shrink-0">
+                    <p>
+                      {formatDistanceToNow(new Date(ticket.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                    <p className="mt-1">
+                      <Badge variant="destructive">{ticket.status}</Badge>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <p>No open tickets. All caught up!</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
