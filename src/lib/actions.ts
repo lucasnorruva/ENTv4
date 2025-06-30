@@ -14,7 +14,13 @@ import {
   Timestamp,
   DocumentSnapshot,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from 'firebase/storage';
 import { Collections } from '@/lib/constants';
 
 import { compliancePaths } from './compliance-data';
@@ -104,25 +110,34 @@ export async function getProductById(id: string): Promise<Product | undefined> {
 }
 
 export async function saveProduct(
-  data: Omit<
-    Product,
-    | 'id'
-    | 'createdAt'
-    | 'updatedAt'
-    | 'lastUpdated'
-    | 'esg'
-    | 'blockchainProof'
-    | 'verificationStatus'
-    | 'lastVerificationDate'
-    | 'complianceSummary'
-    | 'complianceGaps'
-    | 'endOfLifeStatus'
-    | 'qrLabelText'
-    | 'classification'
-    | 'lifecycleAnalysis'
-  > & { id?: string },
+  formData: FormData,
   userId: string,
 ): Promise<Product> {
+  const id = formData.get('id') as string | null;
+  const imageFile = formData.get('productImageFile') as File | null;
+
+  const dataToSave: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> = {
+    productName: formData.get('productName') as string,
+    productDescription: formData.get('productDescription') as string,
+    category: formData.get('category') as string,
+    supplier: formData.get('supplier') as string,
+    complianceLevel: formData.get('complianceLevel') as 'High' | 'Medium' | 'Low',
+    currentInformation: formData.get('currentInformation') as string,
+    status: formData.get('status') as 'Published' | 'Draft' | 'Archived',
+    productImage: formData.get('productImage') as string, // Existing URL if present
+    lastUpdated: new Date().toISOString(),
+  };
+
+  if (imageFile && imageFile.size > 0) {
+    const storageRef = ref(storage, `product_images/${Date.now()}_${imageFile.name}`);
+    await uploadBytes(storageRef, imageFile);
+    dataToSave.productImage = await getDownloadURL(storageRef);
+  } else if (!id && !dataToSave.productImage) {
+    // If it's a new product with no image, use a placeholder.
+    dataToSave.productImage = 'https://placehold.co/100x100.png';
+  }
+
+
   // AI enrichments running in parallel
   const [
     esgResult,
@@ -132,58 +147,58 @@ export async function saveProduct(
     lifecycleAnalysisResult,
   ] = await Promise.all([
     calculateSustainability({
-      productName: data.productName,
-      productDescription: data.productDescription,
-      category: data.category,
-      currentInformation: data.currentInformation,
+      productName: dataToSave.productName,
+      productDescription: dataToSave.productDescription,
+      category: dataToSave.category,
+      currentInformation: dataToSave.currentInformation,
     }).catch(e => {
       console.error('AI sustainability calculation failed:', e);
       return undefined;
     }),
     summarizeComplianceGaps({
-      productName: data.productName,
-      productInformation: data.currentInformation,
+      productName: dataToSave.productName,
+      productInformation: dataToSave.currentInformation,
       compliancePathName:
-        compliancePaths.find(p => p.category === data.category)?.name || '',
+        compliancePaths.find(p => p.category === dataToSave.category)?.name || '',
       complianceRules: JSON.stringify(
-        compliancePaths.find(p => p.category === data.category)?.rules || {},
+        compliancePaths.find(p => p.category === dataToSave.category)?.rules || {},
       ),
     }).catch(e => {
       console.error('AI compliance check failed:', e);
       return undefined;
     }),
     generateQRLabelText({
-      productName: data.productName,
-      supplier: data.supplier,
-      currentInformation: data.currentInformation,
+      productName: dataToSave.productName,
+      supplier: dataToSave.supplier,
+      currentInformation: dataToSave.currentInformation,
     }).catch(e => {
       console.error('AI QR label text generation failed:', e);
       return undefined;
     }),
     classifyProduct({
-      productName: data.productName,
-      productDescription: data.productDescription,
-      category: data.category,
-      currentInformation: data.currentInformation,
+      productName: dataToSave.productName,
+      productDescription: dataToSave.productDescription,
+      category: dataToSave.category,
+      currentInformation: dataToSave.currentInformation,
     }).catch(e => {
       console.error('AI product classification failed:', e);
       return undefined;
     }),
     analyzeProductLifecycle({
-      productName: data.productName,
-      productDescription: data.productDescription,
-      currentInformation: data.currentInformation,
+      productName: dataToSave.productName,
+      productDescription: dataToSave.productDescription,
+      currentInformation: dataToSave.currentInformation,
     }).catch(e => {
       console.error('AI lifecycle analysis failed:', e);
       return undefined;
     }),
   ]);
 
-  if (data.id) {
+  if (id) {
     // Update existing product
-    const docRef = doc(db, Collections.PRODUCTS, data.id);
+    const docRef = doc(db, Collections.PRODUCTS, id);
     const productData = {
-      ...data,
+      ...dataToSave,
       updatedAt: Timestamp.now(),
       lastUpdated: Timestamp.now(),
       ...(esgResult && { esg: esgResult }),
@@ -199,14 +214,14 @@ export async function saveProduct(
     };
 
     await setDoc(docRef, productData, { merge: true });
-    const updatedProduct = await getProductById(data.id);
+    const updatedProduct = await getProductById(id);
     if (!updatedProduct)
       throw new Error('Failed to retrieve product after update.');
 
     await logAuditEvent(
       'product.updated',
       updatedProduct.id,
-      { fields: Object.keys(data) },
+      { fields: Object.keys(dataToSave) },
       userId,
     );
 
@@ -216,7 +231,7 @@ export async function saveProduct(
   } else {
     // Create new product
     const newProductData = {
-      ...data,
+      ...dataToSave,
       esg: esgResult,
       complianceSummary: complianceResult?.complianceSummary,
       complianceGaps: complianceResult?.gaps,
@@ -226,7 +241,7 @@ export async function saveProduct(
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       lastUpdated: Timestamp.now(),
-      verificationStatus: 'Pending' as const, // Start as pending auto-verification
+      verificationStatus: 'Pending' as const,
       endOfLifeStatus: 'Active' as const,
     };
     const docRef = await addDoc(
@@ -255,6 +270,26 @@ export async function deleteProduct(
   userId: string,
 ): Promise<{ success: boolean }> {
   const productToDelete = await getProductById(id);
+
+  if (productToDelete?.productImage) {
+    try {
+      // Don't delete placeholder images
+      if (!productToDelete.productImage.includes('placehold.co')) {
+        const imageRef = ref(storage, productToDelete.productImage);
+        await deleteObject(imageRef);
+      }
+    } catch (error: any) {
+      if (error.code === 'storage/object-not-found') {
+        console.warn(
+          `Image not found in storage for product ${id}, but proceeding with deletion.`,
+        );
+      } else {
+        console.error(`Failed to delete image for product ${id}:`, error);
+        // Do not throw; proceed with deleting the Firestore document.
+      }
+    }
+  }
+
   if (productToDelete) {
     await logAuditEvent(
       'product.deleted',
@@ -263,10 +298,12 @@ export async function deleteProduct(
       userId,
     );
   }
+
   await deleteDoc(doc(db, Collections.PRODUCTS, id));
   revalidatePath('/dashboard');
   return { success: true };
 }
+
 
 export async function submitForReview(
   productId: string,

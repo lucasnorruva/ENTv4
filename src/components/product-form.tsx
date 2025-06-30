@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 const productSchema = z.object({
   productName: z.string().min(3, 'Product name is required'),
   productDescription: z.string().min(10, 'Product description is required'),
-  productImage: z.string().url('Must be a valid URL'),
+  productImage: z.any(),
   category: z.string().min(1, 'Category is required'),
   supplier: z.string().min(1, 'Supplier is required'),
   complianceLevel: z.enum(['High', 'Medium', 'Low']),
@@ -52,7 +53,7 @@ const productSchema = z.object({
         return false;
       }
     },
-    { message: 'Must be valid JSON' }
+    { message: 'Must be valid JSON' },
   ),
   status: z.enum(['Published', 'Draft', 'Archived']),
 });
@@ -75,7 +76,7 @@ const defaultJsonInfo = JSON.stringify(
     packaging: 'Description of packaging...',
   },
   null,
-  2
+  2,
 );
 
 export default function ProductForm({
@@ -94,7 +95,7 @@ export default function ProductForm({
     defaultValues: {
       productName: '',
       productDescription: '',
-      productImage: 'https://placehold.co/100x100.png',
+      productImage: undefined,
       category: 'Electronics',
       supplier: '',
       complianceLevel: 'Medium',
@@ -119,7 +120,7 @@ export default function ProductForm({
       form.reset({
         productName: '',
         productDescription: '',
-        productImage: 'https://placehold.co/100x100.png',
+        productImage: undefined,
         category: 'Electronics',
         supplier: '',
         complianceLevel: 'Medium',
@@ -132,7 +133,25 @@ export default function ProductForm({
   const onSubmit = (values: ProductFormValues) => {
     startTransition(async () => {
       try {
-        const saved = await saveProduct({ ...values, id: product?.id }, user.id);
+        const formData = new FormData();
+
+        Object.entries(values).forEach(([key, value]) => {
+          if (key === 'productImage') {
+            if (value instanceof File) {
+              formData.append('productImageFile', value);
+            } else if (typeof value === 'string') {
+              formData.append(key, value);
+            }
+          } else if (value !== undefined && value !== null) {
+            formData.append(key, value as string);
+          }
+        });
+
+        if (product?.id) {
+          formData.append('id', product.id);
+        }
+
+        const saved = await saveProduct(formData, user.id);
         toast({
           title: 'Success!',
           description: `Passport for "${saved.productName}" has been saved.`,
@@ -244,9 +263,27 @@ export default function ProductForm({
                 name="productImage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product Image URL</FormLabel>
+                    <FormLabel>Product Image</FormLabel>
+                    {typeof field.value === 'string' && field.value && (
+                      <div className="mb-2">
+                        <Image
+                          src={field.value}
+                          alt="Current product image"
+                          width={100}
+                          height={100}
+                          className="rounded-md object-cover"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Current image. Upload a new file to replace it.
+                        </p>
+                      </div>
+                    )}
                     <FormControl>
-                      <Input placeholder="https://..." {...field} />
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => field.onChange(e.target.files?.[0])}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
