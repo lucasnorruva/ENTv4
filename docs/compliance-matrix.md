@@ -139,3 +139,69 @@ In general, for Chemical compliance, our strategy is:
 -   Automatically flag if any problematic substance is present beyond limits.
 -   Provide guidance (via AI or static text) on what to do (e.g., if lead is present, “use lead-free solder to comply with RoHS” as AI might suggest).
 -   Keep record of compliance documentation. DPP includes a section for “Compliance & Safety Information” which is exactly as described by an EU source: unique ID, compliance docs, substances of concern, user manuals, disposal guidance ([forrester.com](https://www.forrester.com)). Our data model and validation enforce these are included.
+
+## 3.3 International Standards & Frameworks
+
+Beyond regulations, there are numerous standards and frameworks (ISO, IEEE, etc.) that inform our data model to ensure interoperability and best practices:
+
+-   **GS1 Standards (Identification & Data Sharing)**:
+    -   **Scope**: GS1 provides global standards like GTIN (barcodes), GLN (locations), and data exchange standards (EPCIS for event capture, Digital Link for URLs).
+    -   **Integration**: We use GTIN as the primary product identifier whenever available. The `identifiers.gtin` field in our schema links the DPP to the global product cataloging system, which aids interoperability ([digimarc.com](https://digimarc.com)). We also utilize GS1 Digital Link syntax for our URLs (appending the GTIN and maybe a serial as a query parameter in the QR code URL). For data sharing, if companies use EPCIS to track events (like manufacturing or shipping events), our system can import those into the `events` subcollection.
+    -   **Fields**: `identifiers.gtin`, `identifiers.gln` (maybe manufacturer’s GLN), and possibly events aligning to EPCIS events (with fields like event time, type, bizStep, etc.).
+    -   **Validation**: Check GTIN format (valid checksum). If not provided, we can generate an internal unique ID but advise using GTIN for consumer products. GS1 standards support is highlighted as a way we meet global interoperability requirements ([gs1.eu](https://www.gs1.eu)).
+
+-   **W3C Decentralized Identifiers (DID)**:
+    -   **Scope**: A W3C standard for unique, verifiable identifiers for entities (including products).
+    -   **Integration**: For future-proofing, we can derive a DID for each product, especially if using EBSI (which has its own DID method). For example, a product could have a DID like `did:ebsi:...` or `did:example:productID`.
+    -   **Fields**: `identifiers.did`.
+    -   **Validation**: Not mandatory for now, but if the user’s organization uses DIDs, we store and perhaps publish a DID Document linking to the DPP URL. This allows an external decentralized lookup of the product (which could return a pointer to our API).
+
+-   **W3C Verifiable Credentials (VC)**:
+    -   **Scope**: A framework for digitally signing data (could be used to sign a DPP’s data as a credential).
+    -   **Integration**: We plan to offer an export where the entire product passport is serialized as a Verifiable Credential (JSON-LD with proper context) and signed by the manufacturer. This can be anchored on EBSI or elsewhere.
+    -   **Fields**: Not in Firestore, but an on-demand generation; or `blockchain.ebsiCredentialId` as mentioned, which could link to a stored VC on a ledger.
+    -   **Validation**: Ensure that if we generate a VC, all required claims are present. This is more about feature implementation than data validation inside Firestore.
+
+-   **ISO 9001 / Quality Management**: Not directly stored, but we allow a field `certifications` where companies can list any certifications (ISO 9001, ISO 14001, etc.) relevant to the product or its manufacturing. This doesn’t have a strict validation, but could be displayed or included in AI reasoning (Gemini might mention “factory is ISO 14001 certified” in ESG analysis as we saw).
+
+-   **ISO 14024 / Ecolabel Type I**: Covers programs like EU Ecolabel or Energy Star. If a product has an ecolabel, we capture that.
+    -   **Fields**: `certifications.ecoLabel` (e.g., “EU Ecolabel”), `certifications.energyStar` (boolean or rating).
+    -   **Validation**: If claimed, possibly verify format or existence (maybe via an API if available, but usually just trust the input).
+
+-   **ISO 17067 (Certification schemes) and ISO/IEC 15288 (Lifecycle processes)** and other meta-standards: these inform how we design the processes but don’t map to specific fields.
+
+-   **UN Sustainable Development Goals (SDGs)**: Some companies want to link products to SDGs. Not a compliance thing, but we could allow tagging which SDGs are addressed.
+    -   **Fields**: `sustainabilityGoals: [7,12]` (for Affordable Energy, Responsible Consumption, etc.).
+    -   **Validation**: None strict, just for reporting.
+
+-   **GHG Protocol**: We mentioned this under ISO 14067, it’s essentially similar: ensure we align with how to account emissions.
+
+-   **IEC and IEEE standards**: e.g., IEC 62474 Material Declaration (an international db of declarable substances) – our compliance logic can use IEC 62474 list for electronics materials to know what to capture.
+    -   **Integration**: Behind the scenes, the `compliance/standardsMap.ts` might include substance lists from IEC 62474 which overlaps with REACH and RoHS. This improves completeness.
+
+-   **Global Recycled Standard (GRS) or OEKO-TEX (for textiles)**: These are certifications that verify claims (not laws).
+    -   **Integration**: Allow linking to these certificates in the passport.
+    -   **Fields**: e.g., `certifications.OEKOTEX` (with certificate ID), or `materials[].grsCertified` flag if a material is certified recycled.
+    -   **Validation**: Not automated; just stored.
+
+In summary, our platform’s compliance matrix isn’t just a static checklist – it’s an active system. We embed the knowledge of these regulations into our data structure and code. The matrix is implemented partly as configuration (lists of required fields per category/standard) and partly as code (functions that calculate or check conditions). For transparency, we could provide a table in our docs or even in the app listing all supported standards and whether the product currently meets them (a “Compliance dashboard” that might say ✅ or ❌ next to each applicable standard).
+
+### Example Compliance Matrix Snippet (for reference)
+
+| Regulation/Standard                | Key Fields (Data Points)                        | Integration Notes (Platform Behavior)                                    | Validation Rules (Summary)                                                           |
+| ---------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| **REACH (EU)**                     | `substances`, `reachSVHCDeclaration`, `scipReference` | SVHC list updated from ECHA. SCIP ID stored if needed.                   | Flag if SVHC >0.1% without SCIP ref. Reject banned substances above thresholds.      |
+| **RoHS (EU)**                      | `rohsCompliant`, `substances` (for Pb, Hg etc)    | If electronics, must confirm RoHS. Exemptions can be noted.              | Require `rohsCompliant=true` for electronics. Warn if substances present beyond limits. |
+| **ESPR (EU)**                      | Many: `materialComposition`, `carbonFootprint`, etc. | Generic DPP framework – ensure full data for category.                   | Require all Delegated-Act-specified fields for product category.                     |
+| **ISO 14067 / Carbon Footprint**   | `carbonFootprint`, `carbonFootprintMethod`        | Store product carbon footprint per ISO 14067 if available.               | If footprint given, method must be specified. Suggest adding if missing.             |
+| **GS1 GTIN**                       | `identifiers.gtin`                              | Use GTIN as product ID for compatibility. Included in QR code URL.       | Validate GTIN checksum and format if present. Recommend for consumer products.       |
+| **EU Battery Reg.**                | `battery.*` (various battery info)              | Add battery passport data for any battery-containing product.            | If battery present, require key battery fields (chemistry, capacity, recycle info).    |
+| **DIN EN ISO 22095**               | `chainOfCustodyModel`                           | Document CoC model for recycled content claims.                          | If recycled content >0, require CoC model field. For transparency.                   |
+| **Prop 65 (CA)**                   | `prop65WarningRequired`, `prop65Substances`     | Mark if Prop65 warning needed.                                           | If shipping to CA and contains listed chemicals, flag warning.                       |
+| **EU Toy Safety**                  | `ceMarked`, `documents.declarationOfConformityURL` | Ensure toy compliance docs and markings.                                 | If category=toy, require CE mark `true` and a DoC document.                           |
+| **EU Packaging (PPWR)**            | `packaging.*` (material, recyclability)         | Track packaging sustainability metrics.                                  | If packaging exists, require recyclability info. Check recycled % meets targets.     |
+| **Global Battery Alliance (GBA)**  | `battery.passportID`                            | Prepared to link to GBA battery passport registry.                       | If available, store ID. No strict validation yet (optional feature).                 |
+
+_(This is a partial illustration; the real matrix in code covers many more line items.)_
+
+By systematically implementing this matrix, our platform acts as a compliance assurance tool. Users can see which regulations are fulfilled for each product, and where gaps exist, often with suggested fixes. This reduces risk and effort for companies, essentially automating a large part of the compliance officer’s job within the product passport workflow.
