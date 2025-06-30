@@ -7,6 +7,7 @@ import type { Product } from "@/types";
 import {
   suggestImprovements,
   type SuggestImprovementsInput,
+  type SuggestImprovementsOutput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
 import { anchorToPolygon, hashProductData } from "@/services/blockchain";
@@ -221,13 +222,13 @@ export async function submitForReview(
 
 export async function runSuggestImprovements(
   data: SuggestImprovementsInput,
-): Promise<string> {
+): Promise<SuggestImprovementsOutput> {
   try {
     const result = await suggestImprovements(data);
-    return result.suggestedInformation;
+    return result;
   } catch (error) {
     console.error("AI Suggestion Error:", error);
-    return "There was an error getting suggestions. Please try again.";
+    throw new Error("Could not get suggestion from AI. Please try again.");
   }
 }
 

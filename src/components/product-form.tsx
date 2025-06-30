@@ -5,7 +5,7 @@ import React, { useEffect, useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Sparkles, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -89,7 +89,9 @@ export default function ProductForm({
 }: ProductFormProps) {
   const [isPending, startTransition] = useTransition();
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiSuggestion, setAiSuggestion] = useState('');
+  const [aiRecommendations, setAiRecommendations] = useState<
+    { type: string; text: string }[]
+  >([]);
   const { toast } = useToast();
 
   const form = useForm<ProductFormValues>({
@@ -133,7 +135,7 @@ export default function ProductForm({
         ebsiVcId: '',
       });
     }
-    setAiSuggestion('');
+    setAiRecommendations([]);
   }, [product, isOpen, form]);
 
   const onSubmit = (values: ProductFormValues) => {
@@ -170,14 +172,14 @@ export default function ProductForm({
     }
 
     setIsAiLoading(true);
-    setAiSuggestion('');
+    setAiRecommendations([]);
     try {
-      const suggestion = await runSuggestImprovements({
+      const result = await runSuggestImprovements({
         productName,
         productDescription,
         currentInformation,
       });
-      setAiSuggestion(suggestion);
+      setAiRecommendations(result.recommendations);
     } catch (error) {
       toast({
         title: 'AI Suggestion Failed',
@@ -187,20 +189,6 @@ export default function ProductForm({
     } finally {
       setIsAiLoading(false);
     }
-  };
-
-  const applySuggestion = () => {
-    try {
-      const formattedJson = JSON.stringify(JSON.parse(aiSuggestion), null, 2);
-      form.setValue('currentInformation', formattedJson, {
-        shouldValidate: true,
-      });
-    } catch (error) {
-      form.setValue('currentInformation', aiSuggestion, {
-        shouldValidate: true,
-      });
-    }
-    setAiSuggestion('');
   };
 
   return (
@@ -404,7 +392,7 @@ export default function ProductForm({
                         ) : (
                           <Sparkles className="mr-2 h-4 w-4 text-yellow-500" />
                         )}
-                        Suggest Improvements
+                        Get Recommendations
                       </Button>
                     </div>
                     <FormControl>
@@ -418,19 +406,33 @@ export default function ProductForm({
                   </FormItem>
                 )}
               />
-              {aiSuggestion && (
-                <div className="space-y-2 p-4 border rounded-md bg-muted/50">
+              {aiRecommendations.length > 0 && (
+                <div className="space-y-3 p-4 border rounded-md bg-muted/50">
                   <div className="flex justify-between items-center">
-                    <FormLabel>AI Suggestion</FormLabel>
-                    <Button type="button" size="sm" onClick={applySuggestion}>
-                      Apply Suggestion
+                    <FormLabel className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      AI Recommendations
+                    </FormLabel>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setAiRecommendations([])}
+                    >
+                      Dismiss
                     </Button>
                   </div>
-                  <Textarea
-                    readOnly
-                    value={aiSuggestion}
-                    className="min-h-[150px] font-mono text-sm bg-background"
-                  />
+                  <ul className="space-y-2 text-sm">
+                    {aiRecommendations.map((rec, index) => (
+                      <li key={index} className="flex items-start gap-2">
+                        <div className="mt-1 font-semibold text-primary">{`•`}</div>
+                        <div className="flex-1">
+                          <strong className="font-semibold">{rec.type}:</strong>{' '}
+                          {rec.text}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
               <div className="flex justify-end gap-2 pt-4 border-t">

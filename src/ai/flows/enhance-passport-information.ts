@@ -2,7 +2,7 @@
 "use server";
 
 /**
- * @fileOverview An AI agent for suggesting sustainability improvements to product passports.
+ * @fileOverview An AI agent for generating recommendations to improve a product passport.
  *
  * - suggestImprovements - A function that suggests improvements based on product info.
  * - SuggestImprovementsInput - The input type for the function.
@@ -23,12 +23,19 @@ export type SuggestImprovementsInput = z.infer<
   typeof SuggestImprovementsInputSchema
 >;
 
-const SuggestImprovementsOutputSchema = z.object({
-  suggestedInformation: z
+const RecommendationSchema = z.object({
+  type: z
     .string()
     .describe(
-      "An updated JSON string for the product passport, including AI-generated suggestions for sustainability improvements (e.g., adding fields for recycled content, carbon footprint, or end-of-life options).",
+      "The category of the recommendation (e.g., 'Material', 'Compliance', 'Design', 'Data Quality').",
     ),
+  text: z.string().describe("The actionable recommendation text."),
+});
+
+const SuggestImprovementsOutputSchema = z.object({
+  recommendations: z
+    .array(RecommendationSchema)
+    .describe("A list of actionable recommendations for the product."),
 });
 export type SuggestImprovementsOutput = z.infer<
   typeof SuggestImprovementsOutputSchema
@@ -44,14 +51,12 @@ const suggestImprovementsPrompt = ai.definePrompt({
   name: "suggestImprovementsPrompt",
   input: { schema: SuggestImprovementsInputSchema },
   output: { schema: SuggestImprovementsOutputSchema },
-  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR.
-  Your task is to analyze the current product passport information and suggest improvements to enhance its sustainability data.
+  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR. Your task is to analyze the current product passport information and provide a list of actionable recommendations to improve it.
 
   Based on the product name and description, analyze the current JSON data.
-  Identify key missing sustainability-related fields that are important for compliance and transparency (e.g., "recycled_content_percentage", "carbon_footprint_kg_co2e", "repairability_score", "end_of_life_options").
-  Add these fields to the JSON with plausible placeholder values (e.g., "TBD", 0, or a descriptive string like 'e.g., Composting, Recycling').
-  Do NOT remove any existing data. Only add new fields.
-  Return the complete, updated JSON as a single string in the 'suggestedInformation' output field.
+  Generate a list of 3-5 concrete suggestions. For each suggestion, provide a 'type' (e.g., 'Material', 'Compliance', 'Design', 'Data Quality') and the 'text' of the recommendation. The text should be concise and start with an action verb.
+
+  Do NOT suggest just adding fields to the JSON. Instead, provide high-level advice on how to improve the product or its data quality.
 
   Product Name: {{{productName}}}
   Product Description: {{{productDescription}}}
