@@ -1,39 +1,43 @@
 // scripts/seed.ts
-// The dotenv config is now handled by the npm script in package.json
-
-import { db } from '../src/lib/firebase';
+import * as admin from 'firebase-admin';
 import { products as mockProducts } from '../src/lib/data';
-import { collection, writeBatch, doc, Timestamp } from 'firebase/firestore';
 import { Collections } from '../src/lib/constants';
 
+// The Admin SDK is automatically initialized by firebase-functions.
+// For local scripts, it uses the GOOGLE_APPLICATION_CREDENTIALS env var.
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+
+const db = admin.firestore();
+
 async function seedDatabase() {
-  console.log('Starting to seed database...');
+  console.log('Starting to seed database with Admin SDK...');
+  const collectionRef = db.collection(Collections.PRODUCTS);
   console.log(
     `This will write ${mockProducts.length} documents to the '${Collections.PRODUCTS}' collection.`,
   );
 
-  // Using a batch for atomic writes is more efficient
-  const batch = writeBatch(db);
+  const batch = db.batch();
 
   for (const product of mockProducts) {
-    // We'll use the mock product's ID for consistency with existing relationships/URLs
-    const docRef = doc(db, Collections.PRODUCTS, product.id);
-
-    // Create a new object without the 'id' property for seeding
+    const docRef = collectionRef.doc(product.id);
     const { id, ...productData } = product;
 
     // Convert date strings to Firestore Timestamps for proper querying
     const dataToSeed = {
       ...productData,
-      lastUpdated: Timestamp.fromDate(new Date(productData.lastUpdated)),
+      lastUpdated: admin.firestore.Timestamp.fromDate(
+        new Date(productData.lastUpdated),
+      ),
       createdAt: productData.createdAt
-        ? Timestamp.fromDate(new Date(productData.createdAt))
-        : Timestamp.now(),
+        ? admin.firestore.Timestamp.fromDate(new Date(productData.createdAt))
+        : admin.firestore.Timestamp.now(),
       updatedAt: productData.updatedAt
-        ? Timestamp.fromDate(new Date(productData.updatedAt))
-        : Timestamp.now(),
+        ? admin.firestore.Timestamp.fromDate(new Date(productData.updatedAt))
+        : admin.firestore.Timestamp.now(),
       ...(productData.lastVerificationDate && {
-        lastVerificationDate: Timestamp.fromDate(
+        lastVerificationDate: admin.firestore.Timestamp.fromDate(
           new Date(productData.lastVerificationDate),
         ),
       }),
@@ -46,13 +50,14 @@ async function seedDatabase() {
     console.log(`✅ Successfully seeded ${mockProducts.length} products.`);
   } catch (error) {
     console.error('❌ Error seeding database:', error);
-    throw error; // Rethrow to fail the script
+    throw error;
   }
 }
 
 seedDatabase()
   .then(() => {
     console.log('Database seeding completed successfully.');
+    process.exit(0);
   })
   .catch(error => {
     console.error('Seeding script failed:', error);
