@@ -1,114 +1,83 @@
-'use client';
 
-import React, { useState } from 'react';
+// src/components/dashboards/auditor-dashboard.tsx
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import type { Product, User } from '@/types';
-import { AuditReviewDialog } from '../audit-review-dialog';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, CheckCircle, Hourglass } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AuditorDashboard({
-  products: initialProducts,
+  products,
   user,
 }: {
   products: Product[];
   user: User;
 }) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const handleReviewClick = (product: Product) => {
-    setSelectedProduct(product);
-    setIsDialogOpen(true);
+  const stats = {
+    pending: products.filter(p => p.verificationStatus === 'Pending').length,
+    verified: products.filter(p => p.verificationStatus === 'Verified').length,
   };
-
-  const handleUpdate = (updatedProduct: Product) => {
-    setProducts((currentProducts) =>
-      currentProducts.map((p) =>
-        p.id === updatedProduct.id ? updatedProduct : p,
-      ),
-    );
-    // The dialog will handle closing itself.
-  };
-
-  const productsToAudit = products.filter(
-    (p) => p.verificationStatus === 'Pending',
-  );
 
   return (
-    <>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Auditor Dashboard</h1>
+        <p className="text-muted-foreground">
+          Welcome back, {user.fullName}. Here is an overview of the current audit queue.
+        </p>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pending}</div>
+            <p className="text-xs text-muted-foreground">
+              Products awaiting verification
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Verified
+            </CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.verified}</div>
+            <p className="text-xs text-muted-foreground">
+              Passports approved by auditors
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>Auditor Dashboard</CardTitle>
+          <CardTitle>Go to Audit Queue</CardTitle>
           <CardDescription>
-            Review products for compliance, run checks, and view audit history.
+            Access the full queue of products waiting for your review. Approve or reject passports to ensure compliance.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Current Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {productsToAudit.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">
-                    {product.productName}
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {product.verificationStatus}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReviewClick(product)}
-                    >
-                      Review Product
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          {productsToAudit.length === 0 && (
-            <div className="text-center py-10 text-muted-foreground">
-              <p>No products are currently in the audit queue.</p>
-            </div>
-          )}
-        </CardContent>
+        <CardFooter>
+           <Button asChild>
+            <Link href="/dashboard/audit">
+              Review Products <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
       </Card>
-
-      <AuditReviewDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        product={selectedProduct}
-        user={user}
-        onUpdate={handleUpdate}
-      />
-    </>
+    </div>
   );
 }
