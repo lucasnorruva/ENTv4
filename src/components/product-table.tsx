@@ -10,6 +10,7 @@ import {
   Trash2,
   Link as LinkIcon,
   Send,
+  RefreshCw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -48,6 +49,7 @@ interface ProductTableProps {
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
+  onRecalculateScore: (id: string) => void;
 }
 
 export default function ProductTable({
@@ -55,6 +57,7 @@ export default function ProductTable({
   onEdit,
   onDelete,
   onSubmitForReview,
+  onRecalculateScore,
 }: ProductTableProps) {
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -153,6 +156,12 @@ export default function ProductTable({
                   <DropdownMenuItem onClick={() => onEdit(product)}>
                     <FilePenLine className="mr-2 h-4 w-4" />
                     Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => onRecalculateScore(product.id)}
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Recalculate Score
                   </DropdownMenuItem>
                   {product.status === "Draft" &&
                     product.verificationStatus !== "Pending" && (

@@ -1,55 +1,57 @@
+
 "use server";
 
 /**
  * @fileOverview An AI agent for suggesting sustainability improvements to product passports.
  *
- * - enhancePassportInformation - A function that suggests improvements based on product info.
- * - EnhancePassportInformationInput - The input type for the function.
- * - EnhancePassportInformationOutput - The return type for the function.
+ * - suggestImprovements - A function that suggests improvements based on product info.
+ * - SuggestImprovementsInput - The input type for the function.
+ * - SuggestImprovementsOutput - The return type for the function.
  */
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
 
-const EnhancePassportInformationInputSchema = z.object({
+const SuggestImprovementsInputSchema = z.object({
   productName: z.string().describe("The name of the product."),
   productDescription: z.string().describe("A description of the product."),
   currentInformation: z
     .string()
     .describe("The current passport information as a JSON string."),
 });
-export type EnhancePassportInformationInput = z.infer<
-  typeof EnhancePassportInformationInputSchema
+export type SuggestImprovementsInput = z.infer<
+  typeof SuggestImprovementsInputSchema
 >;
 
-const EnhancePassportInformationOutputSchema = z.object({
-  enhancedInformation: z
+const SuggestImprovementsOutputSchema = z.object({
+  suggestedInformation: z
     .string()
     .describe(
       "An updated JSON string for the product passport, including AI-generated suggestions for sustainability improvements (e.g., adding fields for recycled content, carbon footprint, or end-of-life options).",
     ),
 });
-export type EnhancePassportInformationOutput = z.infer<
-  typeof EnhancePassportInformationOutputSchema
+export type SuggestImprovementsOutput = z.infer<
+  typeof SuggestImprovementsOutputSchema
 >;
 
-export async function enhancePassportInformation(
-  input: EnhancePassportInformationInput,
-): Promise<EnhancePassportInformationOutput> {
-  return enhancePassportInformationFlow(input);
+export async function suggestImprovements(
+  input: SuggestImprovementsInput,
+): Promise<SuggestImprovementsOutput> {
+  return suggestImprovementsFlow(input);
 }
 
-const enhancePassportInformationPrompt = ai.definePrompt({
-  name: "enhancePassportInformationPrompt",
-  input: { schema: EnhancePassportInformationInputSchema },
-  output: { schema: EnhancePassportInformationOutputSchema },
-  prompt: `You are an AI assistant specializing in sustainable product design.
-  Your task is to analyze the current product passport information and suggest improvements to enhance its sustainability.
+const suggestImprovementsPrompt = ai.definePrompt({
+  name: "suggestImprovementsPrompt",
+  input: { schema: SuggestImprovementsInputSchema },
+  output: { schema: SuggestImprovementsOutputSchema },
+  prompt: `You are an AI assistant specializing in sustainable product design and EU regulations like ESPR.
+  Your task is to analyze the current product passport information and suggest improvements to enhance its sustainability data.
 
   Based on the product name and description, analyze the current JSON data.
-  Identify missing sustainability-related fields (e.g., "recycled_content_percentage", "carbon_footprint_kg_co2e", "repairability_score", "end_of_life_options").
-  Add these fields to the JSON with placeholder values (e.g., "TBD" or 0).
-  Return the complete, updated JSON as a single string.
+  Identify key missing sustainability-related fields that are important for compliance and transparency (e.g., "recycled_content_percentage", "carbon_footprint_kg_co2e", "repairability_score", "end_of_life_options").
+  Add these fields to the JSON with plausible placeholder values (e.g., "TBD", 0, or a descriptive string like 'e.g., Composting, Recycling').
+  Do NOT remove any existing data. Only add new fields.
+  Return the complete, updated JSON as a single string in the 'suggestedInformation' output field.
 
   Product Name: {{{productName}}}
   Product Description: {{{productDescription}}}
@@ -60,14 +62,14 @@ const enhancePassportInformationPrompt = ai.definePrompt({
   `,
 });
 
-const enhancePassportInformationFlow = ai.defineFlow(
+const suggestImprovementsFlow = ai.defineFlow(
   {
-    name: "enhancePassportInformationFlow",
-    inputSchema: EnhancePassportInformationInputSchema,
-    outputSchema: EnhancePassportInformationOutputSchema,
+    name: "suggestImprovementsFlow",
+    inputSchema: SuggestImprovementsInputSchema,
+    outputSchema: SuggestImprovementsOutputSchema,
   },
   async (input) => {
-    const { output } = await enhancePassportInformationPrompt(input);
+    const { output } = await suggestImprovementsPrompt(input);
     return output!;
   },
 );

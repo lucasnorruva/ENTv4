@@ -5,8 +5,8 @@ import { revalidatePath } from "next/cache";
 import { products as mockProductsData } from "./data";
 import type { Product } from "@/types";
 import {
-  enhancePassportInformation,
-  type EnhancePassportInformationInput,
+  suggestImprovements,
+  type SuggestImprovementsInput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
 import { anchorToPolygon, hashProductData } from "@/services/blockchain";
@@ -179,16 +179,57 @@ export async function submitForReview(productId: string): Promise<Product> {
   return updatedProduct;
 }
 
-export async function runEnhancement(
-  data: EnhancePassportInformationInput,
+export async function runSuggestImprovements(
+  data: SuggestImprovementsInput,
 ): Promise<string> {
   try {
-    const result = await enhancePassportInformation(data);
-    return result.enhancedInformation;
+    const result = await suggestImprovements(data);
+    return result.suggestedInformation;
   } catch (error) {
-    console.error("AI Enhancement Error:", error);
-    return "There was an error enhancing the passport information. Please try again.";
+    console.error("AI Suggestion Error:", error);
+    return "There was an error getting suggestions. Please try again.";
   }
+}
+
+export async function recalculateScore(productId: string): Promise<Product> {
+  const productIndex = mockProducts.findIndex((p) => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error("Product not found");
+  }
+  const product = mockProducts[productIndex];
+
+  let aiResult = {};
+  try {
+    const aiInput = {
+      productName: product.productName,
+      productDescription: product.productDescription,
+      category: product.category,
+      currentInformation: product.currentInformation,
+    };
+    aiResult = await calculateSustainability(aiInput);
+  } catch (e) {
+    console.error("AI sustainability re-calculation failed:", e);
+    // We can decide to throw or return the product as-is
+    throw new Error("Failed to recalculate sustainability score.");
+  }
+
+  const updatedProduct: Product = {
+    ...product,
+    ...aiResult,
+    updatedAt: new Date().toISOString(),
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent(
+    "product.recalculate_score",
+    productId,
+    { newScore: updatedProduct.sustainabilityScore },
+    "user-supplier", // Mock user
+  );
+
+  revalidatePath("/dashboard");
+  return updatedProduct;
 }
 
 export async function logAuditEvent(

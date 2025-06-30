@@ -16,7 +16,11 @@ import {
 import { Button } from "@/components/ui/button";
 import ProductForm from "../product-form";
 import ProductTable from "../product-table";
-import { deleteProduct, submitForReview } from "@/lib/actions";
+import {
+  deleteProduct,
+  submitForReview,
+  recalculateScore,
+} from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SupplierDashboard({
@@ -74,6 +78,27 @@ export default function SupplierDashboard({
     });
   };
 
+  const handleRecalculateScore = (id: string) => {
+    startTransition(async () => {
+      try {
+        const updatedProduct = await recalculateScore(id);
+        setProducts((currentProducts) =>
+          currentProducts.map((p) => (p.id === id ? updatedProduct : p)),
+        );
+        toast({
+          title: "Score Recalculated",
+          description: `The sustainability score for "${updatedProduct.productName}" has been updated.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Recalculation Failed",
+          description: "There was an error recalculating the score.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
+
   const handleSave = (savedProduct: Product) => {
     if (selectedProduct) {
       // Update
@@ -111,6 +136,7 @@ export default function SupplierDashboard({
             onEdit={handleEdit}
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}
+            onRecalculateScore={handleRecalculateScore}
           />
         </CardContent>
       </Card>

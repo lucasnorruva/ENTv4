@@ -34,7 +34,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Product } from '@/types';
-import { saveProduct, runEnhancement } from '@/lib/actions';
+import { saveProduct, runSuggestImprovements } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 const productSchema = z.object({
@@ -149,7 +149,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
     });
   };
 
-  const handleEnhanceWithAI = async () => {
+  const handleSuggestImprovements = async () => {
     const { productName, productDescription, currentInformation } = form.getValues();
     if (!productName || !productDescription) {
       toast({
@@ -163,7 +163,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
     setIsAiLoading(true);
     setAiSuggestion('');
     try {
-        const suggestion = await runEnhancement({ productName, productDescription, currentInformation });
+        const suggestion = await runSuggestImprovements({ productName, productDescription, currentInformation });
         setAiSuggestion(suggestion);
     } catch (error) {
         toast({
@@ -350,7 +350,7 @@ export default function ProductForm({ isOpen, onOpenChange, product, onSave }: P
                   <FormItem>
                     <div className="flex justify-between items-center">
                       <FormLabel>Passport Information (JSON)</FormLabel>
-                      <Button type="button" size="sm" variant="outline" onClick={handleEnhanceWithAI} disabled={isAiLoading}>
+                      <Button type="button" size="sm" variant="outline" onClick={handleSuggestImprovements} disabled={isAiLoading}>
                           {isAiLoading ? (
                               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           ) : (
