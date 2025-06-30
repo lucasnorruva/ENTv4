@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "jest --watch",
     "test:ci": "jest --ci",
-    "test:emulate": "firebase emulators:exec 'npm run test:ci'"
+    "test:emulate": "firebase emulators:exec 'npm run test:ci'",
+    "validate": "npm run lint && npm run typecheck && npm run test:emulate && npm run build"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",
