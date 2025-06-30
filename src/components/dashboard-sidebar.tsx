@@ -15,7 +15,6 @@ import {
   Factory,
   Wrench,
   FileQuestion,
-  PlusCircle,
   Clock,
   KeyRound,
   FileText,
@@ -24,6 +23,8 @@ import {
   FileDown,
   Ticket,
   Package,
+  ShieldAlert,
+  FileCode,
 } from "lucide-react";
 import {
   Sidebar,
@@ -50,6 +51,7 @@ interface NavItem {
   title: string;
   icon: React.ElementType;
   href: string;
+  external?: boolean;
 }
 
 interface NavGroup {
@@ -69,6 +71,11 @@ const navConfig: Record<Role, NavConfig> = {
           title: "Compliance Paths",
           icon: FileQuestion,
           href: "/dashboard/compliance",
+        },
+        {
+          title: "All Products",
+          icon: BookCopy,
+          href: "/dashboard/products",
         },
         {
           title: "System Analytics",
@@ -137,8 +144,13 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         {
           title: "Flagged Products",
-          icon: ShieldCheck,
+          icon: ShieldAlert,
           href: "/dashboard/flagged",
+        },
+        {
+          title: "All Products",
+          icon: BookCopy,
+          href: "/dashboard/products",
         },
         {
           title: "Compliance Reports",
@@ -182,6 +194,17 @@ const navConfig: Record<Role, NavConfig> = {
           href: "/dashboard/integrations",
         },
         { title: "API Keys", icon: KeyRound, href: "/dashboard/keys" },
+      ],
+    },
+    {
+      label: "Resources",
+      items: [
+        {
+          title: "API Documentation",
+          icon: FileCode,
+          href: "/docs",
+          external: true,
+        },
       ],
     },
   ],
@@ -246,6 +269,14 @@ export default function DashboardSidebar({
     }
   };
 
+  const handleNavigate = (href: string, external?: boolean) => {
+    if (external) {
+      window.open(href, "_blank");
+    } else {
+      router.push(href);
+    }
+  };
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -255,7 +286,7 @@ export default function DashboardSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              href="/dashboard"
+              onClick={() => handleNavigate("/dashboard")}
               tooltip="Dashboard"
               isActive={pathname === "/dashboard"}
             >
@@ -272,9 +303,9 @@ export default function DashboardSidebar({
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    href={item.href}
+                    onClick={() => handleNavigate(item.href, item.external)}
                     tooltip={item.title}
-                    isActive={pathname.startsWith(item.href)}
+                    isActive={pathname.startsWith(item.href) && !item.external}
                   >
                     <item.icon />
                     <span>{item.title}</span>
@@ -290,7 +321,7 @@ export default function DashboardSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton
-                href="/dashboard/settings"
+                onClick={() => handleNavigate("/dashboard/settings")}
                 tooltip="Settings"
                 isActive={pathname === "/dashboard/settings"}
               >
@@ -300,7 +331,7 @@ export default function DashboardSidebar({
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
-                href="/dashboard/support"
+                onClick={() => handleNavigate("/dashboard/support")}
                 tooltip="Support"
                 isActive={pathname === "/dashboard/support"}
               >
