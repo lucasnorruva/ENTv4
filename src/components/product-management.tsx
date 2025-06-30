@@ -19,7 +19,6 @@ import {
   deleteProduct,
   submitForReview,
   recalculateScore,
-  saveProduct,
 } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 

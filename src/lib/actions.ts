@@ -33,7 +33,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { verifyProductAgainstPath } from '@/services/compliance';
-import { getUserById, getCompanyById, hasRole, getUsers as getAuthUsers } from './auth';
+import { getUserById, getCompanyById, hasRole, getMockUsers } from './auth';
 
 import type {
   Product,
@@ -343,11 +343,15 @@ export async function rejectPassport(
 }
 
 export async function runSuggestImprovements(
-  data: ProductFormValues,
+  data: Pick<ProductFormValues, 'productName' | 'productDescription'>,
 ): Promise<any> {
   const aiProductInput: AiProduct = {
     ...data,
+    category: '',
     supplier: 'Mock Company Name',
+    materials: [],
+    manufacturing: { facility: '', country: '' },
+    certifications: [],
   };
   return suggestImprovements({ product: aiProductInput });
 }
@@ -476,7 +480,7 @@ export async function saveCompliancePath(
 
 // --- USER ACTIONS ---
 export async function getUsers(): Promise<User[]> {
-  return getAuthUsers();
+  return getMockUsers();
 }
 
 export async function saveUser(
