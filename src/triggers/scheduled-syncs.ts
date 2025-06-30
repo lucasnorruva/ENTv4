@@ -1,45 +1,52 @@
 // src/triggers/scheduled-syncs.ts
 "use server";
 
+import { compliancePaths } from "@/lib/compliance-data";
 import { logAuditEvent } from "@/lib/actions";
 
 /**
  * Runs a daily job to sync reference data, like new compliance rules.
  * This function is designed to be triggered by a scheduled cron job.
- * In a real application, this would fetch data from external sources
- * (e.g., ECHA's candidate list for REACH SVHCs) and update a
- * 'referenceData' collection in Firestore.
+ * It simulates fetching updates by modifying the in-memory mock data.
  */
 export async function runDailyReferenceDataSync(): Promise<{
   syncedItems: number;
   updatedRegulations: string[];
+  details: string;
 }> {
-  console.log("Running scheduled reference data sync (mock mode)...");
+  console.log("Running scheduled reference data sync...");
 
-  // In a real implementation, you would:
-  // 1. Fetch data from external regulatory APIs or databases.
-  // 2. Compare with existing reference data in Firestore.
-  // 3. Update Firestore with any new or changed information.
-  // 4. Log an audit event for the sync.
+  if (compliancePaths.length === 0) {
+    console.log("No compliance paths to update.");
+    return { syncedItems: 0, updatedRegulations: [], details: "No paths found." };
+  }
 
-  const mockUpdatedRegs = ["REACH", "RoHS"];
+  // Simulate updating one of the compliance paths.
+  // In a real scenario, this would fetch from an external source.
+  const pathIndexToUpdate = Math.floor(Math.random() * compliancePaths.length);
+  const pathToUpdate = compliancePaths[pathIndexToUpdate];
+  
+  // Let's tighten the ESG score requirement
+  const oldScore = pathToUpdate.rules.minSustainabilityScore || 0;
+  const newScore = Math.min(100, oldScore + 1);
+  pathToUpdate.rules.minSustainabilityScore = newScore;
+  
+  const details = `Updated compliance path '${pathToUpdate.name}': minSustainabilityScore changed from ${oldScore} to ${newScore}.`;
+  
   await logAuditEvent(
     "system.sync.reference_data",
-    "all",
+    pathToUpdate.id,
     {
-      source: "mock-external-api",
-      updatedRegulations: mockUpdatedRegs,
+      change: details,
     },
     "system",
   );
 
-  console.log(
-    `Reference data sync complete. Mocked update for: ${mockUpdatedRegs.join(
-      ", ",
-    )}.`,
-  );
+  console.log(`Reference data sync complete. ${details}`);
+  
   return {
-    syncedItems: mockUpdatedRegs.length,
-    updatedRegulations: mockUpdatedRegs,
+    syncedItems: 1,
+    updatedRegulations: [pathToUpdate.name],
+    details,
   };
 }
