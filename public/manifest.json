@@ -1,9 +1,21 @@
 {
-  "name": "Norruva",
+  "name": "Norruva Digital Product Passport Platform",
   "short_name": "Norruva",
-  "description": "The Future of Product Transparency",
+  "description": "The enterprise-grade platform for creating, managing, and verifying Digital Product Passports (DPPs). Drive transparency, ensure compliance, and build unshakable customer trust.",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#f5f5f5",
-  "theme_color": "#4c51bf"
+  "background_color": "#FFFFFF",
+  "theme_color": "#e11d48"
 }

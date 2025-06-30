@@ -1,14 +1,18 @@
-// A basic cache-first service worker
+// public/sw.js
+
 const CACHE_NAME = 'norruva-cache-v1';
 const urlsToCache = [
   '/',
   '/dashboard',
-  '/login',
-  '/signup',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.ico',
+  // Note: In a real app, you'd use a build tool to inject a list of all static assets (JS, CSS files).
+  // For this mock, we are caching the essential entry points.
 ];
 
+// Install a service worker
 self.addEventListener('install', event => {
+  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -18,27 +22,41 @@ self.addEventListener('install', event => {
   );
 });
 
+// Cache and return requests
 self.addEventListener('fetch', event => {
   // We only want to cache GET requests.
   if (event.request.method !== 'GET') {
     return;
   }
   
+  // For navigation requests, use a network-first strategy to ensure users get the latest HTML.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/'))
+    );
+    return;
+  }
+
+  // For other requests (CSS, JS, images), use a cache-first strategy.
   event.respondWith(
     caches.match(event.request)
       .then(response => {
+        // Cache hit - return response
         if (response) {
           return response;
         }
 
+        // Clone the request to use it in the cache and for the network request.
         const fetchRequest = event.request.clone();
 
         return fetch(fetchRequest).then(
           response => {
+            // Check if we received a valid response
             if(!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
+            // Clone the response to put it in the cache.
             const responseToCache = response.clone();
 
             caches.open(CACHE_NAME)
@@ -53,7 +71,7 @@ self.addEventListener('fetch', event => {
     );
 });
 
-// Clean up old caches
+// Update a service worker
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
