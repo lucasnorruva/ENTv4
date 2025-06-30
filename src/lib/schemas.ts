@@ -1,4 +1,3 @@
-
 // src/lib/schemas.ts
 import { z } from 'zod';
 import { UserRoles } from './constants';
@@ -72,7 +71,7 @@ export type CompliancePathFormValues = z.infer<typeof compliancePathFormSchema>;
 
 export const apiSettingsSchema = z.object({
     isPublicApiEnabled: z.boolean(),
-    rateLimitPerMinute: z.number().int().min(0),
+    rateLimitPerMinute: z.coerce.number().int().min(0),
     isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
