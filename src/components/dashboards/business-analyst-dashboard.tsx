@@ -16,7 +16,7 @@ import Link from "next/link";
 import { getProducts } from "@/lib/actions";
 
 export default async function BusinessAnalystDashboard({ user }: { user: User }) {
-  const products = await getProducts();
+  const products = await getProducts(user.id);
   const complianceData = {
     verified: products.filter((p) => p.verificationStatus === "Verified")
       .length,

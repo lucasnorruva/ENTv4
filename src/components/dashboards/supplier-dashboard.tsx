@@ -22,7 +22,7 @@ export default function SupplierDashboard({ user }: { user: User }) {
 
   useEffect(() => {
     async function fetchStats() {
-      const products = await getProducts();
+      const products = await getProducts(user.id);
       setStats({
         total: products.length,
         pending: products.filter(p => p.verificationStatus === "Pending").length,
@@ -30,7 +30,7 @@ export default function SupplierDashboard({ user }: { user: User }) {
       });
     }
     fetchStats();
-  }, []);
+  }, [user.id]);
 
   return (
     <div className="space-y-6">

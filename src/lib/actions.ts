@@ -13,6 +13,7 @@ import { apiKeys } from './api-key-data';
 import { apiSettings } from './api-settings-data';
 import { productionLines } from './manufacturing-data';
 import { serviceTickets } from './service-ticket-data';
+import { companies } from './company-data';
 
 import {
   productFormSchema,
@@ -36,6 +37,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { verifyProductAgainstPath } from '@/services/compliance';
+import { getUserById, getCompanyById, hasRole } from './auth';
 
 import type {
   Product,
@@ -49,6 +51,25 @@ import type {
   ComplianceGap,
   ApiSettings,
 } from '@/types';
+import { UserRoles } from './constants';
+
+// --- OWNERSHIP & PERMISSION HELPERS ---
+
+const checkProductOwnership = async (productId: string, userId: string) => {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found.');
+
+  if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.AUDITOR)) {
+    return true; // Admins/Auditors can access any product
+  }
+
+  const product = products.find(p => p.id === productId);
+  if (!product) throw new Error('Product not found.');
+  if (product.companyId !== user.companyId) {
+    throw new Error('Access denied. User does not own this product.');
+  }
+  return true;
+};
 
 // --- AUDIT LOGGING ---
 
@@ -138,14 +159,54 @@ const runAllAiFlows = async (
 
 // --- PRODUCT ACTIONS ---
 
-export async function getProducts(): Promise<Product[]> {
-  return products;
+export async function getProducts(userId: string): Promise<Product[]> {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new Error('User not found.');
+  }
+  // Admins, Auditors, and Analysts can see all products
+  if (
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.AUDITOR) ||
+    hasRole(user, UserRoles.BUSINESS_ANALYST)
+  ) {
+    return products;
+  }
+  // Other roles only see products from their company
+  return products.filter(p => p.companyId === user.companyId);
 }
 
 export async function getProductById(
   id: string,
+  userId?: string,
 ): Promise<Product | undefined> {
-  return products.find(p => p.id === id);
+  const product = products.find(p => p.id === id);
+  if (!product) {
+    return undefined;
+  }
+
+  // If a userId is provided, check for ownership or special roles.
+  if (userId) {
+    const user = await getUserById(userId);
+    if (
+      user &&
+      (hasRole(user, UserRoles.ADMIN) ||
+        hasRole(user, UserRoles.AUDITOR) ||
+        product.companyId === user.companyId)
+    ) {
+      return product;
+    }
+    // If user is provided but doesn't have access, return undefined.
+    // This check is important for dashboard pages.
+    return undefined;
+  }
+
+  // For public access, only return published products.
+  if (product.status === 'Published') {
+    return product;
+  }
+
+  return undefined;
 }
 
 export async function saveProduct(
@@ -153,20 +214,27 @@ export async function saveProduct(
   userId: string,
   productId?: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found for saving product.');
+  const company = await getCompanyById(user.companyId);
+  if (!company) throw new Error('Company not found for user.');
+
   const validatedData = productFormSchema.parse(productData);
   const { sustainability, qrLabelText } = await runAllAiFlows(validatedData);
 
   const now = new Date().toISOString();
 
   if (productId) {
+    await checkProductOwnership(productId, userId);
     const productIndex = products.findIndex(p => p.id === productId);
     if (productIndex === -1) {
       throw new Error('Product not found');
     }
     const existingProduct = products[productIndex];
-    const updatedProduct = {
+    const updatedProduct: Product = {
       ...existingProduct,
       ...validatedData,
+      supplier: company.name,
       sustainability,
       qrLabelText,
       updatedAt: now,
@@ -187,6 +255,8 @@ export async function saveProduct(
     const newProduct: Product = {
       id: newId,
       ...validatedData,
+      companyId: user.companyId,
+      supplier: company.name,
       sustainability,
       qrLabelText,
       verificationStatus: 'Not Submitted',
@@ -211,6 +281,7 @@ export async function deleteProduct(
   id: string,
   userId: string,
 ): Promise<{ success: boolean }> {
+  await checkProductOwnership(id, userId);
   const productIndex = products.findIndex(p => p.id === id);
   if (productIndex !== -1) {
     const deletedProduct = products.splice(productIndex, 1)[0];
@@ -229,8 +300,9 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
   product.verificationStatus = 'Pending';
   product.updatedAt = new Date().toISOString();
   await logAuditEvent(
@@ -249,8 +321,9 @@ export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
 
   const compliancePath = product.compliancePathId
     ? await getCompliancePathById(product.compliancePathId)
@@ -303,8 +376,9 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
 
   product.verificationStatus = 'Failed';
   product.lastVerificationDate = new Date().toISOString();
@@ -338,8 +412,9 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
 
   product.status = 'Draft';
   product.verificationStatus = 'Not Submitted';
@@ -367,8 +442,9 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
 
   const { sustainability, qrLabelText } = await runAllAiFlows(product);
   product.sustainability = sustainability;
@@ -390,8 +466,9 @@ export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await checkProductOwnership(productId, userId);
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or access denied.');
 
   product.endOfLifeStatus = 'Recycled';
   product.updatedAt = new Date().toISOString();

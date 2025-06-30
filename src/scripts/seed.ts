@@ -15,6 +15,7 @@ import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
 import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
+import { companies as mockCompanies } from '../lib/company-data';
 
 // This script uses the Firebase Admin SDK, which requires a service account
 // for privileged access. It does NOT use the client-side config from firebase.ts.
@@ -99,6 +100,7 @@ async function seedDatabase() {
       mockCompliancePaths,
     );
     await seedCollection(Collections.USERS, mockUsers);
+    await seedCollection(Collections.COMPANIES, mockCompanies);
     await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
     await seedCollection(Collections.API_KEYS, mockApiKeys, [
       'createdAt',

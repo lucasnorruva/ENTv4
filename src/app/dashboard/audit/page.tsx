@@ -6,10 +6,8 @@ import { AuditQueueClient } from '@/components/audit-queue-client';
 export const dynamic = 'force-dynamic';
 
 export default async function AuditQueuePage() {
-  const [allProducts, user] = await Promise.all([
-    getProducts(),
-    getCurrentUser('Auditor'),
-  ]);
+  const user = await getCurrentUser('Auditor');
+  const allProducts = await getProducts(user.id);
 
   const productsToAudit = allProducts.filter(
     p => p.verificationStatus === 'Pending',

@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { getProducts } from '@/lib/actions';
 
 export default async function AuditorDashboard({ user }: { user: User }) {
-  const products = await getProducts();
+  const products = await getProducts(user.id);
   const stats = {
     pending: products.filter(p => p.verificationStatus === 'Pending').length,
     verified: products.filter(p => p.verificationStatus === 'Verified').length,

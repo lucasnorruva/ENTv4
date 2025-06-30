@@ -1,5 +1,6 @@
 // src/app/dashboard/composition/page.tsx
 import { getProducts } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -58,7 +59,8 @@ const aggregateMaterials = (
 };
 
 export default async function MaterialCompositionPage() {
-  const products = await getProducts();
+  const user = await getCurrentUser('Recycler');
+  const products = await getProducts(user.id);
   const materialData = aggregateMaterials(products);
 
   const chartData = materialData

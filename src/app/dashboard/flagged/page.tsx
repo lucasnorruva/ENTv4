@@ -13,10 +13,9 @@ import FlaggedProductsClient from '@/components/flagged-products-client';
 export const dynamic = 'force-dynamic';
 
 export default async function FlaggedProductsPage() {
-  const [allProducts, user] = await Promise.all([
-    getProducts(),
-    getCurrentUser('Compliance Manager'),
-  ]);
+  const user = await getCurrentUser('Compliance Manager');
+  const allProducts = await getProducts(user.id);
+  
   const flaggedProducts = allProducts.filter(
     p => p.verificationStatus === 'Failed',
   );

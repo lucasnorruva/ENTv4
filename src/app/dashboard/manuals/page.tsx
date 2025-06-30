@@ -1,5 +1,6 @@
 // src/app/dashboard/manuals/page.tsx
 import { getProducts } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -21,7 +22,8 @@ import { Download } from "lucide-react";
 import Image from "next/image";
 
 export default async function ManualsPage() {
-  const products = await getProducts();
+  const user = await getCurrentUser('Service Provider');
+  const products = await getProducts(user.id);
   const productsWithManuals = products.filter((p) => p.manualUrl);
 
   return (

@@ -84,6 +84,7 @@ export interface SustainabilityData
  * The core Digital Product Passport entity, now with a structured data model.
  */
 export interface Product extends BaseEntity {
+  companyId: string; // Foreign key to the Company
   productName: string;
   productDescription: string;
   productImage: string;

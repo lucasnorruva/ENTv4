@@ -15,7 +15,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { getProducts } from '@/lib/actions';
 
 export default async function ComplianceManagerDashboard({ user }: { user: User }) {
-  const allProducts = await getProducts();
+  const allProducts = await getProducts(user.id);
   const flaggedProducts = allProducts.filter(
     p => p.verificationStatus === 'Failed',
   );

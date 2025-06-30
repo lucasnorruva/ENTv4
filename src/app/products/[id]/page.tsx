@@ -11,6 +11,7 @@ export default async function ProductPassportPage({
 }: {
   params: { id: string };
 }) {
+  // For public pages, we don't pass a userId, so it will only fetch published products.
   const product = await getProductById(params.id);
 
   if (!product) {

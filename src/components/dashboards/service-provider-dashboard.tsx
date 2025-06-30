@@ -19,7 +19,7 @@ export default async function ServiceProviderDashboard({
   user: User;
 }) {
   const [products, tickets] = await Promise.all([
-    getProducts(),
+    getProducts(user.id),
     getServiceTickets(),
   ]);
 

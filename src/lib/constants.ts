@@ -7,10 +7,8 @@
 export const Collections = {
   PRODUCTS: "products",
   COMPLIANCE_PATHS: "compliancePaths",
-  SUPPLIERS: "suppliers",
-  VERIFICATIONS: "verifications",
-  USERS: "users",
   COMPANIES: "companies",
+  USERS: "users",
   AUDIT_LOGS: "auditLogs",
   WEBHOOKS: "webhooks",
   API_KEYS: "apiKeys",

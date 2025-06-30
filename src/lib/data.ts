@@ -5,6 +5,7 @@ const now = new Date();
 export let products: Product[] = [
   {
     id: "pp-001",
+    companyId: "comp-02",
     productName: "Eco-Friendly Smart Watch Series 5",
     productDescription:
       "A stylish and sustainable smart watch with advanced health tracking features, made from recycled materials.",
@@ -101,6 +102,7 @@ export let products: Product[] = [
   },
   {
     id: "pp-002",
+    companyId: "comp-03",
     productName: "Pro-Grade 4K Drone",
     productDescription:
       "Capture stunning aerial footage with our professional-grade drone, featuring a 4K camera and 3-axis gimbal.",
@@ -155,6 +157,7 @@ export let products: Product[] = [
   },
   {
     id: "pp-003",
+    companyId: "comp-02",
     productName: "Organic Cotton T-Shirt",
     productDescription:
       "A soft, comfortable, and sustainable t-shirt made from 100% organic cotton.",
@@ -187,6 +190,7 @@ export let products: Product[] = [
   },
   {
     id: "pp-004",
+    companyId: "comp-02",
     productName: "Recycled Plastic Backpack",
     productDescription:
       "Durable and spacious backpack made entirely from recycled plastic bottles. Perfect for daily commute or travel.",
@@ -246,6 +250,7 @@ export let products: Product[] = [
   },
   {
     id: "pp-005",
+    companyId: "comp-03",
     productName: "Modular Shelving Unit",
     productDescription:
       "A versatile and customizable shelving unit designed to adapt to your space and needs. Made from sustainable bamboo.",

@@ -1,6 +1,6 @@
 // src/app/dashboard/analytics/page.tsx
 import { getProducts, getAuditLogs } from "@/lib/actions";
-import { getMockUsers } from "@/lib/auth";
+import { getCurrentUser, getMockUsers } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -71,8 +71,9 @@ const generateComplianceRateData = (products: Product[]) => {
 };
 
 export default async function AnalyticsPage() {
+  const user = await getCurrentUser('Admin');
   const [products, users, auditLogs] = await Promise.all([
-    getProducts(),
+    getProducts(user.id),
     getMockUsers(),
     getAuditLogs(),
   ]);

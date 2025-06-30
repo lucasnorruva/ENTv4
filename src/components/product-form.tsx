@@ -95,7 +95,7 @@ export default function ProductForm({
           productDescription: '',
           productImage: undefined,
           category: 'Electronics',
-          supplier: '',
+          supplier: '', // Will be set in action
           status: 'Draft',
           materials: [],
           manufacturing: { facility: '', country: '' },
@@ -148,7 +148,7 @@ export default function ProductForm({
               productDescription: '',
               productImage: '',
               category: 'Electronics',
-              supplier: '',
+              supplier: '', // Will be set in action
               status: 'Draft',
               materials: [],
               manufacturing: { facility: '', country: '' },
@@ -366,55 +366,35 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="Electronics">
-                                  Electronics
-                                </SelectItem>
-                                <SelectItem value="Fashion">
-                                  Fashion
-                                </SelectItem>
-                                <SelectItem value="Home Goods">
-                                  Home Goods
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="supplier"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Supplier</FormLabel>
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
-                              <Input
-                                placeholder="e.g. GreenTech Supplies"
-                                {...field}
-                              />
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a category" />
+                              </SelectTrigger>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
+                            <SelectContent>
+                              <SelectItem value="Electronics">
+                                Electronics
+                              </SelectItem>
+                              <SelectItem value="Fashion">Fashion</SelectItem>
+                              <SelectItem value="Home Goods">
+                                Home Goods
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </TabsContent>
 
                   <TabsContent value="data" className="p-6 space-y-6">

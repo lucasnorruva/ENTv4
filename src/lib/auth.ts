@@ -1,7 +1,8 @@
 // src/lib/auth.ts
 import { users } from './user-data';
+import { companies } from './company-data';
 import { Collections, UserRoles, type Role } from './constants';
-import type { User } from '@/types';
+import type { User, Company } from '@/types';
 
 /**
  * Fetches all users from the mock data.
@@ -9,6 +10,34 @@ import type { User } from '@/types';
  */
 export async function getUsers(): Promise<User[]> {
   return users;
+}
+
+/**
+ * Fetches a user by their ID.
+ * @param id The ID of the user to fetch.
+ * @returns A promise that resolves to the user or undefined if not found.
+ */
+export async function getUserById(id: string): Promise<User | undefined> {
+  return users.find(u => u.id === id);
+}
+
+/**
+ * Fetches a company by its ID.
+ * @param id The ID of the company to fetch.
+ * @returns A promise that resolves to the company or undefined if not found.
+ */
+export async function getCompanyById(id: string): Promise<Company | undefined> {
+  return companies.find(c => c.id === id);
+}
+
+/**
+ * Checks if a user has a specific role.
+ * @param user The user object.
+ * @param role The role to check for.
+ * @returns True if the user has the role, false otherwise.
+ */
+export function hasRole(user: User, role: Role): boolean {
+  return user.roles.includes(role);
 }
 
 /**
@@ -41,5 +70,5 @@ export async function getCurrentUser(role: Role): Promise<User> {
  * where we just need a list of users without authentication context.
  */
 export async function getMockUsers(): Promise<User[]> {
-    return users;
+  return users;
 }

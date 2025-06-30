@@ -27,7 +27,7 @@ export default function ManufacturerDashboard({ user }: { user: User }) {
   useEffect(() => {
     async function fetchData() {
       const [fetchedProducts, fetchedLines] = await Promise.all([
-        getProducts(),
+        getProducts(user.id),
         getProductionLines(),
       ]);
       setProducts(fetchedProducts);
@@ -35,7 +35,7 @@ export default function ManufacturerDashboard({ user }: { user: User }) {
       setIsLoading(false);
     }
     fetchData();
-  }, []);
+  }, [user.id]);
 
   // Manufacturers would likely have a different set of actions,
   // but for now, we can show a read-only table.

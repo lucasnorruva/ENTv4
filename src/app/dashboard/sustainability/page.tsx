@@ -1,5 +1,6 @@
 // src/app/dashboard/sustainability/page.tsx
 import { getProducts } from "@/lib/actions";
+import { getCurrentUser } from "@/lib/auth";
 import {
   Card,
   CardContent,
@@ -12,7 +13,8 @@ import SustainabilityTable from "@/components/sustainability-table";
 import { BarChart3 } from "lucide-react";
 
 export default async function SustainabilityPage() {
-  const products = await getProducts();
+  const user = await getCurrentUser('Business Analyst');
+  const products = await getProducts(user.id);
 
   const categoryScores = products.reduce(
     (acc, product) => {
