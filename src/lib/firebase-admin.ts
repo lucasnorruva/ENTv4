@@ -1,43 +1,23 @@
-// This file is a mock to prevent initialization errors during development
-// when a service account is not available. It exports empty objects and
-// functions to satisfy imports throughout the application without trying
-// to connect to a live Firebase backend.
+// src/lib/firebase-admin.ts
 
-const mockDb = new Proxy(
-  {},
-  {
-    get(target, prop) {
-      if (prop === 'collection') {
-        return () => ({
-          doc: () => ({
-            get: () => Promise.resolve({ exists: false, data: () => undefined }),
-            set: () => Promise.resolve(),
-            update: () => Promise.resolve(),
-            delete: () => Promise.resolve(),
-          }),
-          get: () => Promise.resolve({ empty: true, docs: [] }),
-        });
-      }
-      return () => {};
-    },
-  },
-);
+import * as admin from 'firebase-admin';
 
-const mockStorage = {
-  bucket: () => ({
-    file: () => ({
-      getSignedUrl: () => Promise.resolve(['#']),
-    }),
-  }),
-};
+if (!admin.apps.length) {
+  try {
+    // When running on Firebase servers, the config is automatically provided.
+    // When running locally, you need to set the GOOGLE_APPLICATION_CREDENTIALS
+    // environment variable to point to your service account key file.
+    admin.initializeApp();
+    console.log('Firebase Admin SDK initialized successfully.');
+  } catch (error) {
+    console.error(
+      'Firebase Admin SDK initialization failed. Ensure GOOGLE_APPLICATION_CREDENTIALS is set for local development.',
+      error,
+    );
+  }
+}
 
-const mockAdmin = {
-  initializeApp: () => {},
-  firestore: () => mockDb,
-  storage: () => mockStorage,
-};
-
-export const adminDb = mockAdmin.firestore();
-export const adminStorage = mockAdmin.storage();
-export const adminStorageBucket = adminStorage.bucket();
-export default mockAdmin;
+export const adminDb = admin.firestore();
+export const adminStorage = admin.storage();
+export const adminAuth = admin.auth();
+export default admin;
