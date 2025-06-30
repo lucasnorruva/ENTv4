@@ -1,4 +1,3 @@
-
 // src/components/dashboard-sidebar.tsx
 "use client";
 
@@ -107,9 +106,9 @@ const navConfig: Record<Role, NavConfig> = {
         { title: "Products", icon: BookCopy, href: "/dashboard/products" },
         { title: "Production Lines", icon: Factory, href: "/dashboard/lines" },
         {
-          title: "Component Traceability",
+          title: "Analytics",
           icon: BarChart3,
-          href: "/dashboard/traceability",
+          href: "/dashboard/analytics",
         },
       ],
     },
@@ -179,9 +178,9 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         { title: "EOL Products", icon: Recycle, href: "/dashboard/eol" },
         {
-          title: "Recycling Reports",
+          title: "Analytics",
           icon: BarChart3,
-          href: "/dashboard/reports",
+          href: "/dashboard/analytics",
         },
         {
           title: "Material Composition",
@@ -198,7 +197,7 @@ const navConfig: Record<Role, NavConfig> = {
         { title: "Service Tickets", icon: Wrench, href: "/dashboard/tickets" },
         { title: "Product Manuals", icon: BookCopy, href: "/dashboard/manuals" },
         {
-          title: "Repair Analytics",
+          title: "Analytics",
           icon: BarChart3,
           href: "/dashboard/analytics",
         },

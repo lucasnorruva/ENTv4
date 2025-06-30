@@ -24,12 +24,14 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Package,
 } from "lucide-react";
 import ComplianceOverviewChart from "@/components/charts/compliance-overview-chart";
 import ProductsOverTimeChart from "@/components/charts/products-over-time-chart";
 import ComplianceRateChart from "@/components/charts/compliance-rate-chart";
 import { format, subDays, formatDistanceToNow } from "date-fns";
 import type { AuditLog, Product } from "@/types";
+import EolStatusChart from "@/components/charts/eol-status-chart";
 
 const actionIcons: Record<string, React.ElementType> = {
   "product.created": FilePlus,
@@ -71,7 +73,7 @@ const generateComplianceRateData = (products: Product[]) => {
 };
 
 export default async function AnalyticsPage() {
-  const user = await getCurrentUser('Admin');
+  const user = await getCurrentUser("Admin");
   const [products, users, auditLogs] = await Promise.all([
     getProducts(user.id),
     getMockUsers(),
@@ -83,6 +85,14 @@ export default async function AnalyticsPage() {
       .length,
     pending: products.filter((p) => p.verificationStatus === "Pending").length,
     failed: products.filter((p) => p.verificationStatus === "Failed").length,
+  };
+
+  const eolData = {
+    active: products.filter(
+      (p) => p.endOfLifeStatus === "Active" || !p.endOfLifeStatus,
+    ).length,
+    recycled: products.filter((p) => p.endOfLifeStatus === "Recycled").length,
+    disposed: products.filter((p) => p.endOfLifeStatus === "Disposed").length,
   };
 
   // Group products by creation date for the time-series chart
@@ -101,7 +111,7 @@ export default async function AnalyticsPage() {
   const productsOverTimeData = Object.entries(productsByDate)
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
+
   const complianceRateData = generateComplianceRateData(products);
 
   const recentActivity = auditLogs.slice(0, 5);
@@ -116,7 +126,7 @@ export default async function AnalyticsPage() {
           An overview of platform activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -136,9 +146,7 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">
-              All roles included
-            </p>
+            <p className="text-xs text-muted-foreground">All roles included</p>
           </CardContent>
         </Card>
         <Card>
@@ -158,7 +166,21 @@ export default async function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Audits Today
+              Products Recycled
+            </CardTitle>
+            <Recycle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{eolData.recycled}</div>
+            <p className="text-xs text-muted-foreground">
+              Marked as end-of-life
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Audits Today
             </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -176,7 +198,7 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
@@ -190,10 +212,20 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader>
+            <CardTitle>Compliance Rate Over Time</CardTitle>
+            <CardDescription>
+              The percentage of total products that are verified.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ComplianceRateChart data={complianceRateData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
             <CardDescription>
-              A snapshot of the current verification status across all
-              products.
+              A snapshot of the current verification status across all products.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -202,13 +234,13 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Compliance Rate Over Time</CardTitle>
+            <CardTitle>End-of-Life Status</CardTitle>
             <CardDescription>
-              The percentage of total products that are verified.
+              A breakdown of the lifecycle status of all products.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ComplianceRateChart data={complianceRateData} />
+            <EolStatusChart data={eolData} />
           </CardContent>
         </Card>
       </div>
