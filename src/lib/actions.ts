@@ -559,13 +559,13 @@ export async function updateUserProfile(userId: string, fullName: string): Promi
 }
 
 export async function updateUserPassword(userId: string, current: string, newPass: string): Promise<{ success: boolean }> {
-  // This is a mock. In a real app, you would verify the current password.
-  console.log(`Updating password for ${userId}. Current: ${current}, New: ${newPass}`);
-  if (current === 'password123') { // Mock current password check
-    await logAuditEvent('user.password.updated', userId, {}, userId);
-    return { success: true };
+  // This is a mock. In a real app, you would verify the current password against a stored hash.
+  if (current !== 'password123') { 
+    throw new Error("Current password does not match.");
   }
-  throw new Error("Current password does not match.");
+  console.log(`Password for ${userId} updated successfully.`);
+  await logAuditEvent('user.password.updated', userId, {}, userId);
+  return { success: true };
 }
 
 export async function saveNotificationPreferences(userId: string, prefs: Record<string, boolean>): Promise<{ success: boolean }> {
