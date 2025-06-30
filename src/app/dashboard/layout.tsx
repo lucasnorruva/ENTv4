@@ -1,5 +1,4 @@
 import React from "react";
-import { Bell } from "lucide-react";
 import type { Role } from "@/lib/constants";
 import { UserRoles } from "@/lib/constants";
 import { getCurrentUser } from "@/lib/auth";
@@ -10,9 +9,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import DashboardSidebar from "@/components/dashboard-sidebar";
-import { Button } from "@/components/ui/button";
 import RoleSwitcher from "@/components/role-switcher";
-import type { User } from "@/types";
+import NotificationsPanel from "@/components/notifications-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +35,7 @@ export default async function DashboardLayout({
 
           <RoleSwitcher roles={allRoles} currentRole={user.roles[0]} />
 
-          <Button variant="ghost" size="icon">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <NotificationsPanel />
         </header>
         <main className="flex-1 p-6">{children}</main>
       </SidebarInset>
