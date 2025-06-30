@@ -38,6 +38,7 @@ import {
   Percent,
   MapPin,
   FileQuestion,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -240,12 +241,19 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   . Recyclable: {product.packaging.recyclable ? "Yes" : "No"}.
                 </p>
               </InfoRow>
-              <InfoRow icon={Wrench} label="Repairability & End-of-life">
+              <InfoRow icon={Wrench} label="Repairability">
                 <p className="text-sm text-muted-foreground">
                   Repair manuals and end-of-life instructions are available to
                   authorized service providers and recyclers.
                 </p>
               </InfoRow>
+              {product.endOfLifeStatus && product.endOfLifeStatus !== 'Active' && (
+                 <InfoRow icon={Archive} label="End-of-Life Status">
+                   <Badge variant={product.endOfLifeStatus === 'Recycled' ? 'default' : 'secondary'}>
+                     {product.endOfLifeStatus}
+                   </Badge>
+                 </InfoRow>
+              )}
               {lifecycle ? (
                 <>
                   <InfoRow icon={Thermometer} label="Estimated Carbon Footprint">
