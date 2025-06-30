@@ -280,6 +280,32 @@ export async function rejectPassport(
   return JSON.parse(JSON.stringify(product));
 }
 
+export async function resolveComplianceIssue(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  await sleep(200);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = products[productIndex];
+
+  // Set status back to Draft so the supplier can edit and re-submit
+  product.status = 'Draft';
+  product.verificationStatus = 'Not Submitted';
+  product.updatedAt = new Date().toISOString();
+
+  await logAuditEvent(
+    'compliance.resolved',
+    productId,
+    { newStatus: 'Draft' },
+    userId,
+  );
+  revalidatePath('/dashboard/flagged');
+  revalidatePath('/dashboard/products');
+  revalidatePath(`/products/${productId}`);
+  return JSON.parse(JSON.stringify(product));
+}
+
 export async function runSuggestImprovements(data: SuggestImprovementsInput) {
   return suggestImprovements(data);
 }

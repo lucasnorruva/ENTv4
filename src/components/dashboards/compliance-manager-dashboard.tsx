@@ -3,14 +3,15 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Product, User } from '@/types';
-import { AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function ComplianceManagerDashboard({
   flaggedProducts,
@@ -19,6 +20,14 @@ export default function ComplianceManagerDashboard({
   flaggedProducts: Product[];
   user: User;
 }) {
+  const recentFlagged = flaggedProducts
+    .sort(
+      (a, b) =>
+        new Date(b.lastVerificationDate!).getTime() -
+        new Date(a.lastVerificationDate!).getTime(),
+    )
+    .slice(0, 5);
+
   return (
     <div className="space-y-6">
       <div>
@@ -30,8 +39,8 @@ export default function ComplianceManagerDashboard({
           compliance status.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Flagged Products
@@ -44,23 +53,54 @@ export default function ComplianceManagerDashboard({
               Products requiring immediate attention
             </p>
           </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage Compliance Issues</CardTitle>
-            <CardDescription>
-              Review products that have failed verification, investigate the
-              issues, and work with suppliers to resolve them.
-            </CardDescription>
-          </CardHeader>
           <CardFooter>
-            <Button asChild>
+            <Button asChild size="sm" className="w-full">
               <Link href="/dashboard/flagged">
-                Go to Flagged Products Queue
+                Go to Full Queue
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
+        </Card>
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Recently Flagged Products</CardTitle>
+            <CardDescription>
+              These are the latest products that failed verification.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentFlagged.length > 0 ? (
+              <div className="space-y-4">
+                {recentFlagged.map(product => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="font-medium">{product.productName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.sustainability?.complianceSummary ||
+                          'Reason not specified.'}
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-muted-foreground">
+                      <p>
+                        {formatDistanceToNow(
+                          new Date(product.lastVerificationDate!),
+                          { addSuffix: true },
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <p>No products are currently flagged. Great job!</p>
+              </div>
+            )}
+          </CardContent>
         </Card>
       </div>
     </div>

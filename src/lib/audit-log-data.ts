@@ -45,6 +45,15 @@ export const auditLogs: AuditLog[] = [
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
   },
   {
+    id: "log-008",
+    userId: "user-compliance",
+    action: "compliance.resolved",
+    entityId: "pp-004",
+    details: { newStatus: "Draft" },
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 4)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 4)).toISOString(),
+  },
+  {
     id: "log-006",
     userId: "user-auditor",
     action: "passport.rejected",

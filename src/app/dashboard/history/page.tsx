@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuditLogs, getProducts } from '@/lib/actions';
+import { getAuditLogsForUser, getProducts } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import {
   Clock,
@@ -18,6 +18,7 @@ import {
   FileX,
   Calculator,
   Recycle,
+  ShieldX,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import type { AuditLog } from '@/types';
@@ -31,6 +32,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.submitted': FileUp,
   'passport.approved': CheckCircle,
   'passport.rejected': FileX,
+  'compliance.resolved': ShieldX,
   default: Clock,
 };
 
@@ -44,7 +46,7 @@ const getActionLabel = (action: string): string => {
 export default async function HistoryPage() {
   const user = await getCurrentUser('Supplier');
   const [logs, products] = await Promise.all([
-    getAuditLogs(user.id),
+    getAuditLogsForUser(user.id),
     getProducts(),
   ]);
 
