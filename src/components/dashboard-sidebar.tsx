@@ -25,6 +25,7 @@ import {
   FileCode,
   Cog,
   Building2,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -97,15 +98,28 @@ const navConfig: Record<Role, NavConfig> = {
   ],
   [UserRoles.SUPPLIER]: [
     {
-      label: 'My Passports',
+      label: 'Passport Management',
       items: [
         {
           title: 'Manage Products',
           icon: BookCopy,
           href: 'products',
         },
-        { title: 'Activity History', icon: Clock, href: 'history' },
+        {
+          title: 'Compliance Report',
+          icon: ShieldCheck,
+          href: 'compliance',
+        },
+        {
+          title: 'Data Quality',
+          icon: ClipboardCheck,
+          href: 'data-quality',
+        },
       ],
+    },
+    {
+      label: 'Account',
+      items: [{ title: 'Activity History', icon: Clock, href: 'history' }],
     },
   ],
   [UserRoles.MANUFACTURER]: [
@@ -298,19 +312,6 @@ export default function DashboardSidebar({
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = getRoleSlug(userRole);
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      toast({
-        title: 'Logout Failed',
-        description: 'An error occurred while logging out.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   const handleNavigate = (href: string, external?: boolean) => {
     if (external) {
