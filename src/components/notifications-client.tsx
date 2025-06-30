@@ -140,7 +140,7 @@ export default function NotificationsClient({
         <DropdownMenuSeparator />
         <div className="p-1">
           <Button variant="ghost" size="sm" className="w-full" asChild>
-            <Link href="/dashboard/history">
+            <Link href="/dashboard/supplier/history">
               View All Activity <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
