@@ -188,3 +188,14 @@ export interface ServiceTicket {
   createdAt: string; // ISO 8601 format
   updatedAt: string; // ISO 8601 format
 }
+
+/**
+ * Represents an API key for programmatic access.
+ */
+export interface ApiKey extends BaseEntity {
+  label: string;
+  token: string;
+  status: "Active" | "Revoked";
+  userId: string;
+  lastUsedAt?: string; // ISO 8601 format
+}

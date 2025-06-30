@@ -2,6 +2,7 @@
 
 import * as admin from 'firebase-admin';
 import { revalidatePath } from 'next/cache';
+import { randomBytes } from 'crypto';
 
 import { adminDb } from '@/lib/firebase-admin';
 import { Collections } from '@/lib/constants';
@@ -12,6 +13,7 @@ import type {
   ServiceTicket,
   SustainabilityData,
   CompliancePath,
+  ApiKey,
 } from '@/types';
 import {
   productFormSchema,
@@ -494,6 +496,70 @@ export async function saveCompliancePath(
     return formatDoc<CompliancePath>(newDoc);
   }
 }
+
+// --- API KEY ACTIONS ---
+
+export async function getApiKeysForUser(userId: string): Promise<ApiKey[]> {
+  const snapshot = await adminDb
+    .collection(Collections.API_KEYS)
+    .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(doc => formatDoc<ApiKey>(doc));
+}
+
+export async function createApiKey(
+  label: string,
+  userId: string,
+): Promise<{ key: ApiKey; rawToken: string }> {
+  const rawToken = `sk_live_${randomBytes(24).toString('hex')}`;
+  // In a real production app, you would HASH the token before storing it.
+  // For this prototype, we store it directly for simplicity.
+  const keyData = {
+    label,
+    userId,
+    token: rawToken,
+    status: 'Active' as const,
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  const docRef = await adminDb.collection(Collections.API_KEYS).add(keyData);
+  await logAuditEvent('api_key.created', docRef.id, { label }, userId);
+
+  const newKey = await docRef.get();
+  revalidatePath('/dashboard/keys');
+  return { key: formatDoc<ApiKey>(newKey), rawToken };
+}
+
+export async function revokeApiKey(keyId: string, userId: string): Promise<ApiKey> {
+  const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
+  const docSnap = await docRef.get();
+  if (!docSnap.exists || docSnap.data()?.userId !== userId) {
+    throw new Error('API Key not found or permission denied.');
+  }
+  await docRef.update({
+    status: 'Revoked',
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  });
+  await logAuditEvent('api_key.revoked', keyId, {}, userId);
+  revalidatePath('/dashboard/keys');
+  const updatedDoc = await docRef.get();
+  return formatDoc<ApiKey>(updatedDoc);
+}
+
+export async function deleteApiKey(keyId: string, userId: string): Promise<void> {
+  const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
+  const docSnap = await docRef.get();
+  if (!docSnap.exists || docSnap.data()?.userId !== userId) {
+    throw new Error('API Key not found or permission denied.');
+  }
+  await docRef.delete();
+  await logAuditEvent('api_key.deleted', keyId, {}, userId);
+  revalidatePath('/dashboard/keys');
+}
+
 
 // --- MOCK DATA ACTIONS (to be replaced later) ---
 

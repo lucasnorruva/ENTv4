@@ -51,6 +51,13 @@ async function seedCollection(
     console.log(`Deleted ${existingDocs.size} documents.`);
   }
 
+  if (data.length === 0) {
+    console.log(
+      `✅ No data provided for '${collectionName}'. Collection cleared.`,
+    );
+    return;
+  }
+
   console.log(`This will write ${data.length} documents to '${collectionName}'.`);
 
   const batch = db.batch();
@@ -103,6 +110,8 @@ async function seedDatabase() {
     'id',
   );
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs, 'id');
+  // Clear API keys but don't seed any by default
+  await seedCollection(Collections.API_KEYS, []);
 }
 
 seedDatabase()
