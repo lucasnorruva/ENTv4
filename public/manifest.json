@@ -1,21 +1,23 @@
 {
-  "name": "Norruva Digital Product Passport Platform",
+  "name": "Norruva",
   "short_name": "Norruva",
-  "description": "The enterprise-grade platform for creating, managing, and verifying Digital Product Passports (DPPs). Drive transparency, ensure compliance, and build unshakable customer trust.",
-  "icons": [
-    {
-      "src": "/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ],
+  "description": "The Future of Product Transparency",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#e11d48"
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
 }
