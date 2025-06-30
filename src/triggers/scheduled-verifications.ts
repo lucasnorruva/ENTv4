@@ -9,6 +9,7 @@ import {
   getCompliancePaths,
 } from "@/lib/actions";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
+import { verifyProductAgainstPath } from "@/services/compliance";
 
 /**
  * Runs a daily compliance check on all products pending verification.
@@ -54,36 +55,27 @@ export async function runDailyComplianceCheck(): Promise<{
 
     if (!compliancePath) {
       const reason = `No compliance path is configured for this product.`;
+      const gaps = [{ regulation: "Configuration", issue: reason }];
       console.warn(`Skipping product ${product.id}: ${reason}`);
-      await rejectPassport(product.id, reason, "system");
+      await rejectPassport(product.id, reason, gaps, "system");
       failed++;
       continue;
     }
 
-    try {
-      const { isCompliant, complianceSummary } = await summarizeComplianceGaps({
-        productName: product.productName,
-        category: product.category,
-        materials: product.materials,
-        compliancePathName: compliancePath.name,
-        complianceRules: JSON.stringify(compliancePath.rules),
-      });
+    // First, run deterministic rule-based checks
+    const { isCompliant, gaps } = await verifyProductAgainstPath(
+      product,
+      compliancePath,
+    );
 
-      if (isCompliant) {
-        await approvePassport(product.id, "system");
-        passed++;
-      } else {
-        await rejectPassport(product.id, complianceSummary, "system");
-        failed++;
-      }
-    } catch (error) {
-      console.error(
-        `AI compliance check failed for product ${product.id}:`,
-        error,
-      );
-      const reason =
-        "Automated compliance check failed due to an internal AI error.";
-      await rejectPassport(product.id, reason, "system");
+    if (isCompliant) {
+      // If hard rules pass, approve the passport
+      await approvePassport(product.id, "system");
+      passed++;
+    } else {
+      // If hard rules fail, reject with specific reasons
+      const summary = `Product failed verification with ${gaps.length} issue(s).`;
+      await rejectPassport(product.id, summary, gaps, "system");
       failed++;
     }
   }

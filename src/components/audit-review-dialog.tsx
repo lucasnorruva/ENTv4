@@ -69,9 +69,14 @@ export function AuditReviewDialog({
     if (!product || !rejectionReason) return;
     startTransition(async () => {
       try {
+        const gaps =
+          product.sustainability?.gaps ?? [
+            { regulation: 'Manual Review', issue: rejectionReason },
+          ];
         const updatedProduct = await rejectPassport(
           product.id,
           rejectionReason,
+          gaps,
           user.id,
         );
         toast({

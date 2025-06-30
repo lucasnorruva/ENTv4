@@ -38,6 +38,7 @@ import type {
   ProductionLine,
   ServiceTicket,
   ApiKey,
+  ComplianceGap,
 } from '@/types';
 import { UserRoles } from './constants';
 
@@ -263,7 +264,8 @@ export async function approvePassport(
 
 export async function rejectPassport(
   productId: string,
-  reason: string,
+  summary: string,
+  gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
   const product = mockProducts.find(p => p.id === productId);
@@ -273,10 +275,16 @@ export async function rejectPassport(
   product.lastVerificationDate = new Date().toISOString();
   if (!product.sustainability) product.sustainability = {} as SustainabilityData;
   product.sustainability.isCompliant = false;
-  product.sustainability.complianceSummary = `Rejected: ${reason}`;
+  product.sustainability.complianceSummary = summary;
+  product.sustainability.gaps = gaps;
   product.updatedAt = new Date().toISOString();
 
-  await logAuditEvent('passport.rejected', productId, { reason }, userId);
+  await logAuditEvent(
+    'passport.rejected',
+    productId,
+    { reason: summary, gaps },
+    userId,
+  );
   revalidatePath('/dashboard/audit');
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/flagged');

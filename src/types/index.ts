@@ -63,12 +63,19 @@ export interface Packaging {
   recyclable: boolean;
 }
 
+export interface ComplianceGap {
+  regulation: string;
+  issue: string;
+}
+
 /**
  * Groups all AI-generated and compliance-related data.
  */
 export interface SustainabilityData
-  extends EsgScoreOutput,
-    SummarizeComplianceGapsOutput {
+  extends Omit<EsgScoreOutput, "summary">,
+    Omit<SummarizeComplianceGapsOutput, "gaps"> {
+  summary?: string;
+  gaps?: ComplianceGap[];
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
   classification?: ClassifyProductOutput;
 }
