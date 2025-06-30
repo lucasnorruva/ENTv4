@@ -1,3 +1,4 @@
+
 // src/triggers/scheduled-verifications.ts
 "use server";
 
@@ -6,6 +7,7 @@ import { products } from "@/lib/data"; // Import mock products
 import { compliancePaths } from "@/lib/compliance-data"; // Import mock compliance paths
 import type { CompliancePath, Product } from "@/types";
 import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
+import { anchorToPolygon, hashProductData } from "@/services/blockchain";
 
 /**
  * Runs a daily compliance check on all products pending verification.
@@ -58,6 +60,7 @@ export async function runDailyComplianceCheck(): Promise<{
     let finalSummary =
       "Product is compliant with all known rules for its category.";
     let finalGaps;
+    let blockchainProof;
 
     if (!compliancePath) {
       finalStatus = "Failed";
@@ -88,6 +91,15 @@ export async function runDailyComplianceCheck(): Promise<{
 
     if (finalStatus === "Verified") {
       passed++;
+      // Anchor to blockchain on successful verification
+      try {
+        const productDataHash = await hashProductData(product.currentInformation);
+        blockchainProof = await anchorToPolygon(productDataHash);
+      } catch (e) {
+        console.error("Blockchain anchoring failed (mock mode):", e);
+        // Decide if this should fail the verification. For now, just log it.
+        finalSummary += " (Blockchain anchoring failed)";
+      }
     } else {
       failed++;
       console.log(
@@ -105,6 +117,7 @@ export async function runDailyComplianceCheck(): Promise<{
         lastVerificationDate: new Date().toISOString(),
         complianceSummary: finalSummary,
         complianceGaps: finalGaps,
+        blockchainProof: blockchainProof || originalProduct.blockchainProof,
       };
     }
 

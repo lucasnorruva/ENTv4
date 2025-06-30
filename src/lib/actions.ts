@@ -42,7 +42,7 @@ export async function saveProduct(
   const now = new Date();
   const nowISO = now.toISOString();
 
-  // Keep AI enrichment and blockchain for demonstration, but handle failures
+  // Keep AI enrichment for demonstration, but handle failures
   let esgResult;
   try {
     const aiInput = {
@@ -54,18 +54,6 @@ export async function saveProduct(
     esgResult = await calculateSustainability(aiInput);
   } catch (e) {
     console.error("AI sustainability calculation failed (mock mode):", e);
-  }
-
-  let blockchainProof = {
-    txHash: "0xmocktx" + Math.random().toString(16).slice(2),
-    explorerUrl: "#",
-    blockHeight: 0,
-  };
-  try {
-    const productDataHash = await hashProductData(data.currentInformation);
-    blockchainProof = await anchorToPolygon(productDataHash);
-  } catch (e) {
-    console.error("Blockchain anchoring failed (mock mode):", e);
   }
 
   if (data.id) {
@@ -92,7 +80,8 @@ export async function saveProduct(
       ...existingProduct,
       ...data,
       esg: esgResult,
-      blockchainProof,
+      // Note: Blockchain proof is NOT updated here. It's updated upon verification.
+      blockchainProof: existingProduct.blockchainProof,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
       verificationStatus: newVerificationStatus,
@@ -117,7 +106,6 @@ export async function saveProduct(
     const newProduct: Product = {
       ...data,
       esg: esgResult,
-      blockchainProof,
       id: `pp-mock-${Date.now()}`,
       createdAt: nowISO,
       updatedAt: nowISO,
