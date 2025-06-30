@@ -14,10 +14,41 @@ import {
   FileQuestion,
   ShieldCheck,
   Users,
+  Clock,
+  Edit,
+  FilePlus,
+  FileUp,
+  Trash2,
+  CheckCircle,
+  FileX,
+  Calculator,
+  Recycle,
+  ShieldX,
 } from "lucide-react";
 import ComplianceOverviewChart from "@/components/charts/compliance-overview-chart";
 import ProductsOverTimeChart from "@/components/charts/products-over-time-chart";
-import { format, subDays } from "date-fns";
+import { format, subDays, formatDistanceToNow } from "date-fns";
+import type { AuditLog } from "@/types";
+
+const actionIcons: Record<string, React.ElementType> = {
+  "product.created": FilePlus,
+  "product.updated": Edit,
+  "product.deleted": Trash2,
+  "product.recycled": Recycle,
+  "product.recalculate_score": Calculator,
+  "passport.submitted": FileUp,
+  "passport.approved": CheckCircle,
+  "passport.rejected": FileX,
+  "compliance.resolved": ShieldX,
+  default: Clock,
+};
+
+const getActionLabel = (action: string): string => {
+  return action
+    .split(".")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
 export default async function AnalyticsPage() {
   const [products, users, auditLogs] = await Promise.all([
@@ -147,6 +178,52 @@ export default async function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Platform Activity</CardTitle>
+          <CardDescription>
+            A stream of the latest actions across the system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentActivity.map((log) => {
+              const Icon = actionIcons[log.action] || actionIcons.default;
+              const user = userMap.get(log.userId) || "System";
+              const product = productMap.get(log.entityId) || log.entityId;
+              const actionLabel = getActionLabel(log.action);
+              return (
+                <div key={log.id} className="flex items-center gap-4">
+                  <div className="p-2 bg-muted rounded-full">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      {actionLabel}{" "}
+                      <span className="font-normal text-muted-foreground">
+                        by {user}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Product: {product}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground shrink-0">
+                    {formatDistanceToNow(new Date(log.createdAt), {
+                      addSuffix: true,
+                    })}
+                  </p>
+                </div>
+              );
+            })}
+            {recentActivity.length === 0 && (
+              <p className="text-sm text-center text-muted-foreground py-4">
+                No recent activity.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
