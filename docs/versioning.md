@@ -47,3 +47,63 @@ After staging deployment, the QA or team runs through critical flows (maybe with
 -   For AI, if an outage or slow-down (e.g., API down or hitting rate limits) occurs, our logs and maybe a custom metric (like success rate of AI calls) could alert.
 
 By having this CI/CD, we ensure new contributions are tested and safe, and deployments are consistent and reproducible.
+
+## 11.2 Environment & Secrets Management
+
+### Environments
+
+-   **Development Environment**: Usually local machines using Firebase emulators. Each dev can run `firebase emulators:start` with the Firestore and Functions. They might use a local config for environment variables (like a local AI API key to test calls against a sandbox model). This allows rapid testing without affecting any real DB or costing money.
+-   **Dev (Cloud) Environment**: A Firebase project like `dpp-dev` where the latest `develop` branch code runs. It might use dummy third-party integrations (like pointing to a Polygon testnet, using a test blockchain contract).
+-   **Staging Environment**: A Firebase project `dpp-staging` which mirrors production in setup. It uses Polygon Mumbai (testnet) for blockchain anchoring to not risk real transactions; uses perhaps a dev instance of any external services if available (or still real AI because we want realistic test). Staging has its own Firestore database, with perhaps anonymized or sample data. We sometimes copy a subset of prod data to staging for realistic tests (with sensitive bits scrubbed).
+-   **Production Environment**: `dpp-prod` with real domain, mainnet Polygon, etc.
+
+We store environment-specific configurations in appropriate places:
+
+-   For Cloud Functions, we use Firebase’s environment config (`firebase functions:config:set`) for things like API keys, contract addresses, etc. This is better than plain env variables because it’s built-in. They become available in code via `functions.config()`.
+-   Alternatively, since we use TypeScript, another pattern is to have a config file that picks values based on an env identifier (but since we cannot easily set `NODE_ENV` in Firebase, using `functions:config` is better).
+-   We separate secrets: e.g., `functions.config().openai.key` for AI, `functions.config().polygon.rpc_url` for blockchain node, `functions.config().polygon.priv_key` for wallet (or better, use a Secret Manager and load at runtime).
+-   We do not commit secrets to repo. CI has secure secrets configured for deployment (like a Firebase deploy token, not actual API keys). The actual keys are directly stored in the environment via Firebase console or CLI.
+-   **Local Development Secrets**: We provide `.env.example` and `.env.local` usage. For emulator, we can set emulated config with a file. We instruct devs how to obtain dev API keys for local (for example, they might use a personal OpenAI key for testing or a dev service key, rather than the production one).
+-   **Secret Rotation**: If any key is compromised or needs rotating, we update it in config and redeploy. For highly sensitive keys, consider using Google Secret Manager and have the function retrieve it at runtime (which is possible but adds latency). We weigh risk; likely fine using config for now, just ensure access to Firebase project is limited.
+
+### Data Migration
+
+If we change Firestore schema (like add a new field requirement or move something), we handle that carefully:
+
+-   Ideally, make changes backwards-compatible. E.g., if we rename a field, support both until migration done.
+-   Write a one-time migration script (could be a Node script using Admin SDK) to run in staging then prod to update documents.
+-   We might deploy that as a temporary function or just run locally with admin credentials.
+-   Because production Firestore will have data, any new code should handle old data gracefully (e.g., if new field missing, treat as null).
+-   We document these migrations in release notes so everyone knows the state.
+
+## 11.3 Versioning Strategy
+
+We maintain versioning at multiple levels:
+
+-   **API Versioning**: The REST API is versioned with a prefix (e.g., `/v1/products`). We plan changes in a way that v1 continues working until we deprecate it in favor of v2, etc.
+    -   If we add new endpoints or optional fields, that can be done in v1 (non-breaking).
+    -   If a change is breaking (say we change the format of an endpoint or remove something), we will introduce a new version. E.g., if we realize our `/products` response should be structured differently, we'd make a `/v2/products` and keep `/v1` for older clients for a while.
+    -   We communicate deprecation timeline to enterprise clients so they can migrate.
+    -   The front-end that we control will always use the latest internally.
+-   **Smart Contract Versioning**: If we ever need to upgrade the smart contract (say a bug or adding features like storing multiple hashes), we treat that carefully:
+    -   Possibly deploy a new contract and update our config to use it for new anchors, while still keeping the old one for verifying old entries (or we migrate entries).
+    -   We tag contract versions (e.g., `DPPRegistry v1`, `v2`).
+    -   Ideally avoid upgrading contract unless necessary since it complicates verification (but we plan for the scenario).
+-   **Software Version**: We use semantic versioning for the platform itself (for internal tracking and any client SDKs).
+    -   For example, version 1.0.0 for initial release. Minor bumps (1.1.0) for backward-compatible improvements (new endpoints, fields), major bumps (2.0.0) for breaking changes.
+    -   We might not expose this version explicitly to users except maybe in an about section or API header. But it’s used in `CHANGELOG.md` and for internal reference.
+-   **Database Version/Migrations**: Not explicitly versioned, but any structural changes are tied to software versions. We might have something like a `schemaVersion` field in config that we update after migrations, but Firestore is schemaless so it’s more about code expecting certain fields.
+    -   We keep track in docs of what changes happened at which version so if someone is looking at old data they understand context.
+-   **Release Process**:
+    -   We bundle completed features and fixes into a release. Perhaps every sprint or bi-weekly. Each release gets a version and we tag it in git.
+    -   Update the `CHANGELOG.md` with user-visible changes (especially if it requires any action from them).
+    -   On deploy, we monitor as said, and we have the ability to hotfix if something goes wrong (then bump to 1.0.1 etc).
+    -   In case an emergency fix must be deployed, that's done off cycle and still documented.
+-   **Client SDKs/Docs**: If we provide, say, a client library (maybe in future for easier integration, e.g., a JavaScript package to wrap our API), that library is versioned and we maintain it aligning with API versions.
+-   **Backward Compatibility**: We ensure that changes that could break older data or flows are handled gracefully:
+    -   E.g., if a new regulation field is introduced, old products without it just show as non-compliant in the new check but nothing crashes.
+    -   If we deprecate a field, we support it in API until removed in v2 (i.e., maybe just ignore it if provided).
+    -   The blockchain anchoring approach is forward-compatible as long as we can always produce a hash from data. If we added fields that we initially excluded from hash, adding them later changes hash - that is a versioning problem. We define upfront what goes into the hash and ideally never change that for v1 (if we need to alter, we might then deploy a new contract and treat it as separate version of anchoring, with transition plan).
+    -   The DID/VC integration would likely be a v2 feature that coexists with v1 for a while.
+
+In conclusion, our DevOps practices ensure that the platform remains stable and high-quality even as we rapidly iterate. By isolating environments, automating testing/deployment, and carefully managing versions, we minimize the risk of downtime or user disruption. This allows the engineering team to focus on adding capabilities (like support for those "75+ standards"!) without constantly firefighting production issues.
