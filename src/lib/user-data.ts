@@ -10,7 +10,7 @@ export let users: User[] = [
     fullName: 'Admin User',
     email: 'admin@norruva.com',
     companyId: 'comp-01',
-    roles: [UserRoles.ADMIN],
+    roles: Object.values(UserRoles),
     createdAt: '2024-07-01T10:00:00Z',
     updatedAt: '2024-07-20T10:00:00Z',
     readNotificationIds: ['log-api-001', 'log-api-002', 'log-003'],

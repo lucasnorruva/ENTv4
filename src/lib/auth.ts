@@ -1,4 +1,3 @@
-
 // src/lib/auth.ts
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
@@ -53,23 +52,26 @@ export function hasRole(user: User, role: Role): boolean {
 /**
  * Simulates fetching the current user based on a role.
  * In a real application, this would involve validating a session token.
- * For this mock, we just find the first user with the requested role.
+ * For this mock, we always return the "Admin User" who has all roles,
+ * allowing for easy switching between dashboards for demonstration.
+ * The `role` parameter is used by the layout to determine which dashboard UI to show.
  * @param role The role to simulate being logged in as.
  * @returns A mock user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  // Find a user that has the requested role.
-  const user = mockUsers.find(u => u.roles.includes(role));
-  if (user) return { ...user, roles: [role] };
-  
-  // Fallback to the first admin user if the role is not found
-  const admin = mockUsers.find(u => u.roles.includes(UserRoles.ADMIN));
-  if (admin) return { ...admin, roles: [role] };
+  // For demonstration, always return the primary admin user who has all roles.
+  const adminUser = mockUsers.find(u => u.id === 'user-admin');
 
-  // Fallback to the very first user if no admin is found
-  if (mockUsers.length > 0) return { ...mockUsers[0], roles: [role] };
+  if (!adminUser) {
+    throw new Error(
+      "The primary admin user (id: 'user-admin') was not found in the mock data. Please ensure this user exists.",
+    );
+  }
 
-  throw new Error('No users found in the database. Please check the mock data.');
+  // We return the full admin user object, with all their roles intact.
+  // The `role` parameter passed to this function is handled by the
+  // individual dashboard layouts to render the correct UI.
+  return adminUser;
 }
 
 /**
