@@ -6,37 +6,58 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuditLogsForUser, getProductById } from '@/lib/actions';
+import { getAuditLogsForUser, getProducts } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
-import { Clock, Edit, FilePlus, FileUp, Trash2 } from 'lucide-react';
+import {
+  Clock,
+  Edit,
+  FilePlus,
+  FileUp,
+  Trash2,
+  CheckCircle,
+  FileX,
+  Calculator,
+  Recycle,
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Badge } from '@/components/ui/badge';
+import type { AuditLog } from '@/types';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
   'product.updated': Edit,
   'product.deleted': Trash2,
+  'product.recycled': Recycle,
+  'product.recalculate_score': Calculator,
   'passport.submitted': FileUp,
+  'passport.approved': CheckCircle,
+  'passport.rejected': FileX,
   default: Clock,
 };
 
+const getActionLabel = (action: string): string => {
+  return action
+    .split('.')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 export default async function HistoryPage() {
-  // For this mock, we assume the current user is the default supplier
   const user = await getCurrentUser('Supplier');
-  const logs = await getAuditLogsForUser(user.id);
+  const [logs, products] = await Promise.all([
+    getAuditLogsForUser(user.id),
+    getProducts(),
+  ]);
 
-  const getLogDetails = async (log: (typeof logs)[0]) => {
-    const product = await getProductById(log.entityId);
-    const Icon =
-      actionIcons[log.action] ||
-      actionIcons[log.action.split('.')[0]] ||
-      actionIcons.default;
-    let description = `Action: ${log.action}`;
-    if (product) {
-      description = `Product: ${product.productName}`;
-    }
+  const productMap = new Map(products.map(p => [p.id, p.productName]));
 
-    return { Icon, description };
+  const getLogDetails = (log: AuditLog) => {
+    const Icon = actionIcons[log.action] || actionIcons.default;
+    const productName = productMap.get(log.entityId);
+    const description = productName
+      ? `Product: ${productName}`
+      : `Action: ${log.action}`;
+    const label = getActionLabel(log.action);
+    return { Icon, description, label };
   };
 
   return (
@@ -50,17 +71,22 @@ export default async function HistoryPage() {
         </CardHeader>
         <CardContent>
           <div className="relative pl-6">
-            <div className="absolute left-6 top-0 h-full w-px bg-border" />
-            {logs.map(async (log, index) => {
-              const { Icon, description } = await getLogDetails(log);
+            {logs.length > 0 && (
+              <div className="absolute left-[35px] top-0 h-full w-px bg-border -translate-x-1/2" />
+            )}
+            {logs.map(log => {
+              const { Icon, description, label } = getLogDetails(log);
               return (
-                <div key={log.id} className="relative mb-8 flex items-start">
-                  <div className="absolute -left-3 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Icon className="h-4 w-4" />
+                <div
+                  key={log.id}
+                  className="relative mb-8 flex items-start pl-8"
+                >
+                  <div className="absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground -translate-x-1/2">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div className="ml-6 flex-1">
+                  <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold">{log.action}</p>
+                      <p className="font-semibold">{label}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(log.createdAt), {
                           addSuffix: true,
@@ -74,7 +100,7 @@ export default async function HistoryPage() {
                 </div>
               );
             })}
-             {logs.length === 0 && (
+            {logs.length === 0 && (
               <div className="text-center py-10 text-muted-foreground">
                 <p>No activity history found.</p>
               </div>
