@@ -1,12 +1,11 @@
 // src/types/index.ts
-import type { Role, UserRoles } from "@/lib/constants";
+import type { Role } from '@/lib/constants';
 import type {
   AnalyzeProductLifecycleOutput,
-  EsgScoreOutput,
   ClassifyProductOutput,
-  SummarizeComplianceGapsOutput,
   DataQualityWarning,
-} from "@/types/ai-outputs";
+  EsgScoreOutput,
+} from '@/types/ai-outputs';
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -25,7 +24,8 @@ export interface User extends BaseEntity {
   email: string;
   fullName: string;
   companyId: string;
-  roles: (UserRoles[keyof typeof UserRoles])[];
+  roles: Role[];
+  readNotificationIds?: string[];
 }
 
 /**
@@ -36,7 +36,7 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
 }
 
-// --- NEW STRUCTURED DATA SCHEMAS ---
+// --- PRODUCT DATA STRUCTURES ---
 
 export interface Material {
   name: string;
@@ -72,15 +72,16 @@ export interface ComplianceGap {
 /**
  * Groups all AI-generated and compliance-related data.
  */
-export interface SustainabilityData
-  extends Omit<EsgScoreOutput, "summary">,
-    Omit<SummarizeComplianceGapsOutput, "gaps"> {
-  summary?: string;
+export interface SustainabilityData extends EsgScoreOutput {
+  classification?: ClassifyProductOutput;
+  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+  isCompliant: boolean;
+  complianceSummary: string;
   gaps?: ComplianceGap[];
 }
 
 /**
- * The core Digital Product Passport entity, now with a structured data model.
+ * The core Digital Product Passport entity.
  */
 export interface Product extends BaseEntity {
   companyId: string; // Foreign key to the Company
@@ -89,7 +90,7 @@ export interface Product extends BaseEntity {
   productImage: string;
   category: string;
   supplier: string;
-  status: "Published" | "Draft" | "Archived";
+  status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
@@ -102,13 +103,13 @@ export interface Product extends BaseEntity {
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
-  qrLabelText?: string; // AI-generated consumer-friendly summary
+  qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
 
   // Lifecycle & Verification
-  lastVerificationDate?: string; // ISO 8601 format
-  verificationStatus?: "Verified" | "Pending" | "Failed" | "Not Submitted";
-  endOfLifeStatus?: "Active" | "Recycled" | "Disposed";
+  lastVerificationDate?: string;
+  verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
+  endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: {
     txHash: string;
     explorerUrl: string;
@@ -123,11 +124,63 @@ export interface Product extends BaseEntity {
 export interface CompliancePath extends BaseEntity {
   name: string;
   description: string;
-  regulations: string[]; // e.g., ['ESPR', 'CSRD']
-  category: string; // The product category this path applies to
+  regulations: string[];
+  category: string;
   rules: {
     minSustainabilityScore?: number;
     requiredKeywords?: string[];
     bannedKeywords?: string[];
   };
+}
+
+/**
+ * Represents a single entry in the audit log.
+ */
+export interface AuditLog extends BaseEntity {
+  userId: string;
+  action: string;
+  entityId: string;
+  details: Record<string, any>;
+}
+
+/**
+* Represents an API Key for programmatic access.
+*/
+export interface ApiKey extends BaseEntity {
+  label: string;
+  token: string; // This would store a truncated/masked version
+  status: 'Active' | 'Revoked';
+  userId: string;
+  lastUsed?: string;
+}
+
+/**
+* Global API settings for the platform.
+*/
+export interface ApiSettings {
+  isPublicApiEnabled: boolean;
+  rateLimitPerMinute: number;
+  isWebhookSigningEnabled: boolean;
+}
+
+/**
+ * Represents a manufacturing production line.
+ */
+export interface ProductionLine extends BaseEntity {
+    name: string;
+    location: string;
+    status: 'Active' | 'Idle' | 'Maintenance';
+    outputPerHour: number;
+    currentProduct: string;
+    lastMaintenance: string;
+}
+
+/**
+ * Represents a customer service ticket.
+ */
+export interface ServiceTicket extends BaseEntity {
+    productId: string;
+    customerName: string;
+    issue: string;
+    status: 'Open' | 'In Progress' | 'Closed';
 }
