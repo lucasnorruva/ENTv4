@@ -1,9 +1,8 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
 import { products as mockProducts } from '@/lib/data';
-import type { Product, SustainabilityData } from '@/types';
+import type { Product, ProductionLine, SustainabilityData } from '@/types';
 import type { ProductFormValues } from '@/components/product-form';
 import {
   suggestImprovements,
@@ -20,6 +19,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { compliancePaths } from './compliance-data';
+import { productionLines } from './manufacturing-data';
 
 // Note: In a real app, this would be a database. For this mock, we mutate
 // a `let` variable. `products` is imported from data.ts and reassigned here.
@@ -332,4 +332,9 @@ export async function logAuditEvent(
     details,
     timestamp: new Date().toISOString(),
   });
+}
+
+export async function getProductionLines(): Promise<ProductionLine[]> {
+  await sleep(50);
+  return JSON.parse(JSON.stringify(productionLines));
 }

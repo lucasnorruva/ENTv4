@@ -161,3 +161,16 @@ export interface Webhook extends BaseEntity {
   events: string[]; // e.g., ['product.published', 'verification.approved']
   companyId: string;
 }
+
+/**
+ * Represents a manufacturing production line.
+ */
+export interface ProductionLine {
+  id: string;
+  name: string;
+  location: string;
+  status: "Active" | "Idle" | "Maintenance";
+  outputPerHour: number;
+  currentProduct: string; // Product name
+  lastMaintenance: string; // ISO 8601 date string
+}
