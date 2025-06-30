@@ -72,7 +72,7 @@ export default async function RecyclerDashboard({ user }: { user: User }) {
         </CardHeader>
         <CardFooter>
           <Button asChild>
-            <Link href="/dashboard/eol">
+            <Link href="/dashboard/recycler/eol">
               Go to EOL Queue <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

@@ -1,4 +1,3 @@
-
 // src/components/dashboards/manufacturer-dashboard.tsx
 import {
   Card,
@@ -74,7 +73,7 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/lines">
+              <Link href="/dashboard/manufacturer/lines">
                 Manage Lines <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

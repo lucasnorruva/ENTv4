@@ -1,12 +1,11 @@
-
 // src/components/dashboards/auditor-dashboard.tsx
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import type { User } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,7 @@ export default async function AuditorDashboard({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button asChild size="sm" className="w-full">
-              <Link href="/dashboard/audit">
+              <Link href="/dashboard/auditor/audit">
                 Go to Full Audit Queue <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

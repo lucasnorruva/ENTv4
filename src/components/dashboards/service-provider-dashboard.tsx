@@ -1,4 +1,3 @@
-
 // src/components/dashboards/service-provider-dashboard.tsx
 import {
   Card,
@@ -66,7 +65,7 @@ export default async function ServiceProviderDashboard({
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/manuals">
+              <Link href="/dashboard/service-provider/manuals">
                 Browse Manuals <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -86,7 +85,7 @@ export default async function ServiceProviderDashboard({
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/tickets">
+              <Link href="/dashboard/service-provider/tickets">
                 Manage All Tickets <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

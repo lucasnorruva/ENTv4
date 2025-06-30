@@ -1,7 +1,7 @@
 // src/components/dashboard-sidebar.tsx
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   LayoutGrid,
   BookCopy,
@@ -309,6 +309,7 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = getRoleSlug(userRole);
@@ -335,7 +336,9 @@ export default function DashboardSidebar({
     if (external) {
       window.open(href, '_blank');
     } else {
-      router.push(href);
+      const currentRole = searchParams.get('role');
+      const destination = currentRole ? `${href}?role=${currentRole}` : href;
+      router.push(destination);
     }
   };
 

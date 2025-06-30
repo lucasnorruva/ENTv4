@@ -1,4 +1,3 @@
-
 // src/components/dashboards/developer-dashboard.tsx
 import {
   Card,
@@ -12,14 +11,14 @@ import type { User } from '@/types';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 import { KeyRound, ArrowRight, Activity } from 'lucide-react';
-import { getApiKeys, getAuditLogsForUser } from '@/lib/actions';
+import { getApiKeys, getAuditLogs } from '@/lib/actions';
 import { Badge } from '../ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 export default async function DeveloperDashboard({ user }: { user: User }) {
   const [apiKeys, auditLogs] = await Promise.all([
     getApiKeys(user.id),
-    getAuditLogsForUser(user.id),
+    getAuditLogs(),
   ]);
   const activeKeys = apiKeys.filter(k => k.status === 'Active').length;
   const recentApiActivity = auditLogs
@@ -59,7 +58,7 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link href="/dashboard/keys">
+              <Link href="/dashboard/developer/keys">
                 Manage Keys <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -135,7 +134,7 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
         </CardContent>
         <CardFooter>
           <Button asChild variant="outline" size="sm">
-            <Link href="/dashboard/logs">View All API Logs</Link>
+            <Link href="/dashboard/developer/logs">View All API Logs</Link>
           </Button>
         </CardFooter>
       </Card>

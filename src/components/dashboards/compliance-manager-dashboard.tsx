@@ -1,4 +1,3 @@
-
 // src/components/dashboards/compliance-manager-dashboard.tsx
 import {
   Card,
@@ -60,7 +59,7 @@ export default async function ComplianceManagerDashboard({
           </CardContent>
           <CardFooter>
             <Button asChild size="sm" className="w-full">
-              <Link href="/dashboard/flagged">
+              <Link href="/dashboard/compliance-manager/flagged">
                 Go to Full Queue
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
