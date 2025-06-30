@@ -1,7 +1,21 @@
 // src/components/notifications-client.tsx
 'use client';
 
-import { Bell, ArrowRight } from 'lucide-react';
+import React from 'react';
+import {
+  Bell,
+  ArrowRight,
+  Clock,
+  Edit,
+  FilePlus,
+  FileUp,
+  Trash2,
+  CheckCircle,
+  FileX,
+  Calculator,
+  Recycle,
+  ShieldX,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +28,19 @@ import { Button } from './ui/button';
 import type { ProcessedNotification } from './notifications-panel';
 import Link from 'next/link';
 import { Badge } from './ui/badge';
+
+const actionIcons: Record<string, React.ElementType> = {
+  'product.created': FilePlus,
+  'product.updated': Edit,
+  'product.deleted': Trash2,
+  'product.recycled': Recycle,
+  'product.recalculate_score': Calculator,
+  'passport.submitted': FileUp,
+  'passport.approved': CheckCircle,
+  'passport.rejected': FileX,
+  'compliance.resolved': ShieldX,
+  default: Clock,
+};
 
 interface NotificationsClientProps {
   notifications: ProcessedNotification[];
@@ -43,23 +70,27 @@ export default function NotificationsClient({
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {notifications.length > 0 ? (
-          notifications.map(notification => (
-            <DropdownMenuItem
-              key={notification.id}
-              className="flex items-start gap-3"
-            >
-              <notification.Icon className="h-4 w-4 mt-1 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">{notification.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {notification.description}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {notification.timestamp}
-                </p>
-              </div>
-            </DropdownMenuItem>
-          ))
+          notifications.map(notification => {
+            const Icon =
+              actionIcons[notification.action] || actionIcons.default;
+            return (
+              <DropdownMenuItem
+                key={notification.id}
+                className="flex items-start gap-3"
+              >
+                <Icon className="h-4 w-4 mt-1 text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-medium">{notification.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {notification.description}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {notification.timestamp}
+                  </p>
+                </div>
+              </DropdownMenuItem>
+            );
+          })
         ) : (
           <p className="p-4 text-center text-sm text-muted-foreground">
             No new notifications.
