@@ -1,3 +1,4 @@
+
 // src/lib/api-settings-data.ts
 import type { ApiSettings } from '@/types';
 

@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -25,6 +26,7 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: Role[];
+  readNotificationIds?: string[];
 }
 
 /**
@@ -130,4 +132,56 @@ export interface CompliancePath extends BaseEntity {
     requiredKeywords?: string[];
     bannedKeywords?: string[];
   };
+}
+
+/**
+ * Represents a single audit trail event in the system.
+ */
+export interface AuditLog extends BaseEntity {
+  userId: string;
+  action: string;
+  entityId: string;
+  details: Record<string, any>;
+}
+
+/**
+ * Represents a service ticket for product repair or issues.
+ */
+export interface ServiceTicket extends BaseEntity {
+  productId: string;
+  customerName: string;
+  issue: string;
+  status: 'Open' | 'In Progress' | 'Closed';
+}
+
+/**
+ * Represents a physical production line for manufacturing.
+ */
+export interface ProductionLine extends BaseEntity {
+  name: string;
+  location: string;
+  status: 'Active' | 'Idle' | 'Maintenance';
+  outputPerHour: number;
+  currentProduct: string;
+  lastMaintenance: string;
+}
+
+/**
+ * Represents a developer API key for integrations.
+ */
+export interface ApiKey extends BaseEntity {
+  label: string;
+  token: string; // This is a truncated, non-sensitive version for display
+  status: 'Active' | 'Revoked';
+  userId: string;
+  lastUsed?: string;
+}
+
+/**
+ * Represents the global settings for the Norruva API.
+ */
+export interface ApiSettings {
+  isPublicApiEnabled: boolean;
+  rateLimitPerMinute: number;
+  isWebhookSigningEnabled: boolean;
 }
