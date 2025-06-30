@@ -1,18 +1,36 @@
 // scripts/seed.ts
+import * as dotenv from 'dotenv';
+dotenv.config(); // Explicitly load .env file at the top
+
 import * as admin from 'firebase-admin';
 import { products as mockProducts } from '../src/lib/data';
 import { Collections } from '../src/lib/constants';
 
-// The Admin SDK is automatically initialized by firebase-functions.
-// For local scripts, it uses the GOOGLE_APPLICATION_CREDENTIALS env var.
+// Initialize Firebase Admin SDK
 if (!admin.apps.length) {
-  admin.initializeApp();
+  try {
+    console.log('Initializing Firebase Admin SDK...');
+    admin.initializeApp();
+    console.log('Firebase Admin SDK initialized successfully.');
+  } catch (error: any) {
+    console.error(
+      '❌ Firebase Admin SDK initialization failed. This usually means your service account key is missing or has incorrect permissions.',
+    );
+    console.error(
+      'Please ensure you have a valid `service-account.json` file in your project root, and that the `GOOGLE_APPLICATION_CREDENTIALS` variable in your `.env` file points to it (e.g., GOOGLE_APPLICATION_CREDENTIALS=./service-account.json).',
+    );
+    console.error(
+      'You can generate a new key from your Firebase project settings under "Service accounts".',
+    );
+    // Re-throw the original error to stop the script execution
+    process.exit(1);
+  }
 }
 
 const db = admin.firestore();
 
 async function seedDatabase() {
-  console.log('Starting to seed database with Admin SDK...');
+  console.log('Starting to seed database...');
   const collectionRef = db.collection(Collections.PRODUCTS);
   console.log(
     `This will write ${mockProducts.length} documents to the '${Collections.PRODUCTS}' collection.`,
