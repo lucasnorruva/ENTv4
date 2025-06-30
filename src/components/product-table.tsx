@@ -1,3 +1,4 @@
+
 // src/components/product-table.tsx
 "use client";
 
@@ -8,6 +9,7 @@ import {
   FilePenLine,
   Trash2,
   Link as LinkIcon,
+  Send,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -45,12 +47,14 @@ interface ProductTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
+  onSubmitForReview: (id: string) => void;
 }
 
 export default function ProductTable({
   products,
   onEdit,
   onDelete,
+  onSubmitForReview,
 }: ProductTableProps) {
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -132,7 +136,7 @@ export default function ProductTable({
               <Badge
                 variant={getVerificationVariant(product.verificationStatus)}
               >
-                {product.verificationStatus ?? "N/A"}
+                {product.verificationStatus ?? "Not Submitted"}
               </Badge>
             </TableCell>
             <TableCell>
@@ -150,6 +154,15 @@ export default function ProductTable({
                     <FilePenLine className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
+                  {product.status === "Draft" &&
+                    product.verificationStatus !== "Pending" && (
+                      <DropdownMenuItem
+                        onClick={() => onSubmitForReview(product.id)}
+                      >
+                        <Send className="mr-2 h-4 w-4" />
+                        Submit for Review
+                      </DropdownMenuItem>
+                    )}
                   {product.blockchainProof && (
                     <DropdownMenuItem asChild>
                       <a

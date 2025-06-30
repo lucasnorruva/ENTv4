@@ -1,3 +1,4 @@
+
 // src/components/dashboards/supplier-dashboard.tsx
 "use client";
 
@@ -15,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ProductForm from "../product-form";
 import ProductTable from "../product-table";
-import { deleteProduct } from "@/lib/actions";
+import { deleteProduct, submitForReview } from "@/lib/actions";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SupplierDashboard({
@@ -49,6 +50,27 @@ export default function SupplierDashboard({
         title: "Product Deleted",
         description: "The product passport has been successfully deleted.",
       });
+    });
+  };
+
+  const handleSubmitForReview = (id: string) => {
+    startTransition(async () => {
+      try {
+        const reviewedProduct = await submitForReview(id);
+        setProducts((currentProducts) =>
+          currentProducts.map((p) => (p.id === id ? reviewedProduct : p)),
+        );
+        toast({
+          title: "Product Submitted",
+          description: `"${reviewedProduct.productName}" has been submitted for review.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Submission Failed",
+          description: "There was an error submitting the product for review.",
+          variant: "destructive",
+        });
+      }
     });
   };
 
@@ -88,6 +110,7 @@ export default function SupplierDashboard({
             products={products}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onSubmitForReview={handleSubmitForReview}
           />
         </CardContent>
       </Card>

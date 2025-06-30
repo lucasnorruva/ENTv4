@@ -1,14 +1,17 @@
+
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { products as mockProductsData } from "./data";
-import type { Product, AuditLog } from "@/types";
+import type { Product } from "@/types";
 import {
   enhancePassportInformation,
   type EnhancePassportInformationInput,
 } from "@/ai/flows/enhance-passport-information";
 import { calculateSustainability } from "@/ai/flows/calculate-sustainability";
 import { anchorToPolygon, hashProductData } from "@/services/blockchain";
+import { compliancePaths } from "./compliance-data";
+import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 // Use an in-memory array for mock data to simulate database operations
 let mockProducts = [...mockProductsData];
@@ -28,6 +31,10 @@ export async function saveProduct(
     | "sustainabilityScore"
     | "sustainabilityReport"
     | "blockchainProof"
+    | "verificationStatus"
+    | "lastVerificationDate"
+    | "complianceSummary"
+    | "endOfLifeStatus"
   > & { id?: string },
 ): Promise<Product> {
   const now = new Date();
@@ -60,25 +67,39 @@ export async function saveProduct(
   }
 
   if (data.id) {
-    // Update existing product in mock array
-    const updatedProduct = {
+    // Update existing product
+    const existingProduct = mockProducts.find((p) => p.id === data.id);
+    if (!existingProduct) {
+      throw new Error("Product not found");
+    }
+
+    let newVerificationStatus = existingProduct.verificationStatus;
+    // If a verified or failed product is edited, it needs re-verification.
+    if (
+      newVerificationStatus === "Verified" ||
+      newVerificationStatus === "Failed"
+    ) {
+      newVerificationStatus = undefined;
+    }
+
+    const updatedProduct: Product = {
+      ...existingProduct,
       ...data,
-      id: data.id,
       ...aiResult,
       blockchainProof,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
-      verificationStatus: "Pending" as const,
-      lastVerificationDate: nowISO,
-      createdAt: mockProducts.find((p) => p.id === data.id)?.createdAt || nowISO,
+      verificationStatus: newVerificationStatus,
+      complianceSummary:
+        newVerificationStatus === undefined
+          ? undefined
+          : existingProduct.complianceSummary,
     };
-    mockProducts = mockProducts.map((p) =>
-      p.id === data.id ? (updatedProduct as Product) : p,
-    );
+    mockProducts = mockProducts.map((p) => (p.id === data.id ? updatedProduct : p));
     revalidatePath("/dashboard");
-    return updatedProduct as Product;
+    return updatedProduct;
   } else {
-    // Create new product in mock array
+    // Create new product
     const newProduct: Product = {
       ...data,
       ...aiResult,
@@ -87,7 +108,6 @@ export async function saveProduct(
       createdAt: nowISO,
       updatedAt: nowISO,
       lastUpdated: now.toISOString().split("T")[0],
-      verificationStatus: "Pending" as const,
       endOfLifeStatus: "Active" as const,
     };
     mockProducts.unshift(newProduct);
@@ -100,6 +120,63 @@ export async function deleteProduct(id: string): Promise<{ success: boolean }> {
   mockProducts = mockProducts.filter((p) => p.id !== id);
   revalidatePath("/dashboard");
   return { success: true };
+}
+
+export async function submitForReview(productId: string): Promise<Product> {
+  const productIndex = mockProducts.findIndex((p) => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error("Product not found");
+  }
+
+  const product = mockProducts[productIndex];
+
+  const compliancePath = compliancePaths.find(
+    (path) => path.category === product.category,
+  );
+
+  let complianceSummary = "Compliance check passed.";
+  let isCompliant = true;
+
+  if (compliancePath) {
+    try {
+      const result = await summarizeComplianceGaps({
+        productName: product.productName,
+        productInformation: product.currentInformation,
+        compliancePathName: compliancePath.name,
+        complianceRules: JSON.stringify(compliancePath.rules),
+      });
+      complianceSummary = result.complianceSummary;
+      isCompliant = result.isCompliant;
+    } catch (e) {
+      console.error("AI compliance check failed during submission:", e);
+      complianceSummary = "AI check failed. Manual review required.";
+      isCompliant = false; // Treat AI failure as a compliance failure
+    }
+  } else {
+    complianceSummary = `No compliance path found for category: ${product.category}. Manual review required.`;
+    isCompliant = false;
+  }
+
+  const now = new Date();
+  const updatedProduct: Product = {
+    ...product,
+    verificationStatus: "Pending",
+    lastVerificationDate: now.toISOString(),
+    complianceSummary: complianceSummary,
+    updatedAt: now.toISOString(),
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent(
+    "product.submit_for_review",
+    productId,
+    { summary: complianceSummary, isCompliant },
+    "user-supplier", // Mock user
+  );
+
+  revalidatePath("/dashboard");
+  return updatedProduct;
 }
 
 export async function runEnhancement(

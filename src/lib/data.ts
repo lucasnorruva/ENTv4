@@ -1,3 +1,4 @@
+
 import type { Product } from "@/types";
 
 const now = new Date();
@@ -105,10 +106,6 @@ export let products: Product[] = [
       .split("T")[0],
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 0)).toISOString(),
-    verificationStatus: "Pending",
-    lastVerificationDate: new Date(
-      new Date(now).setDate(now.getDate() - 5),
-    ).toISOString(),
   },
   {
     id: "pp-004",
@@ -138,7 +135,9 @@ export let products: Product[] = [
     createdAt: new Date(
       new Date(now).setFullYear(now.getFullYear() - 1) - 10,
     ).toISOString(),
-    updatedAt: new Date(new Date(now).setFullYear(now.getFullYear() - 1)).toISOString(),
+    updatedAt: new Date(
+      new Date(now).setFullYear(now.getFullYear() - 1),
+    ).toISOString(),
     verificationStatus: "Failed",
     complianceSummary:
       "The product contains 'Polyester' which is a banned material for the Global Organic Textile Standard.",
@@ -178,7 +177,7 @@ export let products: Product[] = [
       .split("T")[0],
     createdAt: new Date(new Date(now).setDate(now.getDate() - 45)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 15)).toISOString(),
-    verificationStatus: "Pending",
+    verificationStatus: "Verified",
     lastVerificationDate: new Date(
       new Date(now).setDate(now.getDate() - 45),
     ).toISOString(),
