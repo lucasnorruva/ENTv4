@@ -1,4 +1,4 @@
-import type { Product } from "@/types";
+import type { Product, CompliancePath } from "@/types";
 import Image from "next/image";
 import {
   Card,
@@ -42,7 +42,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { compliancePaths } from "@/lib/compliance-data";
 
 function InfoRow({
   icon: Icon,
@@ -67,12 +66,15 @@ function InfoRow({
   );
 }
 
-export default function PublicPassportView({ product }: { product: Product }) {
+export default function PublicPassportView({
+  product,
+  compliancePath,
+}: {
+  product: Product;
+  compliancePath?: CompliancePath;
+}) {
   const { sustainability } = product;
   const esg = sustainability;
-  const compliancePath = compliancePaths.find(
-    (p) => p.id === product.compliancePathId,
-  );
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">

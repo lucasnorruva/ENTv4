@@ -72,6 +72,19 @@ const docToProduct = (
   };
 };
 
+const docToCompliancePath = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): CompliancePath => {
+  const data = doc.data() as Omit<CompliancePath, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+  };
+};
+
+
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(userId?: string): Promise<Product[]> {
@@ -440,12 +453,7 @@ export async function getCompliancePaths(): Promise<CompliancePath[]> {
     .collection(Collections.COMPLIANCE_PATHS)
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<CompliancePath, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
-  }));
+  return snapshot.docs.map(docToCompliancePath);
 }
 
 export async function getCompliancePathById(
@@ -456,7 +464,7 @@ export async function getCompliancePathById(
     .doc(id)
     .get();
   if (!doc.exists) return undefined;
-  return { id: doc.id, ...doc.data() } as CompliancePath;
+  return docToCompliancePath(doc);
 }
 
 export async function saveCompliancePath(

@@ -1,4 +1,4 @@
-import { getProductById } from "@/lib/actions";
+import { getProductById, getCompliancePathById } from "@/lib/actions";
 import PublicPassportView from "@/components/public-passport-view";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -18,6 +18,10 @@ export default async function ProductPassportPage({
     notFound();
   }
 
+  const compliancePath = product.compliancePathId
+    ? await getCompliancePathById(product.compliancePathId)
+    : undefined;
+
   return (
     <div className="bg-muted min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm border-b p-4 sticky top-0 z-10">
@@ -32,7 +36,7 @@ export default async function ProductPassportPage({
         </div>
       </header>
       <main className="container mx-auto p-4 md:p-8">
-        <PublicPassportView product={product} />
+        <PublicPassportView product={product} compliancePath={compliancePath} />
       </main>
     </div>
   );

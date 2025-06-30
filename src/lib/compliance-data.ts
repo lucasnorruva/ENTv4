@@ -39,7 +39,3 @@ export const compliancePaths: CompliancePath[] = [
     },
   },
 ];
-
-export function getCompliancePathById(id: string): CompliancePath | undefined {
-  return compliancePaths.find(p => p.id === id);
-}

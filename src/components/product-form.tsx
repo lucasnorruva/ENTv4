@@ -48,10 +48,9 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Product, User } from '@/types';
+import type { Product, User, CompliancePath } from '@/types';
 import { saveProduct, runSuggestImprovements } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { compliancePaths } from '@/lib/compliance-data';
 import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 
@@ -61,6 +60,7 @@ interface ProductFormProps {
   product: Product | null;
   onSave: (product: Product) => void;
   user: User;
+  compliancePaths: CompliancePath[];
 }
 
 export default function ProductForm({
@@ -69,6 +69,7 @@ export default function ProductForm({
   product,
   onSave,
   user,
+  compliancePaths,
 }: ProductFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const [isSuggesting, startSuggestionTransition] = useTransition();

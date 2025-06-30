@@ -4,7 +4,7 @@
 import React, { useState, useTransition } from 'react';
 import { Plus } from 'lucide-react';
 
-import type { Product, User } from '@/types';
+import type { Product, User, CompliancePath } from '@/types';
 import {
   Card,
   CardContent,
@@ -25,11 +25,13 @@ import { useToast } from '@/hooks/use-toast';
 interface ProductManagementProps {
   initialProducts: Product[];
   user: User;
+  compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagement({
   initialProducts,
   user,
+  compliancePaths,
 }: ProductManagementProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -143,6 +145,7 @@ export default function ProductManagement({
         product={selectedProduct}
         onSave={handleSave}
         user={user}
+        compliancePaths={compliancePaths}
       />
     </>
   );

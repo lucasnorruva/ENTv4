@@ -1,7 +1,7 @@
 // src/app/dashboard/compliance-manager/products/page.tsx
 import { redirect } from 'next/navigation';
 import ProductManagement from '@/components/product-management';
-import { getProducts } from '@/lib/actions';
+import { getProducts, getCompliancePaths } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 
@@ -22,7 +22,16 @@ export default async function ProductsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const initialProducts = await getProducts(user.id);
+  const [initialProducts, compliancePaths] = await Promise.all([
+    getProducts(user.id),
+    getCompliancePaths(),
+  ]);
 
-  return <ProductManagement initialProducts={initialProducts} user={user} />;
+  return (
+    <ProductManagement
+      initialProducts={initialProducts}
+      user={user}
+      compliancePaths={compliancePaths}
+    />
+  );
 }
