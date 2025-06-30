@@ -87,6 +87,25 @@ export default async function BusinessAnalystDashboard({ user }: { user: User })
           </CardFooter>
         </Card>
       </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileDown className="h-5 w-5 text-muted-foreground" />
+            Data Export
+          </CardTitle>
+          <CardDescription>
+            Generate and download reports for products, compliance, and
+            sustainability data.
+          </CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button asChild>
+            <Link href="/dashboard/export">
+              Go to Export Center <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
