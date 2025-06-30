@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -17,18 +18,28 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
-const formSchema = z.object({
-  fullName: z.string().min(2, { message: "Full name is required." }),
-  email: z.string().email({ message: "Invalid email address." }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters." }),
-});
+const formSchema = z
+  .object({
+    fullName: z.string().min(2, { message: "Full name is required." }),
+    email: z.string().email({ message: "Invalid email address." }),
+    password: z
+      .string()
+      .min(8, { message: "Password must be at least 8 characters." }),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export default function SignupForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -36,18 +47,28 @@ export default function SignupForm() {
       fullName: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // NOTE: This is a placeholder.
-    // In a real app, you would handle user creation here.
-    console.log(values);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    createUserWithEmailAndPassword(auth, values.email, values.password)
+      .then((userCredential) => {
+        // After signup, we might want to create a user profile in Firestore.
+        // For now, we just redirect to the dashboard.
+        router.push("/dashboard");
+      })
+      .catch((error) => {
+        toast({
+          title: "Signup Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   return (
@@ -62,7 +83,11 @@ export default function SignupForm() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input
+                      placeholder="John Doe"
+                      {...field}
+                      autoComplete="name"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -75,7 +100,11 @@ export default function SignupForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input
+                      placeholder="name@example.com"
+                      {...field}
+                      autoComplete="email"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -88,7 +117,30 @@ export default function SignupForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      autoComplete="new-password"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      autoComplete="new-password"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

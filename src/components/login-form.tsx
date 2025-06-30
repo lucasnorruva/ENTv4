@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -17,6 +18,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -28,6 +32,7 @@ const formSchema = z.object({
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -38,14 +43,23 @@ export default function LoginForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // NOTE: This is a placeholder.
-    // In a real app, you would handle authentication here.
-    console.log(values);
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/dashboard");
-    }, 1000);
+    signInWithEmailAndPassword(auth, values.email, values.password)
+      .then((userCredential) => {
+        // In a real app with session management, you'd create a session cookie here.
+        // For now, we'll just redirect.
+        router.push("/dashboard");
+      })
+      .catch((error) => {
+        toast({
+          title: "Login Failed",
+          description: "Please check your email and password and try again.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }
 
   return (
@@ -60,7 +74,11 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="name@example.com" {...field} />
+                    <Input
+                      placeholder="name@example.com"
+                      {...field}
+                      autoComplete="email"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -73,7 +91,12 @@ export default function LoginForm() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="••••••••"
+                      {...field}
+                      autoComplete="current-password"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

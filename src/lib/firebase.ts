@@ -1,5 +1,7 @@
+
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 
 // Attempt to parse the full config from environment variables
 let firebaseConfig: { projectId?: string } = {};
@@ -27,5 +29,6 @@ if (!firebaseConfig.projectId) {
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { db };
+export { db, app, auth };
