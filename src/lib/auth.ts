@@ -1,33 +1,66 @@
 // src/lib/auth.ts
-import { users } from './user-data';
-import { companies } from './company-data';
+import { adminDb } from './firebase-admin';
 import { Collections, UserRoles, type Role } from './constants';
 import type { User, Company } from '@/types';
 
+// Helper to convert Firestore doc to User type
+const userFromDoc = (doc: FirebaseFirestore.DocumentSnapshot): User => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+  };
+};
+
+// Helper to convert Firestore doc to Company type
+const companyFromDoc = (doc: FirebaseFirestore.DocumentSnapshot): Company => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+  };
+};
+
 /**
- * Fetches all users from the mock data.
+ * Fetches all users from Firestore.
  * @returns A promise that resolves to an array of all users.
  */
 export async function getUsers(): Promise<User[]> {
-  return users;
+  const snapshot = await adminDb.collection(Collections.USERS).get();
+  if (snapshot.empty) {
+    return [];
+  }
+  return snapshot.docs.map(userFromDoc);
 }
 
 /**
- * Fetches a user by their ID.
+ * Fetches a user by their ID from Firestore.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserById(id: string): Promise<User | undefined> {
-  return users.find(u => u.id === id);
+  const doc = await adminDb.collection(Collections.USERS).doc(id).get();
+  if (!doc.exists) {
+    return undefined;
+  }
+  return userFromDoc(doc);
 }
 
 /**
- * Fetches a company by its ID.
+ * Fetches a company by its ID from Firestore.
  * @param id The ID of the company to fetch.
  * @returns A promise that resolves to the company or undefined if not found.
  */
 export async function getCompanyById(id: string): Promise<Company | undefined> {
-  return companies.find(c => c.id === id);
+  const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
+  if (!doc.exists) {
+    return undefined;
+  }
+  return companyFromDoc(doc);
 }
 
 /**
@@ -41,7 +74,7 @@ export function hasRole(user: User, role: Role): boolean {
 }
 
 /**
- * Fetches the current user based on a role from the mock data.
+ * Fetches the current user based on a role from Firestore.
  * In a real application, this would involve validating a session token.
  * For this mock, we just find the first user with the requested role.
  * @param role The role to simulate being logged in as.
@@ -49,18 +82,38 @@ export function hasRole(user: User, role: Role): boolean {
  */
 export async function getCurrentUser(role: Role): Promise<User> {
   // Find a user that has the requested role.
-  const user = users.find(u => u.roles.includes(role));
-  if (user) return user;
+  const snapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('roles', 'array-contains', role)
+    .limit(1)
+    .get();
+
+  if (!snapshot.empty) {
+    return userFromDoc(snapshot.docs[0]);
+  }
 
   // Fallback to the first admin user if the role is not found
-  const adminUser = users.find(u => u.roles.includes(UserRoles.ADMIN));
-  if (adminUser) return adminUser;
+  const adminSnapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('roles', 'array-contains', UserRoles.ADMIN)
+    .limit(1)
+    .get();
+
+  if (!adminSnapshot.empty) {
+    return userFromDoc(adminSnapshot.docs[0]);
+  }
 
   // Fallback to the very first user if no admin is found
-  if (users.length > 0) return users[0];
+  const anyUserSnapshot = await adminDb
+    .collection(Collections.USERS)
+    .limit(1)
+    .get();
+  if (!anyUserSnapshot.empty) {
+    return userFromDoc(anyUserSnapshot.docs[0]);
+  }
 
   throw new Error(
-    'No users found in the mock database. Please ensure src/lib/user-data.ts is populated.',
+    'No users found in the database. Please run the seed script.',
   );
 }
 
@@ -70,5 +123,6 @@ export async function getCurrentUser(role: Role): Promise<User> {
  * where we just need a list of users without authentication context.
  */
 export async function getMockUsers(): Promise<User[]> {
-  return users;
+  // In the Firestore world, this is the same as getUsers
+  return getUsers();
 }

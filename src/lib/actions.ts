@@ -3,18 +3,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
-
-// --- MOCK DATA IMPORTS ---
-import { products } from './data';
-import { compliancePaths } from './compliance-data';
-import { users } from './user-data';
-import { auditLogs } from './audit-log-data';
-import { apiKeys } from './api-key-data';
-import { apiSettings } from './api-settings-data';
-import { productionLines } from './manufacturing-data';
-import { serviceTickets } from './service-ticket-data';
-import { companies } from './company-data';
-
+import * as admin from 'firebase-admin';
+import { adminDb } from './firebase-admin';
+import { Collections, UserRoles } from './constants';
 import {
   productFormSchema,
   type ProductFormValues,
@@ -51,8 +42,58 @@ import type {
   ComplianceGap,
   ApiSettings,
 } from '@/types';
-import { UserRoles } from './constants';
 import type { AiProduct } from '@/ai/schemas';
+
+// --- DATA CONVERSION HELPERS ---
+
+const docToProduct = (
+  doc: FirebaseFirestore.DocumentSnapshot,
+): Product => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+    lastUpdated: data.lastUpdated?.toDate().toISOString(),
+    lastVerificationDate: data.lastVerificationDate?.toDate().toISOString(),
+  };
+};
+
+const docToAuditLog = (
+  doc: FirebaseFirestore.DocumentSnapshot,
+): AuditLog => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+  };
+};
+
+const docToCompliancePath = (
+  doc: FirebaseFirestore.DocumentSnapshot,
+): CompliancePath => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+  };
+};
+
+const docToApiKey = (doc: FirebaseFirestore.DocumentSnapshot): ApiKey => {
+  const data = doc.data() as any;
+  return {
+    id: doc.id,
+    ...data,
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+    lastUsed: data.lastUsed?.toDate().toISOString(),
+  };
+};
 
 // --- OWNERSHIP & PERMISSION HELPERS ---
 
@@ -68,9 +109,12 @@ const checkProductOwnership = async (productId: string, userId: string) => {
     return true; // Admins, Auditors, and Recyclers can access any product
   }
 
-  const product = products.find(p => p.id === productId);
-  if (!product) throw new Error('Product not found.');
-  if (product.companyId !== user.companyId) {
+  const productDoc = await adminDb
+    .collection(Collections.PRODUCTS)
+    .doc(productId)
+    .get();
+  if (!productDoc.exists) throw new Error('Product not found.');
+  if (productDoc.data()?.companyId !== user.companyId) {
     throw new Error('Access denied. User does not own this product.');
   }
   return true;
@@ -78,39 +122,33 @@ const checkProductOwnership = async (productId: string, userId: string) => {
 
 // --- AUDIT LOGGING ---
 
-const logAuditEvent = async (
+export async function logAuditEvent(
   action: string,
   entityId: string,
   details: Record<string, any>,
   userId: string = 'system',
-) => {
-  const logEntry: AuditLog = {
-    id: `log-${Math.random().toString(36).substring(2, 9)}`,
+) {
+  const logEntry = {
     userId,
     action,
     entityId,
     details,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: admin.firestore.Timestamp.now(),
+    updatedAt: admin.firestore.Timestamp.now(),
   };
-  auditLogs.unshift(logEntry); // Add to beginning of array
+  await adminDb.collection(Collections.AUDIT_LOGS).add(logEntry);
   revalidatePath('/dashboard/analytics');
   revalidatePath('/dashboard/history');
   revalidatePath('/dashboard/logs');
-};
+}
 
 // --- AI FLOW ORCHESTRATION ---
 
 const runAllAiFlows = async (
   productData: AiProduct,
 ): Promise<{ sustainability: SustainabilityData; qrLabelText: string }> => {
-  // This version of the function no longer needs to fetch the compliance path,
-  // as it will be passed into the summarizeComplianceGaps flow directly
-  // when it's called.
-
   const [
     esgResult,
-    // complianceResult is now handled separately where compliance path is known
     qrLabelResult,
     classificationResult,
     lifecycleAnalysisResult,
@@ -126,7 +164,6 @@ const runAllAiFlows = async (
       ...esgResult,
       classification: classificationResult,
       lifecycleAnalysis: lifecycleAnalysisResult,
-      // Compliance fields will be added later
       isCompliant: false,
       complianceSummary: 'Awaiting compliance analysis.',
     },
@@ -137,36 +174,36 @@ const runAllAiFlows = async (
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(userId?: string): Promise<Product[]> {
-  if (!userId) {
-    return products;
-  }
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new Error('User not found.');
-  }
-  // Admins, Auditors, Analysts, and Recyclers can see all products
+  const user = userId ? await getUserById(userId) : null;
+
+  let query: FirebaseFirestore.Query = adminDb
+    .collection(Collections.PRODUCTS)
+    .orderBy('createdAt', 'desc');
+
   if (
-    hasRole(user, UserRoles.ADMIN) ||
-    hasRole(user, UserRoles.AUDITOR) ||
-    hasRole(user, UserRoles.BUSINESS_ANALYST) ||
-    hasRole(user, UserRoles.RECYCLER)
+    user &&
+    !hasRole(user, UserRoles.ADMIN) &&
+    !hasRole(user, UserRoles.AUDITOR) &&
+    !hasRole(user, UserRoles.BUSINESS_ANALYST) &&
+    !hasRole(user, UserRoles.RECYCLER)
   ) {
-    return products;
+    query = query.where('companyId', '==', user.companyId);
   }
-  // Other roles only see products from their company
-  return products.filter(p => p.companyId === user.companyId);
+
+  const snapshot = await query.get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToProduct);
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const product = products.find(p => p.id === id);
-  if (!product) {
-    return undefined;
-  }
+  const doc = await adminDb.collection(Collections.PRODUCTS).doc(id).get();
+  if (!doc.exists) return undefined;
 
-  // If a userId is provided, check for ownership or special roles.
+  const product = docToProduct(doc);
+
   if (userId) {
     const user = await getUserById(userId);
     if (
@@ -178,12 +215,9 @@ export async function getProductById(
     ) {
       return product;
     }
-    // If user is provided but doesn't have access, return undefined.
-    // This check is important for dashboard pages.
     return undefined;
   }
 
-  // For public access, only return published products.
   if (product.status === 'Published') {
     return product;
   }
@@ -202,18 +236,11 @@ export async function saveProduct(
   if (!company) throw new Error('Company not found for user.');
 
   const validatedData = productFormSchema.parse(productData);
-  const now = new Date().toISOString();
+  const now = admin.firestore.Timestamp.now();
 
-  // The AI flows now expect a consistent product object.
-  const aiProductInput: AiProduct = {
-    ...validatedData,
-    supplier: company.name,
-  };
-
-  // Run the general AI flows first, which initializes the sustainability object.
+  const aiProductInput: AiProduct = { ...validatedData, supplier: company.name };
   const { sustainability, qrLabelText } = await runAllAiFlows(aiProductInput);
 
-  // If a compliance path is selected, run the gap analysis flow.
   if (validatedData.compliancePathId) {
     const path = await getCompliancePathById(validatedData.compliancePathId);
     if (path) {
@@ -221,30 +248,25 @@ export async function saveProduct(
         product: aiProductInput,
         compliancePath: path,
       });
-      // Merge the specific compliance results into the sustainability object
       sustainability.isCompliant = complianceResult.isCompliant;
       sustainability.complianceSummary = complianceResult.complianceSummary;
       sustainability.gaps = complianceResult.gaps;
     }
   }
 
+  const dataToSave = {
+    ...validatedData,
+    supplier: company.name,
+    sustainability,
+    qrLabelText,
+    updatedAt: now,
+    lastUpdated: now,
+  };
+
   if (productId) {
     await checkProductOwnership(productId, userId);
-    const productIndex = products.findIndex(p => p.id === productId);
-    if (productIndex === -1) {
-      throw new Error('Product not found');
-    }
-    const existingProduct = products[productIndex];
-    const updatedProduct: Product = {
-      ...existingProduct,
-      ...validatedData,
-      supplier: company.name,
-      sustainability, // This now contains the merged data
-      qrLabelText,
-      updatedAt: now,
-      lastUpdated: now,
-    };
-    products[productIndex] = updatedProduct;
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+    await docRef.update(dataToSave);
     await logAuditEvent(
       'product.updated',
       productId,
@@ -253,31 +275,27 @@ export async function saveProduct(
     );
     revalidatePath('/dashboard/products');
     revalidatePath(`/products/${productId}`);
-    return updatedProduct;
+    const updatedDoc = await docRef.get();
+    return docToProduct(updatedDoc);
   } else {
-    const newId = `pp-${randomBytes(4).toString('hex')}`;
-    const newProduct: Product = {
-      id: newId,
-      ...validatedData,
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc();
+    const newProductData = {
+      ...dataToSave,
+      id: docRef.id,
       companyId: user.companyId,
-      supplier: company.name,
-      sustainability, // This now contains the merged data
-      qrLabelText,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
       createdAt: now,
-      updatedAt: now,
-      lastUpdated: now,
     };
-    products.unshift(newProduct);
+    await docRef.set(newProductData);
     await logAuditEvent(
       'product.created',
-      newId,
-      { productName: newProduct.productName },
+      docRef.id,
+      { productName: newProductData.productName },
       userId,
     );
     revalidatePath('/dashboard/products');
-    return newProduct;
+    return docToProduct(await docRef.get());
   }
 }
 
@@ -286,15 +304,16 @@ export async function deleteProduct(
   userId: string,
 ): Promise<{ success: boolean }> {
   await checkProductOwnership(id, userId);
-  const productIndex = products.findIndex(p => p.id === id);
-  if (productIndex !== -1) {
-    const deletedProduct = products.splice(productIndex, 1)[0];
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
+  const doc = await docRef.get();
+  if (doc.exists) {
     await logAuditEvent(
       'product.deleted',
       id,
-      { productName: deletedProduct.productName },
+      { productName: doc.data()?.productName },
       userId,
     );
+    await docRef.delete();
   }
   revalidatePath('/dashboard/products');
   return { success: true };
@@ -305,10 +324,11 @@ export async function submitForReview(
   userId: string,
 ): Promise<Product> {
   await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
-  product.verificationStatus = 'Pending';
-  product.updatedAt = new Date().toISOString();
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Pending',
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
   await logAuditEvent(
     'passport.submitted',
     productId,
@@ -318,7 +338,7 @@ export async function submitForReview(
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/audit');
   revalidatePath(`/products/${productId}`);
-  return product;
+  return docToProduct(await docRef.get());
 }
 
 export async function approvePassport(
@@ -356,11 +376,14 @@ export async function approvePassport(
     generateEbsiCredential(productId),
   ]);
 
-  product.verificationStatus = 'Verified';
-  product.lastVerificationDate = new Date().toISOString();
-  product.updatedAt = new Date().toISOString();
-  product.blockchainProof = blockchainProof;
-  product.ebsiVcId = ebsiVcId;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Verified',
+    lastVerificationDate: admin.firestore.Timestamp.now(),
+    updatedAt: admin.firestore.Timestamp.now(),
+    blockchainProof,
+    ebsiVcId,
+  });
 
   await logAuditEvent(
     'passport.approved',
@@ -371,7 +394,7 @@ export async function approvePassport(
   revalidatePath('/dashboard/audit');
   revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
-  return product;
+  return docToProduct(await docRef.get());
 }
 
 export async function rejectPassport(
@@ -381,25 +404,20 @@ export async function rejectPassport(
   userId: string,
 ): Promise<Product> {
   await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
-
-  product.verificationStatus = 'Failed';
-  product.lastVerificationDate = new Date().toISOString();
-  product.updatedAt = new Date().toISOString();
-  if (!product.sustainability) {
-    product.sustainability = {
-      score: 0,
-      environmental: 0,
-      social: 0,
-      governance: 0,
-      isCompliant: false,
-      complianceSummary: 'Analysis not performed.',
-    };
-  }
-  product.sustainability.isCompliant = false;
-  product.sustainability.complianceSummary = summary;
-  product.sustainability.gaps = gaps;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.set(
+    {
+      verificationStatus: 'Failed',
+      lastVerificationDate: admin.firestore.Timestamp.now(),
+      updatedAt: admin.firestore.Timestamp.now(),
+      sustainability: {
+        isCompliant: false,
+        complianceSummary: summary,
+        gaps,
+      },
+    },
+    { merge: true },
+  );
 
   await logAuditEvent(
     'passport.rejected',
@@ -411,17 +429,15 @@ export async function rejectPassport(
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/flagged');
   revalidatePath(`/products/${productId}`);
-  return product;
+  return docToProduct(await docRef.get());
 }
 
 export async function runSuggestImprovements(
   data: ProductFormValues,
 ): Promise<any> {
-  // This needs fixing. The form doesn't have the user/company context directly.
-  // For now, let's use a mock supplier name.
   const aiProductInput: AiProduct = {
     ...data,
-    supplier: 'Mock Company Name', // Temporary fix
+    supplier: 'Mock Company Name',
   };
   return suggestImprovements({ product: aiProductInput });
 }
@@ -435,9 +451,13 @@ export async function recalculateScore(
   if (!product) throw new Error('Product not found or access denied.');
 
   const { sustainability, qrLabelText } = await runAllAiFlows(product);
-  product.sustainability = sustainability;
-  product.qrLabelText = qrLabelText;
-  product.updatedAt = new Date().toISOString();
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    sustainability,
+    qrLabelText,
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
 
   await logAuditEvent(
     'product.recalculate_score',
@@ -447,7 +467,7 @@ export async function recalculateScore(
   );
   revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
-  return product;
+  return docToProduct(await docRef.get());
 }
 
 export async function markAsRecycled(
@@ -455,39 +475,56 @@ export async function markAsRecycled(
   userId: string,
 ): Promise<Product> {
   await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
-
-  product.endOfLifeStatus = 'Recycled';
-  product.updatedAt = new Date().toISOString();
-
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    endOfLifeStatus: 'Recycled',
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
   await logAuditEvent('product.recycled', productId, {}, userId);
   revalidatePath('/dashboard/eol');
   revalidatePath(`/products/${productId}`);
-  return product;
+  return docToProduct(await docRef.get());
 }
 
 // --- AUDIT LOG ACTIONS ---
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  return auditLogs;
+  const snapshot = await adminDb
+    .collection(Collections.AUDIT_LOGS)
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToAuditLog);
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-  return auditLogs.filter(log => log.userId === userId);
+  const snapshot = await adminDb
+    .collection(Collections.AUDIT_LOGS)
+    .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToAuditLog);
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  return compliancePaths;
+  const snapshot = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToCompliancePath);
 }
 
 export async function getCompliancePathById(
   id: string,
 ): Promise<CompliancePath | null> {
-  const path = compliancePaths.find(p => p.id === id);
-  return path || null;
+  const doc = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .doc(id)
+    .get();
+  return doc.exists ? docToCompliancePath(doc) : null;
 }
 
 export async function saveCompliancePath(
@@ -496,7 +533,7 @@ export async function saveCompliancePath(
   pathId?: string,
 ): Promise<CompliancePath> {
   const validatedData = compliancePathFormSchema.parse(pathData);
-  const now = new Date().toISOString();
+  const now = admin.firestore.Timestamp.now();
 
   const dataToSave = {
     name: validatedData.name,
@@ -523,11 +560,8 @@ export async function saveCompliancePath(
   };
 
   if (pathId) {
-    const pathIndex = compliancePaths.findIndex(p => p.id === pathId);
-    if (pathIndex === -1) throw new Error('Compliance path not found.');
-    const existingPath = compliancePaths[pathIndex];
-    const updatedPath = { ...existingPath, ...dataToSave };
-    compliancePaths[pathIndex] = updatedPath;
+    const docRef = adminDb.collection(Collections.COMPLIANCE_PATHS).doc(pathId);
+    await docRef.update(dataToSave);
     await logAuditEvent(
       'compliance_path.updated',
       pathId,
@@ -535,30 +569,30 @@ export async function saveCompliancePath(
       userId,
     );
     revalidatePath('/dashboard/compliance');
-    return updatedPath;
+    return docToCompliancePath(await docRef.get());
   } else {
-    const newId = `cp-${randomBytes(4).toString('hex')}`;
-    const newPath: CompliancePath = {
-      id: newId,
+    const docRef = adminDb.collection(Collections.COMPLIANCE_PATHS).doc();
+    const newPath = {
       ...dataToSave,
+      id: docRef.id,
       createdAt: now,
     };
-    compliancePaths.push(newPath);
+    await docRef.set(newPath);
     await logAuditEvent(
       'compliance_path.created',
-      newId,
+      docRef.id,
       { name: newPath.name },
       userId,
     );
     revalidatePath('/dashboard/compliance');
-    return newPath;
+    return docToCompliancePath(await docRef.get());
   }
 }
 
 // --- USER ACTIONS ---
 
 export async function getUsers(): Promise<User[]> {
-  return users;
+  return await require('./auth').getUsers();
 }
 
 export async function saveUser(
@@ -567,7 +601,7 @@ export async function saveUser(
   userId?: string,
 ): Promise<User> {
   const validatedData = userFormSchema.parse(userData);
-  const now = new Date().toISOString();
+  const now = admin.firestore.Timestamp.now();
   const dataToSave = {
     fullName: validatedData.fullName,
     email: validatedData.email,
@@ -577,11 +611,8 @@ export async function saveUser(
   };
 
   if (userId) {
-    const userIndex = users.findIndex(u => u.id === userId);
-    if (userIndex === -1) throw new Error('User not found.');
-    const existingUser = users[userIndex];
-    const updatedUser = { ...existingUser, ...dataToSave };
-    users[userIndex] = updatedUser;
+    const docRef = adminDb.collection(Collections.USERS).doc(userId);
+    await docRef.update(dataToSave);
     await logAuditEvent(
       'user.updated',
       userId,
@@ -589,23 +620,23 @@ export async function saveUser(
       adminUserId,
     );
     revalidatePath('/dashboard/users');
-    return updatedUser;
+    return (await getUserById(userId))!;
   } else {
-    const newId = `user-${randomBytes(4).toString('hex')}`;
-    const newUser: User = {
-      id: newId,
+    const docRef = adminDb.collection(Collections.USERS).doc();
+    const newUser = {
       ...dataToSave,
+      id: docRef.id,
       createdAt: now,
     };
-    users.push(newUser);
+    await docRef.set(newUser);
     await logAuditEvent(
       'user.created',
-      newId,
+      docRef.id,
       { email: newUser.email },
       adminUserId,
     );
     revalidatePath('/dashboard/users');
-    return newUser;
+    return (await getUserById(docRef.id))!;
   }
 }
 
@@ -613,15 +644,16 @@ export async function deleteUser(
   userId: string,
   adminUserId: string,
 ): Promise<{ success: boolean }> {
-  const userIndex = users.findIndex(u => u.id === userId);
-  if (userIndex !== -1) {
-    const deletedUser = users.splice(userIndex, 1)[0];
+  const docRef = adminDb.collection(Collections.USERS).doc(userId);
+  const doc = await docRef.get();
+  if (doc.exists) {
     await logAuditEvent(
       'user.deleted',
       userId,
-      { email: deletedUser.email },
+      { email: doc.data()?.email },
       adminUserId,
     );
+    await docRef.delete();
   }
   revalidatePath('/dashboard/users');
   return { success: true };
@@ -633,14 +665,15 @@ export async function updateUserProfile(
   userId: string,
   fullName: string,
 ): Promise<User> {
-  const user = users.find(u => u.id === userId);
-  if (!user) throw new Error('User not found.');
-  user.fullName = fullName;
-  user.updatedAt = new Date().toISOString();
+  const docRef = adminDb.collection(Collections.USERS).doc(userId);
+  await docRef.update({
+    fullName,
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
   await logAuditEvent('user.profile.updated', userId, { fullName }, userId);
   revalidatePath('/dashboard/settings');
   revalidatePath('/dashboard/layout');
-  return user;
+  return (await getUserById(userId))!;
 }
 
 export async function updateUserPassword(
@@ -671,19 +704,23 @@ export async function saveNotificationPreferences(
 // --- API KEY ACTIONS ---
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
-  return apiKeys.filter(key => key.userId === userId);
+  const snapshot = await adminDb
+    .collection(Collections.API_KEYS)
+    .where('userId', '==', userId)
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToApiKey);
 }
 
 export async function createApiKey(
   label: string,
   userId: string,
 ): Promise<{ rawToken: string; apiKey: ApiKey }> {
-  const now = new Date().toISOString();
+  const now = admin.firestore.Timestamp.now();
   const rawToken = `nor_live_${randomBytes(16).toString('hex')}`;
   const storedToken = `${rawToken.slice(0, 10)}******************${rawToken.slice(-4)}`;
 
-  const newApiKey: ApiKey = {
-    id: `key-${randomBytes(4).toString('hex')}`,
+  const newApiKeyData = {
     label,
     token: storedToken,
     status: 'Active' as const,
@@ -692,42 +729,54 @@ export async function createApiKey(
     updatedAt: now,
   };
 
-  apiKeys.push(newApiKey);
-  await logAuditEvent('api_key.created', newApiKey.id, { label }, userId);
+  const docRef = await adminDb
+    .collection(Collections.API_KEYS)
+    .add(newApiKeyData);
+  await logAuditEvent('api_key.created', docRef.id, { label }, userId);
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
 
-  return { rawToken, apiKey: newApiKey };
+  const apiKey = docToApiKey(await docRef.get());
+  return { rawToken, apiKey };
 }
 
 export async function revokeApiKey(id: string, userId: string): Promise<ApiKey> {
-  const key = apiKeys.find(k => k.id === id);
-  if (!key || key.userId !== userId) {
+  const docRef = adminDb.collection(Collections.API_KEYS).doc(id);
+  const doc = await docRef.get();
+  if (!doc.exists || doc.data()?.userId !== userId) {
     throw new Error('API Key not found or access denied.');
   }
-  key.status = 'Revoked';
-  key.updatedAt = new Date().toISOString();
-  await logAuditEvent('api_key.revoked', id, { label: key.label }, userId);
+  await docRef.update({
+    status: 'Revoked',
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
+  await logAuditEvent(
+    'api_key.revoked',
+    id,
+    { label: doc.data()?.label },
+    userId,
+  );
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
-  return key;
+  return docToApiKey(await docRef.get());
 }
 
 export async function deleteApiKey(
   id: string,
   userId: string,
 ): Promise<{ success: true }> {
-  const keyIndex = apiKeys.findIndex(k => k.id === id);
-  if (keyIndex === -1 || apiKeys[keyIndex].userId !== userId) {
+  const docRef = adminDb.collection(Collections.API_KEYS).doc(id);
+  const doc = await docRef.get();
+  if (!doc.exists || doc.data()?.userId !== userId) {
     throw new Error('API Key not found or access denied.');
   }
-  const deletedKey = apiKeys.splice(keyIndex, 1)[0];
   await logAuditEvent(
     'api_key.deleted',
     id,
-    { label: deletedKey.label },
+    { label: doc.data()?.label },
     userId,
   );
+  await docRef.delete();
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
   return { success: true };
@@ -736,7 +785,16 @@ export async function deleteApiKey(
 // --- API SETTINGS ACTIONS ---
 
 export async function getApiSettings(): Promise<ApiSettings> {
-  return apiSettings;
+  const doc = await adminDb.collection(Collections.API_SETTINGS).doc('global').get();
+  if (!doc.exists) {
+    // Return a default if not set
+    return {
+      isPublicApiEnabled: true,
+      rateLimitPerMinute: 100,
+      isWebhookSigningEnabled: true,
+    };
+  }
+  return doc.data() as ApiSettings;
 }
 
 export async function saveApiSettings(
@@ -744,7 +802,10 @@ export async function saveApiSettings(
   adminUserId: string,
 ): Promise<ApiSettings> {
   const validatedData = apiSettingsSchema.parse(settings);
-  Object.assign(apiSettings, validatedData);
+  await adminDb
+    .collection(Collections.API_SETTINGS)
+    .doc('global')
+    .set(validatedData, { merge: true });
   await logAuditEvent(
     'settings.api.updated',
     'global',
@@ -752,17 +813,25 @@ export async function saveApiSettings(
     adminUserId,
   );
   revalidatePath('/dashboard/api-settings');
-  return apiSettings;
+  return validatedData;
 }
 
-// --- OTHER MOCK DATA ACTIONS ---
+// --- OTHER MOCK DATA ACTIONS (now fetching from Firestore) ---
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  return productionLines;
+  const doc = await adminDb
+    .collection(Collections.COMPANIES)
+    .doc('mock-manufacturing-data')
+    .get();
+  return doc.exists ? (doc.data()?.productionLines as ProductionLine[]) : [];
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  return serviceTickets;
+  const doc = await adminDb
+    .collection(Collections.COMPANIES)
+    .doc('mock-service-ticket-data')
+    .get();
+  return doc.exists ? (doc.data()?.serviceTickets as ServiceTicket[]) : [];
 }
 
 export async function resolveComplianceIssue(
@@ -770,12 +839,11 @@ export async function resolveComplianceIssue(
   userId: string,
 ): Promise<Product> {
   await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
-
-  product.verificationStatus = 'Draft';
-  product.updatedAt = new Date().toISOString();
-
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Draft',
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
   await logAuditEvent(
     'compliance.resolved',
     productId,
@@ -784,5 +852,5 @@ export async function resolveComplianceIssue(
   );
   revalidatePath('/dashboard/flagged');
   revalidatePath('/dashboard/products');
-  return product;
+  return docToProduct(await docRef.get());
 }
