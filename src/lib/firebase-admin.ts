@@ -2,6 +2,9 @@
 
 import * as admin from 'firebase-admin';
 import { getApp, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 
 /**
  * This function ensures that we initialize the Firebase Admin App only once.
@@ -34,7 +37,7 @@ function getAdminApp() {
 const app = getAdminApp();
 
 // Explicitly use the initialized app to get the services. This is safer.
-export const adminDb = admin.firestore(app);
-export const adminStorage = admin.storage(app);
-export const adminAuth = admin.auth(app);
+export const adminDb = getFirestore(app);
+export const adminStorage = getStorage(app);
+export const adminAuth = getAuth(app);
 export default admin;
