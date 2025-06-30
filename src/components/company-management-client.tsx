@@ -50,6 +50,7 @@ export default function CompanyManagementClient({
   initialCompanies,
   adminUser,
 }: CompanyManagementClientProps) {
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -69,6 +70,7 @@ export default function CompanyManagementClient({
     startTransition(async () => {
       try {
         await deleteCompany(companyId, adminUser.id);
+        setCompanies(current => current.filter(c => c.id !== companyId));
         toast({
           title: 'Company Deleted',
           description: 'The company has been successfully deleted.',
@@ -81,6 +83,17 @@ export default function CompanyManagementClient({
         });
       }
     });
+  };
+
+  const handleSave = (savedCompany: Company) => {
+    if (selectedCompany) {
+      setCompanies(current =>
+        current.map(c => (c.id === savedCompany.id ? savedCompany : c)),
+      );
+    } else {
+      setCompanies(current => [savedCompany, ...current]);
+    }
+    setIsFormOpen(false);
   };
 
   return (
@@ -111,7 +124,7 @@ export default function CompanyManagementClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initialCompanies.map(company => (
+              {companies.map(company => (
                 <TableRow key={company.id}>
                   <TableCell className="font-medium">{company.name}</TableCell>
                   <TableCell className="font-mono text-xs">
@@ -179,6 +192,7 @@ export default function CompanyManagementClient({
         onOpenChange={setIsFormOpen}
         company={selectedCompany}
         adminUser={adminUser}
+        onSave={handleSave}
       />
     </>
   );

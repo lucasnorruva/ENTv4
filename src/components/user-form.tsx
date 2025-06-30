@@ -42,6 +42,7 @@ interface UserFormProps {
   onOpenChange: (isOpen: boolean) => void;
   user: User | null;
   adminUser: User;
+  onSave: (user: User) => void;
 }
 
 export default function UserForm({
@@ -49,6 +50,7 @@ export default function UserForm({
   onOpenChange,
   user,
   adminUser,
+  onSave,
 }: UserFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
@@ -92,6 +94,7 @@ export default function UserForm({
           title: 'Success!',
           description: `User "${saved.fullName}" has been saved.`,
         });
+        onSave(saved);
         onOpenChange(false);
       } catch (error) {
         toast({

@@ -34,6 +34,7 @@ interface CompanyFormProps {
   onOpenChange: (isOpen: boolean) => void;
   company: Company | null;
   adminUser: User;
+  onSave: (company: Company) => void;
 }
 
 export default function CompanyForm({
@@ -41,6 +42,7 @@ export default function CompanyForm({
   onOpenChange,
   company,
   adminUser,
+  onSave,
 }: CompanyFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
@@ -77,6 +79,7 @@ export default function CompanyForm({
           title: 'Success!',
           description: `Company "${saved.name}" has been saved.`,
         });
+        onSave(saved);
         onOpenChange(false);
       } catch (error) {
         toast({

@@ -157,7 +157,6 @@ export async function saveProduct(
     await logAuditEvent('product.created', product.id, {}, userId);
   }
 
-  revalidatePath('/dashboard', 'layout');
   return product;
 }
 
@@ -169,7 +168,6 @@ export async function deleteProduct(
   if (index > -1) {
     mockProducts.splice(index, 1);
     await logAuditEvent('product.deleted', productId, {}, userId);
-    revalidatePath('/dashboard', 'layout');
   } else {
     throw new Error('Product not found');
   }
@@ -184,7 +182,6 @@ export async function submitForReview(
   product.verificationStatus = 'Pending';
   product.lastUpdated = new Date().toISOString();
   await logAuditEvent('passport.submitted', productId, {}, userId);
-  revalidatePath('/dashboard', 'layout');
   return product;
 }
 
@@ -231,7 +228,6 @@ export async function recalculateScore(
   product.lastUpdated = new Date().toISOString();
 
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
-  revalidatePath('/dashboard', 'layout');
   return product;
 }
 
@@ -259,7 +255,7 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
-  revalidatePath('/dashboard', 'layout');
+  revalidatePath('/dashboard/auditor/audit');
   return product;
 }
 
@@ -287,7 +283,7 @@ export async function rejectPassport(
   product.sustainability.gaps = gaps;
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
-  revalidatePath('/dashboard', 'layout');
+  revalidatePath('/dashboard/auditor/audit');
   return product;
 }
 
@@ -300,7 +296,7 @@ export async function markAsRecycled(
   product.endOfLifeStatus = 'Recycled';
   product.lastUpdated = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
-  revalidatePath('/dashboard', 'layout');
+  revalidatePath('/dashboard/recycler/eol');
   return product;
 }
 
@@ -313,7 +309,7 @@ export async function resolveComplianceIssue(
   product.verificationStatus = 'Not Submitted';
   product.lastUpdated = new Date().toISOString();
   await logAuditEvent('compliance.resolved', productId, {}, userId);
-  revalidatePath('/dashboard', 'layout');
+  revalidatePath('/dashboard/compliance-manager/flagged');
   return product;
 }
 
@@ -380,7 +376,6 @@ export async function saveCompany(
     mockCompanies.push(company);
     await logAuditEvent('company.created', company.id, {}, userId);
   }
-  revalidatePath('/dashboard/admin/companies');
   return company;
 }
 
@@ -392,7 +387,6 @@ export async function deleteCompany(
   if (index > -1) {
     mockCompanies.splice(index, 1);
     await logAuditEvent('company.deleted', companyId, {}, userId);
-    revalidatePath('/dashboard/admin/companies');
   } else {
     throw new Error('Company not found');
   }
@@ -433,7 +427,6 @@ export async function saveUser(
     mockUsers.push(user);
     await logAuditEvent('user.created', user.id, {}, adminId);
   }
-  revalidatePath('/dashboard/admin/users');
   return user;
 }
 
@@ -445,7 +438,6 @@ export async function deleteUser(
   if (index > -1) {
     mockUsers.splice(index, 1);
     await logAuditEvent('user.deleted', userId, {}, adminId);
-    revalidatePath('/dashboard/admin/users');
   } else {
     throw new Error('User not found');
   }
@@ -577,10 +569,10 @@ export async function createApiKey(
     userId,
     createdAt: now,
     updatedAt: now,
+    lastUsed: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
   };
   mockApiKeys.push(key);
   await logAuditEvent('api_key.created', key.id, { label }, userId);
-  revalidatePath('/dashboard/developer/keys');
   return { key, rawToken };
 }
 
@@ -593,7 +585,6 @@ export async function revokeApiKey(
   key.status = 'Revoked';
   key.updatedAt = new Date().toISOString();
   await logAuditEvent('api_key.revoked', keyId, {}, userId);
-  revalidatePath('/dashboard/developer/keys');
   return key;
 }
 
@@ -607,7 +598,6 @@ export async function deleteApiKey(
   if (index > -1) {
     mockApiKeys.splice(index, 1);
     await logAuditEvent('api_key.deleted', keyId, {}, userId);
-    revalidatePath('/dashboard/developer/keys');
   } else {
     throw new Error('API Key not found');
   }

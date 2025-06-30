@@ -53,6 +53,7 @@ export default function ApiKeysClient({
   user,
 }: ApiKeysClientProps) {
   const { toast } = useToast();
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(initialApiKeys);
   const [isPending, startTransition] = useTransition();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -72,7 +73,8 @@ export default function ApiKeysClient({
     }
     startTransition(async () => {
       try {
-        const { rawToken } = await createApiKey(newKeyLabel, user.id);
+        const { key, rawToken } = await createApiKey(newKeyLabel, user.id);
+        setApiKeys(current => [key, ...current]);
         setNewlyCreatedKey(rawToken);
         setIsViewKeyDialogOpen(true);
         toast({
@@ -95,7 +97,10 @@ export default function ApiKeysClient({
   const handleRevokeKey = (id: string) => {
     startTransition(async () => {
       try {
-        await revokeApiKey(id, user.id);
+        const revokedKey = await revokeApiKey(id, user.id);
+        setApiKeys(current =>
+          current.map(k => (k.id === id ? revokedKey : k)),
+        );
         toast({ title: 'API Key Revoked' });
       } catch (error) {
         toast({
@@ -111,6 +116,7 @@ export default function ApiKeysClient({
     startTransition(async () => {
       try {
         await deleteApiKey(id, user.id);
+        setApiKeys(current => current.filter(k => k.id !== id));
         toast({ title: 'API Key Deleted' });
       } catch (error) {
         toast({
@@ -184,7 +190,7 @@ export default function ApiKeysClient({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {initialApiKeys.map(key => (
+          {apiKeys.map(key => (
             <TableRow key={key.id}>
               <TableCell className="font-medium">{key.label}</TableCell>
               <TableCell className="font-mono text-xs">
@@ -242,7 +248,7 @@ export default function ApiKeysClient({
               </TableCell>
             </TableRow>
           ))}
-           {initialApiKeys.length === 0 && (
+          {apiKeys.length === 0 && (
             <TableRow>
               <TableCell colSpan={5} className="h-24 text-center">
                 No API keys created yet.

@@ -51,6 +51,7 @@ export default function UserManagementClient({
   initialUsers,
   adminUser,
 }: UserManagementClientProps) {
+  const [users, setUsers] = useState<User[]>(initialUsers);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -70,6 +71,7 @@ export default function UserManagementClient({
     startTransition(async () => {
       try {
         await deleteUser(userId, adminUser.id);
+        setUsers(current => current.filter(u => u.id !== userId));
         toast({
           title: 'User Deleted',
           description: 'The user has been successfully deleted.',
@@ -82,6 +84,17 @@ export default function UserManagementClient({
         });
       }
     });
+  };
+
+  const handleSave = (savedUser: User) => {
+    if (selectedUser) {
+      setUsers(current =>
+        current.map(u => (u.id === savedUser.id ? savedUser : u)),
+      );
+    } else {
+      setUsers(current => [savedUser, ...current]);
+    }
+    setIsFormOpen(false);
   };
 
   return (
@@ -112,7 +125,7 @@ export default function UserManagementClient({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initialUsers.map(user => (
+              {users.map(user => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -160,8 +173,8 @@ export default function UserManagementClient({
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This action cannot be undone. This will permanently
-                                delete the user "{user.fullName}".
+                                This action cannot be undone. This will
+                                permanently delete the user "{user.fullName}".
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -190,6 +203,7 @@ export default function UserManagementClient({
         onOpenChange={setIsFormOpen}
         user={selectedUser}
         adminUser={adminUser}
+        onSave={handleSave}
       />
     </>
   );

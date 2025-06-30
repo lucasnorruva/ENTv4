@@ -1,26 +1,26 @@
 // src/components/product-management.tsx
-"use client";
+'use client';
 
-import React, { useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import React, { useState, useTransition } from 'react';
+import { Plus } from 'lucide-react';
 
-import type { Product, User } from "@/types";
+import type { Product, User } from '@/types';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import ProductForm from "./product-form";
-import ProductTable from "./product-table";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import ProductForm from './product-form';
+import ProductTable from './product-table';
 import {
   deleteProduct,
   submitForReview,
   recalculateScore,
-} from "@/lib/actions";
-import { useToast } from "@/hooks/use-toast";
+} from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProductManagementProps {
   initialProducts: Product[];
@@ -31,6 +31,7 @@ export default function ProductManagement({
   initialProducts,
   user,
 }: ProductManagementProps) {
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -49,9 +50,10 @@ export default function ProductManagement({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id, user.id);
+      setProducts(currentProducts => currentProducts.filter(p => p.id !== id));
       toast({
-        title: "Product Deleted",
-        description: "The product passport has been successfully deleted.",
+        title: 'Product Deleted',
+        description: 'The product passport has been successfully deleted.',
       });
     });
   };
@@ -60,15 +62,18 @@ export default function ProductManagement({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
+        setProducts(currentProducts =>
+          currentProducts.map(p => (p.id === id ? reviewedProduct : p)),
+        );
         toast({
-          title: "Product Submitted",
+          title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
         });
       } catch (error) {
         toast({
-          title: "Submission Failed",
-          description: "There was an error submitting the product for review.",
-          variant: "destructive",
+          title: 'Submission Failed',
+          description: 'There was an error submitting the product for review.',
+          variant: 'destructive',
         });
       }
     });
@@ -78,23 +83,31 @@ export default function ProductManagement({
     startTransition(async () => {
       try {
         const updatedProduct = await recalculateScore(id, user.id);
+        setProducts(currentProducts =>
+          currentProducts.map(p => (p.id === id ? updatedProduct : p)),
+        );
         toast({
-          title: "AI Data Recalculated",
+          title: 'AI Data Recalculated',
           description: `AI-generated fields for "${updatedProduct.productName}" have been updated.`,
         });
       } catch (error) {
         toast({
-          title: "Recalculation Failed",
-          description: "There was an error recalculating the score.",
-          variant: "destructive",
+          title: 'Recalculation Failed',
+          description: 'There was an error recalculating the score.',
+          variant: 'destructive',
         });
       }
     });
   };
 
-  const handleSave = () => {
-    // The form submission is now handled inside ProductForm,
-    // which calls a server action. The revalidation will update the table.
+  const handleSave = (savedProduct: Product) => {
+    if (selectedProduct) {
+      setProducts(currentProducts =>
+        currentProducts.map(p => (p.id === savedProduct.id ? savedProduct : p)),
+      );
+    } else {
+      setProducts(currentProducts => [savedProduct, ...currentProducts]);
+    }
     setIsSheetOpen(false);
   };
 
@@ -116,7 +129,7 @@ export default function ProductManagement({
         </CardHeader>
         <CardContent>
           <ProductTable
-            products={initialProducts}
+            products={products}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}
