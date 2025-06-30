@@ -1,7 +1,7 @@
 // src/components/dashboard-sidebar.tsx
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid,
   BookCopy,
@@ -38,6 +38,9 @@ import type { User } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/logo";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 interface NavItem {
   title: string;
@@ -212,7 +215,22 @@ export default function DashboardSidebar({
   user,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push("/login");
+    } catch (error) {
+      toast({
+        title: "Logout Failed",
+        description: "An error occurred while logging out.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Sidebar>
@@ -293,7 +311,12 @@ export default function DashboardSidebar({
               {user.email}
             </p>
           </div>
-          <Button variant="ghost" size="icon" className="w-8 h-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
