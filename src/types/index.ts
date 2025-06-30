@@ -175,3 +175,13 @@ export interface ProductionLine {
   currentProduct: string; // Product name
   lastMaintenance: string; // ISO 8601 date string
 }
+
+/**
+ * Represents a service or repair ticket for a product.
+ */
+export interface ServiceTicket extends BaseEntity {
+  productId: string;
+  customerName: string;
+  issue: string;
+  status: "Open" | "In Progress" | "Closed";
+}

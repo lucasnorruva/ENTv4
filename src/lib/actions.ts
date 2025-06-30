@@ -6,6 +6,7 @@ import type {
   AuditLog,
   Product,
   ProductionLine,
+  ServiceTicket,
   SustainabilityData,
   CompliancePath,
 } from '@/types';
@@ -33,6 +34,7 @@ import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { productionLines } from './manufacturing-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { getMockUsers } from './auth';
+import { serviceTickets } from './service-ticket-data';
 
 // Note: In a real app, this would be a database. For this mock, we mutate
 // a `let` variable. `products` is imported from data.ts and reassigned here.
@@ -422,11 +424,11 @@ export async function saveCompliancePath(
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
       requiredKeywords: validatedData.requiredKeywords
-        .split(',')
+        ?.split(',')
         .map(s => s.trim())
         .filter(Boolean),
       bannedKeywords: validatedData.bannedKeywords
-        .split(',')
+        ?.split(',')
         .map(s => s.trim())
         .filter(Boolean),
     },
@@ -466,4 +468,9 @@ export async function saveCompliancePath(
     revalidatePath('/dashboard/compliance');
     return JSON.parse(JSON.stringify(newPath));
   }
+}
+
+export async function getServiceTickets(): Promise<ServiceTicket[]> {
+  await sleep(50);
+  return JSON.parse(JSON.stringify(serviceTickets));
 }
