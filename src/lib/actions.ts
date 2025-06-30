@@ -2,26 +2,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  addDoc,
-  setDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  Timestamp,
-  DocumentSnapshot,
-} from 'firebase/firestore';
-import { db, storage } from '@/lib/firebase';
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from 'firebase/storage';
+import { adminDb, adminStorageBucket } from '@/lib/firebase-admin';
+import { Timestamp, type DocumentSnapshot } from 'firebase-admin/firestore';
 import { Collections } from '@/lib/constants';
 
 import { compliancePaths } from './compliance-data';
@@ -93,17 +75,17 @@ function toProduct(docSnap: DocumentSnapshot): Product {
 }
 
 export async function getProducts(): Promise<Product[]> {
-  const productsRef = collection(db, Collections.PRODUCTS);
-  const q = query(productsRef, orderBy('createdAt', 'desc'));
-  const querySnapshot = await getDocs(q);
+  const productsRef = adminDb.collection(Collections.PRODUCTS);
+  const q = productsRef.orderBy('createdAt', 'desc');
+  const querySnapshot = await q.get();
   return querySnapshot.docs.map(toProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
-  const docRef = doc(db, Collections.PRODUCTS, id);
-  const docSnap = await getDoc(docRef);
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
+  const docSnap = await docRef.get();
 
-  if (docSnap.exists()) {
+  if (docSnap.exists) {
     return toProduct(docSnap);
   } else {
     return undefined;
@@ -130,9 +112,17 @@ export async function saveProduct(
   };
 
   if (imageFile && imageFile.size > 0) {
-    const storageRef = ref(storage, `product_images/${Date.now()}_${imageFile.name}`);
-    await uploadBytes(storageRef, imageFile);
-    dataToSave.productImage = await getDownloadURL(storageRef);
+    const buffer = Buffer.from(await imageFile.arrayBuffer());
+    const fileName = `product_images/${Date.now()}_${imageFile.name}`;
+    const file = adminStorageBucket.file(fileName);
+    await file.save(buffer, {
+      metadata: {
+        contentType: imageFile.type,
+      },
+    });
+    // Make the file public to generate a public URL.
+    await file.makePublic();
+    dataToSave.productImage = file.publicUrl();
   } else if (!id && !dataToSave.productImage) {
     // If it's a new product with no image, use a placeholder.
     dataToSave.productImage = 'https://placehold.co/100x100.png';
@@ -197,7 +187,7 @@ export async function saveProduct(
 
   if (id) {
     // Update existing product
-    const docRef = doc(db, Collections.PRODUCTS, id);
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
     const productData = {
       ...dataToSave,
       updatedAt: Timestamp.now(),
@@ -214,7 +204,7 @@ export async function saveProduct(
       }),
     };
 
-    await setDoc(docRef, productData, { merge: true });
+    await docRef.set(productData, { merge: true });
     const updatedProduct = await getProductById(id);
     if (!updatedProduct)
       throw new Error('Failed to retrieve product after update.');
@@ -245,10 +235,7 @@ export async function saveProduct(
       verificationStatus: 'Pending' as const,
       endOfLifeStatus: 'Active' as const,
     };
-    const docRef = await addDoc(
-      collection(db, Collections.PRODUCTS),
-      newProductData,
-    );
+    const docRef = await adminDb.collection(Collections.PRODUCTS).add(newProductData);
 
     await logAuditEvent(
       'product.created',
@@ -276,11 +263,15 @@ export async function deleteProduct(
     try {
       // Don't delete placeholder images
       if (!productToDelete.productImage.includes('placehold.co')) {
-        const imageRef = ref(storage, productToDelete.productImage);
-        await deleteObject(imageRef);
+        const bucketName = adminStorageBucket.name;
+        const prefix = `https://storage.googleapis.com/${bucketName}/`;
+        if (productToDelete.productImage.startsWith(prefix)) {
+            const filePath = productToDelete.productImage.substring(prefix.length);
+            await adminStorageBucket.file(decodeURIComponent(filePath)).delete();
+        }
       }
     } catch (error: any) {
-      if (error.code === 'storage/object-not-found') {
+      if (error.code === 404) { // GCS returns 404 for object not found
         console.warn(
           `Image not found in storage for product ${id}, but proceeding with deletion.`,
         );
@@ -300,7 +291,7 @@ export async function deleteProduct(
     );
   }
 
-  await deleteDoc(doc(db, Collections.PRODUCTS, id));
+  await adminDb.collection(Collections.PRODUCTS).doc(id).delete();
   revalidatePath('/dashboard');
   return { success: true };
 }
@@ -309,9 +300,8 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = doc(db, Collections.PRODUCTS, productId);
-  await setDoc(
-    docRef,
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.set(
     {
       verificationStatus: 'Pending',
       updatedAt: Timestamp.now(),
@@ -339,7 +329,7 @@ export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = doc(db, Collections.PRODUCTS, productId);
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
   const product = await getProductById(productId);
 
   if (!product) {
@@ -353,8 +343,7 @@ export async function approvePassport(
     generateEbsiCredential(productId),
   ]);
 
-  await setDoc(
-    docRef,
+  await docRef.set(
     {
       verificationStatus: 'Verified',
       lastVerificationDate: Timestamp.now(),
@@ -386,9 +375,8 @@ export async function rejectPassport(
   reason: string,
   userId: string,
 ): Promise<Product> {
-  const docRef = doc(db, Collections.PRODUCTS, productId);
-  await setDoc(
-    docRef,
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.set(
     {
       verificationStatus: 'Failed',
       lastVerificationDate: Timestamp.now(),
@@ -453,9 +441,8 @@ export async function recalculateScore(
     throw new Error('Failed to recalculate score or lifecycle.');
   });
 
-  const docRef = doc(db, Collections.PRODUCTS, productId);
-  await setDoc(
-    docRef,
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.set(
     {
       esg: esgResult,
       lifecycleAnalysis: lifecycleAnalysisResult,
@@ -486,13 +473,16 @@ export async function logAuditEvent(
   details: Record<string, any>,
   userId: string = 'system',
 ): Promise<void> {
-  // This will be implemented properly in a future task.
-  console.log('AUDIT EVENT:', {
-    userId,
-    action,
-    entityId,
-    details,
-    timestamp: new Date().toISOString(),
-  });
-  return Promise.resolve();
+  try {
+    const logData = {
+      userId,
+      action,
+      entityId,
+      details,
+      timestamp: Timestamp.now(),
+    };
+    await adminDb.collection(Collections.AUDIT_LOGS).add(logData);
+  } catch(error) {
+    console.error("Failed to log audit event:", error)
+  }
 }
