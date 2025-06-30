@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { User, AuditLog } from '@/types';
+import type { User } from '@/types';
 import { getCompliancePaths, getProducts, getAuditLogs } from '@/lib/actions';
 import { getUsers } from '@/lib/auth';
 import { Button } from '../ui/button';

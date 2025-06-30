@@ -1,7 +1,6 @@
 // src/components/charts/compliance-overview-chart.tsx
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -12,14 +11,6 @@ import {
   Legend,
 } from "recharts";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 
 interface ChartData {

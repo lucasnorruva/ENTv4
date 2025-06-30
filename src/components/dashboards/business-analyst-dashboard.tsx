@@ -82,7 +82,7 @@ export default async function BusinessAnalystDashboard({ user }: { user: User })
           </CardContent>
           <CardFooter>
             <Button asChild variant="outline" className="w-full">
-              <Link href="/dashboard/sustainability">
+              <Link href="/dashboard/business-analyst/sustainability">
                 View Detailed Report <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -102,7 +102,7 @@ export default async function BusinessAnalystDashboard({ user }: { user: User })
         </CardHeader>
         <CardFooter>
           <Button asChild>
-            <Link href="/dashboard/export">
+            <Link href="/dashboard/business-analyst/export">
               Go to Export Center <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

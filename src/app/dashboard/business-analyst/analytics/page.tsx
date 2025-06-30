@@ -29,7 +29,7 @@ import {
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
-import { format, subDays } from 'date-fns';
+import { format, subDays, formatDistanceToNow } from 'date-fns';
 import type { AuditLog, Product } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 
@@ -284,7 +284,10 @@ export default async function AnalyticsPage() {
                       Product: {product}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground shrink-0" suppressHydrationWarning>
+                  <p
+                    className="text-xs text-muted-foreground shrink-0"
+                    suppressHydrationWarning
+                  >
                     {format(new Date(log.createdAt), "PPpp")}
                   </p>
                 </div>

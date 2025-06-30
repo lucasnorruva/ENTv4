@@ -140,7 +140,7 @@ export default async function SupplierDashboard({ user }: { user: User }) {
                       </Badge>
                     </div>
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/dashboard/products">
+                      <Link href="/dashboard/supplier/products">
                         View <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
@@ -165,12 +165,12 @@ export default async function SupplierDashboard({ user }: { user: User }) {
           </CardHeader>
           <CardFooter className="gap-4">
             <Button asChild>
-              <Link href="/dashboard/products">
+              <Link href="/dashboard/supplier/products">
                 Manage Products <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/dashboard/history">
+              <Link href="/dashboard/supplier/history">
                 View Activity History <Clock className="ml-2 h-4 w-4" />
               </Link>
             </Button>
