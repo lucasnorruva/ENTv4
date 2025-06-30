@@ -1,6 +1,7 @@
 // src/components/dashboard-sidebar.tsx
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   LayoutGrid,
   BookCopy,
@@ -56,16 +57,20 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Management",
       items: [
-        { title: "Users", icon: Users, href: "#" },
-        { title: "Compliance Rules", icon: FileQuestion, href: "#" },
-        { title: "System Analytics", icon: BarChart3, href: "#" },
+        { title: "Users", icon: Users, href: "/dashboard/users" },
+        {
+          title: "Compliance Rules",
+          icon: FileQuestion,
+          href: "/dashboard/compliance",
+        },
+        { title: "System Analytics", icon: BarChart3, href: "/dashboard/analytics" },
       ],
     },
     {
       label: "Configuration",
       items: [
-        { title: "API Settings", icon: Code, href: "#" },
-        { title: "Integrations", icon: Wrench, href: "#" },
+        { title: "API Settings", icon: Code, href: "/dashboard/api-settings" },
+        { title: "Integrations", icon: Wrench, href: "/dashboard/integrations" },
       ],
     },
   ],
@@ -73,9 +78,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "My Passports",
       items: [
-        { title: "All Products", icon: BookCopy, href: "#" },
-        { title: "Create New", icon: PlusCircle, href: "#" },
-        { title: "Upload History", icon: Clock, href: "#" },
+        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: "Create New", icon: PlusCircle, href: "/dashboard/products/new" },
+        { title: "Upload History", icon: Clock, href: "/dashboard/history" },
       ],
     },
   ],
@@ -83,9 +88,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Production",
       items: [
-        { title: "Products", icon: BookCopy, href: "#" },
-        { title: "Production Lines", icon: Factory, href: "#" },
-        { title: "Component Traceability", icon: BarChart3, href: "#" },
+        { title: "Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: "Production Lines", icon: Factory, href: "/dashboard/lines" },
+        { title: "Component Traceability", icon: BarChart3, href: "/dashboard/traceability" },
       ],
     },
   ],
@@ -93,9 +98,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Auditing",
       items: [
-        { title: "Audit Queue", icon: ShieldCheck, href: "#" },
-        { title: "All Products", icon: BookCopy, href: "#" },
-        { title: "Reports", icon: FileText, href: "#" },
+        { title: "Audit Queue", icon: ShieldCheck, href: "/dashboard/audit" },
+        { title: "All Products", icon: BookCopy, href: "/dashboard/products" },
+        { title: "Reports", icon: FileText, href: "/dashboard/reports" },
       ],
     },
   ],
@@ -103,8 +108,8 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Compliance",
       items: [
-        { title: "Flagged Products", icon: ShieldCheck, href: "#" },
-        { title: "Compliance Reports", icon: BarChart3, href: "#" },
+        { title: "Flagged Products", icon: ShieldCheck, href: "/dashboard/flagged" },
+        { title: "Compliance Reports", icon: BarChart3, href: "/dashboard/reports" },
       ],
     },
   ],
@@ -112,9 +117,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Analytics",
       items: [
-        { title: "Product Trends", icon: BarChart3, href: "#" },
-        { title: "Sustainability Metrics", icon: Recycle, href: "#" },
-        { title: "Data Export", icon: Code, href: "#" },
+        { title: "Product Trends", icon: BarChart3, href: "/dashboard/trends" },
+        { title: "Sustainability Metrics", icon: Recycle, href: "/dashboard/sustainability" },
+        { title: "Data Export", icon: Code, href: "/dashboard/export" },
       ],
     },
   ],
@@ -122,9 +127,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Development",
       items: [
-        { title: "API Logs", icon: Code, href: "#" },
-        { title: "Integrations", icon: Wrench, href: "#" },
-        { title: "API Keys", icon: KeyRound, href: "#" },
+        { title: "API Logs", icon: Code, href: "/dashboard/logs" },
+        { title: "Integrations", icon: Wrench, href: "/dashboard/integrations" },
+        { title: "API Keys", icon: KeyRound, href: "/dashboard/keys" },
       ],
     },
   ],
@@ -132,9 +137,9 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Recycling",
       items: [
-        { title: "EOL Products", icon: Recycle, href: "#" },
-        { title: "Recycling Reports", icon: BarChart3, href: "#" },
-        { title: "Material Composition", icon: FileText, href: "#" },
+        { title: "EOL Products", icon: Recycle, href: "/dashboard/eol" },
+        { title: "Recycling Reports", icon: BarChart3, href: "/dashboard/reports" },
+        { title: "Material Composition", icon: FileText, href: "/dashboard/composition" },
       ],
     },
   ],
@@ -142,23 +147,13 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: "Services",
       items: [
-        { title: "Service Tickets", icon: Wrench, href: "#" },
-        { title: "Product Manuals", icon: BookCopy, href: "#" },
-        { title: "Repair Analytics", icon: BarChart3, href: "#" },
+        { title: "Service Tickets", icon: Wrench, href: "/dashboard/tickets" },
+        { title: "Product Manuals", icon: BookCopy, href: "/dashboard/manuals" },
+        { title: "Repair Analytics", icon: BarChart3, href: "/dashboard/analytics" },
       ],
     },
   ],
 };
-
-const generalNav: NavGroup[] = [
-  {
-    label: "General",
-    items: [
-      { title: "Settings", icon: Settings, href: "#" },
-      { title: "Support", icon: LifeBuoy, href: "#" },
-    ],
-  },
-];
 
 interface DashboardSidebarProps {
   userRole: Role;
@@ -169,6 +164,7 @@ export default function DashboardSidebar({
   userRole,
   user,
 }: DashboardSidebarProps) {
+  const pathname = usePathname();
   const menuConfig = navConfig[userRole] || [];
 
   return (
@@ -179,7 +175,11 @@ export default function DashboardSidebar({
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" tooltip="Dashboard" isActive={true}>
+            <SidebarMenuButton
+              href="/dashboard"
+              tooltip="Dashboard"
+              isActive={pathname === "/dashboard"}
+            >
               <LayoutGrid />
               <span>Dashboard</span>
             </SidebarMenuButton>
@@ -192,7 +192,11 @@ export default function DashboardSidebar({
             <SidebarMenu>
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton href={item.href} tooltip={item.title}>
+                  <SidebarMenuButton
+                    href={item.href}
+                    tooltip={item.title}
+                    isActive={pathname.startsWith(item.href)}
+                  >
                     <item.icon />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
@@ -206,13 +210,13 @@ export default function DashboardSidebar({
           <SidebarGroupLabel>General</SidebarGroupLabel>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Settings">
+              <SidebarMenuButton href="/dashboard/settings" tooltip="Settings" isActive={pathname === "/dashboard/settings"}>
                 <Settings />
                 <span>Settings</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" tooltip="Support">
+              <SidebarMenuButton href="/dashboard/support" tooltip="Support" isActive={pathname === "/dashboard/support"}>
                 <LifeBuoy />
                 <span>Support</span>
               </SidebarMenuButton>
