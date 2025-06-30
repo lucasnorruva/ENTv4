@@ -3,7 +3,7 @@ import type { AuditLog } from "@/types";
 
 const now = new Date();
 
-export const auditLogs: AuditLog[] = [
+export let auditLogs: AuditLog[] = [
   {
     id: "log-sys-001",
     userId: "user-admin",

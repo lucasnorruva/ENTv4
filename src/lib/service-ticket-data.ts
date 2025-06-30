@@ -3,7 +3,7 @@ import type { ServiceTicket } from "@/types";
 
 const now = new Date();
 
-export const serviceTickets: ServiceTicket[] = [
+export let serviceTickets: ServiceTicket[] = [
   {
     id: "tkt-001",
     productId: "pp-001",

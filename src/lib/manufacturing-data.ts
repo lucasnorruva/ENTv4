@@ -1,7 +1,7 @@
 // src/lib/manufacturing-data.ts
 import type { ProductionLine } from "@/types";
 
-export const productionLines: ProductionLine[] = [
+export let productionLines: ProductionLine[] = [
   {
     id: "line-01",
     name: "Assembly Line Alpha",

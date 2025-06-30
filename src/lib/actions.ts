@@ -493,7 +493,7 @@ export async function saveCompliancePath(
 // --- USER ACTIONS ---
 
 export async function getUsers(): Promise<User[]> {
-  return require('./auth').getUsers();
+  return users;
 }
 
 export async function saveUser(
