@@ -1,32 +1,46 @@
 // src/triggers/scheduled-verifications.ts
 "use server";
 
-import { logAuditEvent } from "@/lib/actions";
-import { products } from "@/lib/data"; // Import mock products
-import { compliancePaths } from "@/lib/compliance-data"; // Import mock compliance paths
-import type { CompliancePath, Product } from "@/types";
-import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 import {
-  anchorToPolygon,
-  generateEbsiCredential,
-  hashProductData,
-} from "@/services/blockchain";
+  getProducts,
+  approvePassport,
+  rejectPassport,
+  logAuditEvent,
+} from "@/lib/actions";
+import { compliancePaths } from "@/lib/compliance-data";
+import type { CompliancePath } from "@/types";
+import { summarizeComplianceGaps } from "@/ai/flows/summarize-compliance-gaps";
 
 /**
  * Runs a daily compliance check on all products pending verification.
  * This function is designed to be triggered by a scheduled cron job.
- * It uses in-memory mock data for development.
+ * It uses server actions to interact with the data layer, ensuring
+ * consistency with manual user actions.
  */
 export async function runDailyComplianceCheck(): Promise<{
   processed: number;
   passed: number;
   failed: number;
 }> {
-  console.log(
-    "Running scheduled compliance and verification checks (mock mode)...",
+  console.log("Running scheduled compliance and verification checks...");
+  await logAuditEvent("cron.start", "dailyComplianceCheck", {}, "system");
+
+  const allProducts = await getProducts();
+  const productsToVerify = allProducts.filter(
+    (p) => p.verificationStatus === "Pending",
   );
 
-  // 1. Create a lookup map for compliance paths
+  if (productsToVerify.length === 0) {
+    console.log("No products are pending verification.");
+    await logAuditEvent(
+      "cron.end",
+      "dailyComplianceCheck",
+      { status: "No products to verify" },
+      "system",
+    );
+    return { processed: 0, passed: 0, failed: 0 };
+  }
+
   const compliancePathsMap = new Map<
     string,
     Omit<CompliancePath, "id" | "createdAt" | "updatedAt">
@@ -35,119 +49,57 @@ export async function runDailyComplianceCheck(): Promise<{
     compliancePathsMap.set(path.category, path);
   });
 
-  if (compliancePathsMap.size === 0) {
-    console.warn("No mock compliance paths found. Aborting verification check.");
-    return { processed: 0, passed: 0, failed: 0 };
-  }
-
-  // 2. Filter for products with 'Pending' verification status from mock data
-  const productsToVerify = products.filter(
-    (p) => p.verificationStatus === "Pending",
-  );
-
-  if (productsToVerify.length === 0) {
-    console.log("No mock products are pending verification.");
-    return { processed: 0, passed: 0, failed: 0 };
-  }
-
-  let processed = 0;
   let passed = 0;
   let failed = 0;
 
-  // 3. Process each product
   for (const product of productsToVerify) {
-    processed++;
     const compliancePath = compliancePathsMap.get(product.category);
 
-    let finalStatus: "Verified" | "Failed" = "Verified";
-    let finalSummary =
-      "Product is compliant with all known rules for its category.";
-    let finalGaps;
-    let blockchainProof;
-    let ebsiVcId;
-
     if (!compliancePath) {
-      finalStatus = "Failed";
-      finalSummary = `No compliance path is configured for the product category: "${product.category}".`;
-    } else {
-      try {
-        const { isCompliant, complianceSummary, gaps } =
-          await summarizeComplianceGaps({
-            productName: product.productName,
-            productInformation: product.currentInformation,
-            compliancePathName: compliancePath.name,
-            complianceRules: JSON.stringify(compliancePath.rules),
-          });
-
-        finalStatus = isCompliant ? "Verified" : "Failed";
-        finalSummary = complianceSummary;
-        finalGaps = gaps;
-      } catch (error) {
-        console.error(
-          `AI compliance check failed for product ${product.id}:`,
-          error,
-        );
-        finalStatus = "Failed";
-        finalSummary =
-          "Automated compliance check could not be completed due to an internal AI error.";
-      }
-    }
-
-    if (finalStatus === "Verified") {
-      passed++;
-      // Anchor to blockchain on successful verification
-      try {
-        const productDataHash = await hashProductData(
-          product.currentInformation,
-        );
-        blockchainProof = await anchorToPolygon(product.id, productDataHash);
-        // Optionally generate EBSI credential as well
-        ebsiVcId = await generateEbsiCredential(product.id);
-      } catch (e) {
-        console.error("Blockchain/EBSI integration failed (mock mode):", e);
-        // Decide if this should fail the verification. For now, just log it.
-        finalSummary += " (Blockchain/EBSI integration failed)";
-      }
-    } else {
+      const reason = `No compliance path is configured for the product category: "${product.category}".`;
+      console.warn(`Skipping product ${product.id}: ${reason}`);
+      await rejectPassport(product.id, reason, "system");
       failed++;
-      console.log(
-        `Product ${product.id} failed verification. Summary: ${finalSummary}`,
+      continue;
+    }
+
+    try {
+      const { isCompliant, complianceSummary } = await summarizeComplianceGaps({
+        productName: product.productName,
+        productInformation: product.currentInformation,
+        compliancePathName: compliancePath.name,
+        complianceRules: JSON.stringify(compliancePath.rules),
+      });
+
+      if (isCompliant) {
+        await approvePassport(product.id, "system");
+        passed++;
+      } else {
+        await rejectPassport(product.id, complianceSummary, "system");
+        failed++;
+      }
+    } catch (error) {
+      console.error(
+        `AI compliance check failed for product ${product.id}:`,
+        error,
       );
+      const reason =
+        "Automated compliance check failed due to an internal AI error.";
+      await rejectPassport(product.id, reason, "system");
+      failed++;
     }
-
-    // 4. Update the product in the mock array and log an audit event
-    const productIndex = products.findIndex((p) => p.id === product.id);
-    if (productIndex !== -1) {
-      const originalProduct = products[productIndex];
-      products[productIndex] = {
-        ...originalProduct,
-        verificationStatus: finalStatus,
-        lastVerificationDate: new Date().toISOString(),
-        complianceSummary: finalSummary,
-        complianceGaps: finalGaps,
-        blockchainProof: blockchainProof || originalProduct.blockchainProof,
-        ebsiVcId: ebsiVcId || originalProduct.ebsiVcId,
-      };
-    }
-
-    const eventName =
-      finalStatus === "Verified" ? "passport.verified" : "compliance.updated";
-
-    await logAuditEvent(
-      eventName,
-      product.id,
-      {
-        status: finalStatus,
-        summary: finalSummary,
-        blockchainProof,
-        ebsiVcId,
-      },
-      "system",
-    );
   }
 
+  const result = {
+    processed: productsToVerify.length,
+    passed,
+    failed,
+  };
+
   console.log(
-    `Mock compliance check complete. Processed: ${processed}, Passed: ${passed}, Failed: ${failed}.`,
+    `Compliance check complete. Processed: ${result.processed}, Passed: ${result.passed}, Failed: ${result.failed}.`,
   );
-  return { processed, passed, failed };
+  await logAuditEvent("cron.end", "dailyComplianceCheck", result, "system");
+
+  return result;
 }
