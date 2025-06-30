@@ -2,11 +2,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import * as admin from 'firebase-admin';
-import { adminDb } from '@/lib/firebase-admin';
-import { Collections } from '@/lib/constants';
-import { type ProductFormValues } from '@/lib/schemas';
+import { products as mockProducts } from '@/lib/data';
 import type { Product, SustainabilityData } from '@/types';
+import type { ProductFormValues } from '@/components/product-form';
 import {
   suggestImprovements,
   type SuggestImprovementsInput,
@@ -23,45 +21,23 @@ import {
 } from '@/services/blockchain';
 import { compliancePaths } from './compliance-data';
 
-/**
- * Converts a Firestore document snapshot into a client-side Product object.
- * @param doc The Firestore document snapshot.
- * @returns A Product object with timestamps converted to ISO strings.
- */
-function docToProduct(doc: admin.firestore.DocumentSnapshot): Product {
-  const data = doc.data()!;
-  // Create a base product object with the document ID and data.
-  const product: Product = {
-    id: doc.id,
-    ...(data as Omit<Product, 'id'>), // Cast the data to the expected type
-  };
+// Note: In a real app, this would be a database. For this mock, we mutate
+// a `let` variable. `products` is imported from data.ts and reassigned here.
+let products = [...mockProducts];
 
-  // Safely convert all Timestamp fields to ISO strings for client-side consumption.
-  for (const key of Object.keys(product)) {
-    const value = product[key as keyof Product];
-    if (value instanceof admin.firestore.Timestamp) {
-      // @ts-ignore - We are intentionally converting Timestamp to string
-      product[key as keyof Product] = value.toDate().toISOString();
-    }
-  }
-
-  return product;
-}
+// Helper to simulate database latency
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function getProducts(): Promise<Product[]> {
-  const productsSnapshot = await adminDb
-    .collection(Collections.PRODUCTS)
-    .orderBy('updatedAt', 'desc')
-    .get();
-  return productsSnapshot.docs.map(docToProduct);
+  await sleep(50);
+  // Return a deep copy to prevent direct mutation of the mock data from client components.
+  return JSON.parse(JSON.stringify(products.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())));
 }
 
 export async function getProductById(id: string): Promise<Product | undefined> {
-  const productDoc = await adminDb.collection(Collections.PRODUCTS).doc(id).get();
-  if (!productDoc.exists) {
-    return undefined;
-  }
-  return docToProduct(productDoc);
+  await sleep(50);
+  const product = products.find(p => p.id === id);
+  return product ? JSON.parse(JSON.stringify(product)) : undefined;
 }
 
 async function runAllAiFlows(
@@ -130,50 +106,55 @@ export async function saveProduct(
   userId: string,
   productId?: string,
 ): Promise<Product> {
+  await sleep(500);
+
   const { sustainability, qrLabelText } = await runAllAiFlows(productData);
 
   if (productId) {
-    const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-    const updates = {
+    const productIndex = products.findIndex(p => p.id === productId);
+    if (productIndex === -1) {
+      throw new Error('Product not found');
+    }
+    const updatedProduct = {
+      ...products[productIndex],
       ...productData,
       sustainability,
       qrLabelText,
-      lastUpdated: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now(),
+      lastUpdated: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    await productRef.update(updates);
+    products[productIndex] = updatedProduct;
     await logAuditEvent(
       'product.updated',
       productId,
       { fields: Object.keys(productData) },
       userId,
     );
-    const updatedProduct = await getProductById(productId);
     revalidatePath('/dashboard');
     revalidatePath(`/products/${productId}`);
-    return updatedProduct!;
+    return JSON.parse(JSON.stringify(updatedProduct));
   } else {
-    const newProductRef = adminDb.collection(Collections.PRODUCTS).doc();
-    const newProductData = {
+    const newProduct: Product = {
+      id: `pp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       ...productData,
+      productImage: 'https://placehold.co/100x100.png',
       sustainability,
       qrLabelText,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
-      createdAt: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now(),
-      lastUpdated: admin.firestore.Timestamp.now(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      lastUpdated: new Date().toISOString(),
     };
-    await newProductRef.set(newProductData);
+    products.unshift(newProduct);
     await logAuditEvent(
       'product.created',
-      newProductRef.id,
-      { productName: newProductData.productName },
+      newProduct.id,
+      { productName: newProduct.productName },
       userId,
     );
-    const savedProduct = await getProductById(newProductRef.id);
     revalidatePath('/dashboard');
-    return savedProduct!;
+    return JSON.parse(JSON.stringify(newProduct));
   }
 }
 
@@ -181,9 +162,10 @@ export async function deleteProduct(
   id: string,
   userId: string,
 ): Promise<{ success: boolean }> {
-  const productToDelete = await getProductById(id);
+  await sleep(200);
+  const productToDelete = products.find(p => p.id === id);
+  products = products.filter(p => p.id !== id);
   if (productToDelete) {
-    await adminDb.collection(Collections.PRODUCTS).doc(id).delete();
     await logAuditEvent(
       'product.deleted',
       id,
@@ -199,44 +181,43 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await productRef.update({
-    verificationStatus: 'Pending',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  await sleep(200);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  products[productIndex].verificationStatus = 'Pending';
+  products[productIndex].updatedAt = new Date().toISOString();
   await logAuditEvent(
     'passport.submitted',
     productId,
     { status: 'Pending' },
     userId,
   );
-  const updatedProduct = await getProductById(productId);
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
-  return updatedProduct!;
+  return JSON.parse(JSON.stringify(products[productIndex]));
 }
 
 export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found for approval.');
+  await sleep(1000);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
 
+  const product = products[productIndex];
   const dataHash = await hashProductData(product);
   const [blockchainProof, ebsiVcId] = await Promise.all([
     anchorToPolygon(productId, dataHash),
     generateEbsiCredential(productId),
   ]);
 
-  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await productRef.update({
-    verificationStatus: 'Verified',
-    lastVerificationDate: admin.firestore.Timestamp.now(),
-    updatedAt: admin.firestore.Timestamp.now(),
-    blockchainProof: blockchainProof,
-    ebsiVcId: ebsiVcId,
-  });
+  product.verificationStatus = 'Verified';
+  product.lastVerificationDate = new Date().toISOString();
+  product.updatedAt = new Date().toISOString();
+  product.blockchainProof = blockchainProof;
+  product.ebsiVcId = ebsiVcId;
 
   await logAuditEvent(
     'passport.approved',
@@ -244,10 +225,9 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
-  const updatedProduct = await getProductById(productId);
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
-  return updatedProduct!;
+  return JSON.parse(JSON.stringify(product));
 }
 
 export async function rejectPassport(
@@ -255,23 +235,23 @@ export async function rejectPassport(
   reason: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found for rejection.');
+  await sleep(200);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = products[productIndex];
 
-  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await productRef.update({
-    verificationStatus: 'Failed',
-    lastVerificationDate: admin.firestore.Timestamp.now(),
-    'sustainability.isCompliant': false,
-    'sustainability.complianceSummary': `Rejected: ${reason}`,
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  product.verificationStatus = 'Failed';
+  product.lastVerificationDate = new Date().toISOString();
+  if (product.sustainability) {
+    product.sustainability.isCompliant = false;
+    product.sustainability.complianceSummary = `Rejected: ${reason}`;
+  }
+  product.updatedAt = new Date().toISOString();
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
-  const updatedProduct = await getProductById(productId);
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
-  return updatedProduct!;
+  return JSON.parse(JSON.stringify(product));
 }
 
 export async function runSuggestImprovements(
@@ -284,17 +264,31 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const product = await getProductById(productId);
-  if (!product) throw new Error('Product not found');
+  await sleep(1500);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = products[productIndex];
 
-  const { sustainability, qrLabelText } = await runAllAiFlows(product);
+  // Cast the full product to the form values shape for the AI flow
+  const formValues: ProductFormValues = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    productImage: product.productImage,
+    category: product.category,
+    supplier: product.supplier,
+    status: product.status,
+    compliancePathId: product.compliancePathId,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+  };
 
-  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await productRef.update({
-    sustainability,
-    qrLabelText,
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const { sustainability, qrLabelText } = await runAllAiFlows(formValues);
+
+  product.sustainability = sustainability;
+  product.qrLabelText = qrLabelText;
+  product.updatedAt = new Date().toISOString();
 
   await logAuditEvent(
     'product.recalculate_score',
@@ -302,27 +296,26 @@ export async function recalculateScore(
     { newScore: sustainability.score },
     userId,
   );
-  const updatedProduct = await getProductById(productId);
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
-  return updatedProduct!;
+  return JSON.parse(JSON.stringify(product));
 }
 
 export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await productRef.update({
-    endOfLifeStatus: 'Recycled',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  await sleep(200);
+  const productIndex = products.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = products[productIndex];
 
+  product.endOfLifeStatus = 'Recycled';
+  product.updatedAt = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
-  const updatedProduct = await getProductById(productId);
   revalidatePath('/dashboard');
   revalidatePath(`/products/${productId}`);
-  return updatedProduct!;
+  return JSON.parse(JSON.stringify(product));
 }
 
 export async function logAuditEvent(
@@ -331,12 +324,12 @@ export async function logAuditEvent(
   details: Record<string, any>,
   userId: string = 'system',
 ): Promise<void> {
-  const logData = {
+  await sleep(20);
+  console.log('AUDIT LOG:', {
     userId,
     action,
     entityId,
     details,
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
-  };
-  await adminDb.collection(Collections.AUDIT_LOGS).add(logData);
+    timestamp: new Date().toISOString(),
+  });
 }
