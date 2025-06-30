@@ -1,24 +1,40 @@
-# 9. User Journeys
+# 9. User Experience & Portal Architecture
 
 Our platform serves a variety of user types, primarily falling into two groups: Enterprise customers (large organizations with existing systems and complex needs) and SME/Startup/Midmarket customers (smaller companies or new ventures who need quick, low-code solutions). We design user journeys to cater to both, ensuring that each type of user can easily onboard and get value from the DPP platform.
 
-## 9.1 Enterprise vs SME Portal Features
+Enterprise-grade UX differs significantly from SME/startup UX. Enterprise users expect deep data visibility, rich analytics dashboards, and flexible workflows (often integrated into legacy systems), whereas SMEs need simplicity and guidance. Enterprises will tolerate complex interfaces if they improve productivity, whereas SMEs/startups need streamlined onboarding and intuitive wizards [blockchain-observatory.ec.europa.eu](https://blockchain-observatory.ec.europa.eu).
 
-### Access control (RBAC vs ABAC)
-We implement a flexible access model that combines role-based (RBAC) and attribute-based (ABAC) controls. In RBAC, users have predefined roles (Admin, Issuer, Auditor, etc.) which grant fixed permissions. In ABAC, decisions also consider attributes like user department or product category. Enterprise portals will use full RBAC, while SME portals will use simpler presets. We also support ABAC: for instance, only users from the “Recycling” department might see end-of-life data.
+The platform exposes multiple specialized portals: e.g. an SME Portal, an Enterprise Portal (or suite), an Auditor Portal, and a Developer Console. Architecturally, these can share a common backend (APIs and services) but present different front-end UIs. A modular microservices design with a unified API gateway is used; each portal is a front-end with role-specific components.
 
-### Permission model logic
-Within the portal we define who can edit, sign, anchor, and archive a DPP. Typically:
+## 9.1 Enterprise vs. SME Portal Features
+
+### Access Control (RBAC vs. ABAC)
+We implement a flexible access model that combines role-based (RBAC) and attribute-based (ABAC) controls. In RBAC, users have predefined roles (Admin, Issuer, Auditor, etc.) which grant fixed permissions. In ABAC, decisions also consider attributes like user department or product category. Enterprise portals will use full RBAC, while SME portals will use simpler presets. We also support ABAC: for instance, only users from the “Recycling” department might see end-of-life data. Single Sign-On (SSO) and OAuth 2.0 can manage identity across portals, with RBAC determining which modules each user sees.
+
+### Permission Model Logic
+Within the portal, we define who can edit, sign, anchor, and archive a DPP. Typically:
 *   **Edit/Create**: Only the product owner (manufacturer) or delegated partner can create or modify the DPP content.
 *   **Sign**: Each data entry or version is signed by its author; finalizing a version requires an authorized signature.
 *   **Anchor**: A blockchain anchoring transaction (on EBSI or L2) can only be triggered by a user with “Registrar” permission.
 *   **Archive**: Once a product is decommissioned, archiving rights (often read-only thereafter) go to a compliance officer or auditor role.
 
-### UI/UX differences
+### UI/UX Differences
 The enterprise dashboard offers full visibility: multiple company accounts, detailed compliance status, analytics, and customizable reports. It integrates warnings and “AI explainability” hints. The SME interface is streamlined: wizards for DPP creation, template-based entry forms, and simpler visualization of compliance gaps. Both UIs highlight regulatory warnings (color-coded) next to data fields.
 
-### Onboarding, audit trail & versioning
+### Onboarding, Audit Trail & Versioning
 Every user action is logged. When an enterprise user onboards, they get SSO/SAML access and are assigned a role; SMEs may use email/password signup with automated KYC. The portal maintains an immutable audit trail (who changed what and when) for each DPP. Every time a DPP VC is re-issued or edited, the old version is archived and a new version is chained. This means auditors can trace the entire history of a product passport.
+
+## 9.2 Role-Based UI Patterns
+
+Typical role-based UI patterns include:
+- **Manufacturers**: Dashboards for uploading product bills of materials, material certifications, and batch updates. They need data entry forms, progress trackers, and alerts for missing info.
+- **Auditors/Regulators**: Read-only or comment-enabled views of DPP records, with audit trails and electronic signature widgets. They should have filters for non-compliance alerts and the ability to flag or verify certificates.
+- **Logistics Providers**: Interfaces or mobile apps to scan product QR/NFC codes, record transport milestones, and view product origins/destinations. GPS integration or IoT feeds can update location.
+- **Compliance Officers**: High-level dashboards aggregating compliance status across products, lifecycle, and regions. They see KPI charts (e.g. percentage of products meeting recyclability thresholds) and exception alerts (e.g. expired certificates).
+- **Consumers**: A simple product scan page (via smartphone QR/NFC) showing the product’s origin, key certifications, and recycling instructions. This portal is multilingual and compliance-focused.
+- **Developer Console**: A separate UI for managing API keys, webhooks, and sandbox access.
+
+By matching UI complexity to user needs (detailed analytics for experts vs. guided flows for SMEs/consumers) and by isolating functionality into separate portals/apps, the DPP platform can cater to all stakeholders while maintaining a clear navigation structure.
 
 # 10. Business Logic Flows
 
