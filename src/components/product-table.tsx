@@ -110,7 +110,15 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
             </TableCell>
-            <TableCell className="font-medium">{product.productName}</TableCell>
+            <TableCell className="font-medium">
+              <Link
+                href={`/products/${product.id}`}
+                className="hover:underline"
+                target="_blank"
+              >
+                {product.productName}
+              </Link>
+            </TableCell>
             <TableCell>
               {product.esg?.score !== undefined ? (
                 <div
