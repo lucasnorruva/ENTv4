@@ -26,6 +26,28 @@ export let products: Product[] = [
       summary:
         "High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.",
     },
+    lifecycleAnalysis: {
+      carbonFootprint: {
+        value: 12.5,
+        unit: "kg CO2-eq",
+        summary:
+          "Estimated based on typical electronics manufacturing, use, and disposal. Main contributors are component production and energy use.",
+      },
+      lifecycleStages: {
+        manufacturing:
+          "Manufacturing accounts for approximately 60% of the lifecycle emissions, primarily from the production of the display and battery.",
+        usePhase:
+          "The use phase contributes 30% of emissions, based on an average charging frequency over a 3-year lifespan.",
+        endOfLife:
+          "End-of-life processing, including recycling and disposal of non-recyclable components, accounts for the remaining 10%.",
+      },
+      highestImpactStage: "Manufacturing",
+      improvementOpportunities: [
+        "Increase the percentage of recycled materials in the casing.",
+        "Implement a battery take-back and replacement program.",
+        "Optimize software to reduce energy consumption during use.",
+      ],
+    },
     currentInformation: JSON.stringify(
       {
         materials: ["Recycled Aluminum", "Organic Cotton Strap"],

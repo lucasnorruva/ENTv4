@@ -1,5 +1,6 @@
 // src/types/index.ts
 import type { Role } from "@/lib/constants";
+import type { AnalyzeProductLifecycleOutput } from "@/ai/flows/analyze-product-lifecycle";
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -54,6 +55,7 @@ export interface Product extends BaseEntity {
     governance: number;
     summary: string;
   };
+  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
   lastVerificationDate?: string; // ISO 8601 format
   verificationStatus?: "Verified" | "Pending" | "Failed";
   complianceSummary?: string;

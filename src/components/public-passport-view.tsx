@@ -32,6 +32,10 @@ import {
   Fingerprint,
   Quote,
   Tag,
+  Thermometer,
+  Lightbulb,
+  Power,
+  Package,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -164,19 +168,14 @@ export default function PublicPassportView({ product }: { product: Product }) {
         <Accordion
           type="multiple"
           className="w-full"
-          defaultValue={["item-1", "item-2", "item-3"]}
+          defaultValue={["item-1", "item-2", "item-3", "item-4"]}
         >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
-              Product Lifecycle
+              Product Details
             </AccordionTrigger>
             <AccordionContent className="pt-2">
-              <InfoRow icon={Factory} label="Manufacturing Process">
-                <p className="text-sm text-muted-foreground">
-                  {passportData.manufacturing_process || "Not specified"}
-                </p>
-              </InfoRow>
-              <InfoRow icon={Recycle} label="Packaging">
+              <InfoRow icon={Package} label="Packaging">
                 <p className="text-sm text-muted-foreground">
                   {passportData.packaging || "Not specified"}
                 </p>
@@ -191,6 +190,57 @@ export default function PublicPassportView({ product }: { product: Product }) {
           </AccordionItem>
 
           <AccordionItem value="item-2">
+            <AccordionTrigger className="text-xl font-semibold">
+              Lifecycle Impact Analysis
+            </AccordionTrigger>
+            <AccordionContent className="pt-2">
+              {product.lifecycleAnalysis ? (
+                <>
+                  <InfoRow icon={Thermometer} label="Estimated Carbon Footprint">
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-bold text-foreground">
+                        {product.lifecycleAnalysis.carbonFootprint.value}{" "}
+                        {product.lifecycleAnalysis.carbonFootprint.unit}
+                      </p>
+                      <p>
+                        {product.lifecycleAnalysis.carbonFootprint.summary}
+                      </p>
+                    </div>
+                  </InfoRow>
+                  <InfoRow icon={Factory} label="Manufacturing">
+                    <p className="text-sm text-muted-foreground">
+                      {product.lifecycleAnalysis.lifecycleStages.manufacturing}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Power} label="Use Phase">
+                    <p className="text-sm text-muted-foreground">
+                      {product.lifecycleAnalysis.lifecycleStages.usePhase}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Recycle} label="End-of-Life">
+                    <p className="text-sm text-muted-foreground">
+                      {product.lifecycleAnalysis.lifecycleStages.endOfLife}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Lightbulb} label="Improvement Opportunities">
+                    <ul className="list-disc list-inside text-sm text-muted-foreground">
+                      {product.lifecycleAnalysis.improvementOpportunities.map(
+                        (opp, index) => (
+                          <li key={index}>{opp}</li>
+                        ),
+                      )}
+                    </ul>
+                  </InfoRow>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm p-4">
+                  No lifecycle analysis available.
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+
+          <AccordionItem value="item-3">
             <AccordionTrigger className="text-xl font-semibold">
               Sustainability & ESG Details
             </AccordionTrigger>
@@ -235,7 +285,7 @@ export default function PublicPassportView({ product }: { product: Product }) {
             </AccordionContent>
           </AccordionItem>
 
-          <AccordionItem value="item-3">
+          <AccordionItem value="item-4">
             <AccordionTrigger className="text-xl font-semibold">
               Compliance & Certifications
             </AccordionTrigger>
