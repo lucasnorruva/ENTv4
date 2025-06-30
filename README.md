@@ -1,6 +1,6 @@
-# PassportFlow: Digital Product Passport Platform
+# Norruva: Digital Product Passport Platform
 
-PassportFlow is an enterprise-grade platform for creating, managing, and verifying Digital Product Passports (DPPs). It's designed to help businesses drive transparency, ensure compliance with global regulations, and build unshakable customer trust.
+Norruva is an enterprise-grade platform for creating, managing, and verifying Digital Product Passports (DPPs). It's designed to help businesses drive transparency, ensure compliance with global regulations, and build unshakable customer trust.
 
 This project is built with Next.js, Firebase, and Genkit AI.
 

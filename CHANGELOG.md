@@ -1,12 +1,12 @@
 # Changelog
 
-This document tracks major changes and versions of the PassportFlow platform.
+This document tracks major changes and versions of the Norruva platform.
 
 ## [1.0.0] - 2024-07-26
 
 ### Added
 
--   Initial release of the PassportFlow platform.
+-   Initial release of the Norruva platform.
 -   Core functionality for creating and managing Digital Product Passports.
 -   Role-based dashboards for Supplier, Auditor, Compliance Manager, etc.
 -   AI-powered flows for:

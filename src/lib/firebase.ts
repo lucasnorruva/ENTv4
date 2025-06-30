@@ -20,9 +20,9 @@ if (firebaseConfigString) {
 // provide a default. This is a robust way to ensure the app works in a dev environment.
 if (!firebaseConfig.projectId) {
   console.warn(
-    "Firebase projectId not found. Using default projectId 'passportflow-studio'.",
+    "Firebase projectId not found. Using default projectId 'norruva-studio'.",
   );
-  firebaseConfig.projectId = "passportflow-studio";
+  firebaseConfig.projectId = "norruva-studio";
 }
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
