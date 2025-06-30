@@ -14,7 +14,7 @@
     "test:ci": "jest --ci",
     "test:emulate": "firebase emulators:exec 'npm run test:ci'",
     "validate": "npm run lint && npm run typecheck && npm run test:emulate && npm run build",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx --require dotenv/config scripts/seed.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.13.0",

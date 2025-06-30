@@ -1,6 +1,5 @@
 // scripts/seed.ts
-import { config } from 'dotenv';
-config(); // Load .env file to get Firebase config
+// The dotenv config is now handled by the npm script in package.json
 
 import { db } from '../src/lib/firebase';
 import { products as mockProducts } from '../src/lib/data';
