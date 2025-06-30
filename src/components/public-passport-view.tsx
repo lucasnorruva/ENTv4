@@ -351,17 +351,17 @@ export default function PublicPassportView({ product }: { product: Product }) {
                   <InfoRow
                     icon={Leaf}
                     label="Environmental Score"
-                    value={`${esg.environmental}/10`}
+                    value={`${esg.environmental}/100`}
                   />
                   <InfoRow
                     icon={Users}
                     label="Social Score"
-                    value={`${esg.social}/10`}
+                    value={`${esg.social}/100`}
                   />
                   <InfoRow
                     icon={Landmark}
                     label="Governance Score"
-                    value={`${esg.governance}/10`}
+                    value={`${esg.governance}/100`}
                   />
                   {classification && (
                     <>

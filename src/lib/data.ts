@@ -66,9 +66,9 @@ export let products: Product[] = [
     },
     sustainability: {
       score: 92,
-      environmental: 9.5,
-      social: 9.0,
-      governance: 8.8,
+      environmental: 95,
+      social: 90,
+      governance: 88,
       summary:
         "High score due to use of recycled aluminum and organic materials. Points deducted for battery disposability concerns.",
       isCompliant: true,
@@ -143,9 +143,9 @@ export let products: Product[] = [
     packaging: { type: "Cardboard Box", recyclable: true },
     sustainability: {
       score: 65,
-      environmental: 6.0,
-      social: 7.0,
-      governance: 6.8,
+      environmental: 60,
+      social: 70,
+      governance: 68,
       summary:
         "Average score. High-performance components are difficult to recycle. Opportunities exist to improve packaging and use recycled plastics.",
       isCompliant: true,
@@ -228,9 +228,9 @@ export let products: Product[] = [
     packaging: { type: "None", recyclable: true },
     sustainability: {
       score: 85,
-      environmental: 9.0,
-      social: 8.0,
-      governance: 8.2,
+      environmental: 90,
+      social: 80,
+      governance: 82,
       summary:
         "Excellent use of post-consumer recycled materials. The supply chain for the recycled PET is certified and transparent.",
       isCompliant: false,
@@ -279,9 +279,9 @@ export let products: Product[] = [
     packaging: { type: "Cardboard", recyclable: true, recycledContent: 50 },
     sustainability: {
       score: 88,
-      environmental: 9.2,
-      social: 8.5,
-      governance: 8.6,
+      environmental: 92,
+      social: 85,
+      governance: 86,
       summary:
         "Bamboo is a highly renewable resource. The modular design promotes repairability and long-term use, reducing waste.",
       isCompliant: true,

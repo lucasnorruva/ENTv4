@@ -31,14 +31,14 @@ const EsgScoreOutputSchema = z.object({
   environmental: z
     .number()
     .min(0)
-    .max(10)
-    .describe("The environmental score from 0-10."),
-  social: z.number().min(0).max(10).describe("The social score from 0-10."),
+    .max(100)
+    .describe("The environmental score from 0-100."),
+  social: z.number().min(0).max(100).describe("The social score from 0-100."),
   governance: z
     .number()
     .min(0)
-    .max(10)
-    .describe("The governance score from 0-10."),
+    .max(100)
+    .describe("The governance score from 0-100."),
   summary: z
     .string()
     .describe(
@@ -58,6 +58,7 @@ const prompt = ai.definePrompt({
   input: { schema: CalculateSustainabilityInputSchema },
   output: { schema: EsgScoreOutputSchema },
   prompt: `SYSTEM: You are an expert in product sustainability and ESG (Environmental, Social, Governance) principles, compliant with EU regulations like ESPR. Your task is to analyze the provided structured product information and generate an ESG score.
+- All scores (overall, environmental, social, governance) must be on a scale of 0 to 100.
 - Analyze the product's name, description, category, and all structured data.
 - Consider factors like materials (recycled content, origin), energy efficiency, repairability, end-of-life options, manufacturing details (country, emissions), and certifications (e.g., ISO 14001, Fair Trade).
 - If data is insufficient for a pillar (e.g. no social certifications), provide a lower score for that pillar and note the lack of data in the summary.
