@@ -31,6 +31,7 @@ export let products: Product[] = [
     },
     ebsiVcId: "did:ebsi:z2d5c3g7h1k9j4m6p8q",
     endOfLifeStatus: "Active",
+    manualUrl: "#",
     qrLabelText:
       "Crafted with recycled aluminum and an organic cotton strap, this smart watch combines style with sustainability.",
     materials: [
@@ -125,6 +126,7 @@ export let products: Product[] = [
       blockHeight: 50234567,
     },
     endOfLifeStatus: "Active",
+    manualUrl: "#",
     materials: [
       { name: "ABS Plastic", percentage: 70 },
       { name: "Lithium-ion Battery", percentage: 20 },
@@ -264,6 +266,7 @@ export let products: Product[] = [
     ).toISOString(),
     compliancePathId: "cp-homegoods-01",
     endOfLifeStatus: "Active",
+    manualUrl: "#",
     materials: [{ name: "Bamboo", percentage: 100, origin: "China" }],
     manufacturing: { facility: "EcoHome Workshop", country: "China" },
     certifications: [{ name: "FSC Certified", issuer: "FSC" }],

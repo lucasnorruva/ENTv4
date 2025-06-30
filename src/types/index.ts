@@ -85,6 +85,7 @@ export interface Product extends BaseEntity {
   status: "Published" | "Draft" | "Archived";
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
+  manualUrl?: string;
 
   // Structured Data Fields
   materials: Material[];
