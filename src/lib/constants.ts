@@ -13,7 +13,6 @@ export const Collections = {
   COMPANIES: "companies",
   AUDIT_LOGS: "auditLogs",
   WEBHOOKS: "webhooks",
-  API_KEYS: "apiKeys",
 } as const;
 
 /**

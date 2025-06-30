@@ -10,13 +10,9 @@ import {
 import type { User } from '@/types';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { getApiKeysForUser } from '@/lib/actions';
 import { KeyRound, ArrowRight } from 'lucide-react';
 
-export default async function DeveloperDashboard({ user }: { user: User }) {
-  const apiKeys = await getApiKeysForUser(user.id);
-  const activeKeys = apiKeys.filter(k => k.status === 'Active').length;
-
+export default function DeveloperDashboard({ user }: { user: User }) {
   return (
     <div className="space-y-6">
       <div>
@@ -38,9 +34,8 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-4xl font-bold">{activeKeys}</p>
-            <p className="text-xs text-muted-foreground">
-              Active API keys in your account
+            <p className="text-muted-foreground text-sm">
+              Create and manage API keys to access the Norruva API.
             </p>
           </CardContent>
           <CardFooter>
