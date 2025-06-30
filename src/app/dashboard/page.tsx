@@ -7,6 +7,10 @@ import SupplierDashboard from "@/components/dashboards/supplier-dashboard";
 import AuditorDashboard from "@/components/dashboards/auditor-dashboard";
 import ComplianceManagerDashboard from "@/components/dashboards/compliance-manager-dashboard";
 import BusinessAnalystDashboard from "@/components/dashboards/business-analyst-dashboard";
+import ManufacturerDashboard from "@/components/dashboards/manufacturer-dashboard";
+import ServiceProviderDashboard from "@/components/dashboards/service-provider-dashboard";
+import RecyclerDashboard from "@/components/dashboards/recycler-dashboard";
+import DeveloperDashboard from "@/components/dashboards/developer-dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +43,14 @@ export default async function DashboardPage({
         );
       case UserRoles.BUSINESS_ANALYST:
         return <BusinessAnalystDashboard products={products} user={user} />;
-      // Other role dashboards will be added later
+      case UserRoles.MANUFACTURER:
+        return <ManufacturerDashboard products={products} user={user} />;
+      case UserRoles.SERVICE_PROVIDER:
+        return <ServiceProviderDashboard user={user} />;
+      case UserRoles.RECYCLER:
+        return <RecyclerDashboard products={products} user={user} />;
+      case UserRoles.DEVELOPER:
+        return <DeveloperDashboard user={user} />;
       default:
         return <SupplierDashboard initialProducts={products} user={user} />;
     }
