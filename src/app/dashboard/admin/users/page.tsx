@@ -1,7 +1,6 @@
 // src/app/dashboard/admin/users/page.tsx
 import { redirect } from 'next/navigation';
-import { getUsers } from '@/lib/actions';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser, hasRole, getUsers } from '@/lib/auth';
 import UserManagementClient from '@/components/user-management-client';
 import { UserRoles } from '@/lib/constants';
 

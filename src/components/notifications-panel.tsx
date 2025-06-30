@@ -1,7 +1,7 @@
-
 // src/components/notifications-panel.tsx
 
-import { getAuditLogs, getUsers, getProducts } from '@/lib/actions';
+import { getAuditLogs, getProducts } from '@/lib/actions';
+import { getUsers } from '@/lib/auth';
 import NotificationsClient from './notifications-client';
 import type { User } from '@/types';
 
