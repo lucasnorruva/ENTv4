@@ -22,6 +22,10 @@ export async function getProducts(): Promise<Product[]> {
   return Promise.resolve(mockProducts);
 }
 
+export async function getProductById(id: string): Promise<Product | undefined> {
+  return Promise.resolve(mockProducts.find((p) => p.id === id));
+}
+
 export async function saveProduct(
   data: Omit<
     Product,
