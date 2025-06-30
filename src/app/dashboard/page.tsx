@@ -6,6 +6,7 @@ import AdminDashboard from "@/components/dashboards/admin-dashboard";
 import SupplierDashboard from "@/components/dashboards/supplier-dashboard";
 import AuditorDashboard from "@/components/dashboards/auditor-dashboard";
 import ComplianceManagerDashboard from "@/components/dashboards/compliance-manager-dashboard";
+import BusinessAnalystDashboard from "@/components/dashboards/business-analyst-dashboard";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,8 @@ export default async function DashboardPage({
             user={user}
           />
         );
+      case UserRoles.BUSINESS_ANALYST:
+        return <BusinessAnalystDashboard products={products} user={user} />;
       // Other role dashboards will be added later
       default:
         return <SupplierDashboard initialProducts={products} user={user} />;
