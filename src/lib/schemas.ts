@@ -1,6 +1,5 @@
 // src/lib/schemas.ts
 import { z } from 'zod';
-import { UserRoles } from './constants';
 
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
@@ -48,7 +47,7 @@ export const userFormSchema = z.object({
   fullName: z.string().min(2, 'Full name is required.'),
   email: z.string().email('Invalid email address.'),
   companyId: z.string().min(1, 'Company ID is required.'),
-  role: z.nativeEnum(UserRoles),
+  role: z.string().min(1, 'Role is required.'),
 });
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
