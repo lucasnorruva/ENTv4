@@ -4,31 +4,17 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
-// Attempt to parse the full config from environment variables
-let firebaseConfig: { projectId?: string } = {};
-const firebaseConfigString = process.env.NEXT_PUBLIC_FIREBASE_CONFIG;
+// This is the client-side configuration for your Firebase project.
+// It's used by the browser part of your application.
+const firebaseConfig = {
+  apiKey: "AIzaSyDOMz6BLB7pxOO1vnEIjNpcrAseTllmL_c",
+  authDomain: "passportflow.firebaseapp.com",
+  projectId: "passportflow",
+  storageBucket: "passportflow.firebasestorage.app",
+  messagingSenderId: "518086621909",
+  appId: "1:518086621909:web:2028fe5fd0d0447647405c"
+};
 
-if (firebaseConfigString) {
-  try {
-    firebaseConfig = JSON.parse(firebaseConfigString);
-  } catch (e) {
-    console.error(
-      "Could not parse NEXT_PUBLIC_FIREBASE_CONFIG. It's not a valid JSON string.",
-    );
-    firebaseConfig = {}; // Reset on parse error
-  }
-}
-
-// If the config from environment is missing a projectId, or if there was no config,
-// provide a default. This is a robust way to ensure the app works in a dev environment.
-if (!firebaseConfig.projectId) {
-  console.warn(
-    "Firebase projectId not found. Using default projectId 'norruva-studio'.",
-  );
-  firebaseConfig.projectId = "norruva-studio";
-}
-
-// Add a log to confirm which project we're connecting to.
 console.log(
   `✅ Initializing connection to Firebase project: "${firebaseConfig.projectId}"`,
 );

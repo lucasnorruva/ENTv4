@@ -1,3 +1,4 @@
+
 // scripts/seed.ts
 import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top
@@ -6,10 +7,13 @@ import * as admin from 'firebase-admin';
 import { products as mockProducts } from '../src/lib/data';
 import { Collections } from '../src/lib/constants';
 
-// Initialize Firebase Admin SDK
+// This script uses the Firebase Admin SDK, which requires a service account
+// for privileged access. It does NOT use the client-side config from firebase.ts.
 if (!admin.apps.length) {
   try {
     console.log('Initializing Firebase Admin SDK...');
+    // initializeApp() will automatically use the GOOGLE_APPLICATION_CREDENTIALS
+    // environment variable pointing to your service-account.json file.
     admin.initializeApp();
     console.log('Firebase Admin SDK initialized successfully.');
   } catch (error: any) {
@@ -22,7 +26,6 @@ if (!admin.apps.length) {
     console.error(
       'You can generate a new key from your Firebase project settings under "Service accounts".',
     );
-    // Re-throw the original error to stop the script execution
     process.exit(1);
   }
 }
