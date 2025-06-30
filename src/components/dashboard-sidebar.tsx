@@ -2,7 +2,7 @@
 // src/components/dashboard-sidebar.tsx
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   LayoutGrid,
   BookCopy,
@@ -241,7 +241,7 @@ const navConfig: Record<Role, NavConfig> = {
         {
           title: "API Documentation",
           icon: FileCode,
-          href: "/docs",
+          href: "/docs/api",
           external: true,
         },
       ],
@@ -302,6 +302,7 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
 
@@ -319,10 +320,13 @@ export default function DashboardSidebar({
   };
 
   const handleNavigate = (href: string, external?: boolean) => {
+    const role = searchParams.get("role");
+    const targetUrl = role ? `${href}?role=${role}` : href;
+
     if (external) {
-      window.open(href, "_blank");
+      window.open(targetUrl, "_blank");
     } else {
-      router.push(href);
+      router.push(targetUrl);
     }
   };
 
