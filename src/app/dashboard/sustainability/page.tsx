@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import SustainabilityByCategoryChart from "@/components/charts/sustainability-by-category-chart";
-import ProductTable from "@/components/product-table";
+import SustainabilityTable from "@/components/sustainability-table";
 import { BarChart3 } from "lucide-react";
 
 export default async function SustainabilityPage() {
@@ -94,17 +94,11 @@ export default async function SustainabilityPage() {
         <CardHeader>
           <CardTitle>Product ESG Details</CardTitle>
           <CardDescription>
-            View and sort individual products by their ESG score.
+            View and sort individual products by their ESG score and sub-scores.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductTable
-            products={products}
-            onEdit={() => {}}
-            onDelete={() => {}}
-            onSubmitForReview={() => {}}
-            onRecalculateScore={() => {}}
-          />
+          <SustainabilityTable products={scoredProducts} />
         </CardContent>
       </Card>
     </div>
