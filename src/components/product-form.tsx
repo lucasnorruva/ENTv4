@@ -6,7 +6,9 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
 import Image from 'next/image';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
+import { storage } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -44,6 +46,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import type { Product, User } from '@/types';
 import { saveProduct, runSuggestImprovements } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
@@ -72,6 +75,12 @@ export default function ProductForm({
     useState<SuggestImprovementsOutput | null>(null);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const { toast } = useToast();
+
+  // New state for image handling
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -113,12 +122,21 @@ export default function ProductForm({
     name: 'certifications',
   });
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       form.reset(
         product
           ? {
               ...product,
+              productImage: product.productImage ?? '',
               manufacturing: product.manufacturing || {
                 facility: '',
                 country: '',
@@ -128,7 +146,7 @@ export default function ProductForm({
           : {
               productName: '',
               productDescription: '',
-              productImage: undefined,
+              productImage: '',
               category: 'Electronics',
               supplier: '',
               status: 'Draft',
@@ -138,16 +156,63 @@ export default function ProductForm({
               packaging: { type: '', recyclable: false },
             },
       );
+      setImageFile(null);
+      setImagePreview(product?.productImage ?? null);
+      setUploadProgress(0);
+      setIsUploading(false);
     }
   }, [product, isOpen, form]);
 
   const onSubmit = (values: ProductFormValues) => {
     startSavingTransition(async () => {
+      let imageUrl = product?.productImage;
+
+      if (imageFile) {
+        setIsUploading(true);
+        setUploadProgress(0);
+        const storageRef = ref(
+          storage,
+          `products/${user.id}/${Date.now()}-${imageFile.name}`,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+        try {
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+              },
+              error => {
+                setIsUploading(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploading(false);
+                resolve(downloadURL);
+              },
+            );
+          });
+        } catch (error) {
+          toast({
+            title: 'Image Upload Failed',
+            description:
+              'There was an error uploading your image. Please try again.',
+            variant: 'destructive',
+          });
+          return; // Stop submission if upload fails
+        }
+      }
+
       try {
         const productData = {
           ...values,
-          productImage:
-            product?.productImage ?? 'https://placehold.co/100x100.png',
+          productImage: imageUrl ?? 'https://placehold.co/100x100.png',
         };
 
         const saved = await saveProduct(productData, user.id, product?.id);
@@ -253,30 +318,40 @@ export default function ProductForm({
                 <FormField
                   control={form.control}
                   name="productImage"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Product Image</FormLabel>
-                      {product?.productImage && (
+                      {imagePreview && (
                         <div className="mb-2">
                           <Image
-                            src={product.productImage}
-                            alt="Current product image"
+                            src={imagePreview}
+                            alt="Product image preview"
                             width={100}
                             height={100}
                             className="rounded-md object-cover"
+                            data-ai-hint="product photo"
                           />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Image handling will be improved in a future task.
-                          </p>
                         </div>
                       )}
                       <FormControl>
                         <Input
                           type="file"
                           accept="image/*"
-                          disabled // Disabled until image upload is implemented
+                          onChange={handleImageChange}
+                          disabled={isUploading || isSaving}
                         />
                       </FormControl>
+                      {isUploading && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <Progress
+                            value={uploadProgress}
+                            className="w-full h-2"
+                          />
+                          <span className="text-xs text-muted-foreground">
+                            {Math.round(uploadProgress)}%
+                          </span>
+                        </div>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
@@ -614,7 +689,7 @@ export default function ProductForm({
                   type="button"
                   variant="outline"
                   onClick={handleGetSuggestions}
-                  disabled={isSuggesting}
+                  disabled={isSuggesting || isSaving || isUploading}
                 >
                   {isSuggesting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -625,15 +700,23 @@ export default function ProductForm({
                 </Button>
                 <div className="flex-grow" />
                 <SheetClose asChild>
-                  <Button type="button" variant="outline">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={isSaving || isUploading}
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving && (
+                <Button type="submit" disabled={isSaving || isUploading}>
+                  {(isSaving || isUploading) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {isSaving ? 'Saving...' : 'Save Passport'}
+                  {isUploading
+                    ? 'Uploading...'
+                    : isSaving
+                      ? 'Saving...'
+                      : 'Save Passport'}
                 </Button>
               </div>
             </form>
