@@ -3,9 +3,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { randomBytes } from 'crypto';
-import * as admin from 'firebase-admin';
-import { adminDb } from './firebase-admin';
-import { Collections, UserRoles } from './constants';
+import { products as mockProducts } from './data';
+import { compliancePaths as mockCompliancePaths } from './compliance-data';
+import { users as mockUsers } from './user-data';
+import { auditLogs as mockAuditLogs } from './audit-log-data';
+import { apiKeys as mockApiKeys } from './api-key-data';
+import { productionLines as mockProductionLines } from './manufacturing-data';
+import { serviceTickets as mockServiceTickets } from './service-ticket-data';
+import { apiSettings as mockApiSettings } from './api-settings-data';
 import {
   productFormSchema,
   type ProductFormValues,
@@ -28,7 +33,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { verifyProductAgainstPath } from '@/services/compliance';
-import { getUserById, getCompanyById, hasRole } from './auth';
+import { getUserById, getCompanyById, hasRole, getUsers as getAuthUsers } from './auth';
 
 import type {
   Product,
@@ -43,100 +48,25 @@ import type {
   ApiSettings,
 } from '@/types';
 import type { AiProduct } from '@/ai/schemas';
-
-// --- DATA CONVERSION HELPERS ---
-
-const docToProduct = (
-  doc: FirebaseFirestore.DocumentSnapshot,
-): Product => {
-  const data = doc.data() as any;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: data.createdAt?.toDate().toISOString(),
-    updatedAt: data.updatedAt?.toDate().toISOString(),
-    lastUpdated: data.lastUpdated?.toDate().toISOString(),
-    lastVerificationDate: data.lastVerificationDate?.toDate().toISOString(),
-  };
-};
-
-const docToAuditLog = (
-  doc: FirebaseFirestore.DocumentSnapshot,
-): AuditLog => {
-  const data = doc.data() as any;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: data.createdAt?.toDate().toISOString(),
-    updatedAt: data.updatedAt?.toDate().toISOString(),
-  };
-};
-
-const docToCompliancePath = (
-  doc: FirebaseFirestore.DocumentSnapshot,
-): CompliancePath => {
-  const data = doc.data() as any;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: data.createdAt?.toDate().toISOString(),
-    updatedAt: data.updatedAt?.toDate().toISOString(),
-  };
-};
-
-const docToApiKey = (doc: FirebaseFirestore.DocumentSnapshot): ApiKey => {
-  const data = doc.data() as any;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: data.createdAt?.toDate().toISOString(),
-    updatedAt: data.updatedAt?.toDate().toISOString(),
-    lastUsed: data.lastUsed?.toDate().toISOString(),
-  };
-};
-
-// --- OWNERSHIP & PERMISSION HELPERS ---
-
-const checkProductOwnership = async (productId: string, userId: string) => {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found.');
-
-  if (
-    hasRole(user, UserRoles.ADMIN) ||
-    hasRole(user, UserRoles.AUDITOR) ||
-    hasRole(user, UserRoles.RECYCLER)
-  ) {
-    return true; // Admins, Auditors, and Recyclers can access any product
-  }
-
-  const productDoc = await adminDb
-    .collection(Collections.PRODUCTS)
-    .doc(productId)
-    .get();
-  if (!productDoc.exists) throw new Error('Product not found.');
-  if (productDoc.data()?.companyId !== user.companyId) {
-    throw new Error('Access denied. User does not own this product.');
-  }
-  return true;
-};
+import { UserRoles } from './constants';
 
 // --- AUDIT LOGGING ---
-
 export async function logAuditEvent(
   action: string,
   entityId: string,
   details: Record<string, any>,
   userId: string = 'system',
 ) {
-  const logEntry = {
+  const newLog: AuditLog = {
+    id: `log-${randomBytes(4).toString('hex')}`,
     userId,
     action,
     entityId,
     details,
-    createdAt: admin.firestore.Timestamp.now(),
-    updatedAt: admin.firestore.Timestamp.now(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
-  await adminDb.collection(Collections.AUDIT_LOGS).add(logEntry);
+  mockAuditLogs.unshift(newLog);
   revalidatePath('/dashboard/analytics');
   revalidatePath('/dashboard/history');
   revalidatePath('/dashboard/logs');
@@ -172,14 +102,8 @@ const runAllAiFlows = async (
 };
 
 // --- PRODUCT ACTIONS ---
-
 export async function getProducts(userId?: string): Promise<Product[]> {
   const user = userId ? await getUserById(userId) : null;
-
-  let query: FirebaseFirestore.Query = adminDb
-    .collection(Collections.PRODUCTS)
-    .orderBy('createdAt', 'desc');
-
   if (
     user &&
     !hasRole(user, UserRoles.ADMIN) &&
@@ -187,23 +111,18 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     !hasRole(user, UserRoles.BUSINESS_ANALYST) &&
     !hasRole(user, UserRoles.RECYCLER)
   ) {
-    query = query.where('companyId', '==', user.companyId);
+    return mockProducts.filter(p => p.companyId === user.companyId);
   }
-
-  const snapshot = await query.get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToProduct);
+  return mockProducts;
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const doc = await adminDb.collection(Collections.PRODUCTS).doc(id).get();
-  if (!doc.exists) return undefined;
-
-  const product = docToProduct(doc);
-
+  const product = mockProducts.find(p => p.id === id);
+  if (!product) return undefined;
+  // If a userId is provided, we do an ownership check
   if (userId) {
     const user = await getUserById(userId);
     if (
@@ -215,13 +134,13 @@ export async function getProductById(
     ) {
       return product;
     }
+    // if user doesn't have access, return undefined
     return undefined;
   }
-
+  // If no user, it's a public request, only return published products
   if (product.status === 'Published') {
     return product;
   }
-
   return undefined;
 }
 
@@ -231,12 +150,11 @@ export async function saveProduct(
   productId?: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user) throw new Error('User not found for saving product.');
+  if (!user) throw new Error('User not found');
   const company = await getCompanyById(user.companyId);
-  if (!company) throw new Error('Company not found for user.');
+  if (!company) throw new Error('Company not found');
 
   const validatedData = productFormSchema.parse(productData);
-  const now = admin.firestore.Timestamp.now();
 
   const aiProductInput: AiProduct = { ...validatedData, supplier: company.name };
   const { sustainability, qrLabelText } = await runAllAiFlows(aiProductInput);
@@ -259,14 +177,13 @@ export async function saveProduct(
     supplier: company.name,
     sustainability,
     qrLabelText,
-    updatedAt: now,
-    lastUpdated: now,
+    lastUpdated: new Date().toISOString(),
   };
 
   if (productId) {
-    await checkProductOwnership(productId, userId);
-    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-    await docRef.update(dataToSave);
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found');
+    mockProducts[productIndex] = { ...mockProducts[productIndex], ...dataToSave };
     await logAuditEvent(
       'product.updated',
       productId,
@@ -275,27 +192,26 @@ export async function saveProduct(
     );
     revalidatePath('/dashboard/products');
     revalidatePath(`/products/${productId}`);
-    const updatedDoc = await docRef.get();
-    return docToProduct(updatedDoc);
+    return mockProducts[productIndex];
   } else {
-    const docRef = adminDb.collection(Collections.PRODUCTS).doc();
-    const newProductData = {
+    const newProduct: Product = {
       ...dataToSave,
-      id: docRef.id,
+      id: `pp-${randomBytes(4).toString('hex')}`,
       companyId: user.companyId,
       verificationStatus: 'Not Submitted',
       endOfLifeStatus: 'Active',
-      createdAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    await docRef.set(newProductData);
+    mockProducts.unshift(newProduct);
     await logAuditEvent(
       'product.created',
-      docRef.id,
-      { productName: newProductData.productName },
+      newProduct.id,
+      { productName: newProduct.productName },
       userId,
     );
     revalidatePath('/dashboard/products');
-    return docToProduct(await docRef.get());
+    return newProduct;
   }
 }
 
@@ -303,17 +219,15 @@ export async function deleteProduct(
   id: string,
   userId: string,
 ): Promise<{ success: boolean }> {
-  await checkProductOwnership(id, userId);
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(id);
-  const doc = await docRef.get();
-  if (doc.exists) {
+  const productIndex = mockProducts.findIndex(p => p.id === id);
+  if (productIndex > -1) {
     await logAuditEvent(
       'product.deleted',
       id,
-      { productName: doc.data()?.productName },
+      { productName: mockProducts[productIndex].productName },
       userId,
     );
-    await docRef.delete();
+    mockProducts.splice(productIndex, 1);
   }
   revalidatePath('/dashboard/products');
   return { success: true };
@@ -323,12 +237,10 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    verificationStatus: 'Pending',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  mockProducts[productIndex].verificationStatus = 'Pending';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
   await logAuditEvent(
     'passport.submitted',
     productId,
@@ -338,16 +250,16 @@ export async function submitForReview(
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/audit');
   revalidatePath(`/products/${productId}`);
-  return docToProduct(await docRef.get());
+  return mockProducts[productIndex];
 }
 
 export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = mockProducts[productIndex];
 
   const compliancePath = product.compliancePathId
     ? await getCompliancePathById(product.compliancePathId)
@@ -360,6 +272,7 @@ export async function approvePassport(
     product,
     compliancePath,
   );
+
   if (!isCompliant) {
     const summary = `Product failed final verification with ${gaps.length} issue(s).`;
     await rejectPassport(product.id, summary, gaps, 'system:gatekeeper');
@@ -376,14 +289,11 @@ export async function approvePassport(
     generateEbsiCredential(productId),
   ]);
 
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    verificationStatus: 'Verified',
-    lastVerificationDate: admin.firestore.Timestamp.now(),
-    updatedAt: admin.firestore.Timestamp.now(),
-    blockchainProof,
-    ebsiVcId,
-  });
+  product.verificationStatus = 'Verified';
+  product.lastVerificationDate = new Date().toISOString();
+  product.updatedAt = new Date().toISOString();
+  product.blockchainProof = blockchainProof;
+  product.ebsiVcId = ebsiVcId;
 
   await logAuditEvent(
     'passport.approved',
@@ -394,7 +304,7 @@ export async function approvePassport(
   revalidatePath('/dashboard/audit');
   revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
-  return docToProduct(await docRef.get());
+  return product;
 }
 
 export async function rejectPassport(
@@ -403,21 +313,19 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.set(
-    {
-      verificationStatus: 'Failed',
-      lastVerificationDate: admin.firestore.Timestamp.now(),
-      updatedAt: admin.firestore.Timestamp.now(),
-      sustainability: {
-        isCompliant: false,
-        complianceSummary: summary,
-        gaps,
-      },
-    },
-    { merge: true },
-  );
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = mockProducts[productIndex];
+
+  product.verificationStatus = 'Failed';
+  product.lastVerificationDate = new Date().toISOString();
+  product.updatedAt = new Date().toISOString();
+  if (!product.sustainability) {
+    product.sustainability = {} as SustainabilityData;
+  }
+  product.sustainability.isCompliant = false;
+  product.sustainability.complianceSummary = summary;
+  product.sustainability.gaps = gaps;
 
   await logAuditEvent(
     'passport.rejected',
@@ -429,7 +337,7 @@ export async function rejectPassport(
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/flagged');
   revalidatePath(`/products/${productId}`);
-  return docToProduct(await docRef.get());
+  return product;
 }
 
 export async function runSuggestImprovements(
@@ -446,18 +354,15 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
   const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found or access denied.');
+  if (!product) throw new Error('Product not found');
 
   const { sustainability, qrLabelText } = await runAllAiFlows(product);
 
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    sustainability,
-    qrLabelText,
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  mockProducts[productIndex].sustainability = sustainability;
+  mockProducts[productIndex].qrLabelText = qrLabelText;
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent(
     'product.recalculate_score',
@@ -467,64 +372,43 @@ export async function recalculateScore(
   );
   revalidatePath('/dashboard/products');
   revalidatePath(`/products/${productId}`);
-  return docToProduct(await docRef.get());
+  return mockProducts[productIndex];
 }
 
 export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    endOfLifeStatus: 'Recycled',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  mockProducts[productIndex].endOfLifeStatus = 'Recycled';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
+
   await logAuditEvent('product.recycled', productId, {}, userId);
   revalidatePath('/dashboard/eol');
   revalidatePath(`/products/${productId}`);
-  return docToProduct(await docRef.get());
+  return mockProducts[productIndex];
 }
 
 // --- AUDIT LOG ACTIONS ---
-
 export async function getAuditLogs(): Promise<AuditLog[]> {
-  const snapshot = await adminDb
-    .collection(Collections.AUDIT_LOGS)
-    .orderBy('createdAt', 'desc')
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToAuditLog);
+  return mockAuditLogs;
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-  const snapshot = await adminDb
-    .collection(Collections.AUDIT_LOGS)
-    .where('userId', '==', userId)
-    .orderBy('createdAt', 'desc')
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToAuditLog);
+  return mockAuditLogs.filter(log => log.userId === userId);
 }
 
 // --- COMPLIANCE PATH ACTIONS ---
-
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  const snapshot = await adminDb
-    .collection(Collections.COMPLIANCE_PATHS)
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToCompliancePath);
+  return mockCompliancePaths;
 }
 
 export async function getCompliancePathById(
   id: string,
 ): Promise<CompliancePath | null> {
-  const doc = await adminDb
-    .collection(Collections.COMPLIANCE_PATHS)
-    .doc(id)
-    .get();
-  return doc.exists ? docToCompliancePath(doc) : null;
+  return mockCompliancePaths.find(p => p.id === id) || null;
 }
 
 export async function saveCompliancePath(
@@ -533,7 +417,7 @@ export async function saveCompliancePath(
   pathId?: string,
 ): Promise<CompliancePath> {
   const validatedData = compliancePathFormSchema.parse(pathData);
-  const now = admin.firestore.Timestamp.now();
+  const now = new Date().toISOString();
 
   const dataToSave = {
     name: validatedData.name,
@@ -546,22 +430,22 @@ export async function saveCompliancePath(
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
       requiredKeywords:
-        validatedData.requiredKeywords
-          ?.split(',')
-          .map(s => s.trim())
-          .filter(Boolean) || [],
+        validatedData.requiredKeywords?.split(',').map(s => s.trim()).filter(Boolean) ||
+        [],
       bannedKeywords:
-        validatedData.bannedKeywords
-          ?.split(',')
-          .map(s => s.trim())
-          .filter(Boolean) || [],
+        validatedData.bannedKeywords?.split(',').map(s => s.trim()).filter(Boolean) ||
+        [],
     },
     updatedAt: now,
   };
 
   if (pathId) {
-    const docRef = adminDb.collection(Collections.COMPLIANCE_PATHS).doc(pathId);
-    await docRef.update(dataToSave);
+    const pathIndex = mockCompliancePaths.findIndex(p => p.id === pathId);
+    if (pathIndex === -1) throw new Error('Compliance path not found');
+    mockCompliancePaths[pathIndex] = {
+      ...mockCompliancePaths[pathIndex],
+      ...dataToSave,
+    };
     await logAuditEvent(
       'compliance_path.updated',
       pathId,
@@ -569,30 +453,28 @@ export async function saveCompliancePath(
       userId,
     );
     revalidatePath('/dashboard/compliance');
-    return docToCompliancePath(await docRef.get());
+    return mockCompliancePaths[pathIndex];
   } else {
-    const docRef = adminDb.collection(Collections.COMPLIANCE_PATHS).doc();
-    const newPath = {
+    const newPath: CompliancePath = {
       ...dataToSave,
-      id: docRef.id,
+      id: `cp-${randomBytes(4).toString('hex')}`,
       createdAt: now,
     };
-    await docRef.set(newPath);
+    mockCompliancePaths.unshift(newPath);
     await logAuditEvent(
       'compliance_path.created',
-      docRef.id,
+      newPath.id,
       { name: newPath.name },
       userId,
     );
     revalidatePath('/dashboard/compliance');
-    return docToCompliancePath(await docRef.get());
+    return newPath;
   }
 }
 
 // --- USER ACTIONS ---
-
 export async function getUsers(): Promise<User[]> {
-  return await require('./auth').getUsers();
+  return getAuthUsers();
 }
 
 export async function saveUser(
@@ -601,7 +483,7 @@ export async function saveUser(
   userId?: string,
 ): Promise<User> {
   const validatedData = userFormSchema.parse(userData);
-  const now = admin.firestore.Timestamp.now();
+  const now = new Date().toISOString();
   const dataToSave = {
     fullName: validatedData.fullName,
     email: validatedData.email,
@@ -611,8 +493,9 @@ export async function saveUser(
   };
 
   if (userId) {
-    const docRef = adminDb.collection(Collections.USERS).doc(userId);
-    await docRef.update(dataToSave);
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    if (userIndex === -1) throw new Error('User not found');
+    mockUsers[userIndex] = { ...mockUsers[userIndex], ...dataToSave };
     await logAuditEvent(
       'user.updated',
       userId,
@@ -620,23 +503,22 @@ export async function saveUser(
       adminUserId,
     );
     revalidatePath('/dashboard/users');
-    return (await getUserById(userId))!;
+    return mockUsers[userIndex];
   } else {
-    const docRef = adminDb.collection(Collections.USERS).doc();
-    const newUser = {
+    const newUser: User = {
       ...dataToSave,
-      id: docRef.id,
+      id: `user-${randomBytes(4).toString('hex')}`,
       createdAt: now,
     };
-    await docRef.set(newUser);
+    mockUsers.push(newUser);
     await logAuditEvent(
       'user.created',
-      docRef.id,
+      newUser.id,
       { email: newUser.email },
       adminUserId,
     );
     revalidatePath('/dashboard/users');
-    return (await getUserById(docRef.id))!;
+    return newUser;
   }
 }
 
@@ -644,36 +526,33 @@ export async function deleteUser(
   userId: string,
   adminUserId: string,
 ): Promise<{ success: boolean }> {
-  const docRef = adminDb.collection(Collections.USERS).doc(userId);
-  const doc = await docRef.get();
-  if (doc.exists) {
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex > -1) {
     await logAuditEvent(
       'user.deleted',
       userId,
-      { email: doc.data()?.email },
+      { email: mockUsers[userIndex].email },
       adminUserId,
     );
-    await docRef.delete();
+    mockUsers.splice(userIndex, 1);
   }
   revalidatePath('/dashboard/users');
   return { success: true };
 }
 
 // --- SETTINGS ACTIONS ---
-
 export async function updateUserProfile(
   userId: string,
   fullName: string,
 ): Promise<User> {
-  const docRef = adminDb.collection(Collections.USERS).doc(userId);
-  await docRef.update({
-    fullName,
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex === -1) throw new Error('User not found');
+  mockUsers[userIndex].fullName = fullName;
+  mockUsers[userIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('user.profile.updated', userId, { fullName }, userId);
   revalidatePath('/dashboard/settings');
   revalidatePath('/dashboard/layout');
-  return (await getUserById(userId))!;
+  return mockUsers[userIndex];
 }
 
 export async function updateUserPassword(
@@ -702,99 +581,69 @@ export async function saveNotificationPreferences(
 }
 
 // --- API KEY ACTIONS ---
-
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
-  const snapshot = await adminDb
-    .collection(Collections.API_KEYS)
-    .where('userId', '==', userId)
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToApiKey);
+  return mockApiKeys.filter(key => key.userId === userId);
 }
 
 export async function createApiKey(
   label: string,
   userId: string,
 ): Promise<{ rawToken: string; apiKey: ApiKey }> {
-  const now = admin.firestore.Timestamp.now();
   const rawToken = `nor_live_${randomBytes(16).toString('hex')}`;
-  const storedToken = `${rawToken.slice(0, 10)}******************${rawToken.slice(-4)}`;
-
-  const newApiKeyData = {
+  const newApiKey: ApiKey = {
+    id: `key-${randomBytes(4).toString('hex')}`,
     label,
-    token: storedToken,
-    status: 'Active' as const,
+    token: `nor_prod_******************${rawToken.slice(-4)}`,
+    status: 'Active',
     userId,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
-
-  const docRef = await adminDb
-    .collection(Collections.API_KEYS)
-    .add(newApiKeyData);
-  await logAuditEvent('api_key.created', docRef.id, { label }, userId);
+  mockApiKeys.unshift(newApiKey);
+  await logAuditEvent('api_key.created', newApiKey.id, { label }, userId);
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
-
-  const apiKey = docToApiKey(await docRef.get());
-  return { rawToken, apiKey };
+  return { rawToken, apiKey: newApiKey };
 }
 
 export async function revokeApiKey(id: string, userId: string): Promise<ApiKey> {
-  const docRef = adminDb.collection(Collections.API_KEYS).doc(id);
-  const doc = await docRef.get();
-  if (!doc.exists || doc.data()?.userId !== userId) {
-    throw new Error('API Key not found or access denied.');
-  }
-  await docRef.update({
-    status: 'Revoked',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const keyIndex = mockApiKeys.findIndex(k => k.id === id);
+  if (keyIndex === -1) throw new Error('API Key not found');
+  mockApiKeys[keyIndex].status = 'Revoked';
+  mockApiKeys[keyIndex].updatedAt = new Date().toISOString();
   await logAuditEvent(
     'api_key.revoked',
     id,
-    { label: doc.data()?.label },
+    { label: mockApiKeys[keyIndex].label },
     userId,
   );
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
-  return docToApiKey(await docRef.get());
+  return mockApiKeys[keyIndex];
 }
 
 export async function deleteApiKey(
   id: string,
   userId: string,
 ): Promise<{ success: true }> {
-  const docRef = adminDb.collection(Collections.API_KEYS).doc(id);
-  const doc = await docRef.get();
-  if (!doc.exists || doc.data()?.userId !== userId) {
-    throw new Error('API Key not found or access denied.');
+  const keyIndex = mockApiKeys.findIndex(k => k.id === id);
+  if (keyIndex > -1) {
+    await logAuditEvent(
+      'api_key.deleted',
+      id,
+      { label: mockApiKeys[keyIndex].label },
+      userId,
+    );
+    mockApiKeys.splice(keyIndex, 1);
   }
-  await logAuditEvent(
-    'api_key.deleted',
-    id,
-    { label: doc.data()?.label },
-    userId,
-  );
-  await docRef.delete();
   revalidatePath('/dashboard/keys');
   revalidatePath('/dashboard');
   return { success: true };
 }
 
 // --- API SETTINGS ACTIONS ---
-
 export async function getApiSettings(): Promise<ApiSettings> {
-  const doc = await adminDb.collection(Collections.API_SETTINGS).doc('global').get();
-  if (!doc.exists) {
-    // Return a default if not set
-    return {
-      isPublicApiEnabled: true,
-      rateLimitPerMinute: 100,
-      isWebhookSigningEnabled: true,
-    };
-  }
-  return doc.data() as ApiSettings;
+  return mockApiSettings;
 }
 
 export async function saveApiSettings(
@@ -802,10 +651,9 @@ export async function saveApiSettings(
   adminUserId: string,
 ): Promise<ApiSettings> {
   const validatedData = apiSettingsSchema.parse(settings);
-  await adminDb
-    .collection(Collections.API_SETTINGS)
-    .doc('global')
-    .set(validatedData, { merge: true });
+  mockApiSettings.isPublicApiEnabled = validatedData.isPublicApiEnabled;
+  mockApiSettings.rateLimitPerMinute = validatedData.rateLimitPerMinute;
+  mockApiSettings.isWebhookSigningEnabled = validatedData.isWebhookSigningEnabled;
   await logAuditEvent(
     'settings.api.updated',
     'global',
@@ -813,37 +661,26 @@ export async function saveApiSettings(
     adminUserId,
   );
   revalidatePath('/dashboard/api-settings');
-  return validatedData;
+  return mockApiSettings;
 }
 
-// --- OTHER MOCK DATA ACTIONS (now fetching from Firestore) ---
-
+// --- OTHER MOCK DATA ACTIONS ---
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  const doc = await adminDb
-    .collection(Collections.COMPANIES)
-    .doc('mock-manufacturing-data')
-    .get();
-  return doc.exists ? (doc.data()?.productionLines as ProductionLine[]) : [];
+  return mockProductionLines;
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  const doc = await adminDb
-    .collection(Collections.COMPANIES)
-    .doc('mock-service-ticket-data')
-    .get();
-  return doc.exists ? (doc.data()?.serviceTickets as ServiceTicket[]) : [];
+  return mockServiceTickets;
 }
 
 export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  await checkProductOwnership(productId, userId);
-  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
-  await docRef.update({
-    verificationStatus: 'Draft',
-    updatedAt: admin.firestore.Timestamp.now(),
-  });
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  mockProducts[productIndex].verificationStatus = 'Draft';
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
   await logAuditEvent(
     'compliance.resolved',
     productId,
@@ -852,5 +689,5 @@ export async function resolveComplianceIssue(
   );
   revalidatePath('/dashboard/flagged');
   revalidatePath('/dashboard/products');
-  return docToProduct(await docRef.get());
+  return mockProducts[productIndex];
 }
