@@ -25,7 +25,6 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: Role[];
-  readNotificationIds?: string[];
 }
 
 /**
@@ -93,13 +92,12 @@ export interface Product extends BaseEntity {
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
-  manualUrl?: string;
 
   // Structured Data Fields
   materials: Material[];
-  manufacturing: Manufacturing;
-  certifications: Certification[];
-  packaging: Packaging;
+  manufacturing?: Manufacturing;
+  certifications?: Certification[];
+  packaging?: Packaging;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -109,7 +107,6 @@ export interface Product extends BaseEntity {
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
-  endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: {
     txHash: string;
     explorerUrl: string;
@@ -131,56 +128,4 @@ export interface CompliancePath extends BaseEntity {
     requiredKeywords?: string[];
     bannedKeywords?: string[];
   };
-}
-
-/**
- * Represents a single entry in the audit log.
- */
-export interface AuditLog extends BaseEntity {
-  userId: string;
-  action: string;
-  entityId: string;
-  details: Record<string, any>;
-}
-
-/**
-* Represents an API Key for programmatic access.
-*/
-export interface ApiKey extends BaseEntity {
-  label: string;
-  token: string; // This would store a truncated/masked version
-  status: 'Active' | 'Revoked';
-  userId: string;
-  lastUsed?: string;
-}
-
-/**
-* Global API settings for the platform.
-*/
-export interface ApiSettings {
-  isPublicApiEnabled: boolean;
-  rateLimitPerMinute: number;
-  isWebhookSigningEnabled: boolean;
-}
-
-/**
- * Represents a manufacturing production line.
- */
-export interface ProductionLine extends BaseEntity {
-    name: string;
-    location: string;
-    status: 'Active' | 'Idle' | 'Maintenance';
-    outputPerHour: number;
-    currentProduct: string;
-    lastMaintenance: string;
-}
-
-/**
- * Represents a customer service ticket.
- */
-export interface ServiceTicket extends BaseEntity {
-    productId: string;
-    customerName: string;
-    issue: string;
-    status: 'Open' | 'In Progress' | 'Closed';
 }

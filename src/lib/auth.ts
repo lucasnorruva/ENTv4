@@ -52,33 +52,15 @@ export function hasRole(user: User, role: Role): boolean {
 /**
  * Simulates fetching the current user based on a role.
  * In a real application, this would involve validating a session token.
- * For this mock, we always return the "Admin User" who has all roles,
- * allowing for easy switching between dashboards for demonstration.
- * The `role` parameter is used by the layout to determine which dashboard UI to show.
+ * For this mock, we find the first user that has the requested role.
  * @param role The role to simulate being logged in as.
  * @returns A mock user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  // For demonstration, always return the primary admin user who has all roles.
-  const adminUser = mockUsers.find(u => u.id === 'user-admin');
-
-  if (!adminUser) {
-    throw new Error(
-      "The primary admin user (id: 'user-admin') was not found in the mock data. Please ensure this user exists.",
-    );
+  const user = mockUsers.find(u => u.roles.includes(role));
+  if (!user) {
+    // Fallback to the first user if no specific role match is found
+    return mockUsers[0];
   }
-
-  // We return the full admin user object, with all their roles intact.
-  // The `role` parameter passed to this function is handled by the
-  // individual dashboard layouts to render the correct UI.
-  return adminUser;
-}
-
-/**
- * Simulates fetching mock users for display purposes in client components.
- * This is different from `getUsers` as it's intended for scenarios
- * where we just need a list of users without authentication context.
- */
-export async function getMockUsers(): Promise<User[]> {
-  return mockUsers;
+  return user;
 }
