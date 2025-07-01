@@ -70,6 +70,7 @@ export const AiProductSchema = z.object({
   compliance: z
     .object({
       rohsCompliant: z.boolean().optional(),
+      rohsExemption: z.string().optional(),
       reachSVHC: z.boolean().optional(),
     })
     .describe('Specific compliance declarations.')

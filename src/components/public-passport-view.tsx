@@ -381,6 +381,9 @@ export default function PublicPassportView({
               <InfoRow icon={ShieldCheck} label="RoHS Compliant">
                 <p className="text-sm text-muted-foreground">
                   {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
+                  {product.compliance?.rohsExemption && (
+                    <span className="ml-2 text-xs">(Exemption: {product.compliance.rohsExemption})</span>
+                  )}
                 </p>
               </InfoRow>
               <InfoRow icon={FileText} label="Certifications">

@@ -183,6 +183,9 @@ export let products: Product[] = [
       country: 'India',
     },
     packaging: { type: 'Compostable Bag', recyclable: true, weight: 10 },
+    lifecycle: {
+      expectedLifespan: 2,
+    },
     certifications: [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade Certified', issuer: 'Fair Trade USA' },
@@ -277,6 +280,10 @@ export let products: Product[] = [
     ],
     manufacturing: { facility: 'EcoHome Workshop', country: 'China' },
     packaging: { type: 'Cardboard Box', recyclable: true, weight: 500 },
+    lifecycle: {
+      repairabilityScore: 9,
+      expectedLifespan: 15,
+    },
     certifications: [{ name: 'FSC Certified', issuer: 'FSC' }],
     compliance: {
       rohsCompliant: true,

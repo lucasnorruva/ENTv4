@@ -887,10 +887,6 @@ export default function ProductForm({
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
                             <FormLabel>RoHS Compliant</FormLabel>
-                            <FormDescription>
-                              This product complies with the Restriction of
-                              Hazardous Substances directive.
-                            </FormDescription>
                           </div>
                           <FormControl>
                             <Switch
@@ -901,6 +897,22 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
+                     <FormField
+                      control={form.control}
+                      name="compliance.rohsExemption"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>RoHS Exemption</FormLabel>
+                          <FormControl>
+                            <Input placeholder="e.g., 6(c)" {...field} />
+                          </FormControl>
+                          <FormDescription>
+                            If applicable, provide the RoHS exemption details.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="compliance.reachSVHC"
@@ -908,10 +920,6 @@ export default function ProductForm({
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                           <div className="space-y-0.5">
                             <FormLabel>REACH SVHC Declared</FormLabel>
-                            <FormDescription>
-                              Substances of Very High Concern are declared as per
-                              REACH regulation.
-                            </FormDescription>
                           </div>
                           <FormControl>
                             <Switch
