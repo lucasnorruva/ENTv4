@@ -707,6 +707,31 @@ export async function saveNotificationPreferences(userId: string, prefs: any) {
   await new Promise(res => setTimeout(res, 500));
 }
 
+export async function exportProducts(
+  format: 'csv' | 'json',
+): Promise<string> {
+  const products = await getProducts(); // Fetches all products
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+
+  // CSV format
+  if (products.length === 0) return '';
+  const headers = Object.keys(products[0]).join(',');
+  const rows = products.map(product => {
+    return Object.values(product)
+      .map(value => {
+        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
+        if (typeof value === 'object' && value !== null)
+          return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
+        return value;
+      })
+      .join(',');
+  });
+
+  return [headers, ...rows].join('\n');
+}
+
 export async function runSuggestImprovements(
   input: { productName: string, productDescription: string }
 ) {
