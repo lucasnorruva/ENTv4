@@ -33,8 +33,9 @@
       "host": "127.0.0.1"
     },
     "ui": {
-      "enabled": false,
-      "port": 4001
+      "enabled": true,
+      "port": 4001,
+      "host": "127.0.0.1"
     },
     "singleProjectMode": true
   }

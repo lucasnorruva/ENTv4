@@ -15,10 +15,6 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-console.log(
-  `✅ Initializing connection to Firebase project: "${firebaseConfig.projectId}"`,
-);
-
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -28,13 +24,17 @@ const storage = getStorage(app);
 // The `typeof window` check ensures this only runs on the client.
 if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
   try {
-    console.log("Connecting client SDK to Firebase Emulators...");
-    connectFirestoreEmulator(db, "127.0.0.1", 8080);
-    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    connectStorageEmulator(storage, "127.0.0.1", 9199);
-    console.log("Client SDK connected to emulators successfully.");
+    // Use a flag to ensure we only connect once.
+    if (!(window as any).__firebase_emulators_connected) {
+      console.log("✅ Client SDK: Connecting to Firebase Emulators...");
+      connectFirestoreEmulator(db, "127.0.0.1", 8080);
+      connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+      connectStorageEmulator(storage, "127.0.0.1", 9199);
+      console.log("✅ Client SDK: Connected to emulators successfully.");
+      (window as any).__firebase_emulators_connected = true;
+    }
   } catch(e) {
-      console.error("Error connecting client SDK to emulators:", e);
+      console.error("❌ Client SDK: Error connecting to emulators:", e);
   }
 }
 
