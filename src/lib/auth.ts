@@ -67,12 +67,13 @@ export function hasRole(user: User, role: Role): boolean {
 /**
  * Simulates fetching the current user based on a role.
  * In a real application, this would involve validating a session token.
- * For this mock, we find the first user that has the requested role.
+ * This function includes multiple fallbacks to ensure a user is found if the database is seeded.
  * @param role The role to simulate being logged in as.
  * @returns A mock user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  const snapshot = await adminDb
+  // Try to find a user with the specified role
+  let snapshot = await adminDb
     .collection(Collections.USERS)
     .where('roles', 'array-contains', role)
     .limit(1)
@@ -83,17 +84,27 @@ export async function getCurrentUser(role: Role): Promise<User> {
     return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
   }
 
-  // Fallback to the first admin user if no specific role match is found
-  const adminSnapshot = await adminDb
+  // Fallback 1: Try to find an Admin user
+  snapshot = await adminDb
     .collection(Collections.USERS)
     .where('roles', 'array-contains', UserRoles.ADMIN)
     .limit(1)
     .get();
-  
-  if(!adminSnapshot.empty) {
-    const doc = adminSnapshot.docs[0];
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
     return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
   }
-  
-  throw new Error("No suitable user found for the given role and no admin fallback available.");
+
+  // Fallback 2: Try to find ANY user at all.
+  snapshot = await adminDb.collection(Collections.USERS).limit(1).get();
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  }
+
+  throw new Error(
+    "No users found in the database. Please seed the database by running 'npm run seed'.",
+  );
 }
