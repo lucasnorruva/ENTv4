@@ -282,8 +282,7 @@ export async function saveProduct(
   const finalProduct = await getProductById(productRef.id, userId);
   if (!finalProduct) throw new Error('Failed to retrieve saved product');
 
-  revalidatePath('/dashboard/supplier/products');
-  revalidatePath(`/products/${finalProduct.id}`);
+  // No need to revalidate paths as data is now real-time on the client
   return finalProduct;
 }
 
@@ -303,7 +302,7 @@ export async function deleteProduct(
 
   await adminDb.collection(Collections.PRODUCTS).doc(productId).delete();
   await logAuditEvent('product.deleted', productId, {}, userId);
-  revalidatePath('/dashboard/supplier/products');
+  // No need to revalidate paths
 }
 
 export async function submitForReview(
@@ -322,7 +321,6 @@ export async function submitForReview(
     lastUpdated: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('passport.submitted', productId, {}, userId);
-  revalidatePath('/dashboard/supplier/products');
   return (await getProductById(productId, userId))!;
 }
 
@@ -342,7 +340,6 @@ export async function recalculateScore(
     lastUpdated: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
-  revalidatePath('/dashboard/supplier/products');
 }
 
 export async function approvePassport(
@@ -387,9 +384,6 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
-  revalidatePath('/dashboard/auditor/audit');
-  revalidatePath('/dashboard/supplier/products');
-  revalidatePath(`/products/${productId}`);
   return (await getProductById(productId, userId || 'user-admin'))!;
 }
 
@@ -422,9 +416,6 @@ export async function rejectPassport(
     });
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
-  revalidatePath('/dashboard/auditor/audit');
-  revalidatePath('/dashboard/supplier/products');
-  revalidatePath(`/products/${productId}`);
   return (await getProductById(productId, userId || 'user-admin'))!;
 }
 
@@ -451,7 +442,6 @@ export async function markAsRecycled(
       lastUpdated: admin.firestore.Timestamp.now(),
     });
   await logAuditEvent('product.recycled', productId, {}, userId);
-  revalidatePath('/dashboard/recycler/eol');
   return (await getProductById(productId, userId))!;
 }
 
@@ -479,7 +469,6 @@ export async function resolveComplianceIssue(
       lastUpdated: admin.firestore.Timestamp.now(),
     });
   await logAuditEvent('compliance.resolved', productId, {}, userId);
-  revalidatePath('/dashboard/compliance-manager/flagged');
   return (await getProductById(productId, userId))!;
 }
 
@@ -525,7 +514,6 @@ export async function saveCompany(
     });
     await logAuditEvent('company.created', companyRef.id, {}, userId);
   }
-  revalidatePath('/dashboard/admin/companies');
   const doc = await companyRef.get();
   return docToCompany(doc);
 }
@@ -540,7 +528,6 @@ export async function deleteCompany(
   }
   await adminDb.collection(Collections.COMPANIES).doc(companyId).delete();
   await logAuditEvent('company.deleted', companyId, {}, userId);
-  revalidatePath('/dashboard/admin/companies');
 }
 
 export async function saveUser(
@@ -575,7 +562,6 @@ export async function saveUser(
     await userRef.set({ ...userData, createdAt: now });
     await logAuditEvent('user.created', userRef.id, {}, adminId);
   }
-  revalidatePath('/dashboard/admin/users');
   const doc = await userRef.get();
   return { id: doc.id, ...doc.data() } as User;
 }
@@ -590,7 +576,6 @@ export async function deleteUser(
   }
   await adminDb.collection(Collections.USERS).doc(userId).delete();
   await logAuditEvent('user.deleted', userId, {}, adminId);
-  revalidatePath('/dashboard/admin/users');
 }
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
@@ -662,7 +647,6 @@ export async function saveCompliancePath(
     await pathRef.set({ ...pathData, createdAt: now });
     await logAuditEvent('compliance_path.created', pathRef.id, {}, userId);
   }
-  revalidatePath('/dashboard/admin/compliance');
   const doc = await pathRef.get();
   return docToCompliancePath(doc);
 }
@@ -682,9 +666,6 @@ export async function deleteCompliancePath(
 
   await adminDb.collection(Collections.COMPLIANCE_PATHS).doc(pathId).delete();
   await logAuditEvent('compliance_path.deleted', pathId, {}, userId);
-  revalidatePath('/dashboard/admin/compliance');
-  revalidatePath('/dashboard/auditor/compliance');
-  revalidatePath('/dashboard/compliance-manager/compliance');
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
@@ -757,7 +738,6 @@ export async function createApiKey(
   };
   const docRef = await adminDb.collection(Collections.API_KEYS).add(keyData);
   await logAuditEvent('api_key.created', docRef.id, { label }, userId);
-  revalidatePath('/dashboard/developer/keys');
   return { key: { id: docRef.id, ...keyData }, rawToken };
 }
 
@@ -776,7 +756,6 @@ export async function revokeApiKey(
     updatedAt: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('api_key.revoked', keyId, {}, userId);
-  revalidatePath('/dashboard/developer/keys');
   const doc = await keyRef.get();
   return docToApiKey(doc);
 }
@@ -793,7 +772,6 @@ export async function deleteApiKey(
 
   await keyRef.delete();
   await logAuditEvent('api_key.deleted', keyId, {}, userId);
-  revalidatePath('/dashboard/developer/keys');
 }
 
 export async function getApiSettings(): Promise<ApiSettings> {
