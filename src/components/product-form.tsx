@@ -1,7 +1,7 @@
 // src/components/product-form.tsx
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, 'useEffect', useState, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
