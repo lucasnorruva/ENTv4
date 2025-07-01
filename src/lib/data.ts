@@ -65,6 +65,7 @@ export let products: Product[] = [
       gaps: [],
     },
     endOfLifeStatus: 'Active',
+    dataQualityWarnings: [],
   },
   {
     id: 'pp-002',
@@ -112,6 +113,12 @@ export let products: Product[] = [
       complianceSummary: 'Awaiting auditor review.',
     },
     endOfLifeStatus: 'Active',
+    dataQualityWarnings: [
+      {
+        field: 'materials.percentage',
+        warning: 'Material percentages add up to 100%. This is correct, but please double-check for accuracy.',
+      }
+    ],
   },
   {
     id: 'pp-003',
@@ -152,6 +159,7 @@ export let products: Product[] = [
       governance: 80,
     },
     endOfLifeStatus: 'Active',
+    dataQualityWarnings: [],
   },
   {
     id: 'pp-004',
@@ -196,6 +204,12 @@ export let products: Product[] = [
       ],
     },
     endOfLifeStatus: 'Recycled',
+    dataQualityWarnings: [
+      {
+        field: 'materials',
+        warning: 'The product category is "Fashion" but it contains "Polyester". While common, this material is banned by the selected compliance path.',
+      }
+    ],
   },
   {
     id: 'pp-005',
@@ -227,5 +241,6 @@ export let products: Product[] = [
       governance: 75,
     },
     endOfLifeStatus: 'Disposed',
+    dataQualityWarnings: [],
   },
 ];
