@@ -19,24 +19,24 @@ function initializeAdminApp(): App {
     return getApp();
   }
 
-  // When running locally for development (e.g., `next dev`), connect to emulators.
-  // The `FIRESTORE_EMULATOR_HOST` env var is set automatically by `firebase emulators:exec` (for seeding),
-  // but not by `next dev`. We manually set it here for the dev server.
-  if (
-    process.env.NODE_ENV === 'development' &&
-    !process.env.FIRESTORE_EMULATOR_HOST
-  ) {
-    console.log('Development mode detected, setting emulator hosts for Admin SDK.');
+  // When `npm run seed` is used, `firebase emulators:exec` sets this variable.
+  // The Admin SDK will automatically connect to the emulators.
+  if (process.env.FIRESTORE_EMULATOR_HOST) {
+    console.log(
+      'Emulator environment detected (FIRESTORE_EMULATOR_HOST is set). Initializing Admin SDK for emulators.',
+    );
+    return initializeApp({ projectId: 'passportflow-dev' });
+  }
+
+  // For the `npm run dev` server, `FIRESTORE_EMULATOR_HOST` is not set by default.
+  // This block enables server-side code (like Server Actions) to use the emulators.
+  if (process.env.NODE_ENV === 'development') {
+    console.log(
+      'Development environment detected. Manually configuring Admin SDK for emulators.',
+    );
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
     process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
     process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
-  }
-
-  // 1. Connect to Emulators if host variables are set
-  if (process.env.FIRESTORE_EMULATOR_HOST) {
-    console.log(
-      'Emulator environment detected. Initializing Admin SDK for emulators.',
-    );
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
