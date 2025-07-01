@@ -145,7 +145,7 @@ export async function getProducts(userId?: string): Promise<Product[]> {
   if (userId) {
     const user = await getUserById(userId);
     if (!user) return [];
-    if (!user.roles.includes(UserRoles.ADMIN)) {
+    if (!user.roles.includes(UserRoles.ADMIN) && !user.roles.includes(UserRoles.BUSINESS_ANALYST)) {
       query = query.where('companyId', '==', user.companyId);
     }
   }
