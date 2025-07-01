@@ -12,7 +12,7 @@ import path from 'path';
 
 /**
  * Initializes and returns the Firebase Admin App instance, ensuring it's a singleton.
- * It prioritizes connection methods: Emulators > `serviceAccountKey.json` > Production Default.
+ * It prioritizes connection methods: Emulators > service account file > Production Default.
  */
 function initializeAdminApp(): App {
   // Return existing app if already initialized
@@ -28,12 +28,17 @@ function initializeAdminApp(): App {
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
-  // 2. Use local service account key file if it exists
-  const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
+  // 2. Use local service account key file if it exists.
+  // The user specified this path.
+  const serviceAccountPath = path.join(
+    process.cwd(),
+    'src',
+    'passportflow-firebase-adminsdk-fbsvc-04d309dee7.json',
+  );
 
   if (fs.existsSync(serviceAccountPath)) {
     console.log(
-      'Found serviceAccountKey.json. Initializing Admin SDK with file credentials.',
+      `Found service account key at ${serviceAccountPath}. Initializing Admin SDK with file credentials.`,
     );
     try {
       const serviceAccount = JSON.parse(
@@ -44,14 +49,14 @@ function initializeAdminApp(): App {
       });
     } catch (error: any) {
       throw new Error(
-        `Failed to parse serviceAccountKey.json. Please ensure it is a valid JSON file. Original error: ${error.message}`,
+        `Failed to parse service account key file. Please ensure it is a valid JSON file. Original error: ${error.message}`,
       );
     }
   }
 
   // 3. Fallback to production environment credentials (Application Default Credentials)
   console.log(
-    'Production environment detected. Initializing Admin SDK with default credentials.',
+    'Production environment detected (no local key file found). Initializing Admin SDK with default credentials.',
   );
   return initializeApp();
 }
