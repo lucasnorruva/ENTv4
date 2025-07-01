@@ -23,7 +23,7 @@ This project is built with Next.js, Firebase, and Genkit AI.
 -   **Backend**: [Firebase](https://firebase.google.com/) (Firestore, Cloud Functions, Auth)
 -   **AI Integration**: [Genkit](https://firebase.google.com/docs/genkit)
 -   **UI**: [React](https://reactjs.org/), [ShadCN UI](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
--   **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/), [Firebase Emulator Suite](https://firebase.google.com/docs/emulator-suite)
+-   **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/)
 
 ## Getting Started
 
@@ -48,33 +48,49 @@ Follow these instructions to get the project running on your local machine for d
     npm install
     ```
 
-3.  **Set up environment variables:**
-    Create a `.env` file in the root of the project and add your Firebase and Genkit configuration. You can start with an empty file if you are using the Firebase Emulator.
+3.  **Set up Backend Authentication:**
+    For the backend (Firebase Admin SDK) to authenticate with your Firebase project, you need a service account key.
+    - Go to your **Firebase project settings** > **Service accounts**.
+    - Click **Generate new private key** and save the downloaded JSON file.
+    - Rename the file to `serviceAccountKey.json` and place it in the root directory of this project.
+    
+    _Note: This file is included in `.gitignore` and should never be committed to source control._
+
+4.  **Set up Client-side Environment:**
+    Create a `.env` file in the root of the project. This file is for your **client-side** Firebase configuration keys (which are public). You can get these from your Firebase project settings under "Your apps" > "SDK setup and configuration".
     ```bash
     touch .env
+    ```
+    Your `.env` file should look like this:
+    ```env
+    NEXT_PUBLIC_FIREBASE_API_KEY=...
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+    NEXT_PUBLIC_FIREBASE_APP_ID=...
+    ```
+    If you plan to use only the Firebase Emulator for local development, you can start with an empty `.env` file.
+
+5.  **Seed the Database:**
+    The application requires initial data to function correctly. Run the following command to populate your local Firestore emulator or cloud database with mock data.
+    ```bash
+    npm run seed
     ```
 
 ### Running the Application
 
-This project requires two separate processes to run concurrently: the Next.js frontend and the Genkit AI server.
+To run the full application, including the Next.js frontend and the Genkit AI server, use a single command:
 
-1.  **Start the Genkit AI flows:**
-    This command starts the Genkit development server, which makes your AI flows available.
-    ```bash
-    npm run genkit:watch
-    ```
+```bash
+npm run dev
+```
 
-2.  **Start the Next.js development server:**
-    In a separate terminal, run the following command:
-    ```bash
-    npm run dev
-    ```
-
-    The application will be available at `http://localhost:9002`.
+This command starts all necessary services concurrently. The application will be available at `http://localhost:9002`. The Genkit developer UI will be available at `http://localhost:4000`.
 
 ## Testing
 
-The platform includes a comprehensive testing suite using Jest and the Firebase Emulator.
+The platform includes a testing suite using Jest.
 
 -   **Run all tests in watch mode:**
     ```bash
@@ -83,16 +99,6 @@ The platform includes a comprehensive testing suite using Jest and the Firebase 
 -   **Run tests for a CI environment (single run):**
     ```bash
     npm run test:ci
-    ```
--   **Run tests against the Firebase Emulator:**
-    This script automatically starts the emulators, runs the test suite, and then shuts them down.
-    ```bash
-    npm run test:emulate
-    ```
--   **Run all validation checks (lint, typecheck, test, build):**
-    This is the command used in our CI pipeline.
-    ```bash
-    npm run validate
     ```
 
 ## Documentation
