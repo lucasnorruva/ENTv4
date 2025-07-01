@@ -63,15 +63,29 @@ Follow these instructions to get the project running on your local machine for d
     ```
     Your `.env` file should look like this:
     ```env
+    # Firebase client configuration
     NEXT_PUBLIC_FIREBASE_API_KEY=...
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
     NEXT_PUBLIC_FIREBASE_APP_ID=...
-    ```
-    If you plan to use only the Firebase Emulator for local development, you can start with an empty `.env` file.
     
+    # Secret for securing cron job endpoints
+    CRON_SECRET=...
+    
+    # (Optional) Blockchain Integration Variables for Data Anchoring
+    # You will need these to test the blockchain anchoring feature.
+    # Get a free RPC URL from providers like Alchemy or Infura for the Polygon Amoy testnet.
+    POLYGON_AMOY_RPC_URL=...
+    # The private key of the wallet that will pay for testnet gas fees.
+    # IMPORTANT: Use a dedicated, testnet-only wallet with minimal funds.
+    WALLET_PRIVATE_KEY=...
+    # The address of your deployed smart contract on the Amoy testnet.
+    # A sample contract is not provided, but the code expects a contract
+    # with a `registerPassport(bytes32, bytes32)` function.
+    SMART_CONTRACT_ADDRESS=...
+    ```
     > **Important Note:** This `.env` file is locked and cannot be modified by the AI assistant. Please manage your environment variables manually.
 
 5.  **Seed the Database:**
@@ -113,3 +127,4 @@ This project includes detailed architectural and design documentation. You can f
 -   [`docs/compliance-matrix.md`](./docs/compliance-matrix.md): A comprehensive list of supported regulations and standards.
 -   [`docs/roles.md`](./docs/roles.md): An overview of user roles and their responsibilities.
 -   [`docs/versioning.md`](./docs/versioning.md): The platform's versioning strategy and release process.
+
