@@ -92,6 +92,8 @@ export interface Compliance {
   foodContactComplianceStandard?: string;
   weeeRegistered?: boolean;
   weeeRegistrationNumber?: string;
+  eudrCompliant?: boolean;
+  eudrDiligenceId?: string;
 }
 
 export interface ComplianceGap {

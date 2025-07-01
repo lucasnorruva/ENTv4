@@ -32,6 +32,20 @@ export const compliancePaths: CompliancePath[] = [
     updatedAt: '2024-07-01T00:00:00Z',
   },
   {
+    id: 'cp-fashion-02',
+    name: 'EU Leather Goods Standard (EUDR, REACH)',
+    description:
+      'Requires leather goods to comply with EU Deforestation-Free Regulation and REACH substance safety.',
+    regulations: ['EUDR', 'REACH'],
+    category: 'Fashion',
+    rules: {
+      minSustainabilityScore: 50,
+      requiredKeywords: ['Leather'],
+    },
+    createdAt: '2024-07-23T00:00:00Z',
+    updatedAt: '2024-07-23T00:00:00Z',
+  },
+  {
     id: 'cp-homegoods-01',
     name: 'General Product Safety Regulation',
     description:

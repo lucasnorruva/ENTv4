@@ -54,6 +54,8 @@ const complianceSchema = z.object({
   foodContactComplianceStandard: z.string().optional(),
   weeeRegistered: z.boolean().optional(),
   weeeRegistrationNumber: z.string().optional(),
+  eudrCompliant: z.boolean().optional(),
+  eudrDiligenceId: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
