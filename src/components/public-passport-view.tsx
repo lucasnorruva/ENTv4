@@ -39,6 +39,7 @@ import {
   MapPin,
   FileQuestion,
   Archive,
+  Sparkles,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
@@ -75,6 +76,7 @@ export default function PublicPassportView({
 }) {
   const { sustainability } = product;
   const esg = sustainability;
+  const lifecycle = sustainability?.lifecycleAnalysis;
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">
@@ -183,7 +185,7 @@ export default function PublicPassportView({
         <Accordion
           type="multiple"
           className="w-full"
-          defaultValue={["item-1", "item-2", "item-3"]}
+          defaultValue={["item-1", "item-2", "item-3", "item-4"]}
         >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
@@ -272,6 +274,54 @@ export default function PublicPassportView({
             </AccordionContent>
           </AccordionItem>
 
+          <AccordionItem value="item-4">
+            <AccordionTrigger className="text-xl font-semibold">
+              Lifecycle & Environmental Impact
+            </AccordionTrigger>
+            <AccordionContent className="pt-2">
+              {lifecycle ? (
+                <>
+                  <InfoRow
+                    icon={Thermometer}
+                    label="Estimated Carbon Footprint"
+                    value={`${lifecycle.carbonFootprint.value} ${lifecycle.carbonFootprint.unit}`}
+                  >
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {lifecycle.carbonFootprint.summary}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Lightbulb} label="Lifecycle Stages Impact">
+                    <div className="space-y-2 mt-2 text-sm text-muted-foreground">
+                      <p>
+                        <strong>Manufacturing:</strong>{" "}
+                        {lifecycle.lifecycleStages.manufacturing}
+                      </p>
+                      <p>
+                        <strong>Use Phase:</strong>{" "}
+                        {lifecycle.lifecycleStages.usePhase}
+                      </p>
+                      <p>
+                        <strong>End-of-Life:</strong>{" "}
+                        {lifecycle.lifecycleStages.endOfLife}
+                      </p>
+                    </div>
+                  </InfoRow>
+                  <InfoRow icon={Sparkles} label="Improvement Opportunities">
+                    <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
+                      {lifecycle.improvementOpportunities.map((opp, i) => (
+                        <li key={i}>{opp}</li>
+                      ))}
+                    </ul>
+                  </InfoRow>
+                </>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  Lifecycle analysis data is not yet available for this product.
+                </p>
+              )}
+            </AccordionContent>
+          </AccordionItem>
+          
           <AccordionItem value="item-3">
             <AccordionTrigger className="text-xl font-semibold">
               Compliance & Certifications
