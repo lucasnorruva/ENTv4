@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "lib": [
@@ -32,8 +33,7 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "src/lib/actions.test.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
