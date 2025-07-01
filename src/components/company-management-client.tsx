@@ -1,7 +1,11 @@
 // src/components/company-management-client.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { format } from 'date-fns';
+import { MoreHorizontal, Plus, Edit, Trash2, Loader2, Building2 } from 'lucide-react';
+
 import {
   Card,
   CardContent,
@@ -18,7 +22,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MoreHorizontal, Plus, Edit, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,26 +38,60 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
 import type { Company, User } from '@/types';
-import CompanyForm from './company-form';
-import { deleteCompany } from '@/lib/actions';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { deleteCompany } from '@/lib/actions';
+import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
-  initialCompanies: Company[];
   adminUser: User;
 }
 
 export default function CompanyManagementClient({
-  initialCompanies,
   adminUser,
 }: CompanyManagementClientProps) {
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(collection(db, Collections.COMPANIES), orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const companiesData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString(),
+          } as Company;
+        });
+        setCompanies(companiesData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching companies:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load company data.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedCompany(null);
@@ -70,7 +107,6 @@ export default function CompanyManagementClient({
     startTransition(async () => {
       try {
         await deleteCompany(companyId, adminUser.id);
-        setCompanies(current => current.filter(c => c.id !== companyId));
         toast({
           title: 'Company Deleted',
           description: 'The company has been successfully deleted.',
@@ -86,13 +122,7 @@ export default function CompanyManagementClient({
   };
 
   const handleSave = (savedCompany: Company) => {
-    if (selectedCompany) {
-      setCompanies(current =>
-        current.map(c => (c.id === savedCompany.id ? savedCompany : c)),
-      );
-    } else {
-      setCompanies(current => [savedCompany, ...current]);
-    }
+    // The listener will update the state, so we just need to close the form.
     setIsFormOpen(false);
   };
 
@@ -113,78 +143,103 @@ export default function CompanyManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Company ID</TableHead>
-                <TableHead>Owner ID</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {companies.map(company => (
-                <TableRow key={company.id}>
-                  <TableCell className="font-medium">{company.name}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {company.id}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {company.ownerId}
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(company.createdAt), 'PPP')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEdit(company)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Company
-                        </DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <DropdownMenuItem
-                              onSelect={e => e.preventDefault()}
-                              className="text-destructive"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Company
-                            </DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will
-                                permanently delete the company "{company.name}".
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDelete(company.id)}
-                                disabled={isPending}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Company Name</TableHead>
+                  <TableHead>Company ID</TableHead>
+                  <TableHead>Owner ID</TableHead>
+                  <TableHead>Created At</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {companies.map(company => (
+                  <TableRow key={company.id}>
+                    <TableCell className="font-medium">{company.name}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {company.id}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {company.ownerId}
+                    </TableCell>
+                    <TableCell>
+                      {format(new Date(company.createdAt), 'PPP')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleEdit(company)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Company
+                          </DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <DropdownMenuItem
+                                onSelect={e => e.preventDefault()}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Company
+                              </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  Are you sure?
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will
+                                  permanently delete the company "{company.name}
+                                  ".
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDelete(company.id)}
+                                  disabled={isPending}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {companies.length === 0 && !isLoading && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-48 text-center">
+                       <div className="flex flex-col items-center justify-center gap-4">
+                          <Building2 className="h-12 w-12 text-muted-foreground" />
+                          <h3 className="text-xl font-semibold">No Companies Found</h3>
+                          <p className="text-muted-foreground">
+                            Create the first company to get started.
+                          </p>
+                          <Button onClick={handleCreateNew}>
+                            Create Company
+                          </Button>
+                        </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
       <CompanyForm

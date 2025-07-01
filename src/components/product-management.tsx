@@ -1,10 +1,20 @@
 // src/components/product-management.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { Plus } from 'lucide-react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { Plus, Loader2 } from 'lucide-react';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
 
 import type { Product, User, CompliancePath } from '@/types';
+import { db } from '@/lib/firebase';
+import { Collections, UserRoles } from '@/lib/constants';
+
 import {
   Card,
   CardContent,
@@ -23,21 +33,64 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 interface ProductManagementProps {
-  initialProducts: Product[];
   user: User;
   compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagement({
-  initialProducts,
   user,
   compliancePaths,
 }: ProductManagementProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsLoading(true);
+    let q = query(
+      collection(db, Collections.PRODUCTS),
+      orderBy('lastUpdated', 'desc'),
+    );
+
+    if (!user.roles.includes(UserRoles.ADMIN)) {
+      q = query(q, where('companyId', '==', user.companyId));
+    }
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const productsData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          // Convert Firestore Timestamps to ISO strings for client-side consistency
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString(),
+            lastUpdated: data.lastUpdated?.toDate().toISOString(),
+            lastVerificationDate:
+              data.lastVerificationDate?.toDate().toISOString(),
+          } as Product;
+        });
+        setProducts(productsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching products in real-time:', error);
+        toast({
+          title: 'Error Fetching Data',
+          description: 'Could not load product data. Please try again later.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user.companyId, user.roles, toast]);
 
   const handleCreateNew = () => {
     setSelectedProduct(null);
@@ -52,7 +105,6 @@ export default function ProductManagement({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id, user.id);
-      setProducts(currentProducts => currentProducts.filter(p => p.id !== id));
       toast({
         title: 'Product Deleted',
         description: 'The product passport has been successfully deleted.',
@@ -64,9 +116,6 @@ export default function ProductManagement({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
-        setProducts(currentProducts =>
-          currentProducts.map(p => (p.id === id ? reviewedProduct : p)),
-        );
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -81,21 +130,18 @@ export default function ProductManagement({
     });
   };
 
-  const handleRecalculateScore = (id: string) => {
+  const handleRecalculateScore = (id: string, productName: string) => {
     startTransition(async () => {
       try {
-        const updatedProduct = await recalculateScore(id, user.id);
-        setProducts(currentProducts =>
-          currentProducts.map(p => (p.id === id ? updatedProduct : p)),
-        );
+        await recalculateScore(id, user.id);
         toast({
-          title: 'AI Data Recalculated',
-          description: `AI-generated fields for "${updatedProduct.productName}" have been updated.`,
+          title: 'AI Recalculation Started',
+          description: `AI data for "${productName}" is being updated. The table will refresh automatically.`,
         });
       } catch (error) {
         toast({
           title: 'Recalculation Failed',
-          description: 'There was an error recalculating the score.',
+          description: 'There was an error triggering the recalculation.',
           variant: 'destructive',
         });
       }
@@ -103,13 +149,6 @@ export default function ProductManagement({
   };
 
   const handleSave = (savedProduct: Product) => {
-    if (selectedProduct) {
-      setProducts(currentProducts =>
-        currentProducts.map(p => (p.id === savedProduct.id ? savedProduct : p)),
-      );
-    } else {
-      setProducts(currentProducts => [savedProduct, ...currentProducts]);
-    }
     setIsSheetOpen(false);
   };
 
@@ -130,13 +169,19 @@ export default function ProductManagement({
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable
-            products={products}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onSubmitForReview={handleSubmitForReview}
-            onRecalculateScore={handleRecalculateScore}
-          />
+          {isLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <ProductTable
+              products={products}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onSubmitForReview={handleSubmitForReview}
+              onRecalculateScore={handleRecalculateScore}
+            />
+          )}
         </CardContent>
       </Card>
       <ProductForm

@@ -1,6 +1,6 @@
 // src/app/dashboard/admin/users/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, hasRole, getUsers } from '@/lib/auth';
+import { getCurrentUser, hasRole } from '@/lib/auth';
 import UserManagementClient from '@/components/user-management-client';
 import { UserRoles } from '@/lib/constants';
 
@@ -13,7 +13,6 @@ export default async function UsersPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const initialUsers = await getUsers();
-
-  return <UserManagementClient initialUsers={initialUsers} adminUser={user} />;
+  // Initial users are now fetched on the client side with a real-time listener.
+  return <UserManagementClient adminUser={user} />;
 }

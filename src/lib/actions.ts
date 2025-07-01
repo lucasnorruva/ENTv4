@@ -84,7 +84,6 @@ const docToCompliancePath = (
   };
 };
 
-
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(userId?: string): Promise<Product[]> {
@@ -157,7 +156,12 @@ export async function saveProduct(
           : existingProduct.verificationStatus,
     };
     await productRef.update(productData);
-    await logAuditEvent('product.updated', productId, { changes: Object.keys(values) }, userId);
+    await logAuditEvent(
+      'product.updated',
+      productId,
+      { changes: Object.keys(values) },
+      userId,
+    );
   } else {
     productRef = adminDb.collection(Collections.PRODUCTS).doc();
     productData = {
@@ -207,56 +211,13 @@ export async function submitForReview(
 export async function recalculateScore(
   productId: string,
   userId: string,
-): Promise<Product> {
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found');
-
-  const {
-    productName,
-    productDescription,
-    category,
-    supplier,
-    materials,
-    manufacturing,
-    certifications,
-    verificationStatus,
-    sustainability,
-  } = product;
-
-  const aiProductInput: AiProduct = {
-    productName,
-    productDescription,
-    category,
-    supplier,
-    materials,
-    manufacturing: manufacturing!,
-    certifications: certifications!,
-    verificationStatus,
-    complianceSummary: sustainability?.complianceSummary,
-  };
-
-  const [esgResult, qrLabelResult, validationResult] = await Promise.all([
-    calculateSustainability({ product: aiProductInput }),
-    generateQRLabelText({ product: aiProductInput }),
-    validateProductData({ product: aiProductInput }),
-  ]);
-
-  await adminDb
-    .collection(Collections.PRODUCTS)
-    .doc(productId)
-    .update({
-      'sustainability.score': esgResult.score,
-      'sustainability.environmental': esgResult.environmental,
-      'sustainability.social': esgResult.social,
-      'sustainability.governance': esgResult.governance,
-      'sustainability.summary': esgResult.summary,
-      qrLabelText: qrLabelResult.qrLabelText,
-      dataQualityWarnings: validationResult.warnings,
-      lastUpdated: admin.firestore.Timestamp.now(),
-    });
-
+): Promise<void> {
+  const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await productRef.update({
+    'sustainability.score': -1, // Sentinel value to trigger the cloud function
+    lastUpdated: admin.firestore.Timestamp.now(),
+  });
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
-  return (await getProductById(productId, userId))!;
 }
 
 export async function approvePassport(
@@ -398,7 +359,7 @@ export async function saveCompany(
     await logAuditEvent('company.created', companyRef.id, {}, userId);
   }
   const doc = await companyRef.get();
-  return { id: doc.id, ...doc.data() } as Company;
+  return { id: doc.id, ...doc.data(), createdAt: fromTimestamp(now), updatedAt: fromTimestamp(now) } as Company;
 }
 
 export async function deleteCompany(
@@ -437,7 +398,8 @@ export async function saveUser(
     await logAuditEvent('user.created', userRef.id, {}, adminId);
   }
   const doc = await userRef.get();
-  return { id: doc.id, ...doc.data() } as User;
+  const data = doc.data() as Omit<User, 'id'>
+  return { id: doc.id, ...data, createdAt: fromTimestamp(data.createdAt), updatedAt: fromTimestamp(data.updatedAt) };
 }
 
 export async function deleteUser(
@@ -507,7 +469,7 @@ export async function saveCompliancePath(
     await logAuditEvent('compliance_path.created', pathRef.id, {}, userId);
   }
   const doc = await pathRef.get();
-  return { id: doc.id, ...doc.data() } as CompliancePath;
+  return { id: doc.id, ...doc.data(), createdAt: fromTimestamp(now), updatedAt: fromTimestamp(now) } as CompliancePath;
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
@@ -578,7 +540,9 @@ export async function createApiKey(
   userId: string,
 ): Promise<{ key: ApiKey; rawToken: string }> {
   const now = admin.firestore.Timestamp.now();
-  const rawToken = `nor_prod_${[...Array(32)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+  const rawToken = `nor_prod_${[...Array(32)]
+    .map(() => Math.floor(Math.random() * 16).toString(16))
+    .join('')}`;
   const keyData: Omit<ApiKey, 'id'> = {
     label,
     token: `nor_prod_******************${rawToken.slice(-4)}`,
@@ -586,7 +550,9 @@ export async function createApiKey(
     userId,
     createdAt: fromTimestamp(now),
     updatedAt: fromTimestamp(now),
-    lastUsed: fromTimestamp(admin.firestore.Timestamp.fromMillis(now.toMillis() - 86400000)),
+    lastUsed: fromTimestamp(
+      admin.firestore.Timestamp.fromMillis(now.toMillis() - 86400000),
+    ),
   };
 
   const docRef = await adminDb.collection(Collections.API_KEYS).add(keyData);
@@ -623,9 +589,9 @@ export async function getApiSettings(): Promise<ApiSettings> {
   if (!doc.exists) {
     // Return default settings if none exist
     const defaultSettings: ApiSettings = {
-        isPublicApiEnabled: true,
-        rateLimitPerMinute: 100,
-        isWebhookSigningEnabled: true,
+      isPublicApiEnabled: true,
+      rateLimitPerMinute: 100,
+      isWebhookSigningEnabled: true,
     };
     await adminDb.collection('settings').doc('api').set(defaultSettings);
     return defaultSettings;
@@ -733,4 +699,10 @@ export async function saveNotificationPreferences(userId: string, prefs: any) {
   // This is a mock for now.
   console.log(`Saving notification preferences for ${userId}`, prefs);
   await new Promise(res => setTimeout(res, 500));
+}
+
+export async function runSuggestImprovements(
+  input: SuggestImprovementsInput,
+): Promise<SuggestImprovementsOutput> {
+  return suggestImprovements(input);
 }

@@ -1,6 +1,5 @@
 // src/app/dashboard/developer/keys/page.tsx
 import { redirect } from 'next/navigation';
-import { getApiKeys } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import ApiKeysClient from '@/components/api-keys-client';
 import {
@@ -21,8 +20,7 @@ export default async function ApiKeysPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const apiKeys = await getApiKeys(user.id);
-
+  // Initial API keys are now fetched on the client side with a real-time listener.
   return (
     <Card>
       <CardHeader>
@@ -33,7 +31,7 @@ export default async function ApiKeysPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ApiKeysClient initialApiKeys={apiKeys} user={user} />
+        <ApiKeysClient user={user} />
       </CardContent>
     </Card>
   );

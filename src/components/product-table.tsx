@@ -73,7 +73,7 @@ interface ProductTableProps {
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
-  onRecalculateScore: (id: string) => void;
+  onRecalculateScore: (id: string, productName: string) => void;
 }
 
 export default function ProductTable({
@@ -250,7 +250,9 @@ export default function ProductTable({
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => onRecalculateScore(product.id)}
+                  onClick={() =>
+                    onRecalculateScore(product.id, product.productName)
+                  }
                 >
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Recalculate AI Data

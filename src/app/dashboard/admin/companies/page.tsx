@@ -1,6 +1,5 @@
 // src/app/dashboard/admin/companies/page.tsx
 import { redirect } from 'next/navigation';
-import { getCompanies } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import CompanyManagementClient from '@/components/company-management-client';
 import { UserRoles } from '@/lib/constants';
@@ -14,12 +13,6 @@ export default async function CompaniesPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const initialCompanies = await getCompanies();
-
-  return (
-    <CompanyManagementClient
-      initialCompanies={initialCompanies}
-      adminUser={user}
-    />
-  );
+  // Initial data is now fetched on the client side with a real-time listener.
+  return <CompanyManagementClient adminUser={user} />;
 }
