@@ -1,8 +1,7 @@
 // src/triggers/scheduled-syncs.ts
 "use server";
 
-import { compliancePaths } from "@/lib/compliance-data";
-import { logAuditEvent } from "@/lib/actions";
+import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/lib/actions";
 
 /**
  * Runs a daily job to sync reference data, like new compliance rules.
@@ -16,6 +15,7 @@ export async function runDailyReferenceDataSync(): Promise<{
 }> {
   console.log("Running scheduled reference data sync...");
 
+  const compliancePaths = await getCompliancePaths();
   if (compliancePaths.length === 0) {
     console.log("No compliance paths to update.");
     return { syncedItems: 0, updatedRegulations: [], details: "No paths found." };
@@ -29,7 +29,18 @@ export async function runDailyReferenceDataSync(): Promise<{
   // Let's tighten the ESG score requirement
   const oldScore = pathToUpdate.rules.minSustainabilityScore || 0;
   const newScore = Math.min(100, oldScore + 1);
-  pathToUpdate.rules.minSustainabilityScore = newScore;
+  
+  const updatedValues = {
+      name: pathToUpdate.name,
+      description: pathToUpdate.description,
+      category: pathToUpdate.category,
+      regulations: pathToUpdate.regulations.join(', '),
+      minSustainabilityScore: newScore,
+      requiredKeywords: pathToUpdate.rules.requiredKeywords?.join(', '),
+      bannedKeywords: pathToUpdate.rules.bannedKeywords?.join(', ')
+  }
+
+  await saveCompliancePath(updatedValues, "system", pathToUpdate.id);
   
   const details = `Updated compliance path '${pathToUpdate.name}': minSustainabilityScore changed from ${oldScore} to ${newScore}.`;
   
