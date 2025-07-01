@@ -1,6 +1,6 @@
 // src/app/api/products/route.ts
 import { NextResponse, NextRequest } from 'next/server';
-import { getProducts, saveProduct } from '@/lib/actions';
+import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
 
