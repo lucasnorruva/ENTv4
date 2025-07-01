@@ -11,8 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci",
-    "genkit:start": "genkit start",
-    "genkit:watch": "genkit start --watch",
+    "genkit:start": "npx genkit start",
+    "genkit:watch": "npx genkit start --watch",
     "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
