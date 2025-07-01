@@ -7,10 +7,12 @@ import { getApp, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Initializes and returns the Firebase Admin App instance, ensuring it's a singleton.
- * It prioritizes connection methods: Emulators > Local .env Credentials > Production Default.
+ * It prioritizes connection methods: Emulators > `serviceAccountKey.json` > Production Default.
  */
 function initializeAdminApp(): App {
   // Return existing app if already initialized
@@ -26,31 +28,23 @@ function initializeAdminApp(): App {
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
-  // 2. Use local service account credentials from .env if provided
-  const {
-    FIREBASE_PROJECT_ID,
-    FIREBASE_CLIENT_EMAIL,
-    FIREBASE_PRIVATE_KEY,
-  } = process.env;
+  // 2. Use local service account key file if it exists
+  const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
 
-  if (FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
+  if (fs.existsSync(serviceAccountPath)) {
     console.log(
-      'Local Firebase credentials found. Initializing Admin SDK for live project.',
+      'Found serviceAccountKey.json. Initializing Admin SDK with file credentials.',
     );
-    const serviceAccount = {
-      projectId: FIREBASE_PROJECT_ID,
-      clientEmail: FIREBASE_CLIENT_EMAIL,
-      // The private key must have newlines correctly formatted.
-      privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    };
-
     try {
+      const serviceAccount = JSON.parse(
+        fs.readFileSync(serviceAccountPath, 'utf8'),
+      );
       return initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
     } catch (error: any) {
       throw new Error(
-        `Failed to parse service account credentials. Please ensure FIREBASE_PRIVATE_KEY in your .env file is correctly formatted. Original error: ${error.message}`,
+        `Failed to parse serviceAccountKey.json. Please ensure it is a valid JSON file. Original error: ${error.message}`,
       );
     }
   }
