@@ -35,7 +35,7 @@ import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
-import { getUserById } from './auth';
+import { getUserById, hasRole } from './auth';
 
 // Helper to convert Firestore Timestamps to ISO strings
 const fromTimestamp = (
@@ -199,6 +199,11 @@ export async function saveProduct(
     const doc = await productRef.get();
     if (!doc.exists) throw new Error('Product not found');
     const existingProduct = docToProduct(doc);
+
+    if (existingProduct.companyId !== user.companyId && !hasRole(user, UserRoles.ADMIN)) {
+      throw new Error('Permission denied to edit this product.');
+    }
+
     productData = {
       ...validatedData,
       lastUpdated: fromTimestamp(now),
@@ -238,6 +243,7 @@ export async function saveProduct(
   if (!finalProduct) throw new Error('Failed to retrieve saved product');
 
   revalidatePath('/dashboard/supplier/products');
+  revalidatePath(`/products/${finalProduct.id}`);
   return finalProduct;
 }
 
@@ -245,6 +251,16 @@ export async function deleteProduct(
   productId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+  
+  if(product.companyId !== user.companyId && !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error('Permission denied to delete this product.');
+  }
+
   await adminDb.collection(Collections.PRODUCTS).doc(productId).delete();
   await logAuditEvent('product.deleted', productId, {}, userId);
   revalidatePath('/dashboard/supplier/products');
@@ -254,6 +270,12 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+
   const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
   await productRef.update({
     verificationStatus: 'Pending',
@@ -268,6 +290,12 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<void> {
+    const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+  
   const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
   await productRef.update({
     'sustainability.score': -1, // Sentinel value to trigger the cloud function
@@ -281,6 +309,12 @@ export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  if(!hasRole(user, UserRoles.AUDITOR) && !hasRole(user, UserRoles.ADMIN) && userId !== 'system') {
+    throw new Error('Permission denied: Only Auditors or Admins can approve passports.');
+  }
+
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
 
@@ -309,6 +343,7 @@ export async function approvePassport(
   );
   revalidatePath('/dashboard/auditor/audit');
   revalidatePath('/dashboard/supplier/products');
+  revalidatePath(`/products/${productId}`);
   return (await getProductById(productId, userId))!;
 }
 
@@ -318,6 +353,12 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user && userId !== 'system') throw new Error('User not found');
+  if(userId !== 'system' && !hasRole(user!, UserRoles.AUDITOR) && !hasRole(user!, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Auditors or Admins can reject passports.');
+  }
+
   await adminDb
     .collection(Collections.PRODUCTS)
     .doc(productId)
@@ -331,6 +372,7 @@ export async function rejectPassport(
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
   revalidatePath('/dashboard/auditor/audit');
   revalidatePath('/dashboard/supplier/products');
+  revalidatePath(`/products/${productId}`);
   return (await getProductById(productId, userId))!;
 }
 
@@ -338,6 +380,15 @@ export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  if(!hasRole(user, UserRoles.RECYCLER) && !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Recyclers or Admins can perform this action.');
+  }
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+
   await adminDb
     .collection(Collections.PRODUCTS)
     .doc(productId)
@@ -354,6 +405,12 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  if(!hasRole(user, UserRoles.COMPLIANCE_MANAGER) && !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Compliance Managers or Admins can perform this action.');
+  }
+
   await adminDb
     .collection(Collections.PRODUCTS)
     .doc(productId)
@@ -380,6 +437,11 @@ export async function saveCompany(
   userId: string,
   companyId?: string,
 ): Promise<Company> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Admins can manage companies.');
+  }
+
   const validatedData = companyFormSchema.parse(values);
   const now = admin.firestore.Timestamp.now();
   let companyRef: admin.firestore.DocumentReference;
@@ -399,18 +461,17 @@ export async function saveCompany(
   }
   revalidatePath('/dashboard/admin/companies');
   const doc = await companyRef.get();
-  return {
-    id: doc.id,
-    ...doc.data(),
-    createdAt: fromTimestamp(doc.data()?.createdAt),
-    updatedAt: fromTimestamp(doc.data()?.updatedAt),
-  } as Company;
+  return docToCompany(doc);
 }
 
 export async function deleteCompany(
   companyId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Admins can delete companies.');
+  }
   await adminDb.collection(Collections.COMPANIES).doc(companyId).delete();
   await logAuditEvent('company.deleted', companyId, {}, userId);
   revalidatePath('/dashboard/admin/companies');
@@ -421,6 +482,11 @@ export async function saveUser(
   adminId: string,
   userId?: string,
 ): Promise<User> {
+  const adminUser = await getUserById(adminId);
+  if (!adminUser || !hasRole(adminUser, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Admins can manage users.');
+  }
+
   const validatedData = userFormSchema.parse(values);
   const now = admin.firestore.Timestamp.now();
   const userData = {
@@ -452,6 +518,10 @@ export async function deleteUser(
   userId: string,
   adminId: string,
 ): Promise<void> {
+  const adminUser = await getUserById(adminId);
+  if (!adminUser || !hasRole(adminUser, UserRoles.ADMIN)) {
+    throw new Error('Permission denied: Only Admins can delete users.');
+  }
   await adminDb.collection(Collections.USERS).doc(userId).delete();
   await logAuditEvent('user.deleted', userId, {}, adminId);
   revalidatePath('/dashboard/admin/users');
@@ -481,6 +551,11 @@ export async function saveCompliancePath(
   userId: string,
   pathId?: string,
 ): Promise<CompliancePath> {
+  const user = await getUserById(userId);
+  if (!user || (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.AUDITOR) && !hasRole(user, UserRoles.COMPLIANCE_MANAGER) && userId !== 'system')) {
+    throw new Error('Permission denied to manage compliance paths.');
+  }
+
   const validatedData = compliancePathFormSchema.parse(values);
   const now = admin.firestore.Timestamp.now();
   let pathRef: admin.firestore.DocumentReference;
@@ -517,7 +592,7 @@ export async function saveCompliancePath(
   }
   revalidatePath('/dashboard/admin/compliance');
   const doc = await pathRef.get();
-  return { id: doc.id, ...doc.data() } as CompliancePath;
+  return docToCompliancePath(doc);
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
@@ -571,6 +646,11 @@ export async function createApiKey(
   label: string,
   userId: string,
 ): Promise<{ key: ApiKey; rawToken: string }> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new Error('Permission denied.');
+  }
+
   const now = admin.firestore.Timestamp.now();
   const rawToken = `nor_prod_${[...Array(32)]
     .map(() => Math.floor(Math.random() * 16).toString(16))
@@ -594,7 +674,11 @@ export async function revokeApiKey(
   userId: string,
 ): Promise<ApiKey> {
   const keyRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
-  // In a real app, add a where clause for userId to ensure ownership
+  const keyDoc = await keyRef.get();
+  if (!keyDoc.exists || keyDoc.data()?.userId !== userId) {
+    throw new Error('API Key not found or permission denied.');
+  }
+
   await keyRef.update({
     status: 'Revoked',
     updatedAt: admin.firestore.Timestamp.now(),
@@ -609,8 +693,13 @@ export async function deleteApiKey(
   keyId: string,
   userId: string,
 ): Promise<void> {
-  // In a real app, check for ownership before deleting
-  await adminDb.collection(Collections.API_KEYS).doc(keyId).delete();
+  const keyRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
+  const keyDoc = await keyRef.get();
+  if (!keyDoc.exists || keyDoc.data()?.userId !== userId) {
+    throw new Error('API Key not found or permission denied.');
+  }
+
+  await keyRef.delete();
   await logAuditEvent('api_key.deleted', keyId, {}, userId);
   revalidatePath('/dashboard/developer/keys');
 }
@@ -632,6 +721,11 @@ export async function saveApiSettings(
   values: ApiSettingsFormValues,
   userId: string,
 ): Promise<ApiSettings> {
+  const user = await getUserById(userId);
+  if (!user || (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.DEVELOPER))) {
+    throw new Error('Permission denied.');
+  }
+
   const validatedData = apiSettingsSchema.parse(values);
   await adminDb.collection('settings').doc('api').set(validatedData);
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);

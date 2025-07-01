@@ -2,9 +2,15 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public reads for product images
-    match /products/{userId}/{allPaths=**} {
+    // Allow public read access to all files. 
+    // This is simple for now, as images are non-sensitive.
+    match /{allPaths=**} {
       allow read;
+    }
+
+    // Allow authenticated users to write files to a user-specific folder.
+    // This prevents users from overwriting each other's files.
+    match /products/{userId}/{fileName} {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
