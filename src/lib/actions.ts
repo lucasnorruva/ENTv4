@@ -31,7 +31,6 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
-import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
@@ -865,13 +864,6 @@ export async function exportProducts(
   });
 
   return [headers, ...rows].join('\n');
-}
-
-export async function runSuggestImprovements(input: {
-  productName: string;
-  productDescription: string;
-}) {
-  return suggestImprovements(input);
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
