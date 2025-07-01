@@ -29,7 +29,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import type { Product, User } from "@/types";
 import {
@@ -88,13 +88,15 @@ export default function ProductTable({
   onSubmitForReview,
   onRecalculateScore,
 }: ProductTableProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const pathname = usePathname();
 
   const canEdit =
     user.roles.includes(UserRoles.ADMIN) ||
@@ -349,6 +351,14 @@ export default function ProductTable({
       rowSelection,
     },
   });
+
+  React.useEffect(() => {
+    const query = searchParams.get("q");
+    if (query) {
+      table.getColumn("productName")?.setFilterValue(query);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, table.getColumn('productName')]);
 
   return (
     <div className="w-full">

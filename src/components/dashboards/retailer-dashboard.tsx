@@ -12,8 +12,8 @@ import { getProducts } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BookCopy, ShieldAlert, Search } from 'lucide-react';
 import Link from 'next/link';
-import { Input } from '../ui/input';
 import Image from 'next/image';
+import RetailerSearchForm from '../retailer-search-form';
 
 export default async function RetailerDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);
@@ -51,15 +51,7 @@ export default async function RetailerDashboard({ user }: { user: User }) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex w-full max-w-sm items-center space-x-2">
-              <Input
-                type="text"
-                placeholder="Search by Product Name or ID..."
-              />
-              <Button type="submit">
-                <Search className="h-4 w-4 mr-2" /> Search
-              </Button>
-            </div>
+            <RetailerSearchForm />
           </CardContent>
         </Card>
 
