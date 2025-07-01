@@ -1,6 +1,5 @@
 // src/app/dashboard/admin/compliance/page.tsx
 import { redirect } from 'next/navigation';
-import { getCompliancePaths } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import CompliancePathManagement from '@/components/compliance-path-management';
 import { UserRoles } from '@/lib/constants';
@@ -20,12 +19,5 @@ export default async function CompliancePage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const initialPaths = await getCompliancePaths();
-
-  return (
-    <CompliancePathManagement
-      initialCompliancePaths={initialPaths}
-      user={user}
-    />
-  );
+  return <CompliancePathManagement user={user} />;
 }

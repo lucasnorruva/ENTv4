@@ -1,35 +1,112 @@
 // src/components/compliance-path-management.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+} from 'firebase/firestore';
+import {
+  MoreHorizontal,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  ListTree,
+} from 'lucide-react';
+
 import type { CompliancePath, User } from '@/types';
+import { db } from '@/lib/firebase';
+import { Collections, UserRoles } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
+import { deleteCompliancePath } from '@/lib/actions';
+
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { FileQuestion, Plus, ScrollText, Settings2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import CompliancePathForm from './compliance-path-form';
 
 interface CompliancePathManagementProps {
-  initialCompliancePaths: CompliancePath[];
   user: User;
 }
 
 export default function CompliancePathManagement({
-  initialCompliancePaths,
   user,
 }: CompliancePathManagementProps) {
-  const [paths, setPaths] = useState<CompliancePath[]>(initialCompliancePaths);
+  const [paths, setPaths] = useState<CompliancePath[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPath, setSelectedPath] = useState<CompliancePath | null>(
     null,
   );
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.COMPLIANCE_PATHS),
+      orderBy('name'),
+    );
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const pathsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString(),
+          } as CompliancePath;
+        });
+        setPaths(pathsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching compliance paths:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load compliance paths.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedPath(null);
@@ -41,92 +118,175 @@ export default function CompliancePathManagement({
     setIsFormOpen(true);
   };
 
+  const handleDelete = (pathId: string) => {
+    startTransition(async () => {
+      try {
+        await deleteCompliancePath(pathId, user.id);
+        toast({ title: 'Compliance Path Deleted' });
+      } catch (error: any) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to delete compliance path.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   const handleSave = (savedPath: CompliancePath) => {
-    if (selectedPath) {
-      setPaths(currentPaths =>
-        currentPaths.map(p => (p.id === savedPath.id ? savedPath : p)),
-      );
-    } else {
-      setPaths(currentPaths => [...currentPaths, savedPath]);
-    }
+    // The listener updates the state, just close the form
     setIsFormOpen(false);
   };
 
+  const canManage =
+    user.roles.includes(UserRoles.ADMIN) ||
+    user.roles.includes(UserRoles.COMPLIANCE_MANAGER) ||
+    user.roles.includes(UserRoles.AUDITOR);
+  
+  const canDelete =
+    user.roles.includes(UserRoles.ADMIN) ||
+    user.roles.includes(UserRoles.COMPLIANCE_MANAGER);
+
+
   return (
     <>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Compliance Path Management
-            </h1>
-            <p className="text-muted-foreground">
-              View and manage the compliance standards and rule sets that products
-              are verified against.
-            </p>
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Compliance Path Management</CardTitle>
+              <CardDescription>
+                Manage the compliance standards and rule sets for products.
+              </CardDescription>
+            </div>
+            {canManage && (
+              <Button onClick={handleCreateNew}>
+                <Plus className="mr-2 h-4 w-4" /> Create Path
+              </Button>
+            )}
           </div>
-          <Button onClick={handleCreateNew}>
-            <Plus className="mr-2 h-4 w-4" /> Create Path
-          </Button>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {paths.map(path => (
-            <Card key={path.id} className="flex flex-col">
-              <CardHeader>
-                <CardTitle>{path.name}</CardTitle>
-                <Badge variant="outline" className="w-fit">
-                  {path.category}
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4 flex-1">
-                <p className="text-sm text-muted-foreground">
-                  {path.description}
-                </p>
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <FileQuestion className="h-4 w-4 text-muted-foreground" />
-                    Regulations
-                  </h4>
-                  <div className="flex flex-wrap gap-1">
-                    {path.regulations.map(reg => (
-                      <Badge key={reg} variant="secondary">
-                        {reg}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <ScrollText className="h-4 w-4 text-muted-foreground" />
-                    Rules
-                  </h4>
-                  <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                    {JSON.stringify(path.rules, null, 2)}
-                  </pre>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => handleEdit(path)}
-                >
-                  <Settings2 className="mr-2 h-4 w-4" />
-                  Manage Path
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-      </div>
-      <CompliancePathForm
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        path={selectedPath}
-        onSave={handleSave}
-        user={user}
-      />
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Path Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Regulations</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paths.map(path => (
+                  <TableRow key={path.id}>
+                    <TableCell className="font-medium">
+                      {path.name}
+                      <p className="text-xs text-muted-foreground font-normal line-clamp-1">
+                        {path.description}
+                      </p>
+                    </TableCell>
+                    <TableCell>{path.category}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {path.regulations.map(reg => (
+                          <Badge key={reg} variant="secondary">
+                            {reg}
+                          </Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {canManage && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => handleEdit(path)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            {canDelete && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem
+                                    onSelect={e => e.preventDefault()}
+                                    className="text-destructive"
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Are you sure?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This will permanently delete the
+                                      compliance path "{path.name}".
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDelete(path.id)}
+                                      disabled={isPending}
+                                      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                    >
+                                      Delete
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {paths.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-48 text-center">
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <ListTree className="h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold">
+                          No Compliance Paths
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Create a path to define compliance rules for products.
+                        </p>
+                        {canManage && (
+                          <Button onClick={handleCreateNew}>
+                            <Plus className="mr-2 h-4 w-4" /> Create Path
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+      {canManage && (
+        <CompliancePathForm
+          isOpen={isFormOpen}
+          onOpenChange={setIsFormOpen}
+          path={selectedPath}
+          onSave={handleSave}
+          user={user}
+        />
+      )}
     </>
   );
 }

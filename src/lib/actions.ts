@@ -653,6 +653,26 @@ export async function saveCompliancePath(
   return docToCompliancePath(doc);
 }
 
+export async function deleteCompliancePath(
+  pathId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (
+    !user ||
+    (!hasRole(user, UserRoles.ADMIN) &&
+      !hasRole(user, UserRoles.COMPLIANCE_MANAGER))
+  ) {
+    throw new Error('Permission denied to delete compliance paths.');
+  }
+
+  await adminDb.collection(Collections.COMPLIANCE_PATHS).doc(pathId).delete();
+  await logAuditEvent('compliance_path.deleted', pathId, {}, userId);
+  revalidatePath('/dashboard/admin/compliance');
+  revalidatePath('/dashboard/auditor/compliance');
+  revalidatePath('/dashboard/compliance-manager/compliance');
+}
+
 export async function getAuditLogs(): Promise<AuditLog[]> {
   const snapshot = await adminDb
     .collection(Collections.AUDIT_LOGS)
