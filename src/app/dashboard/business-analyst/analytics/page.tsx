@@ -1,6 +1,6 @@
 // src/app/dashboard/business-analyst/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getMockUsers, hasRole } from '@/lib/auth';
+import { getCurrentUser, getUsers, hasRole } from '@/lib/auth';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
@@ -89,7 +89,7 @@ export default async function AnalyticsPage() {
 
   const [products, users, auditLogs] = await Promise.all([
     getProducts(user.id),
-    getMockUsers(),
+    getUsers(),
     getAuditLogs(),
   ]);
 
@@ -288,7 +288,9 @@ export default async function AnalyticsPage() {
                     className="text-xs text-muted-foreground shrink-0"
                     suppressHydrationWarning
                   >
-                    {format(new Date(log.createdAt), "PPpp")}
+                    {formatDistanceToNow(new Date(log.createdAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
               );

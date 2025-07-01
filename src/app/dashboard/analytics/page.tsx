@@ -1,7 +1,6 @@
-
 // src/app/dashboard/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getMockUsers, hasRole } from '@/lib/auth';
+import { getCurrentUser, getUsers, hasRole } from '@/lib/auth';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
@@ -96,7 +95,7 @@ export default async function AnalyticsPage({
 
   const [products, users, auditLogs] = await Promise.all([
     getProducts(user.id),
-    getMockUsers(),
+    getUsers(),
     getAuditLogs(),
   ]);
 

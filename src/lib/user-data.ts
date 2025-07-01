@@ -2,8 +2,7 @@
 import type { User } from '@/types';
 import { UserRoles } from './constants';
 
-// This file now contains only mock data for development and testing.
-// In production, this data would come from your authentication provider and Firestore.
+// This file contains mock data for development and database seeding.
 export let users: User[] = [
   {
     id: 'user-admin',
@@ -96,22 +95,3 @@ export let users: User[] = [
     readNotificationIds: [],
   },
 ];
-// Rename this to data-seed.ts and use it in a seeding script
-// instead of importing it directly into the application.
-// This ensures that the application uses a real database in production.
-//
-// For example:
-//
-// // scripts/seed.ts
-// import { db } from '@/lib/firebase-admin';
-// import { products } from '@/lib/data-seed';
-//
-// async function seedDatabase() {
-//   const collectionRef = db.collection('products');
-//   for (const product of products) {
-//     await collectionRef.doc(product.id).set(product);
-//   }
-//   console.log('Database seeded successfully!');
-// }
-//
-// seedDatabase();

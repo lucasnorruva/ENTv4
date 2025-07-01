@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import type { AuditLog } from '@/types';
 import { UserRoles } from '@/lib/constants';
-import { format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -100,7 +100,9 @@ export default async function HistoryPage() {
                         className="text-xs text-muted-foreground"
                         suppressHydrationWarning
                       >
-                        {format(new Date(log.createdAt), "PPpp")}
+                        {formatDistanceToNow(new Date(log.createdAt), {
+                          addSuffix: true,
+                        })}
                       </p>
                     </div>
                     <p className="text-sm text-muted-foreground">
