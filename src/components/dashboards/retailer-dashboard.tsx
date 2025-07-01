@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, BookCopy, ShieldAlert, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Input } from '../ui/input';
+import Image from 'next/image';
 
 export default async function RetailerDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);
@@ -41,22 +42,79 @@ export default async function RetailerDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Lookup</CardTitle>
-          <CardDescription>
-            Quickly find a product passport by its name or ID.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex w-full max-w-sm items-center space-x-2">
-            <Input type="text" placeholder="Search by Product Name or ID..." />
-            <Button type="submit">
-              <Search className="h-4 w-4 mr-2" /> Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Product Lookup</CardTitle>
+            <CardDescription>
+              Quickly find a product passport by its name or ID.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex w-full max-w-sm items-center space-x-2">
+              <Input
+                type="text"
+                placeholder="Search by Product Name or ID..."
+              />
+              <Button type="submit">
+                <Search className="h-4 w-4 mr-2" /> Search
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Recently Added Products</CardTitle>
+            <CardDescription>
+              The latest products available on the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentlyAdded.length > 0 ? (
+              <div className="space-y-4">
+                {recentlyAdded.map(product => (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={product.productImage}
+                        alt={product.productName}
+                        width={40}
+                        height={40}
+                        className="rounded-md object-cover"
+                        data-ai-hint="product photo"
+                      />
+                      <div>
+                        <Link
+                          href={`/dashboard/retailer/products/${product.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {product.productName}
+                        </Link>
+                        <p className="text-sm text-muted-foreground">
+                          From {product.supplier}
+                        </p>
+                      </div>
+                    </div>
+                    <Button asChild variant="secondary" size="sm">
+                      <Link href={`/dashboard/retailer/products/${product.id}`}>
+                        View Details
+                      </Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <p>No products have been added yet.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>

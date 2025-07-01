@@ -29,6 +29,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
+import { usePathname } from "next/navigation";
 
 import type { Product, User } from "@/types";
 import {
@@ -93,10 +94,14 @@ export default function ProductTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const pathname = usePathname();
 
   const canEdit =
     user.roles.includes(UserRoles.ADMIN) ||
     user.roles.includes(UserRoles.SUPPLIER);
+
+  // Construct the base URL for the detail page dynamically
+  const basePath = pathname.split("/").slice(0, 3).join("/");
 
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -139,8 +144,6 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
-          const currentUrl =
-            typeof window !== "undefined" ? window.location.pathname : "";
 
           return (
             <div className="flex items-center gap-3">
@@ -153,7 +156,7 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
               <Link
-                href={`${currentUrl}/${row.original.id}`}
+                href={`${basePath}/products/${row.original.id}`}
                 className="font-medium hover:underline"
               >
                 {row.original.productName}
@@ -325,7 +328,7 @@ export default function ProductTable({
         },
       },
     ],
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit],
+    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit, basePath],
   );
 
   const table = useReactTable({
