@@ -14,6 +14,37 @@ import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
 import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
 import { Collections } from '../lib/constants';
 
+async function seedAuth() {
+  console.log('Seeding Firebase Authentication with mock users...');
+  
+  const userCreationPromises = mockUsers.map(user => {
+    return admin.auth().createUser({
+      uid: user.id,
+      email: user.email,
+      password: 'password123', // Standard password for all mock users
+      displayName: user.fullName,
+      emailVerified: true,
+      disabled: false,
+    }).catch(error => {
+      if (error.code === 'auth/uid-already-exists' || error.code === 'auth/email-already-exists') {
+        console.log(`User with ID/Email ${user.id}/${user.email} already exists. Skipping.`);
+        return null; // Return null to indicate it's handled
+      }
+      // For other errors, re-throw to fail the seeding process
+      console.error(`Error creating user ${user.id}:`, error);
+      throw error;
+    });
+  });
+
+  try {
+    await Promise.all(userCreationPromises);
+    console.log(`✅ Auth seeding complete. ${mockUsers.length} users processed.`);
+  } catch (error) {
+    console.error('❌ A critical error occurred during Auth seeding. The script will terminate.');
+    throw error;
+  }
+}
+
 async function seedCollection(
   collectionName: string,
   data: any[],
@@ -68,6 +99,9 @@ async function seedCollection(
 
 async function seedDatabase() {
   console.log('Starting comprehensive database seeding...');
+
+  // Seed Authentication first to ensure UIDs are consistent
+  await seedAuth();
 
   // The order can be important if there are dependencies
   await seedCollection(Collections.COMPANIES, mockCompanies);
