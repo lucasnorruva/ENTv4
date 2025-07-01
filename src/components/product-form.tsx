@@ -99,6 +99,7 @@ export default function ProductForm({
           packaging: product.packaging || { type: '', recyclable: false },
           lifecycle: product.lifecycle || {},
           battery: product.battery || {},
+          compliance: product.compliance || {},
         }
       : {
           productName: '',
@@ -113,6 +114,7 @@ export default function ProductForm({
           packaging: { type: '', recyclable: false },
           lifecycle: {},
           battery: {},
+          compliance: {},
         },
   });
 
@@ -159,6 +161,7 @@ export default function ProductForm({
               },
               lifecycle: product.lifecycle || {},
               battery: product.battery || {},
+              compliance: product.compliance || {},
             }
           : {
               productName: '',
@@ -173,6 +176,7 @@ export default function ProductForm({
               packaging: { type: '', recyclable: false },
               lifecycle: {},
               battery: {},
+              compliance: {},
             },
       );
       setImageFile(null);
@@ -784,7 +788,7 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="lifecycle.carbonFootprintMethod"
                       render={({ field }) => (
@@ -796,7 +800,10 @@ export default function ProductForm({
                               {...field}
                             />
                           </FormControl>
-                           <FormDescription>The methodology used for carbon footprint calculation.</FormDescription>
+                          <FormDescription>
+                            The methodology used for carbon footprint
+                            calculation.
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -866,6 +873,70 @@ export default function ProductForm({
                           <FormDescription>
                             Select the primary regulatory standard this product
                             must adhere to.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Separator />
+                    <h3 className="text-lg font-semibold">Declarations</h3>
+                    <FormField
+                      control={form.control}
+                      name="compliance.rohsCompliant"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>RoHS Compliant</FormLabel>
+                            <FormDescription>
+                              This product complies with the Restriction of
+                              Hazardous Substances directive.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="compliance.reachSVHC"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <div className="space-y-0.5">
+                            <FormLabel>REACH SVHC Declared</FormLabel>
+                            <FormDescription>
+                              Substances of Very High Concern are declared as per
+                              REACH regulation.
+                            </FormDescription>
+                          </div>
+                          <FormControl>
+                            <Switch
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="compliance.scipReference"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>SCIP Reference</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. 123e4567-e89b-12d3-a456-426614174000"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            The reference number from the SCIP database, if
+                            applicable.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>

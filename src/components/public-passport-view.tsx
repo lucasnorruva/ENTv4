@@ -305,15 +305,15 @@ export default function PublicPassportView({
                 )}
               </InfoRow>
               {product.battery && (
-                 <InfoRow
-                    icon={BatteryCharging}
-                    label="Battery"
-                    value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
-                  >
-                      <p className="text-xs text-muted-foreground">
-                      Removable: {product.battery.isRemovable ? "Yes" : "No"}
-                    </p>
-                  </InfoRow>
+                <InfoRow
+                  icon={BatteryCharging}
+                  label="Battery"
+                  value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
+                >
+                  <p className="text-xs text-muted-foreground">
+                    Removable: {product.battery.isRemovable ? 'Yes' : 'No'}
+                  </p>
+                </InfoRow>
               )}
               {aiLifecycle && (
                 <>
@@ -378,9 +378,9 @@ export default function PublicPassportView({
                   </p>
                 )}
               </InfoRow>
-              <InfoRow icon={Globe} label="Compliance Summary">
+              <InfoRow icon={ShieldCheck} label="RoHS Compliant">
                 <p className="text-sm text-muted-foreground">
-                  {sustainability?.complianceSummary || 'Awaiting review.'}
+                  {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
                 </p>
               </InfoRow>
               <InfoRow icon={FileText} label="Certifications">

@@ -396,6 +396,16 @@ export default function ProductDetailView({
                       sustainability?.complianceSummary || 'Awaiting review.'
                     }
                   />
+                  <InfoRow icon={ShieldCheck} label="RoHS Compliant">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
+                    </p>
+                  </InfoRow>
+                   <InfoRow icon={FileText} label="SCIP Reference">
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {product.compliance?.scipReference || 'Not Provided'}
+                    </p>
+                  </InfoRow>
                   <InfoRow icon={FileText} label="Certifications">
                     {product.certifications &&
                     product.certifications.length > 0 ? (
@@ -475,54 +485,60 @@ export default function ProductDetailView({
                           : 'Not available'
                       }
                     />
-                     {product.battery && (
+                    {product.battery && (
                       <InfoRow
                         icon={BatteryCharging}
                         label="Battery"
                         value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
                       >
-                         <p className="text-xs text-muted-foreground">
-                          Removable: {product.battery.isRemovable ? "Yes" : "No"}
+                        <p className="text-xs text-muted-foreground">
+                          Removable: {product.battery.isRemovable ? 'Yes' : 'No'}
                         </p>
                       </InfoRow>
                     )}
                   </div>
                   {aiLifecycle && (
-                    <Accordion type="single" collapsible className="w-full mt-4">
-                       <AccordionItem value="ai-analysis">
-                          <AccordionTrigger>AI Lifecycle Analysis</AccordionTrigger>
-                          <AccordionContent>
-                             <InfoRow
-                                icon={Lightbulb}
-                                label="AI Stage Analysis"
-                              >
-                                <div className="space-y-2 mt-2 text-sm text-muted-foreground">
-                                  <p>
-                                    <strong>Manufacturing:</strong>{' '}
-                                    {aiLifecycle.lifecycleStages.manufacturing}
-                                  </p>
-                                  <p>
-                                    <strong>Use Phase:</strong>{' '}
-                                    {aiLifecycle.lifecycleStages.usePhase}
-                                  </p>
-                                  <p>
-                                    <strong>End-of-Life:</strong>{' '}
-                                    {aiLifecycle.lifecycleStages.endOfLife}
-                                  </p>
-                                </div>
-                              </InfoRow>
-                              <InfoRow
-                                icon={Sparkles}
-                                label="AI Improvement Opportunities"
-                              >
-                                <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                                  {aiLifecycle.improvementOpportunities.map((opp, i) => (
-                                    <li key={i}>{opp}</li>
-                                  ))}
-                                </ul>
-                              </InfoRow>
-                          </AccordionContent>
-                       </AccordionItem>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="w-full mt-4"
+                    >
+                      <AccordionItem value="ai-analysis">
+                        <AccordionTrigger>AI Lifecycle Analysis</AccordionTrigger>
+                        <AccordionContent>
+                          <InfoRow
+                            icon={Lightbulb}
+                            label="AI Stage Analysis"
+                          >
+                            <div className="space-y-2 mt-2 text-sm text-muted-foreground">
+                              <p>
+                                <strong>Manufacturing:</strong>{' '}
+                                {aiLifecycle.lifecycleStages.manufacturing}
+                              </p>
+                              <p>
+                                <strong>Use Phase:</strong>{' '}
+                                {aiLifecycle.lifecycleStages.usePhase}
+                              </p>
+                              <p>
+                                <strong>End-of-Life:</strong>{' '}
+                                {aiLifecycle.lifecycleStages.endOfLife}
+                              </p>
+                            </div>
+                          </InfoRow>
+                          <InfoRow
+                            icon={Sparkles}
+                            label="AI Improvement Opportunities"
+                          >
+                            <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
+                              {aiLifecycle.improvementOpportunities.map(
+                                (opp, i) => (
+                                  <li key={i}>{opp}</li>
+                                ),
+                              )}
+                            </ul>
+                          </InfoRow>
+                        </AccordionContent>
+                      </AccordionItem>
                     </Accordion>
                   )}
                 </CardContent>

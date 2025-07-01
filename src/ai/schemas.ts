@@ -67,6 +67,13 @@ export const AiProductSchema = z.object({
     })
     .describe('Battery specifications.')
     .optional(),
+  compliance: z
+    .object({
+      rohsCompliant: z.boolean().optional(),
+      reachSVHC: z.boolean().optional(),
+    })
+    .describe('Specific compliance declarations.')
+    .optional(),
   verificationStatus: z
     .string()
     .optional()

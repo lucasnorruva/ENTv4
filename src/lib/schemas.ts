@@ -41,6 +41,13 @@ const batterySchema = z.object({
   isRemovable: z.boolean().optional(),
 });
 
+const complianceSchema = z.object({
+  rohsCompliant: z.boolean().optional(),
+  rohsExemption: z.string().optional(),
+  reachSVHC: z.boolean().optional(),
+  scipReference: z.string().optional(),
+});
+
 export const productFormSchema = z.object({
   productName: z.string().min(3, 'Product name must be at least 3 characters.'),
   productDescription: z
@@ -56,6 +63,7 @@ export const productFormSchema = z.object({
   packaging: packagingSchema.optional(),
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
+  compliance: complianceSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

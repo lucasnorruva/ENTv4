@@ -79,6 +79,13 @@ export interface Battery {
   isRemovable: boolean;
 }
 
+export interface Compliance {
+  rohsCompliant?: boolean;
+  rohsExemption?: string;
+  reachSVHC?: boolean;
+  scipReference?: string;
+}
+
 export interface ComplianceGap {
   regulation: string;
   issue: string;
@@ -117,6 +124,7 @@ export interface Product extends BaseEntity {
   packaging?: Packaging;
   lifecycle?: Lifecycle;
   battery?: Battery;
+  compliance?: Compliance;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

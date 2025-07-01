@@ -60,6 +60,10 @@ export let products: Product[] = [
       { name: 'RoHS Compliant', issuer: 'Intertek' },
       { name: 'ISO 14001', issuer: 'Eco-Factory 1' },
     ],
+    compliance: {
+      rohsCompliant: true,
+      reachSVHC: false,
+    },
     verificationStatus: 'Verified',
     lastVerificationDate: '2024-07-22T14:00:00Z',
     blockchainProof: {
@@ -129,6 +133,11 @@ export let products: Product[] = [
       isRemovable: true,
     },
     certifications: [{ name: 'FCC', issuer: 'FCC' }],
+    compliance: {
+      rohsCompliant: true,
+      reachSVHC: true,
+      scipReference: 'mock-scip-ref-12345',
+    },
     verificationStatus: 'Pending',
     sustainability: {
       score: 68,
@@ -178,6 +187,10 @@ export let products: Product[] = [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade Certified', issuer: 'Fair Trade USA' },
     ],
+    compliance: {
+      rohsCompliant: true,
+      reachSVHC: false,
+    },
     verificationStatus: 'Not Submitted',
     sustainability: {
       score: 92,
@@ -213,6 +226,10 @@ export let products: Product[] = [
     manufacturing: { facility: 'EcoFabric Taiwan', country: 'Taiwan' },
     packaging: { type: 'Plastic Bag', recyclable: false, weight: 30 },
     certifications: [],
+    compliance: {
+      rohsCompliant: true,
+      reachSVHC: false,
+    },
     verificationStatus: 'Failed',
     lastVerificationDate: '2024-07-19T10:00:00Z',
     sustainability: {
@@ -261,6 +278,10 @@ export let products: Product[] = [
     manufacturing: { facility: 'EcoHome Workshop', country: 'China' },
     packaging: { type: 'Cardboard Box', recyclable: true, weight: 500 },
     certifications: [{ name: 'FSC Certified', issuer: 'FSC' }],
+    compliance: {
+      rohsCompliant: true,
+      reachSVHC: false,
+    },
     verificationStatus: 'Verified',
     blockchainProof: {
       txHash: '0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
