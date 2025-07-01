@@ -1,13 +1,5 @@
 // src/app/dashboard/compliance-manager/flagged/page.tsx
 import { redirect } from 'next/navigation';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { getProducts } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import FlaggedProductsClient from '@/components/flagged-products-client';
 import { UserRoles } from '@/lib/constants';
@@ -20,25 +12,7 @@ export default async function FlaggedProductsPage() {
   if (!hasRole(user, UserRoles.COMPLIANCE_MANAGER)) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
-
-  const allProducts = await getProducts(user.id);
-
-  const flaggedProducts = allProducts.filter(
-    p => p.verificationStatus === 'Failed',
-  );
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Flagged Products Queue</CardTitle>
-        <CardDescription>
-          Review and manage products that have failed compliance verification.
-          Resolving an issue sends it back to the supplier.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <FlaggedProductsClient initialProducts={flaggedProducts} user={user} />
-      </CardContent>
-    </Card>
-  );
+  
+  // Data is now fetched on the client side.
+  return <FlaggedProductsClient user={user} />;
 }

@@ -1,7 +1,7 @@
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -14,10 +14,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, ShieldCheck } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,18 +38,20 @@ import {
 } from '@/components/ui/table';
 import type { Product, User } from '@/types';
 import { AuditReviewDialog } from '@/components/audit-review-dialog';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuditQueueClientProps {
-  initialProducts: Product[];
   user: User;
 }
 
-export function AuditQueueClient({
-  initialProducts,
-  user,
-}: AuditQueueClientProps) {
+export function AuditQueueClient({ user }: AuditQueueClientProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { toast } = useToast();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'updatedAt', desc: true },
@@ -57,6 +60,43 @@ export function AuditQueueClient({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     {},
   );
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Pending'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const productsData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            createdAt: data.createdAt?.toDate().toISOString(),
+            updatedAt: data.updatedAt?.toDate().toISOString(),
+            lastUpdated: data.lastUpdated?.toDate().toISOString(),
+          } as Product;
+        });
+        setProducts(productsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching audit queue:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load audit queue.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleReviewClick = (product: Product) => {
     setSelectedProduct(product);
@@ -139,7 +179,7 @@ export function AuditQueueClient({
   );
 
   const table = useReactTable({
-    data: initialProducts,
+    data: products,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -161,13 +201,10 @@ export function AuditQueueClient({
         <Input
           placeholder="Filter by product name..."
           value={
-            (table.getColumn('productName')?.getFilterValue() as string) ??
-            ''
+            (table.getColumn('productName')?.getFilterValue() as string) ?? ''
           }
           onChange={event =>
-            table
-              .getColumn('productName')
-              ?.setFilterValue(event.target.value)
+            table.getColumn('productName')?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
@@ -187,9 +224,7 @@ export function AuditQueueClient({
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={value =>
-                      column.toggleVisibility(!!value)
-                    }
+                    onCheckedChange={value => column.toggleVisibility(!!value)}
                   >
                     {column.id.replace(/([A-Z])/g, ' $1')}
                   </DropdownMenuCheckboxItem>
@@ -219,7 +254,16 @@ export function AuditQueueClient({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-48 text-center"
+                >
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
@@ -241,11 +285,14 @@ export function AuditQueueClient({
                   colSpan={columns.length}
                   className="h-48 text-center"
                 >
-                   <div className="flex flex-col items-center justify-center gap-4">
+                  <div className="flex flex-col items-center justify-center gap-4">
                     <ShieldCheck className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="text-xl font-semibold">Audit Queue is Clear</h3>
+                    <h3 className="text-xl font-semibold">
+                      Audit Queue is Clear
+                    </h3>
                     <p className="text-muted-foreground">
-                      No products are currently awaiting verification. Great job!
+                      No products are currently awaiting verification. Great
+                      job!
                     </p>
                   </div>
                 </TableCell>

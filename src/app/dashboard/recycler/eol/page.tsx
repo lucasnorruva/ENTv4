@@ -1,6 +1,5 @@
 // src/app/dashboard/recycler/eol/page.tsx
 import { redirect } from 'next/navigation';
-import { getProducts } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import EolProductsClient from '@/components/eol-products-client';
 import { UserRoles } from '@/lib/constants';
@@ -14,6 +13,6 @@ export default async function EolPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const products = await getProducts(user.id);
-  return <EolProductsClient initialProducts={products} user={user} />;
+  // Data is now fetched client-side
+  return <EolProductsClient user={user} />;
 }

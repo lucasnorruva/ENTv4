@@ -1,6 +1,5 @@
 // src/app/dashboard/auditor/audit/page.tsx
 import { redirect } from 'next/navigation';
-import { getProducts } from '@/lib/actions';
 import { getCurrentUser, hasRole } from '@/lib/auth';
 import { AuditQueueClient } from '@/components/audit-queue-client';
 import { UserRoles } from '@/lib/constants';
@@ -14,11 +13,6 @@ export default async function AuditQueuePage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const allProducts = await getProducts(user.id);
-
-  const productsToAudit = allProducts.filter(
-    p => p.verificationStatus === 'Pending',
-  );
-
-  return <AuditQueueClient initialProducts={productsToAudit} user={user} />;
+  // Data is now fetched client-side with a real-time listener.
+  return <AuditQueueClient user={user} />;
 }

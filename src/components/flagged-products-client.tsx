@@ -1,10 +1,10 @@
 // src/components/flagged-products-client.tsx
 'use client';
 
-import React, { useTransition } from 'react';
+import React, { useTransition, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,18 +17,57 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { resolveComplianceIssue } from '@/lib/actions';
 import type { Product, User } from '@/types';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 interface FlaggedProductsClientProps {
-  initialProducts: Product[];
   user: User;
 }
 
 export default function FlaggedProductsClient({
-  initialProducts,
   user,
 }: FlaggedProductsClientProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Failed'),
+    );
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const productsData = querySnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            lastVerificationDate: data.lastVerificationDate
+              ?.toDate()
+              .toISOString(),
+          } as Product;
+        });
+        setProducts(productsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching flagged products:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not load flagged products.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleResolve = (productId: string) => {
     startTransition(async () => {
@@ -59,8 +98,14 @@ export default function FlaggedProductsClient({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {initialProducts.length > 0 ? (
-          initialProducts.map(product => (
+        {isLoading ? (
+          <TableRow>
+            <TableCell colSpan={4} className="h-48 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+            </TableCell>
+          </TableRow>
+        ) : products.length > 0 ? (
+          products.map(product => (
             <TableRow key={product.id}>
               <TableCell className="font-medium">
                 {product.productName}
