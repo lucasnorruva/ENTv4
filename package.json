@@ -11,8 +11,7 @@
     "test:watch": "jest --watch",
     "test:ci": "jest --ci",
     "genkit:start": "npx genkit start",
-    "genkit:watch": "npx genkit start --watch",
-    "seed": "firebase emulators:exec --only auth,firestore \"tsx src/scripts/seed.ts\""
+    "genkit:watch": "npx genkit start --watch"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.1.2",

@@ -20,7 +20,7 @@ This project is built with Next.js, Firebase, and Genkit AI.
 ## Tech Stack
 
 -   **Framework**: [Next.js](https://nextjs.org/) (with App Router)
--   **Backend**: [Firebase](https://firebase.google.com/) (Firestore, Cloud Functions, Auth)
+-   **Backend**: Local Mock Data (for development), [Firebase](https://firebase.google.com/) (for production)
 -   **AI Integration**: [Genkit](https://firebase.google.com/docs/genkit)
 -   **UI**: [React](https://reactjs.org/), [ShadCN UI](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
 -   **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/)
@@ -47,23 +47,15 @@ Follow these instructions to get the project running on your local machine for d
     ```bash
     npm install
     ```
-
-3.  **Set up Backend Authentication:**
-    For the backend (Firebase Admin SDK) to authenticate with your Firebase project, you need a service account key.
-    - Go to your **Firebase project settings** > **Service accounts**.
-    - Click **Generate new private key** and save the downloaded JSON file.
-    - Rename the file to `serviceAccountKey.json` and place it in the root directory of this project.
     
-    _Note: This file is included in `.gitignore` and should never be committed to source control._
-
-4.  **Set up Client-side Environment:**
-    Create a `.env` file in the root of the project. This file is for your **client-side** Firebase configuration keys (which are public). You can get these from your Firebase project settings under "Your apps" > "SDK setup and configuration".
+3.  **Set up Environment:**
+    Create a `.env` file in the root of the project. For local development, this file can be mostly empty, but it's required. For production deployment, you will need to add your Firebase configuration keys.
     ```bash
     touch .env
     ```
     Your `.env` file should look like this:
     ```env
-    # Firebase client configuration
+    # Firebase client configuration (for production)
     NEXT_PUBLIC_FIREBASE_API_KEY=...
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
     NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
@@ -88,13 +80,9 @@ Follow these instructions to get the project running on your local machine for d
     ```
     > **Important Note:** This `.env` file is locked and cannot be modified by the AI assistant. Please manage your environment variables manually.
 
-5.  **Seed the Database:**
-    The application requires initial data to function correctly. Run the following command to populate your local Firestore emulator or cloud database with mock data.
-    ```bash
-    npm run seed
-    ```
-
 ### Running the Application
+
+For local development, the application now runs entirely on mock data, so you no longer need to run the `seed` script.
 
 To run the full application, including the Next.js frontend and the Genkit AI server, use a single command:
 
@@ -127,4 +115,4 @@ This project includes detailed architectural and design documentation. You can f
 -   [`docs/compliance-matrix.md`](./docs/compliance-matrix.md): A comprehensive list of supported regulations and standards.
 -   [`docs/roles.md`](./docs/roles.md): An overview of user roles and their responsibilities.
 -   [`docs/versioning.md`](./docs/versioning.md): The platform's versioning strategy and release process.
-
+```

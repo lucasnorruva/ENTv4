@@ -1,101 +1,67 @@
 // src/lib/auth.ts
 import { UserRoles, type Role, Collections } from './constants';
 import type { User, Company } from '@/types';
-import { adminDb } from './firebase-admin';
 import { hasRole } from './auth-utils';
 
+// MOCK DATA IMPORTS
+import { users as mockUsers } from './user-data';
+import { companies as mockCompanies } from './company-data';
+
 /**
- * Simulates fetching all users from Firestore.
+ * Simulates fetching all users from mock data.
  * @returns A promise that resolves to an array of all users.
  */
 export async function getUsers(): Promise<User[]> {
-  const snapshot = await adminDb.collection(Collections.USERS).get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<User, 'id'>),
-  }));
+  return Promise.resolve(mockUsers);
 }
 
 /**
- * Fetches a user by their ID from Firestore.
+ * Fetches a user by their ID from mock data.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserById(id: string): Promise<User | undefined> {
-  const doc = await adminDb.collection(Collections.USERS).doc(id).get();
-  if (!doc.exists) return undefined;
-  return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  const user = mockUsers.find(u => u.id === id);
+  return Promise.resolve(user);
 }
 
 /**
- * Fetches a user by their email address from Firestore.
+ * Fetches a user by their email address from mock data.
  * @param email The email of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const snapshot = await adminDb
-    .collection(Collections.USERS)
-    .where('email', '==', email)
-    .limit(1)
-    .get();
-  if (snapshot.empty) return undefined;
-  const doc = snapshot.docs[0];
-  return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  const user = mockUsers.find(u => u.email === email);
+  return Promise.resolve(user);
 }
 
 /**
- * Fetches a company by its ID from Firestore.
+ * Fetches a company by its ID from mock data.
  * @param id The ID of the company to fetch.
  * @returns A promise that resolves to the company or undefined if not found.
  */
 export async function getCompanyById(id: string): Promise<Company | undefined> {
-  const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
-  if (!doc.exists) return undefined;
-  return { id: doc.id, ...(doc.data() as Omit<Company, 'id'>) };
+  const company = mockCompanies.find(c => c.id === id);
+  return Promise.resolve(company);
 }
 
 /**
- * Simulates fetching the current user based on a role.
- * In a real application, this would involve validating a session token.
- * This function includes multiple fallbacks to ensure a user is found if the database is seeded.
+ * Simulates fetching the current user based on a role from mock data.
  * @param role The role to simulate being logged in as.
  * @returns A mock user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  // Try to find a user with the specified role
-  let snapshot = await adminDb
-    .collection(Collections.USERS)
-    .where('roles', 'array-contains', role)
-    .limit(1)
-    .get();
-
-  if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  const user = mockUsers.find(u => u.roles.includes(role));
+  if (user) {
+    return Promise.resolve(user);
   }
 
-  // Fallback 1: Try to find an Admin user
-  snapshot = await adminDb
-    .collection(Collections.USERS)
-    .where('roles', 'array-contains', UserRoles.ADMIN)
-    .limit(1)
-    .get();
-
-  if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
-  }
-
-  // Fallback 2: Try to find ANY user at all.
-  snapshot = await adminDb.collection(Collections.USERS).limit(1).get();
-
-  if (!snapshot.empty) {
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...(doc.data() as Omit<User, 'id'>) };
+  // Fallback to the first user if no specific role is found.
+  if (mockUsers.length > 0) {
+    return Promise.resolve(mockUsers[0]);
   }
 
   throw new Error(
-    "No users found in the database. Please seed the database by running 'npm run seed'.",
+    "No users found in the mock data file (src/lib/user-data.ts).",
   );
 }
