@@ -15,10 +15,11 @@ function initializeAdminApp(): App {
   }
 
   // Check if emulators are running (this env var is set by `firebase emulators:exec`)
+  // This is the primary way the seed script will connect.
   if (process.env.FIRESTORE_EMULATOR_HOST) {
-    console.log('✅ Admin SDK: Emulator environment detected. Connecting to emulators.');
+    console.log('✅ Admin SDK: Emulator environment detected (FIRESTORE_EMULATOR_HOST). Connecting to emulators.');
     return initializeApp({
-      projectId: 'passportflow-dev',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'passportflow-dev',
     });
   }
 
@@ -31,7 +32,7 @@ function initializeAdminApp(): App {
     process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
     
     return initializeApp({
-      projectId: 'passportflow-dev',
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'passportflow-dev',
     });
   }
 
@@ -44,7 +45,7 @@ function initializeAdminApp(): App {
     );
   }
 
-  console.log(`✅ Admin SDK: Production environment detected. Initializing with service account key: ${serviceAccountPath}`);
+  console.log(`✅ Admin SDK: Production environment detected. Initializing with service account key.`);
   try {
     const serviceAccount = JSON.parse(
       fs.readFileSync(serviceAccountPath, 'utf8'),
