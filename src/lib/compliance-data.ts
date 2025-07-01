@@ -45,9 +45,3 @@ export const compliancePaths: CompliancePath[] = [
     updatedAt: '2024-07-01T00:00:00Z',
   },
 ];
-
-export function getCompliancePathById(
-  id: string,
-): CompliancePath | undefined {
-  return compliancePaths.find(path => path.id === id);
-}

@@ -1,4 +1,4 @@
-
+// src/components/product-form.tsx
 'use client';
 
 import React, { useEffect, useState, useTransition } from 'react';
@@ -49,7 +49,8 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, User, CompliancePath } from '@/types';
-import { saveProduct, runSuggestImprovements } from '@/lib/actions';
+import { saveProduct } from '@/lib/actions';
+import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 import { useToast } from '@/hooks/use-toast';
 import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
@@ -247,7 +248,7 @@ export default function ProductForm({
 
     startSuggestionTransition(async () => {
       try {
-        const result = await runSuggestImprovements({
+        const result = await suggestImprovements({
           productName,
           productDescription,
         });
@@ -474,6 +475,7 @@ export default function ProductForm({
                                   type="number"
                                   {...form.register(
                                     `materials.${index}.percentage`,
+                                    { valueAsNumber: true }
                                   )}
                                   placeholder="e.g. 60"
                                 />
@@ -487,6 +489,7 @@ export default function ProductForm({
                                   type="number"
                                   {...form.register(
                                     `materials.${index}.recycledContent`,
+                                    { valueAsNumber: true }
                                   )}
                                   placeholder="e.g. 100"
                                 />
@@ -608,6 +611,7 @@ export default function ProductForm({
                                 type="number"
                                 placeholder="e.g. 100"
                                 {...field}
+                                onChange={e => field.onChange(e.target.valueAsNumber)}
                               />
                             </FormControl>
                             <FormMessage />

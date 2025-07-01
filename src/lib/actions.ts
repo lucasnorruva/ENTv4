@@ -32,10 +32,6 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
-import type {
-  SuggestImprovementsInput,
-  SuggestImprovementsOutput,
-} from '@/types/ai-outputs';
 
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
@@ -224,7 +220,7 @@ export async function saveProduct(
     productData = {
       ...validatedData,
       companyId: user.companyId,
-      supplier: 'GreenTech Supplies', // Placeholder
+      supplier: user.fullName,
       productImage:
         validatedData.productImage || 'https://placehold.co/400x400.png',
       createdAt: fromTimestamp(now),
@@ -299,6 +295,7 @@ export async function approvePassport(
     .doc(productId)
     .update({
       verificationStatus: 'Verified',
+      status: 'Published',
       lastVerificationDate: admin.firestore.Timestamp.now(),
       blockchainProof: blockchainProof,
       ebsiVcId: ebsiVcId,
@@ -711,8 +708,8 @@ export async function saveNotificationPreferences(userId: string, prefs: any) {
 }
 
 export async function runSuggestImprovements(
-  input: SuggestImprovementsInput,
-): Promise<SuggestImprovementsOutput> {
+  input: { productName: string, productDescription: string }
+) {
   return suggestImprovements(input);
 }
 

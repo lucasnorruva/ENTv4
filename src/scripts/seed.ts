@@ -1,4 +1,3 @@
-
 // src/scripts/seed.ts
 import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top
@@ -36,11 +35,13 @@ async function seedCollection(
         // A simple check to see if the string is a valid ISO date string
         if (
           typeof value === 'string' &&
-          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/.test(value)
         ) {
           const date = new Date(value);
-          dataToSeed[key] = admin.firestore.Timestamp.fromDate(date);
-          continue;
+          if (!isNaN(date.getTime())) {
+            dataToSeed[key] = admin.firestore.Timestamp.fromDate(date);
+            continue;
+          }
         }
         dataToSeed[key] = value;
       }

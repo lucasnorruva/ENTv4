@@ -73,10 +73,11 @@ export const onProductChange = onDocumentWritten(
     if (
       afterData.sustainability &&
       afterData.sustainability.score !== undefined &&
-      afterData.sustainability.score !== -1
+      afterData.sustainability.score !== -1 &&
+      (beforeData && JSON.stringify(beforeData.materials) === JSON.stringify(afterData.materials) && beforeData.compliancePathId === afterData.compliancePathId)
     ) {
       console.log(
-        `Product ${event.params.productId} already has AI data. Skipping.`,
+        `Product ${event.params.productId} already has AI data and key fields are unchanged. Skipping.`,
       );
       return;
     }
