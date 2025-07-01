@@ -35,7 +35,7 @@ import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
 
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
-import { getUserById, hasRole } from './auth';
+import { getUserById, hasRole, getCompanyById } from './auth';
 
 // Helper to convert Firestore Timestamps to ISO strings
 const fromTimestamp = (
@@ -200,7 +200,10 @@ export async function saveProduct(
     if (!doc.exists) throw new Error('Product not found');
     const existingProduct = docToProduct(doc);
 
-    if (existingProduct.companyId !== user.companyId && !hasRole(user, UserRoles.ADMIN)) {
+    if (
+      existingProduct.companyId !== user.companyId &&
+      !hasRole(user, UserRoles.ADMIN)
+    ) {
       throw new Error('Permission denied to edit this product.');
     }
 
@@ -208,10 +211,15 @@ export async function saveProduct(
       ...validatedData,
       lastUpdated: fromTimestamp(now),
       updatedAt: fromTimestamp(now),
+      // If a product failed verification, reset its status so it can be re-submitted.
       verificationStatus:
         existingProduct.verificationStatus === 'Failed'
           ? 'Not Submitted'
           : existingProduct.verificationStatus,
+      status:
+        existingProduct.verificationStatus === 'Failed'
+          ? 'Draft'
+          : validatedData.status,
     };
     await productRef.update(productData);
     await logAuditEvent(
@@ -221,11 +229,16 @@ export async function saveProduct(
       userId,
     );
   } else {
+    const company = await getCompanyById(user.companyId);
+    if (!company) {
+      throw new Error(`Company with ID ${user.companyId} not found.`);
+    }
+
     productRef = adminDb.collection(Collections.PRODUCTS).doc();
     productData = {
       ...validatedData,
       companyId: user.companyId,
-      supplier: user.fullName,
+      supplier: company.name, // Use the company name as the supplier.
       productImage:
         validatedData.productImage || 'https://placehold.co/400x400.png',
       createdAt: fromTimestamp(now),
@@ -256,8 +269,8 @@ export async function deleteProduct(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied');
-  
-  if(product.companyId !== user.companyId && !hasRole(user, UserRoles.ADMIN)) {
+
+  if (product.companyId !== user.companyId && !hasRole(user, UserRoles.ADMIN)) {
     throw new Error('Permission denied to delete this product.');
   }
 
@@ -290,12 +303,12 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<void> {
-    const user = await getUserById(userId);
+  const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied');
-  
+
   const productRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
   await productRef.update({
     'sustainability.score': -1, // Sentinel value to trigger the cloud function
@@ -311,8 +324,14 @@ export async function approvePassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  if(!hasRole(user, UserRoles.AUDITOR) && !hasRole(user, UserRoles.ADMIN) && userId !== 'system') {
-    throw new Error('Permission denied: Only Auditors or Admins can approve passports.');
+  if (
+    !hasRole(user, UserRoles.AUDITOR) &&
+    !hasRole(user, UserRoles.ADMIN) &&
+    userId !== 'system'
+  ) {
+    throw new Error(
+      'Permission denied: Only Auditors or Admins can approve passports.',
+    );
   }
 
   const product = await getProductById(productId, userId);
@@ -355,8 +374,14 @@ export async function rejectPassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user && userId !== 'system') throw new Error('User not found');
-  if(userId !== 'system' && !hasRole(user!, UserRoles.AUDITOR) && !hasRole(user!, UserRoles.ADMIN)) {
-    throw new Error('Permission denied: Only Auditors or Admins can reject passports.');
+  if (
+    userId !== 'system' &&
+    !hasRole(user!, UserRoles.AUDITOR) &&
+    !hasRole(user!, UserRoles.ADMIN)
+  ) {
+    throw new Error(
+      'Permission denied: Only Auditors or Admins can reject passports.',
+    );
   }
 
   await adminDb
@@ -382,8 +407,10 @@ export async function markAsRecycled(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  if(!hasRole(user, UserRoles.RECYCLER) && !hasRole(user, UserRoles.ADMIN)) {
-    throw new Error('Permission denied: Only Recyclers or Admins can perform this action.');
+  if (!hasRole(user, UserRoles.RECYCLER) && !hasRole(user, UserRoles.ADMIN)) {
+    throw new Error(
+      'Permission denied: Only Recyclers or Admins can perform this action.',
+    );
   }
 
   const product = await getProductById(productId, userId);
@@ -407,8 +434,13 @@ export async function resolveComplianceIssue(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  if(!hasRole(user, UserRoles.COMPLIANCE_MANAGER) && !hasRole(user, UserRoles.ADMIN)) {
-    throw new Error('Permission denied: Only Compliance Managers or Admins can perform this action.');
+  if (
+    !hasRole(user, UserRoles.COMPLIANCE_MANAGER) &&
+    !hasRole(user, UserRoles.ADMIN)
+  ) {
+    throw new Error(
+      'Permission denied: Only Compliance Managers or Admins can perform this action.',
+    );
   }
 
   await adminDb
@@ -552,7 +584,13 @@ export async function saveCompliancePath(
   pathId?: string,
 ): Promise<CompliancePath> {
   const user = await getUserById(userId);
-  if (!user || (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.AUDITOR) && !hasRole(user, UserRoles.COMPLIANCE_MANAGER) && userId !== 'system')) {
+  if (
+    !user ||
+    (!hasRole(user, UserRoles.ADMIN) &&
+      !hasRole(user, UserRoles.AUDITOR) &&
+      !hasRole(user, UserRoles.COMPLIANCE_MANAGER) &&
+      userId !== 'system')
+  ) {
     throw new Error('Permission denied to manage compliance paths.');
   }
 
@@ -722,7 +760,10 @@ export async function saveApiSettings(
   userId: string,
 ): Promise<ApiSettings> {
   const user = await getUserById(userId);
-  if (!user || (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.DEVELOPER))) {
+  if (
+    !user ||
+    (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.DEVELOPER))
+  ) {
     throw new Error('Permission denied.');
   }
 
@@ -826,9 +867,10 @@ export async function exportProducts(
   return [headers, ...rows].join('\n');
 }
 
-export async function runSuggestImprovements(
-  input: { productName: string, productDescription: string }
-) {
+export async function runSuggestImprovements(input: {
+  productName: string;
+  productDescription: string;
+}) {
   return suggestImprovements(input);
 }
 
