@@ -131,9 +131,9 @@ const docToProductionLine = (
   return {
     ...data,
     id: doc.id,
+    lastMaintenance: fromTimestamp(data.lastMaintenance),
     createdAt: fromTimestamp(data.createdAt),
     updatedAt: fromTimestamp(data.updatedAt),
-    lastMaintenance: fromTimestamp(data.lastMaintenance),
   };
 };
 
