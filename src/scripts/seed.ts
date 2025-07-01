@@ -1,3 +1,4 @@
+
 // src/scripts/seed.ts
 import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top

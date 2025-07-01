@@ -1,3 +1,4 @@
+
 // src/lib/firebase-admin.ts
 import * as dotenv from 'dotenv';
 dotenv.config(); // Load environment variables from .env file
@@ -15,7 +16,6 @@ import path from 'path';
  * It prioritizes connection methods: Emulators > service account file > Production Default.
  */
 function initializeAdminApp(): App {
-  // Return existing app if already initialized
   if (getApps().length > 0) {
     return getApp();
   }
@@ -29,12 +29,7 @@ function initializeAdminApp(): App {
   }
 
   // 2. Use local service account key file if it exists.
-  // The user specified this path.
-  const serviceAccountPath = path.join(
-    process.cwd(),
-    'src',
-    'passportflow-firebase-adminsdk-fbsvc-04d309dee7.json',
-  );
+  const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
 
   if (fs.existsSync(serviceAccountPath)) {
     console.log(
@@ -53,7 +48,7 @@ function initializeAdminApp(): App {
       );
     }
   }
-
+  
   // 3. Fallback to production environment credentials (Application Default Credentials)
   console.log(
     'Production environment detected (no local key file found). Initializing Admin SDK with default credentials.',

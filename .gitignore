@@ -1,38 +1,57 @@
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.js
 
-# testing
+# Testing
 /coverage
 
-# next.js
-/.next/
-/out/
+# Next.js build output
+/.next
+/out
 
-# production
+# Production
 /build
 
-# misc
+# Misc
 .DS_Store
 *.pem
 
-# debug
+# Local Environment Variables
+.env
+.env*.local
+!.env.example
+
+# Log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# local env files
-.env*.local
-.env
+# Editor directories and files
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# service account keys - IMPORTANT
-# Add any service account key files here to prevent them from being committed.
+# Firebase
+# Sensitive credentials - DO NOT COMMIT THIS FILE
 serviceAccountKey.json
-*.json
-passportflow-firebase-adminsdk-fbsvc-04d309dee7.json
+# Firebase Emulator
+*.log
+firebase-debug.log
+database-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+storage-debug.log
 
-# vscode
-.vscode/
+# Genkit
+.genkit/
+.genkit-cache/
