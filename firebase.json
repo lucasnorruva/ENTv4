@@ -1,16 +1,31 @@
 
 {
+  "hosting": {
+    "public": "out",
+    "ignore": [
+      "firebase.json",
+      "**/*.map"
+    ]
+  },
   "emulators": {
     "auth": {
       "port": 9099,
+      "host": "127.0.0.1"
+    },
+    "functions": {
+      "port": 5001,
       "host": "127.0.0.1"
     },
     "firestore": {
       "port": 8080,
       "host": "127.0.0.1"
     },
-    "functions": {
-      "port": 5001,
+    "database": {
+      "port": 9000,
+      "host": "127.0.0.1"
+    },
+    "hosting": {
+      "port": 5000,
       "host": "127.0.0.1"
     },
     "storage": {
@@ -18,28 +33,9 @@
       "host": "127.0.0.1"
     },
     "ui": {
-      "enabled": true,
-      "port": 4001,
-      "host": "127.0.0.1"
-    }
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "functions": [
-    {
-      "source": "src/functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log"
-      ]
-    }
-  ],
-  "storage": {
-    "rules": "storage.rules"
+      "enabled": false,
+      "port": 4001
+    },
+    "singleProjectMode": true
   }
 }
