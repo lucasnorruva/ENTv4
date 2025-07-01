@@ -1,4 +1,4 @@
-
+// src/components/audit-review-dialog.tsx
 'use client';
 
 import React, { useState, useTransition } from 'react';
@@ -194,5 +194,3 @@ export function AuditReviewDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
