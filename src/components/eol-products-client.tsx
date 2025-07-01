@@ -42,7 +42,12 @@ export default function EolProductsClient({ user }: EolProductsClientProps) {
     setIsLoading(true);
     let q = query(collection(db, Collections.PRODUCTS));
 
-    if (!user.roles.includes(UserRoles.ADMIN)) {
+    // Admins and Recyclers are global roles and can see all products.
+    const isGlobalRole =
+      user.roles.includes(UserRoles.ADMIN) ||
+      user.roles.includes(UserRoles.RECYCLER);
+
+    if (!isGlobalRole) {
       q = query(q, where('companyId', '==', user.companyId));
     }
 

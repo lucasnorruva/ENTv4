@@ -13,6 +13,7 @@ import type {
   CompliancePath,
   ServiceTicket,
   ProductionLine,
+  Role,
 } from './types';
 import {
   productFormSchema,
@@ -171,12 +172,25 @@ export async function getProductById(
   const user = await getUserById(userId);
   if (!user) return undefined;
 
-  if (
-    user.roles.includes(UserRoles.ADMIN) ||
-    user.companyId === product.companyId
-  ) {
+  // Define roles that have global read access to any product.
+  const globalReadRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.AUDITOR,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.RECYCLER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.DEVELOPER
+  ];
+
+  const hasGlobalReadAccess = globalReadRoles.some(role => hasRole(user, role));
+
+  // Allow access if user has a global role, or if they belong to the product's company.
+  if (hasGlobalReadAccess || user.companyId === product.companyId) {
     return product;
   }
+  
+  // Fallback for non-global, non-company users: only show published products.
   return product.status === 'Published' ? product : undefined;
 }
 
