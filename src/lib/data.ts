@@ -55,13 +55,16 @@ export let products: Product[] = [
       blockHeight: 51842069,
     },
     ebsiVcId: 'did:ebsi:z2d5i1d9o8f7g6h5j4k3l2m1n0p',
+    qrLabelText:
+      'Verified to meet EU standards for sustainability and safety, this watch is crafted from 100% recycled aluminum.',
     sustainability: {
       score: 85,
       environmental: 90,
       social: 80,
       governance: 88,
       isCompliant: true,
-      complianceSummary: 'Product is compliant with all known rules for its category.',
+      complianceSummary:
+        'Product is compliant with all known rules for its category.',
       gaps: [],
     },
     endOfLifeStatus: 'Active',
@@ -116,8 +119,9 @@ export let products: Product[] = [
     dataQualityWarnings: [
       {
         field: 'materials.percentage',
-        warning: 'Material percentages add up to 100%. This is correct, but please double-check for accuracy.',
-      }
+        warning:
+          'Material percentages add up to 100%. This is correct, but please double-check for accuracy.',
+      },
     ],
   },
   {
@@ -207,8 +211,9 @@ export let products: Product[] = [
     dataQualityWarnings: [
       {
         field: 'materials',
-        warning: 'The product category is "Fashion" but it contains "Polyester". While common, this material is banned by the selected compliance path.',
-      }
+        warning:
+          'The product category is "Fashion" but it contains "Polyester". While common, this material is banned by the selected compliance path.',
+      },
     ],
   },
   {
@@ -236,7 +241,8 @@ export let products: Product[] = [
     verificationStatus: 'Verified',
     blockchainProof: {
       txHash: '0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
-      explorerUrl: 'https://www.oklink.com/amoy/tx/0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
+      explorerUrl:
+        'https://www.oklink.com/amoy/tx/0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
       blockHeight: 51842070,
     },
     ebsiVcId: 'did:ebsi:z7i1r9t6g3f1e9c7b5a3z1y9x7w5v3u1',

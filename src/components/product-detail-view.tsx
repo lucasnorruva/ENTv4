@@ -489,7 +489,7 @@ export default function ProductDetailView({
           </Tabs>
         </div>
         <div className="space-y-6">
-          <DppQrCodeWidget />
+          <DppQrCodeWidget productId={product.id} />
           <DppCompletenessWidget product={product} />
         </div>
       </div>
