@@ -1292,3 +1292,8 @@ Jul 01, 2025 5:32:04 AM com.google.cloud.datastore.emulator.firestore.websocket.
 INFO: Connected to new websocket client
 Jul 01, 2025 5:32:22 AM com.google.cloud.datastore.emulator.firestore.websocket.WebSocketChannelHandler initChannel
 INFO: Connected to new websocket client
+Jul 01, 2025 5:49:58 AM io.gapi.emulators.netty.HttpVersionRoutingHandler channelRead
+INFO: Detected HTTP/2 connection.
+Multiple projectIds are not recommended in single project mode. Requested project ID passportflow, but the emulator is configured for demo-app. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
+Multiple projectIds are not recommended in single project mode. Requested project ID passportflow, but the emulator is configured for demo-app. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
+Multiple projectIds are not recommended in single project mode. Requested project ID passportflow, but the emulator is configured for demo-app. To opt-out of single project mode add/set the '"singleProjectMode": false' property in the firebase.json emulators config.
