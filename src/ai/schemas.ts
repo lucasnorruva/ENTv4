@@ -28,7 +28,7 @@ export const AiProductSchema = z.object({
       country: z.string(),
       emissionsKgCo2e: z.number().optional(),
     })
-    .describe('Manufacturing details.'),
+    .describe('Manufacturing details.').optional(),
   certifications: z
     .array(
       z.object({
@@ -37,7 +37,7 @@ export const AiProductSchema = z.object({
         validUntil: z.string().optional(),
       }),
     )
-    .describe('List of certifications.'),
+    .describe('List of certifications.').optional(),
   verificationStatus: z
     .string()
     .optional()

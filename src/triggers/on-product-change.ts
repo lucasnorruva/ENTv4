@@ -1,7 +1,7 @@
 // src/triggers/on-product-change.ts
 import { onDocumentWritten } from 'firebase-functions/v2/firestore';
 import { adminDb } from '../lib/firebase-admin';
-import { Collections, UserRoles } from '../lib/constants';
+import { Collections } from '../lib/constants';
 import type { Product, SustainabilityData, DataQualityWarning } from '../types';
 import type { AiProduct } from '../ai/schemas';
 
