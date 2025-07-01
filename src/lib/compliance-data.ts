@@ -13,6 +13,8 @@ export const compliancePaths: CompliancePath[] = [
       minSustainabilityScore: 60,
       bannedKeywords: ['Lead', 'Mercury', 'Cadmium', 'Hexavalent Chromium'],
     },
+    createdAt: '2024-07-01T00:00:00Z',
+    updatedAt: '2024-07-01T00:00:00Z',
   },
   {
     id: 'cp-fashion-01',
@@ -26,6 +28,8 @@ export const compliancePaths: CompliancePath[] = [
       requiredKeywords: ['Organic Cotton'],
       bannedKeywords: ['Polyester'],
     },
+    createdAt: '2024-07-01T00:00:00Z',
+    updatedAt: '2024-07-01T00:00:00Z',
   },
   {
     id: 'cp-homegoods-01',
@@ -37,5 +41,13 @@ export const compliancePaths: CompliancePath[] = [
     rules: {
       minSustainabilityScore: 40,
     },
+    createdAt: '2024-07-01T00:00:00Z',
+    updatedAt: '2024-07-01T00:00:00Z',
   },
 ];
+
+export function getCompliancePathById(
+  id: string,
+): CompliancePath | undefined {
+  return compliancePaths.find(path => path.id === id);
+}
