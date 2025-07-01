@@ -19,6 +19,19 @@ function initializeAdminApp(): App {
     return getApp();
   }
 
+  // When running locally for development (e.g., `next dev`), connect to emulators.
+  // The `FIRESTORE_EMULATOR_HOST` env var is set automatically by `firebase emulators:exec` (for seeding),
+  // but not by `next dev`. We manually set it here for the dev server.
+  if (
+    process.env.NODE_ENV === 'development' &&
+    !process.env.FIRESTORE_EMULATOR_HOST
+  ) {
+    console.log('Development mode detected, setting emulator hosts for Admin SDK.');
+    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+    process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
+  }
+
   // 1. Connect to Emulators if host variables are set
   if (process.env.FIRESTORE_EMULATOR_HOST) {
     console.log(
@@ -47,7 +60,7 @@ function initializeAdminApp(): App {
       );
     }
   }
-  
+
   // 3. Fallback to production environment credentials (Application Default Credentials)
   console.log(
     'Production environment detected (no local key file found). Initializing Admin SDK with default credentials.',
