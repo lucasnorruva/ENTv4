@@ -336,7 +336,7 @@ export async function approvePassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user && userId !== 'system') throw new Error('User not found');
+  if (userId !== 'system' && !user) throw new Error('User not found');
   if (
     userId !== 'system' &&
     !hasRole(user!, UserRoles.AUDITOR) &&
@@ -386,7 +386,7 @@ export async function rejectPassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user && userId !== 'system') throw new Error('User not found');
+  if (userId !== 'system' && !user) throw new Error('User not found');
   if (
     userId !== 'system' &&
     !hasRole(user!, UserRoles.AUDITOR) &&

@@ -51,7 +51,7 @@ export let products: Product[] = [
     lastVerificationDate: '2024-07-22T14:00:00Z',
     blockchainProof: {
       txHash: '0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
-      explorerUrl: 'https://polygonscan.com/tx/0x123abc...',
+      explorerUrl: 'https://www.oklink.com/amoy/tx/0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
       blockHeight: 51842069,
     },
     ebsiVcId: 'did:ebsi:z2d5i1d9o8f7g6h5j4k3l2m1n0p',
@@ -234,6 +234,12 @@ export let products: Product[] = [
     packaging: { type: 'Cardboard Box', recyclable: true },
     certifications: [{ name: 'FSC Certified', issuer: 'FSC' }],
     verificationStatus: 'Verified',
+    blockchainProof: {
+      txHash: '0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
+      explorerUrl: 'https://www.oklink.com/amoy/tx/0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
+      blockHeight: 51842070,
+    },
+    ebsiVcId: 'did:ebsi:z7i1r9t6g3f1e9c7b5a3z1y9x7w5v3u1',
     sustainability: {
       score: 78,
       environmental: 85,

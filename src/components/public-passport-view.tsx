@@ -43,6 +43,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import Link from "next/link";
 
 function InfoRow({
   icon: Icon,
@@ -170,14 +171,14 @@ export default function PublicPassportView({
             </div>
             {product.verificationStatus === "Verified" &&
               product.blockchainProof && (
-                <a
+                <Link
                   href={product.blockchainProof.explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-primary hover:underline mt-3 flex items-center gap-1"
                 >
                   <LinkIcon className="h-3 w-3" /> View On-Chain Proof
-                </a>
+                </Link>
               )}
           </Card>
         </div>

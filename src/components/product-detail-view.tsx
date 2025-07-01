@@ -399,6 +399,19 @@ export default function ProductDetailView({
                       </p>
                     )}
                   </InfoRow>
+                  {product.blockchainProof && (
+                    <InfoRow icon={Fingerprint} label="On-Chain Proof">
+                      <Link
+                        href={product.blockchainProof.explorerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline text-sm flex items-center gap-1"
+                      >
+                        View Transaction
+                        <LinkIcon className="h-3 w-3" />
+                      </Link>
+                    </InfoRow>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
