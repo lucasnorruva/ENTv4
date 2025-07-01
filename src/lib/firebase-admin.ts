@@ -46,9 +46,8 @@ function getAdminApp(): App {
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // The dotenv package automatically handles newlines in quoted .env variables.
-      // The explicit replace can cause issues with PEM parsing.
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
+      // Replace literal `\n` characters with actual newlines
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     };
     return initializeApp({
       credential: admin.credential.cert(serviceAccount),
