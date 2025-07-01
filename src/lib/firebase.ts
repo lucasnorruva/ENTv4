@@ -31,7 +31,7 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     console.log("Connecting client SDK to Firebase Emulators...");
     connectFirestoreEmulator(db, "127.0.0.1", 8080);
     connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-    connectStorageEmulator(storage, "localhost", 9199);
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
     console.log("Client SDK connected to emulators successfully.");
   } catch(e) {
       console.error("Error connecting client SDK to emulators:", e);
