@@ -12,6 +12,7 @@ import type {
   ApiSettings,
   CompliancePath,
   ServiceTicket,
+  ProductionLine,
 } from './types';
 import {
   productFormSchema,
@@ -32,7 +33,7 @@ import {
 } from '@/services/blockchain';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import admin, { adminDb } from './firebase-admin';
-import { Collections, UserRoles } from './constants';
+import { Collections, UserRoles, type Role } from './constants';
 import { getUserById, hasRole, getCompanyById } from './auth';
 
 // Helper to convert Firestore Timestamps to ISO strings
@@ -122,6 +123,19 @@ const docToServiceTicket = (
   };
 };
 
+const docToProductionLine = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): ProductionLine => {
+  const data = doc.data() as Omit<ProductionLine, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+    lastMaintenance: fromTimestamp(data.lastMaintenance),
+  };
+};
+
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(userId?: string): Promise<Product[]> {
@@ -165,7 +179,8 @@ export async function getProductById(
     UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
     UserRoles.BUSINESS_ANALYST,
-    UserRoles.DEVELOPER
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
   ];
 
   const hasGlobalReadAccess = globalReadRoles.some(role => hasRole(user, role));
@@ -174,7 +189,7 @@ export async function getProductById(
   if (hasGlobalReadAccess || user.companyId === product.companyId) {
     return product;
   }
-  
+
   // Fallback for non-global, non-company users: only show published products.
   return product.status === 'Published' ? product : undefined;
 }
@@ -321,18 +336,18 @@ export async function approvePassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
+  if (!user && userId !== 'system') throw new Error('User not found');
   if (
-    !hasRole(user, UserRoles.AUDITOR) &&
-    !hasRole(user, UserRoles.ADMIN) &&
-    userId !== 'system'
+    userId !== 'system' &&
+    !hasRole(user!, UserRoles.AUDITOR) &&
+    !hasRole(user!, UserRoles.ADMIN)
   ) {
     throw new Error(
       'Permission denied: Only Auditors or Admins can approve passports.',
     );
   }
 
-  const product = await getProductById(productId, userId);
+  const product = await getProductById(productId, userId || 'user-admin');
   if (!product) throw new Error('Product not found');
 
   const productHash = await hashProductData(product);
@@ -361,7 +376,7 @@ export async function approvePassport(
   revalidatePath('/dashboard/auditor/audit');
   revalidatePath('/dashboard/supplier/products');
   revalidatePath(`/products/${productId}`);
-  return (await getProductById(productId, userId))!;
+  return (await getProductById(productId, userId || 'user-admin'))!;
 }
 
 export async function rejectPassport(
@@ -396,7 +411,7 @@ export async function rejectPassport(
   revalidatePath('/dashboard/auditor/audit');
   revalidatePath('/dashboard/supplier/products');
   revalidatePath(`/products/${productId}`);
-  return (await getProductById(productId, userId))!;
+  return (await getProductById(productId, userId || 'user-admin'))!;
 }
 
 export async function markAsRecycled(
@@ -879,4 +894,13 @@ export async function getServiceTickets(): Promise<ServiceTicket[]> {
     .get();
   if (snapshot.empty) return [];
   return snapshot.docs.map(docToServiceTicket);
+}
+
+export async function getProductionLines(): Promise<ProductionLine[]> {
+  const snapshot = await adminDb
+    .collection('productionLines')
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToProductionLine);
 }

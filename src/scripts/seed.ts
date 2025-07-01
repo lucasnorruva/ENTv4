@@ -8,6 +8,7 @@ import { users as mockUsers } from '../lib/user-data';
 import { companies as mockCompanies } from '../lib/company-data';
 import { compliancePaths as mockCompliancePaths } from '../lib/compliance-data';
 import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
+import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
 import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
@@ -74,6 +75,7 @@ async function seedDatabase() {
   await seedCollection(Collections.PRODUCTS, mockProducts);
   await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
   await seedCollection('serviceTickets', mockServiceTickets);
+  await seedCollection('productionLines', mockProductionLines);
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
 
