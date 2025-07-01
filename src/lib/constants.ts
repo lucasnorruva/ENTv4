@@ -25,6 +25,7 @@ export const UserRoles = {
   MANUFACTURER: 'Manufacturer',
   SERVICE_PROVIDER: 'Service Provider',
   RECYCLER: 'Recycler',
+  RETAILER: 'Retailer',
   DEVELOPER: 'Developer',
   BUSINESS_ANALYST: 'Business Analyst',
 } as const;

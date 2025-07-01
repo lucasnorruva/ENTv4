@@ -75,6 +75,16 @@ export let users: User[] = [
     readNotificationIds: [],
   },
   {
+    id: 'user-retailer',
+    fullName: 'Retailer User',
+    email: 'retailer@norruva.com',
+    companyId: 'comp-01', // Retailers can belong to a "parent" org for billing
+    roles: [UserRoles.RETAILER],
+    createdAt: '2024-07-08T17:00:00Z',
+    updatedAt: '2024-07-13T17:00:00Z',
+    readNotificationIds: [],
+  },
+  {
     id: 'user-developer',
     fullName: 'Developer User',
     email: 'developer@norruva.com',

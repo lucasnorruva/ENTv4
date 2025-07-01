@@ -9,6 +9,7 @@
 | **Manufacturer**      | Views product data, focusing on material composition and production details.      |
 | **Service Provider**  | Accesses repair manuals and service-related information within a product passport.|
 | **Recycler**          | Accesses end-of-life information, material composition, and recycling instructions.|
+| **Retailer**          | Views product passports for inventory, verifies compliance, and accesses marketing data.|
 | **Developer**         | Manages API keys, webhooks, and integrations with external systems.               |
 | **Business Analyst**  | Accesses aggregated data, analytics dashboards, and sustainability trend reports. |
 

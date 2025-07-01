@@ -26,6 +26,7 @@ import {
   Cog,
   Building2,
   ListChecks,
+  ShoppingBag,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -194,6 +195,15 @@ const navConfig: Record<Role, NavConfig> = {
       ],
     },
   ],
+  [UserRoles.RETAILER]: [
+    {
+      label: 'Retail Operations',
+      items: [
+        { title: 'Product Catalog', icon: BookCopy, href: 'catalog' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+      ],
+    },
+  ],
   [UserRoles.BUSINESS_ANALYST]: [
     {
       label: 'Analytics',
@@ -253,9 +263,7 @@ const navConfig: Record<Role, NavConfig> = {
   [UserRoles.RECYCLER]: [
     {
       label: 'Operations',
-      items: [
-        { title: 'EOL Products', icon: Recycle, href: 'eol' },
-      ],
+      items: [{ title: 'EOL Products', icon: Recycle, href: 'eol' }],
     },
     {
       label: 'Analysis',
@@ -341,8 +349,16 @@ export default function DashboardSidebar({
   const dashboardHref = `/dashboard/${roleSlug}`;
 
   const generalNavItems = [
-    { title: 'Settings', icon: Settings, href: `/dashboard/${roleSlug}/settings` },
-    { title: 'Support', icon: LifeBuoy, href: `/dashboard/${roleSlug}/support` },
+    {
+      title: 'Settings',
+      icon: Settings,
+      href: `/dashboard/${roleSlug}/settings`,
+    },
+    {
+      title: 'Support',
+      icon: LifeBuoy,
+      href: `/dashboard/${roleSlug}/support`,
+    },
   ];
 
   return (
@@ -373,12 +389,18 @@ export default function DashboardSidebar({
                   <SidebarMenuButton
                     onClick={() =>
                       handleNavigate(
-                        item.external ? item.href : `/dashboard/${roleSlug}/${item.href}`,
+                        item.external
+                          ? item.href
+                          : `/dashboard/${roleSlug}/${item.href}`,
                         item.external,
                       )
                     }
                     tooltip={item.title}
-                    isActive={pathname.startsWith(`/dashboard/${roleSlug}/${item.href}`) && !item.external}
+                    isActive={
+                      pathname.startsWith(
+                        `/dashboard/${roleSlug}/${item.href}`,
+                      ) && !item.external
+                    }
                   >
                     <item.icon />
                     <span>{item.title}</span>

@@ -145,7 +145,17 @@ export async function getProducts(userId?: string): Promise<Product[]> {
   if (userId) {
     const user = await getUserById(userId);
     if (!user) return [];
-    if (!user.roles.includes(UserRoles.ADMIN) && !user.roles.includes(UserRoles.BUSINESS_ANALYST)) {
+    
+    // Global read roles that can see all products
+    const globalReadRoles: Role[] = [
+        UserRoles.ADMIN,
+        UserRoles.BUSINESS_ANALYST,
+        UserRoles.RETAILER,
+    ];
+    
+    const hasGlobalRead = globalReadRoles.some(role => hasRole(user, role));
+
+    if (!hasGlobalRead) {
       query = query.where('companyId', '==', user.companyId);
     }
   }
@@ -181,6 +191,7 @@ export async function getProductById(
     UserRoles.BUSINESS_ANALYST,
     UserRoles.DEVELOPER,
     UserRoles.MANUFACTURER,
+    UserRoles.RETAILER,
   ];
 
   const hasGlobalReadAccess = globalReadRoles.some(role => hasRole(user, role));

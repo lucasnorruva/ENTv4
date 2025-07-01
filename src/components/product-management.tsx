@@ -31,6 +31,7 @@ import {
   recalculateScore,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { hasRole } from '@/lib/auth';
 
 interface ProductManagementProps {
   user: User;
@@ -48,6 +49,9 @@ export default function ProductManagement({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
+  const canCreate =
+    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
+
   useEffect(() => {
     setIsLoading(true);
     let q = query(
@@ -55,7 +59,17 @@ export default function ProductManagement({
       orderBy('lastUpdated', 'desc'),
     );
 
-    if (!user.roles.includes(UserRoles.ADMIN)) {
+    // If user is not a global role, filter by their company
+    const globalRoles: UserRoles[] = [
+      UserRoles.ADMIN,
+      UserRoles.AUDITOR,
+      UserRoles.BUSINESS_ANALYST,
+      UserRoles.COMPLIANCE_MANAGER,
+      UserRoles.RETAILER,
+    ];
+    const isGlobal = globalRoles.some(role => hasRole(user, role));
+
+    if (!isGlobal) {
       q = query(q, where('companyId', '==', user.companyId));
     }
 
@@ -163,9 +177,11 @@ export default function ProductManagement({
                 Manage and display digital product passports for your products.
               </CardDescription>
             </div>
-            <Button onClick={handleCreateNew}>
-              <Plus className="mr-2 h-4 w-4" /> Create New
-            </Button>
+            {canCreate && (
+              <Button onClick={handleCreateNew}>
+                <Plus className="mr-2 h-4 w-4" /> Create New
+              </Button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -176,6 +192,7 @@ export default function ProductManagement({
           ) : (
             <ProductTable
               products={products}
+              user={user}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
@@ -184,14 +201,16 @@ export default function ProductManagement({
           )}
         </CardContent>
       </Card>
-      <ProductForm
-        isOpen={isSheetOpen}
-        onOpenChange={setIsSheetOpen}
-        product={selectedProduct}
-        onSave={handleSave}
-        user={user}
-        compliancePaths={compliancePaths}
-      />
+      {canCreate && (
+        <ProductForm
+          isOpen={isSheetOpen}
+          onOpenChange={setIsSheetOpen}
+          product={selectedProduct}
+          onSave={handleSave}
+          user={user}
+          compliancePaths={compliancePaths}
+        />
+      )}
     </>
   );
 }

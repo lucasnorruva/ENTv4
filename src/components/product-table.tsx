@@ -30,7 +30,7 @@ import {
 } from "@tanstack/react-table";
 import { format } from "date-fns";
 
-import type { Product } from "@/types";
+import type { Product, User } from "@/types";
 import {
   Table,
   TableBody,
@@ -68,9 +68,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { UserRoles } from "@/lib/constants";
 
 interface ProductTableProps {
   products: Product[];
+  user: User;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
@@ -79,6 +81,7 @@ interface ProductTableProps {
 
 export default function ProductTable({
   products,
+  user,
   onEdit,
   onDelete,
   onSubmitForReview,
@@ -90,6 +93,10 @@ export default function ProductTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const canEdit =
+    user.roles.includes(UserRoles.ADMIN) ||
+    user.roles.includes(UserRoles.SUPPLIER);
 
   const getStatusVariant = (status: Product["status"]) => {
     switch (status) {
@@ -132,8 +139,9 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
-          const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
-          
+          const currentUrl =
+            typeof window !== "undefined" ? window.location.pathname : "";
+
           return (
             <div className="flex items-center gap-3">
               <Image
@@ -247,72 +255,77 @@ export default function ProductTable({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => onEdit(product)}>
-                  <FilePenLine className="mr-2 h-4 w-4" />
-                  Edit
-                </DropdownMenuItem>
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => onEdit(product)}>
+                    <FilePenLine className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
-                   <Link href={`/products/${product.id}`} target="_blank">
-                     <ExternalLink className="mr-2 h-4 w-4" />
-                     View Public Passport
-                   </Link>
+                  <Link href={`/products/${product.id}`} target="_blank">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Public Passport
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() =>
-                    onRecalculateScore(product.id, product.productName)
-                  }
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Recalculate AI Data
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => onSubmitForReview(product.id)}
-                  disabled={
-                    product.verificationStatus === "Pending" ||
-                    product.verificationStatus === "Verified"
-                  }
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit for Review
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                {canEdit && (
+                  <>
                     <DropdownMenuItem
-                      onSelect={(e) => e.preventDefault()}
-                      className="text-destructive"
+                      onClick={() =>
+                        onRecalculateScore(product.id, product.productName)
+                      }
                     >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Recalculate AI Data
                     </DropdownMenuItem>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This action cannot be undone. This will permanently
-                        delete the passport for "{product.productName}".
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => onDelete(product.id)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                    <DropdownMenuItem
+                      onClick={() => onSubmitForReview(product.id)}
+                      disabled={
+                        product.verificationStatus === "Pending" ||
+                        product.verificationStatus === "Verified"
+                      }
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Submit for Review
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently
+                            delete the passport for "{product.productName}".
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onDelete(product.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           );
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview],
+    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit],
   );
 
   const table = useReactTable({
@@ -426,9 +439,11 @@ export default function ProductTable({
                     <p className="text-muted-foreground">
                       Get started by creating your first product passport.
                     </p>
-                    <Button onClick={() => onEdit(null as any)}>
-                      Create New Passport
-                    </Button>
+                    {canEdit && (
+                      <Button onClick={() => onEdit(null as any)}>
+                        Create New Passport
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
