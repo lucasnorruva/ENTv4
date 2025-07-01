@@ -13,6 +13,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   AlertCircle,
+  BookCopy,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -55,7 +56,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -348,6 +348,9 @@ export default function ProductTable({
               .getAllColumns()
               .filter((column) => column.getCanHide())
               .map((column) => {
+                let colName = column.id;
+                if (colName === "sustainability") colName = "ESG Score";
+                if (colName === "productName") colName = "Product";
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -357,7 +360,7 @@ export default function ProductTable({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === 'sustainability' ? 'ESG Score' : column.id}
+                    {colName}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -405,9 +408,18 @@ export default function ProductTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-48 text-center"
                 >
-                  No results.
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <BookCopy className="h-12 w-12 text-muted-foreground" />
+                    <h3 className="text-xl font-semibold">No Products Yet</h3>
+                    <p className="text-muted-foreground">
+                      Get started by creating your first product passport.
+                    </p>
+                    <Button onClick={() => onEdit(null as any)}>
+                      Create New Passport
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

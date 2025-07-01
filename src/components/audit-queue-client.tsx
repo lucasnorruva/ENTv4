@@ -14,18 +14,11 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -246,9 +239,15 @@ export function AuditQueueClient({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-48 text-center"
                 >
-                  No products are currently in the audit queue.
+                   <div className="flex flex-col items-center justify-center gap-4">
+                    <ShieldCheck className="h-12 w-12 text-muted-foreground" />
+                    <h3 className="text-xl font-semibold">Audit Queue is Clear</h3>
+                    <p className="text-muted-foreground">
+                      No products are currently awaiting verification. Great job!
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
