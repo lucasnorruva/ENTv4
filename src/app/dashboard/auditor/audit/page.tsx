@@ -1,8 +1,9 @@
 // src/app/dashboard/auditor/audit/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { AuditQueueClient } from '@/components/audit-queue-client';
 import { UserRoles } from '@/lib/constants';
+import { hasRole } from '@/lib/auth-utils';
 
 export const dynamic = 'force-dynamic';
 

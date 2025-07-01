@@ -36,7 +36,8 @@ import {
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles, type Role } from './constants';
-import { getUserById, hasRole, getCompanyById } from './auth';
+import { getUserById, getCompanyById } from './auth';
+import { hasRole } from './auth-utils';
 
 // Helper to convert Firestore Timestamps to ISO strings
 const fromTimestamp = (

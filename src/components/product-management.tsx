@@ -31,7 +31,7 @@ import {
   recalculateScore,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { hasRole } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 
 interface ProductManagementProps {
   user: User;

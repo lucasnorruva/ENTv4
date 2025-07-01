@@ -2,6 +2,7 @@
 import { UserRoles, type Role, Collections } from './constants';
 import type { User, Company } from '@/types';
 import { adminDb } from './firebase-admin';
+import { hasRole } from './auth-utils';
 
 /**
  * Simulates fetching all users from Firestore.
@@ -52,16 +53,6 @@ export async function getCompanyById(id: string): Promise<Company | undefined> {
   const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
   if (!doc.exists) return undefined;
   return { id: doc.id, ...(doc.data() as Omit<Company, 'id'>) };
-}
-
-/**
- * Checks if a user has a specific role.
- * @param user The user object.
- * @param role The role to check for.
- * @returns True if the user has the role, false otherwise.
- */
-export function hasRole(user: User, role: Role): boolean {
-  return user.roles.includes(role);
 }
 
 /**

@@ -2,8 +2,9 @@
 import { redirect } from 'next/navigation';
 import ProductManagement from '@/components/product-management';
 import { getCompliancePaths } from '@/lib/actions';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
+import { hasRole } from '@/lib/auth-utils';
 
 export const dynamic = 'force-dynamic';
 

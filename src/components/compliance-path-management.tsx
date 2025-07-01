@@ -22,6 +22,7 @@ import { db } from '@/lib/firebase';
 import { Collections, UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import { deleteCompliancePath } from '@/lib/actions';
+import { hasRole } from '@/lib/auth-utils';
 
 import {
   Card,
@@ -139,13 +140,13 @@ export default function CompliancePathManagement({
   };
 
   const canManage =
-    user.roles.includes(UserRoles.ADMIN) ||
-    user.roles.includes(UserRoles.COMPLIANCE_MANAGER) ||
-    user.roles.includes(UserRoles.AUDITOR);
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
+    hasRole(user, UserRoles.AUDITOR);
   
   const canDelete =
-    user.roles.includes(UserRoles.ADMIN) ||
-    user.roles.includes(UserRoles.COMPLIANCE_MANAGER);
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.COMPLIANCE_MANAGER);
 
 
   return (
