@@ -14,6 +14,21 @@ import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
 import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
 import { Collections } from '../lib/constants';
 
+async function testFirestoreConnection() {
+  console.log('Testing Firestore connection...');
+  try {
+    // Attempt a simple read operation. We don't care about the result,
+    // only that the request doesn't throw a permissions error.
+    await adminDb.collection('__test_connection__').limit(1).get();
+    console.log('✅ Firestore connection successful.');
+    return true;
+  } catch (error) {
+    console.error('❌ Firestore connection failed. Please check your service account key and emulator status.');
+    console.error('Error details:', error);
+    return false;
+  }
+}
+
 async function seedAuth() {
   console.log('Seeding Firebase Authentication with mock users...');
   
@@ -27,8 +42,9 @@ async function seedAuth() {
       disabled: false,
     }).catch(error => {
       if (error.code === 'auth/uid-already-exists' || error.code === 'auth/email-already-exists') {
-        console.log(`User with ID/Email ${user.id}/${user.email} already exists. Skipping.`);
-        return null; // Return null to indicate it's handled
+        // This is not an error, just a sign that seeding has run before.
+        // console.log(`User with ID/Email ${user.id}/${user.email} already exists. Skipping.`);
+        return null; 
       }
       // For other errors, re-throw to fail the seeding process
       console.error(`Error creating user ${user.id}:`, error);
@@ -99,6 +115,12 @@ async function seedCollection(
 
 async function seedDatabase() {
   console.log('Starting comprehensive database seeding...');
+  
+  const isConnected = await testFirestoreConnection();
+  if (!isConnected) {
+    console.log('Halting seed script due to connection failure.');
+    return; // Stop the script if connection fails
+  }
 
   // Seed Authentication first to ensure UIDs are consistent
   await seedAuth();
