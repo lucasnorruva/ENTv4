@@ -62,6 +62,21 @@ export interface Packaging {
   type: string;
   recycledContent?: number;
   recyclable: boolean;
+  weight?: number; // in grams
+}
+
+export interface Lifecycle {
+  carbonFootprint?: number; // in kg CO2-eq
+  carbonFootprintMethod?: string;
+  repairabilityScore?: number; // scale of 1-10
+  expectedLifespan?: number; // in years
+}
+
+export interface Battery {
+  type: string;
+  capacityMah?: number;
+  voltage?: number;
+  isRemovable: boolean;
 }
 
 export interface ComplianceGap {
@@ -100,6 +115,8 @@ export interface Product extends BaseEntity {
   manufacturing?: Manufacturing;
   certifications?: Certification[];
   packaging?: Packaging;
+  lifecycle?: Lifecycle;
+  battery?: Battery;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -151,6 +168,18 @@ export interface ServiceTicket extends BaseEntity {
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
+}
+
+/**
+ * Represents a physical production line for manufacturing.
+ */
+export interface ProductionLine extends BaseEntity {
+  name: string;
+  location: string;
+  status: 'Active' | 'Idle' | 'Maintenance';
+  outputPerHour: number;
+  currentProduct: string;
+  lastMaintenance: string;
 }
 
 /**

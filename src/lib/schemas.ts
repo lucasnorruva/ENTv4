@@ -24,6 +24,21 @@ const packagingSchema = z.object({
   type: z.string().min(1, 'Packaging type is required.'),
   recyclable: z.boolean(),
   recycledContent: z.coerce.number().optional(),
+  weight: z.coerce.number().optional(),
+});
+
+const lifecycleSchema = z.object({
+  carbonFootprint: z.coerce.number().optional(),
+  carbonFootprintMethod: z.string().optional(),
+  repairabilityScore: z.coerce.number().min(0).max(10).optional(),
+  expectedLifespan: z.coerce.number().min(0).optional(),
+});
+
+const batterySchema = z.object({
+  type: z.string().optional(),
+  capacityMah: z.coerce.number().optional(),
+  voltage: z.coerce.number().optional(),
+  isRemovable: z.boolean().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -39,6 +54,8 @@ export const productFormSchema = z.object({
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),
   packaging: packagingSchema.optional(),
+  lifecycle: lifecycleSchema.optional(),
+  battery: batterySchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -71,8 +88,8 @@ export type CompliancePathFormValues = z.infer<
 >;
 
 export const apiSettingsSchema = z.object({
-    isPublicApiEnabled: z.boolean(),
-    rateLimitPerMinute: z.coerce.number().int().min(0),
-    isWebhookSigningEnabled: z.boolean(),
+  isPublicApiEnabled: z.boolean(),
+  rateLimitPerMinute: z.coerce.number().int().min(0),
+  isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;

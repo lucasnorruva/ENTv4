@@ -1,26 +1,24 @@
-import type { Product, CompliancePath } from "@/types";
-import Image from "next/image";
+import type { Product, CompliancePath } from '@/types';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Progress } from "@/components/ui/progress";
+} from '@/components/ui/accordion';
+import { Progress } from '@/components/ui/progress';
 import {
   ShieldCheck,
   ShieldAlert,
   Leaf,
-  Users,
-  Landmark,
   Recycle,
   Wrench,
   Link as LinkIcon,
@@ -31,7 +29,6 @@ import {
   AlertTriangle,
   Fingerprint,
   Quote,
-  Tag,
   Thermometer,
   Lightbulb,
   Package,
@@ -40,10 +37,12 @@ import {
   FileQuestion,
   Archive,
   Sparkles,
-} from "lucide-react";
-import { format } from "date-fns";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import Link from "next/link";
+  HeartPulse,
+  BatteryCharging,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import Link from 'next/link';
 
 function InfoRow({
   icon: Icon,
@@ -77,7 +76,7 @@ export default function PublicPassportView({
 }) {
   const { sustainability } = product;
   const esg = sustainability;
-  const lifecycle = sustainability?.lifecycleAnalysis;
+  const aiLifecycle = sustainability?.lifecycleAnalysis;
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">
@@ -143,7 +142,7 @@ export default function PublicPassportView({
               Verification Status
             </CardTitle>
             <div className="flex items-center gap-3">
-              {product.verificationStatus === "Verified" ? (
+              {product.verificationStatus === 'Verified' ? (
                 <ShieldCheck className="h-10 w-10 text-green-600" />
               ) : (
                 <ShieldAlert className="h-10 w-10 text-amber-600" />
@@ -151,25 +150,25 @@ export default function PublicPassportView({
               <div>
                 <Badge
                   variant={
-                    product.verificationStatus === "Verified"
-                      ? "default"
-                      : product.verificationStatus === "Failed"
-                      ? "destructive"
-                      : "secondary"
+                    product.verificationStatus === 'Verified'
+                      ? 'default'
+                      : product.verificationStatus === 'Failed'
+                      ? 'destructive'
+                      : 'secondary'
                   }
                   className="text-sm"
                 >
-                  {product.verificationStatus || "Not Submitted"}
+                  {product.verificationStatus || 'Not Submitted'}
                 </Badge>
                 {product.lastVerificationDate && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Checked:{" "}
-                    {format(new Date(product.lastVerificationDate), "PPP")}
+                    Checked:{' '}
+                    {format(new Date(product.lastVerificationDate), 'PPP')}
                   </p>
                 )}
               </div>
             </div>
-            {product.verificationStatus === "Verified" &&
+            {product.verificationStatus === 'Verified' &&
               product.blockchainProof && (
                 <Link
                   href={product.blockchainProof.explorerUrl}
@@ -186,7 +185,7 @@ export default function PublicPassportView({
         <Accordion
           type="multiple"
           className="w-full"
-          defaultValue={["item-1", "item-2", "item-3", "item-4"]}
+          defaultValue={['item-1', 'item-2', 'item-3', 'item-4']}
         >
           <AccordionItem value="item-1">
             <AccordionTrigger className="text-xl font-semibold">
@@ -195,7 +194,7 @@ export default function PublicPassportView({
             <AccordionContent className="pt-2">
               <InfoRow icon={Factory} label="Manufacturing">
                 <p className="text-sm text-muted-foreground">
-                  {product.manufacturing?.facility} in{" "}
+                  {product.manufacturing?.facility} in{' '}
                   {product.manufacturing?.country}
                 </p>
               </InfoRow>
@@ -216,13 +215,13 @@ export default function PublicPassportView({
                           )}
                           {mat.recycledContent !== undefined && (
                             <span className="flex items-center gap-1">
-                              <Recycle className="h-3 w-3" />{" "}
+                              <Recycle className="h-3 w-3" />{' '}
                               {mat.recycledContent}% recycled
                             </span>
                           )}
                           {mat.origin && (
                             <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> Origin:{" "}
+                              <MapPin className="h-3 w-3" /> Origin:{' '}
                               {mat.origin}
                             </span>
                           )}
@@ -249,23 +248,33 @@ export default function PublicPassportView({
                   {product.packaging?.type}
                   {product.packaging?.recycledContent !== undefined &&
                     ` (${product.packaging.recycledContent}% recycled)`}
-                  . Recyclable: {product.packaging?.recyclable ? "Yes" : "No"}.
+                  . Recyclable: {product.packaging?.recyclable ? 'Yes' : 'No'}.
+                </p>
+              </InfoRow>
+              <InfoRow icon={HeartPulse} label="Expected Lifespan">
+                <p className="text-sm text-muted-foreground">
+                  {product.lifecycle?.expectedLifespan
+                    ? `${product.lifecycle.expectedLifespan} years`
+                    : 'Not specified'}
                 </p>
               </InfoRow>
               <InfoRow icon={Wrench} label="Repairability">
                 <p className="text-sm text-muted-foreground">
+                  {product.lifecycle?.repairabilityScore
+                    ? `Score: ${product.lifecycle.repairabilityScore}/10. `
+                    : ''}
                   Repair manuals and end-of-life instructions are available to
                   authorized service providers and recyclers.
                 </p>
               </InfoRow>
               {product.endOfLifeStatus &&
-                product.endOfLifeStatus !== "Active" && (
+                product.endOfLifeStatus !== 'Active' && (
                   <InfoRow icon={Archive} label="End-of-Life Status">
                     <Badge
                       variant={
-                        product.endOfLifeStatus === "Recycled"
-                          ? "default"
-                          : "secondary"
+                        product.endOfLifeStatus === 'Recycled'
+                          ? 'default'
+                          : 'secondary'
                       }
                     >
                       {product.endOfLifeStatus}
@@ -277,52 +286,68 @@ export default function PublicPassportView({
 
           <AccordionItem value="item-4">
             <AccordionTrigger className="text-xl font-semibold">
-              Lifecycle & Environmental Impact
+              Environmental Impact
             </AccordionTrigger>
             <AccordionContent className="pt-2">
-              {lifecycle ? (
-                <>
-                  <InfoRow
-                    icon={Thermometer}
-                    label="Estimated Carbon Footprint"
-                    value={`${lifecycle.carbonFootprint.value} ${lifecycle.carbonFootprint.unit}`}
+              <InfoRow
+                icon={Thermometer}
+                label="Carbon Footprint"
+                value={
+                  product.lifecycle?.carbonFootprint
+                    ? `${product.lifecycle.carbonFootprint} kg CO2-eq`
+                    : 'Not available'
+                }
+              >
+                {product.lifecycle?.carbonFootprintMethod && (
+                  <p className="text-xs text-muted-foreground">
+                    Method: {product.lifecycle.carbonFootprintMethod}
+                  </p>
+                )}
+              </InfoRow>
+              {product.battery && (
+                 <InfoRow
+                    icon={BatteryCharging}
+                    label="Battery"
+                    value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
                   >
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {lifecycle.carbonFootprint.summary}
+                      <p className="text-xs text-muted-foreground">
+                      Removable: {product.battery.isRemovable ? "Yes" : "No"}
                     </p>
                   </InfoRow>
-                  <InfoRow icon={Lightbulb} label="Lifecycle Stages Impact">
+              )}
+              {aiLifecycle && (
+                <>
+                  <InfoRow icon={Lightbulb} label="AI Lifecycle Stages Analysis">
                     <div className="space-y-2 mt-2 text-sm text-muted-foreground">
                       <p>
-                        <strong>Manufacturing:</strong>{" "}
-                        {lifecycle.lifecycleStages.manufacturing}
+                        <strong>Manufacturing:</strong>{' '}
+                        {aiLifecycle.lifecycleStages.manufacturing}
                       </p>
                       <p>
-                        <strong>Use Phase:</strong>{" "}
-                        {lifecycle.lifecycleStages.usePhase}
+                        <strong>Use Phase:</strong>{' '}
+                        {aiLifecycle.lifecycleStages.usePhase}
                       </p>
                       <p>
-                        <strong>End-of-Life:</strong>{" "}
-                        {lifecycle.lifecycleStages.endOfLife}
+                        <strong>End-of-Life:</strong>{' '}
+                        {aiLifecycle.lifecycleStages.endOfLife}
                       </p>
                     </div>
                   </InfoRow>
-                  <InfoRow icon={Sparkles} label="Improvement Opportunities">
+                  <InfoRow
+                    icon={Sparkles}
+                    label="AI Improvement Opportunities"
+                  >
                     <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                      {lifecycle.improvementOpportunities.map((opp, i) => (
+                      {aiLifecycle.improvementOpportunities.map((opp, i) => (
                         <li key={i}>{opp}</li>
                       ))}
                     </ul>
                   </InfoRow>
                 </>
-              ) : (
-                <p className="text-muted-foreground text-sm">
-                  Lifecycle analysis data is not yet available for this product.
-                </p>
               )}
             </AccordionContent>
           </AccordionItem>
-          
+
           <AccordionItem value="item-3">
             <AccordionTrigger className="text-xl font-semibold">
               Compliance & Certifications
@@ -355,7 +380,7 @@ export default function PublicPassportView({
               </InfoRow>
               <InfoRow icon={Globe} label="Compliance Summary">
                 <p className="text-sm text-muted-foreground">
-                  {sustainability?.complianceSummary || "Awaiting review."}
+                  {sustainability?.complianceSummary || 'Awaiting review.'}
                 </p>
               </InfoRow>
               <InfoRow icon={FileText} label="Certifications">

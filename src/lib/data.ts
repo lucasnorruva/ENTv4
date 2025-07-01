@@ -41,6 +41,19 @@ export let products: Product[] = [
       type: 'Recycled Cardboard',
       recyclable: true,
       recycledContent: 100,
+      weight: 50,
+    },
+    lifecycle: {
+      carbonFootprint: 15.5,
+      carbonFootprintMethod: 'ISO 14067',
+      repairabilityScore: 7,
+      expectedLifespan: 5,
+    },
+    battery: {
+      type: 'Lithium-ion',
+      capacityMah: 3110,
+      voltage: 3.83,
+      isRemovable: false,
     },
     certifications: [
       { name: 'CE', issuer: 'TÜV SÜD' },
@@ -51,7 +64,8 @@ export let products: Product[] = [
     lastVerificationDate: '2024-07-22T14:00:00Z',
     blockchainProof: {
       txHash: '0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
-      explorerUrl: 'https://www.oklink.com/amoy/tx/0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
+      explorerUrl:
+        'https://www.oklink.com/amoy/tx/0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
       blockHeight: 51842069,
     },
     ebsiVcId: 'did:ebsi:z2d5i1d9o8f7g6h5j4k3l2m1n0p',

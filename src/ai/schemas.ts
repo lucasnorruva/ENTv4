@@ -28,7 +28,8 @@ export const AiProductSchema = z.object({
       country: z.string(),
       emissionsKgCo2e: z.number().optional(),
     })
-    .describe('Manufacturing details.').optional(),
+    .describe('Manufacturing details.')
+    .optional(),
   certifications: z
     .array(
       z.object({
@@ -37,7 +38,35 @@ export const AiProductSchema = z.object({
         validUntil: z.string().optional(),
       }),
     )
-    .describe('List of certifications.').optional(),
+    .describe('List of certifications.')
+    .optional(),
+  packaging: z
+    .object({
+      type: z.string(),
+      recyclable: z.boolean(),
+      recycledContent: z.number().optional(),
+      weight: z.number().optional(),
+    })
+    .describe('Packaging details.')
+    .optional(),
+  lifecycle: z
+    .object({
+      carbonFootprint: z.number().optional(),
+      carbonFootprintMethod: z.string().optional(),
+      repairabilityScore: z.number().optional(),
+      expectedLifespan: z.number().optional(),
+    })
+    .describe('Lifecycle and durability metrics.')
+    .optional(),
+  battery: z
+    .object({
+      type: z.string(),
+      capacityMah: z.number().optional(),
+      voltage: z.number().optional(),
+      isRemovable: z.boolean(),
+    })
+    .describe('Battery specifications.')
+    .optional(),
   verificationStatus: z
     .string()
     .optional()

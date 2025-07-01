@@ -6,7 +6,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
-  ArrowLeft,
   FilePenLine,
   Leaf,
   Link as LinkIcon,
@@ -31,6 +30,11 @@ import {
   Landmark,
   Percent,
   MapPin,
+  HeartPulse,
+  BatteryCharging,
+  Zap,
+  Weight,
+  Layers,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath } from '@/types';
@@ -90,7 +94,7 @@ export default function ProductDetailView({
 }) {
   const { sustainability } = product;
   const esg = sustainability;
-  const lifecycle = sustainability?.lifecycleAnalysis;
+  const aiLifecycle = sustainability?.lifecycleAnalysis;
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -208,9 +212,9 @@ export default function ProductDetailView({
                     collapsible
                     className="w-full mt-4"
                   >
-                    <AccordionItem value="materials">
+                    <AccordionItem value="data">
                       <AccordionTrigger>
-                        Materials & Manufacturing
+                        Materials, Manufacturing & Packaging
                       </AccordionTrigger>
                       <AccordionContent>
                         <InfoRow icon={Factory} label="Manufacturing">
@@ -255,6 +259,15 @@ export default function ProductDetailView({
                               No material data provided.
                             </p>
                           )}
+                        </InfoRow>
+                        <InfoRow icon={Package} label="Packaging">
+                          <p className="text-sm text-muted-foreground">
+                            {product.packaging?.type}
+                            {product.packaging?.weight &&
+                              ` (${product.packaging.weight}g)`}
+                            . Recyclable:{' '}
+                            {product.packaging?.recyclable ? 'Yes' : 'No'}.
+                          </p>
                         </InfoRow>
                       </AccordionContent>
                     </AccordionItem>
@@ -379,7 +392,9 @@ export default function ProductDetailView({
                   <InfoRow
                     icon={Globe}
                     label="AI Compliance Summary"
-                    value={sustainability?.complianceSummary || 'Awaiting review.'}
+                    value={
+                      sustainability?.complianceSummary || 'Awaiting review.'
+                    }
                   />
                   <InfoRow icon={FileText} label="Certifications">
                     {product.certifications &&
@@ -419,58 +434,96 @@ export default function ProductDetailView({
             <TabsContent value="lifecycle" className="mt-4">
               <Card>
                 <CardHeader>
-                  <CardTitle>Lifecycle Analysis</CardTitle>
+                  <CardTitle>Lifecycle & Circularity</CardTitle>
                   <CardDescription>
-                    AI-generated analysis of the product's environmental impact
-                    from cradle to grave.
+                    Data related to the product's lifespan, repairability, and
+                    end-of-life.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {lifecycle ? (
-                    <>
+                  <div className="grid md:grid-cols-2 gap-x-6">
+                    <InfoRow
+                      icon={Thermometer}
+                      label="Carbon Footprint"
+                      value={
+                        product.lifecycle?.carbonFootprint
+                          ? `${product.lifecycle.carbonFootprint} kg CO2-eq`
+                          : 'Not available'
+                      }
+                    >
+                      {product.lifecycle?.carbonFootprintMethod && (
+                        <p className="text-xs text-muted-foreground">
+                          Method: {product.lifecycle.carbonFootprintMethod}
+                        </p>
+                      )}
+                    </InfoRow>
+                    <InfoRow
+                      icon={HeartPulse}
+                      label="Expected Lifespan"
+                      value={
+                        product.lifecycle?.expectedLifespan
+                          ? `${product.lifecycle.expectedLifespan} years`
+                          : 'Not available'
+                      }
+                    />
+                    <InfoRow
+                      icon={Wrench}
+                      label="Repairability Score"
+                      value={
+                        product.lifecycle?.repairabilityScore
+                          ? `${product.lifecycle.repairabilityScore} / 10`
+                          : 'Not available'
+                      }
+                    />
+                     {product.battery && (
                       <InfoRow
-                        icon={Thermometer}
-                        label="Estimated Carbon Footprint"
-                        value={`${lifecycle.carbonFootprint.value} ${lifecycle.carbonFootprint.unit}`}
+                        icon={BatteryCharging}
+                        label="Battery"
+                        value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
                       >
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {lifecycle.carbonFootprint.summary}
+                         <p className="text-xs text-muted-foreground">
+                          Removable: {product.battery.isRemovable ? "Yes" : "No"}
                         </p>
                       </InfoRow>
-                      <InfoRow
-                        icon={Lightbulb}
-                        label="Lifecycle Stages Impact"
-                      >
-                        <div className="space-y-2 mt-2 text-sm text-muted-foreground">
-                          <p>
-                            <strong>Manufacturing:</strong>{' '}
-                            {lifecycle.lifecycleStages.manufacturing}
-                          </p>
-                          <p>
-                            <strong>Use Phase:</strong>{' '}
-                            {lifecycle.lifecycleStages.usePhase}
-                          </p>
-                          <p>
-                            <strong>End-of-Life:</strong>{' '}
-                            {lifecycle.lifecycleStages.endOfLife}
-                          </p>
-                        </div>
-                      </InfoRow>
-                      <InfoRow
-                        icon={Sparkles}
-                        label="Improvement Opportunities"
-                      >
-                        <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                          {lifecycle.improvementOpportunities.map((opp, i) => (
-                            <li key={i}>{opp}</li>
-                          ))}
-                        </ul>
-                      </InfoRow>
-                    </>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      Lifecycle analysis not available.
-                    </p>
+                    )}
+                  </div>
+                  {aiLifecycle && (
+                    <Accordion type="single" collapsible className="w-full mt-4">
+                       <AccordionItem value="ai-analysis">
+                          <AccordionTrigger>AI Lifecycle Analysis</AccordionTrigger>
+                          <AccordionContent>
+                             <InfoRow
+                                icon={Lightbulb}
+                                label="AI Stage Analysis"
+                              >
+                                <div className="space-y-2 mt-2 text-sm text-muted-foreground">
+                                  <p>
+                                    <strong>Manufacturing:</strong>{' '}
+                                    {aiLifecycle.lifecycleStages.manufacturing}
+                                  </p>
+                                  <p>
+                                    <strong>Use Phase:</strong>{' '}
+                                    {aiLifecycle.lifecycleStages.usePhase}
+                                  </p>
+                                  <p>
+                                    <strong>End-of-Life:</strong>{' '}
+                                    {aiLifecycle.lifecycleStages.endOfLife}
+                                  </p>
+                                </div>
+                              </InfoRow>
+                              <InfoRow
+                                icon={Sparkles}
+                                label="AI Improvement Opportunities"
+                              >
+                                <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
+                                  {aiLifecycle.improvementOpportunities.map((opp, i) => (
+                                    <li key={i}>{opp}</li>
+                                  ))}
+                                </ul>
+                              </InfoRow>
+                          </AccordionContent>
+                       </AccordionItem>
+                    </Accordion>
                   )}
                 </CardContent>
               </Card>

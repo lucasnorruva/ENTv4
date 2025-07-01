@@ -4,7 +4,7 @@
 import React, { useEffect, useState, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Plus, Sparkles, Trash2 } from 'lucide-react';
+import { Loader2, Plus, Sparkles, Trash2, BatteryCharging } from 'lucide-react';
 import Image from 'next/image';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
@@ -48,6 +48,12 @@ import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import type { Product, User, CompliancePath } from '@/types';
 import { saveProduct } from '@/lib/actions';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
@@ -91,6 +97,8 @@ export default function ProductForm({
           ...product,
           manufacturing: product.manufacturing || { facility: '', country: '' },
           packaging: product.packaging || { type: '', recyclable: false },
+          lifecycle: product.lifecycle || {},
+          battery: product.battery || {},
         }
       : {
           productName: '',
@@ -103,6 +111,8 @@ export default function ProductForm({
           manufacturing: { facility: '', country: '' },
           certifications: [],
           packaging: { type: '', recyclable: false },
+          lifecycle: {},
+          battery: {},
         },
   });
 
@@ -143,7 +153,12 @@ export default function ProductForm({
                 facility: '',
                 country: '',
               },
-              packaging: product.packaging || { type: '', recyclable: false },
+              packaging: product.packaging || {
+                type: '',
+                recyclable: false,
+              },
+              lifecycle: product.lifecycle || {},
+              battery: product.battery || {},
             }
           : {
               productName: '',
@@ -156,6 +171,8 @@ export default function ProductForm({
               manufacturing: { facility: '', country: '' },
               certifications: [],
               packaging: { type: '', recyclable: false },
+              lifecycle: {},
+              battery: {},
             },
       );
       setImageFile(null);
@@ -267,7 +284,7 @@ export default function ProductForm({
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full flex flex-col p-0 sm:max-w-2xl">
+        <SheetContent className="w-full flex flex-col p-0 sm:max-w-3xl">
           <SheetHeader className="p-6 pb-2">
             <SheetTitle>
               {product ? 'Edit Product Passport' : 'Create Product Passport'}
@@ -285,10 +302,11 @@ export default function ProductForm({
             >
               <Tabs defaultValue="general" className="h-full flex flex-col">
                 <div className="px-6">
-                  <TabsList className="grid w-full grid-cols-4">
+                  <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="data">Data</TabsTrigger>
                     <TabsTrigger value="packaging">Packaging</TabsTrigger>
+                    <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                     <TabsTrigger value="compliance">Compliance</TabsTrigger>
                   </TabsList>
                 </div>
@@ -475,7 +493,7 @@ export default function ProductForm({
                                   type="number"
                                   {...form.register(
                                     `materials.${index}.percentage`,
-                                    { valueAsNumber: true }
+                                    { valueAsNumber: true },
                                   )}
                                   placeholder="e.g. 60"
                                 />
@@ -489,7 +507,7 @@ export default function ProductForm({
                                   type="number"
                                   {...form.register(
                                     `materials.${index}.recycledContent`,
-                                    { valueAsNumber: true }
+                                    { valueAsNumber: true },
                                   )}
                                   placeholder="e.g. 100"
                                 />
@@ -579,16 +597,98 @@ export default function ProductForm({
                         ))}
                       </div>
                     </div>
+                    <Separator />
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="battery">
+                        <AccordionTrigger>
+                          <h3 className="text-lg font-semibold flex items-center gap-2">
+                            <BatteryCharging />
+                            Battery Details (if applicable)
+                          </h3>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4 space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="battery.type"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Battery Type</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="e.g., Lithium-ion"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              control={form.control}
+                              name="battery.capacityMah"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Capacity (mAh)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="e.g., 3110"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="battery.voltage"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Voltage (V)</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      placeholder="e.g., 3.83"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name="battery.isRemovable"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                  <FormLabel>Is Removable?</FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   </TabsContent>
 
                   <TabsContent value="packaging" className="p-6 space-y-6">
                     <h3 className="text-lg font-semibold">Packaging</h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <FormField
                         control={form.control}
                         name="packaging.type"
                         render={({ field }) => (
-                          <FormItem>
+                          <FormItem className="sm:col-span-2">
                             <FormLabel>Type</FormLabel>
                             <FormControl>
                               <Input
@@ -602,16 +702,18 @@ export default function ProductForm({
                       />
                       <FormField
                         control={form.control}
-                        name="packaging.recycledContent"
+                        name="packaging.weight"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Recycled Content (%)</FormLabel>
+                            <FormLabel>Weight (grams)</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
-                                placeholder="e.g. 100"
+                                placeholder="e.g., 50"
                                 {...field}
-                                onChange={e => field.onChange(e.target.valueAsNumber)}
+                                onChange={e =>
+                                  field.onChange(e.target.valueAsNumber)
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -619,6 +721,26 @@ export default function ProductForm({
                         )}
                       />
                     </div>
+                    <FormField
+                      control={form.control}
+                      name="packaging.recycledContent"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recycled Content (%)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="e.g. 100"
+                              {...field}
+                              onChange={e =>
+                                field.onChange(e.target.valueAsNumber)
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="packaging.recyclable"
@@ -639,6 +761,82 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
+                  </TabsContent>
+
+                  <TabsContent value="lifecycle" className="p-6 space-y-6">
+                    <h3 className="text-lg font-semibold">
+                      Lifecycle & Durability
+                    </h3>
+                    <FormField
+                      control={form.control}
+                      name="lifecycle.carbonFootprint"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Carbon Footprint (kg CO2-eq)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="e.g., 15.5"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="lifecycle.carbonFootprintMethod"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Footprint Method</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., ISO 14067"
+                              {...field}
+                            />
+                          </FormControl>
+                           <FormDescription>The methodology used for carbon footprint calculation.</FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField
+                        control={form.control}
+                        name="lifecycle.repairabilityScore"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Repairability Score (1-10)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="e.g., 7"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="lifecycle.expectedLifespan"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Expected Lifespan (years)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="e.g., 5"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="compliance" className="p-6 space-y-6">
