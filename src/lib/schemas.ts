@@ -46,6 +46,10 @@ const complianceSchema = z.object({
   rohsExemption: z.string().optional(),
   reachSVHC: z.boolean().optional(),
   scipReference: z.string().optional(),
+  prop65WarningRequired: z.boolean().optional(),
+  ceMarked: z.boolean().optional(),
+  foodContactSafe: z.boolean().optional(),
+  foodContactComplianceStandard: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -57,6 +61,8 @@ export const productFormSchema = z.object({
   category: z.string().min(1, 'Category is required.'),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
+  manualUrl: z.string().url().optional().or(z.literal('')),
+  conformityDocUrl: z.string().url().optional().or(z.literal('')),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),

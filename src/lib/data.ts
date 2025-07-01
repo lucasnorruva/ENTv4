@@ -17,6 +17,7 @@ export let products: Product[] = [
     updatedAt: '2024-07-21T10:00:00Z',
     compliancePathId: 'cp-electronics-01',
     manualUrl: 'https://example.com/manual-sw5.pdf',
+    conformityDocUrl: 'https://example.com/doc-sw5.pdf',
     materials: [
       {
         name: 'Recycled Aluminum',
@@ -63,6 +64,7 @@ export let products: Product[] = [
     compliance: {
       rohsCompliant: true,
       reachSVHC: false,
+      ceMarked: true,
     },
     verificationStatus: 'Verified',
     lastVerificationDate: '2024-07-22T14:00:00Z',
@@ -137,6 +139,7 @@ export let products: Product[] = [
       rohsCompliant: true,
       reachSVHC: true,
       scipReference: 'mock-scip-ref-12345',
+      ceMarked: true,
     },
     verificationStatus: 'Pending',
     sustainability: {

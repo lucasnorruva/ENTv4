@@ -35,6 +35,8 @@ import {
   Zap,
   Weight,
   Layers,
+  Copyright,
+  Utensils,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath } from '@/types';
@@ -404,6 +406,26 @@ export default function ProductDetailView({
                           (Exemption: {product.compliance.rohsExemption})
                         </span>
                       )}
+                    </p>
+                  </InfoRow>
+                   <InfoRow icon={Copyright} label="CE Marked">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.ceMarked ? 'Yes' : 'No'}
+                    </p>
+                  </InfoRow>
+                   <InfoRow icon={Utensils} label="Food Contact Safe">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.foodContactSafe ? 'Yes' : 'No'}
+                       {product.compliance?.foodContactComplianceStandard && (
+                        <span className="ml-2 text-xs">
+                          (Standard: {product.compliance.foodContactComplianceStandard})
+                        </span>
+                      )}
+                    </p>
+                  </InfoRow>
+                   <InfoRow icon={AlertTriangle} label="Prop 65 Warning">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.prop65WarningRequired ? 'Required' : 'Not Required'}
                     </p>
                   </InfoRow>
                   <InfoRow icon={FileText} label="SCIP Reference">

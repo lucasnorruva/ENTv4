@@ -84,6 +84,10 @@ export interface Compliance {
   rohsExemption?: string;
   reachSVHC?: boolean;
   scipReference?: string;
+  prop65WarningRequired?: boolean;
+  ceMarked?: boolean;
+  foodContactSafe?: boolean;
+  foodContactComplianceStandard?: string;
 }
 
 export interface ComplianceGap {
@@ -116,6 +120,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
+  conformityDocUrl?: string;
 
   // Structured Data Fields
   materials: Material[];
