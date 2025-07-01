@@ -12,27 +12,32 @@ import path from 'path';
 
 /**
  * Initializes and returns the Firebase Admin App instance, ensuring it's a singleton.
- * It prioritizes connection methods: Emulators > service account file > Production Default.
+ * It prioritizes connection methods in a specific order for robust local and production setup.
  */
 function initializeAdminApp(): App {
   if (getApps().length > 0) {
     return getApp();
   }
 
-  // When `npm run seed` is used, `firebase emulators:exec` sets this variable.
-  // The Admin SDK will automatically connect to the emulators.
+  // Connection method priority:
+  // 1. Emulators (via environment variables set by `emulators:exec` or `dev` server)
+  // 2. Local service account file (for direct script execution)
+  // 3. Production Default (via Application Default Credentials on a server)
+
+  // 1. Check for `emulators:exec` (used by `npm run seed`)
+  // `firebase emulators:exec` sets FIRESTORE_EMULATOR_HOST.
   if (process.env.FIRESTORE_EMULATOR_HOST) {
     console.log(
-      'Emulator environment detected (FIRESTORE_EMULATOR_HOST is set). Initializing Admin SDK for emulators.',
+      '✅ Admin SDK: `emulators:exec` environment detected. Initializing for emulators.',
     );
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
-  // For the `npm run dev` server, `FIRESTORE_EMULATOR_HOST` is not set by default.
-  // This block enables server-side code (like Server Actions) to use the emulators.
+  // 2. Check for `npm run dev` environment.
+  // The `dev` script runs a server, so we manually configure emulator hosts.
   if (process.env.NODE_ENV === 'development') {
     console.log(
-      'Development environment detected. Manually configuring Admin SDK for emulators.',
+      '✅ Admin SDK: Development server detected. Manually configuring for emulators.',
     );
     process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
     process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
@@ -40,12 +45,12 @@ function initializeAdminApp(): App {
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
-  // 2. Use local service account key file if it exists.
+  // 3. Check for local service account key file.
   const serviceAccountPath = path.join(process.cwd(), 'serviceAccountKey.json');
 
   if (fs.existsSync(serviceAccountPath)) {
     console.log(
-      `Found service account key at ${serviceAccountPath}. Initializing Admin SDK with file credentials.`,
+      `✅ Admin SDK: Found service account key at ${serviceAccountPath}. Initializing with file credentials.`,
     );
     try {
       const serviceAccount = JSON.parse(
@@ -61,9 +66,9 @@ function initializeAdminApp(): App {
     }
   }
 
-  // 3. Fallback to production environment credentials (Application Default Credentials)
+  // 4. Fallback to production environment credentials (Application Default Credentials).
   console.log(
-    'Production environment detected (no local key file found). Initializing Admin SDK with default credentials.',
+    '✅ Admin SDK: Production environment detected (no local key or emulator config). Initializing with default credentials.',
   );
   return initializeApp();
 }
