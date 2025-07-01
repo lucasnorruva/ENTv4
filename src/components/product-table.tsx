@@ -14,6 +14,7 @@ import {
   ChevronDown,
   AlertCircle,
   BookCopy,
+  ExternalLink,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -131,6 +132,8 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
+          const currentUrl = typeof window !== 'undefined' ? window.location.pathname : '';
+          
           return (
             <div className="flex items-center gap-3">
               <Image
@@ -142,9 +145,8 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
               <Link
-                href={`/products/${row.original.id}`}
+                href={`${currentUrl}/${row.original.id}`}
                 className="font-medium hover:underline"
-                target="_blank"
               >
                 {row.original.productName}
               </Link>
@@ -248,6 +250,12 @@ export default function ProductTable({
                 <DropdownMenuItem onClick={() => onEdit(product)}>
                   <FilePenLine className="mr-2 h-4 w-4" />
                   Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                   <Link href={`/products/${product.id}`} target="_blank">
+                     <ExternalLink className="mr-2 h-4 w-4" />
+                     View Public Passport
+                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() =>
