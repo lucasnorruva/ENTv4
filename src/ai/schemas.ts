@@ -60,10 +60,10 @@ export const AiProductSchema = z.object({
     .optional(),
   battery: z
     .object({
-      type: z.string(),
+      type: z.string().optional(),
       capacityMah: z.number().optional(),
       voltage: z.number().optional(),
-      isRemovable: z.boolean(),
+      isRemovable: z.boolean().optional(),
     })
     .describe('Battery specifications.')
     .optional(),

@@ -73,10 +73,10 @@ export interface Lifecycle {
 }
 
 export interface Battery {
-  type: string;
+  type?: string;
   capacityMah?: number;
   voltage?: number;
-  isRemovable: boolean;
+  isRemovable?: boolean;
 }
 
 export interface Compliance {

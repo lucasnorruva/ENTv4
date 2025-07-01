@@ -397,14 +397,16 @@ export default function ProductDetailView({
                     }
                   />
                   <InfoRow icon={ShieldCheck} label="RoHS Compliant">
-                     <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
                       {product.compliance?.rohsExemption && (
-                        <span className="ml-2 text-xs">(Exemption: {product.compliance.rohsExemption})</span>
+                        <span className="ml-2 text-xs">
+                          (Exemption: {product.compliance.rohsExemption})
+                        </span>
                       )}
                     </p>
                   </InfoRow>
-                   <InfoRow icon={FileText} label="SCIP Reference">
+                  <InfoRow icon={FileText} label="SCIP Reference">
                     <p className="font-mono text-xs text-muted-foreground">
                       {product.compliance?.scipReference || 'Not Provided'}
                     </p>
@@ -492,10 +494,15 @@ export default function ProductDetailView({
                       <InfoRow
                         icon={BatteryCharging}
                         label="Battery"
-                        value={`${product.battery.type}, ${product.battery.capacityMah}mAh`}
+                        value={`${product.battery.type || 'N/A'}${
+                          product.battery.capacityMah
+                            ? `, ${product.battery.capacityMah}mAh`
+                            : ''
+                        }`}
                       >
                         <p className="text-xs text-muted-foreground">
-                          Removable: {product.battery.isRemovable ? 'Yes' : 'No'}
+                          Removable:{' '}
+                          {product.battery.isRemovable ? 'Yes' : 'No'}
                         </p>
                       </InfoRow>
                     )}

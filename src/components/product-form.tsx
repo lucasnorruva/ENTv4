@@ -106,7 +106,6 @@ export default function ProductForm({
           productDescription: '',
           productImage: undefined,
           category: 'Electronics',
-          supplier: '', // Will be set in action
           status: 'Draft',
           materials: [],
           manufacturing: { facility: '', country: '' },
@@ -168,7 +167,6 @@ export default function ProductForm({
               productDescription: '',
               productImage: '',
               category: 'Electronics',
-              supplier: '', // Will be set in action
               status: 'Draft',
               materials: [],
               manufacturing: { facility: '', country: '' },
@@ -639,6 +637,7 @@ export default function ProductForm({
                                       type="number"
                                       placeholder="e.g., 3110"
                                       {...field}
+                                      onChange={e => field.onChange(e.target.valueAsNumber)}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -656,6 +655,7 @@ export default function ProductForm({
                                       type="number"
                                       placeholder="e.g., 3.83"
                                       {...field}
+                                      onChange={e => field.onChange(e.target.valueAsNumber)}
                                     />
                                   </FormControl>
                                   <FormMessage />
@@ -782,6 +782,9 @@ export default function ProductForm({
                               type="number"
                               placeholder="e.g., 15.5"
                               {...field}
+                              onChange={e =>
+                                field.onChange(e.target.valueAsNumber)
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -820,6 +823,9 @@ export default function ProductForm({
                                 type="number"
                                 placeholder="e.g., 7"
                                 {...field}
+                                onChange={e =>
+                                  field.onChange(e.target.valueAsNumber)
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -837,6 +843,9 @@ export default function ProductForm({
                                 type="number"
                                 placeholder="e.g., 5"
                                 {...field}
+                                onChange={e =>
+                                  field.onChange(e.target.valueAsNumber)
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -897,7 +906,7 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
-                     <FormField
+                    <FormField
                       control={form.control}
                       name="compliance.rohsExemption"
                       render={({ field }) => (
