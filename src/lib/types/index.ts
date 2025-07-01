@@ -154,18 +154,6 @@ export interface ServiceTicket extends BaseEntity {
 }
 
 /**
- * Represents a physical production line for manufacturing.
- */
-export interface ProductionLine extends BaseEntity {
-  name: string;
-  location: string;
-  status: 'Active' | 'Idle' | 'Maintenance';
-  outputPerHour: number;
-  currentProduct: string;
-  lastMaintenance: string;
-}
-
-/**
  * Represents a developer API key for integrations.
  */
 export interface ApiKey extends BaseEntity {

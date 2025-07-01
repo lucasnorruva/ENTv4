@@ -12,8 +12,6 @@ import type {
   ApiSettings,
   CompliancePath,
   ServiceTicket,
-  ProductionLine,
-  Role,
 } from './types';
 import {
   productFormSchema,
@@ -119,19 +117,6 @@ const docToServiceTicket = (
   return {
     ...data,
     id: doc.id,
-    createdAt: fromTimestamp(data.createdAt),
-    updatedAt: fromTimestamp(data.updatedAt),
-  };
-};
-
-const docToProductionLine = (
-  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
-): ProductionLine => {
-  const data = doc.data() as Omit<ProductionLine, 'id'>;
-  return {
-    ...data,
-    id: doc.id,
-    lastMaintenance: fromTimestamp(data.lastMaintenance),
     createdAt: fromTimestamp(data.createdAt),
     updatedAt: fromTimestamp(data.updatedAt),
   };
@@ -894,13 +879,4 @@ export async function getServiceTickets(): Promise<ServiceTicket[]> {
     .get();
   if (snapshot.empty) return [];
   return snapshot.docs.map(docToServiceTicket);
-}
-
-export async function getProductionLines(): Promise<ProductionLine[]> {
-  const snapshot = await adminDb
-    .collection('productionLines')
-    .orderBy('name')
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToProductionLine);
 }
