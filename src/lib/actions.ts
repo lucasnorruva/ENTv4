@@ -31,7 +31,7 @@ import {
   generateEbsiCredential,
   hashProductData,
 } from '@/services/blockchain';
-
+import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
 import { getUserById, hasRole, getCompanyById } from './auth';
@@ -453,6 +453,13 @@ export async function resolveComplianceIssue(
   await logAuditEvent('compliance.resolved', productId, {}, userId);
   revalidatePath('/dashboard/compliance-manager/flagged');
   return (await getProductById(productId, userId))!;
+}
+
+export async function suggestImprovements(input: {
+  productName: string;
+  productDescription: string;
+}) {
+  return await suggestImprovementsFlow(input);
 }
 
 // --- ADMIN & GENERAL ACTIONS ---
