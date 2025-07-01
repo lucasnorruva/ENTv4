@@ -70,6 +70,8 @@ export interface Lifecycle {
   carbonFootprintMethod?: string;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
+  energyEfficiencyClass?: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G';
+  recyclingInstructions?: string;
 }
 
 export interface Battery {
@@ -88,6 +90,8 @@ export interface Compliance {
   ceMarked?: boolean;
   foodContactSafe?: boolean;
   foodContactComplianceStandard?: string;
+  weeeRegistered?: boolean;
+  weeeRegistrationNumber?: string;
 }
 
 export interface ComplianceGap {

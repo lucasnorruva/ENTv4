@@ -207,6 +207,19 @@ export default function ProductDetailView({
                         label="Manufacturer"
                         value={product.supplier}
                       />
+                      {product.conformityDocUrl && (
+                        <InfoRow icon={FileText} label="Declaration of Conformity">
+                          <Link
+                            href={product.conformityDocUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline text-sm flex items-center gap-1"
+                          >
+                            View Document
+                            <LinkIcon className="h-3 w-3" />
+                          </Link>
+                        </InfoRow>
+                      )}
                     </div>
                   </div>
                   <Accordion
@@ -428,6 +441,16 @@ export default function ProductDetailView({
                       {product.compliance?.prop65WarningRequired ? 'Required' : 'Not Required'}
                     </p>
                   </InfoRow>
+                  <InfoRow icon={Recycle} label="WEEE Compliance">
+                    <p className="text-sm text-muted-foreground">
+                      Registered: {product.compliance?.weeeRegistered ? 'Yes' : 'No'}
+                      {product.compliance?.weeeRegistrationNumber && (
+                        <span className="ml-2 font-mono text-xs">
+                          ({product.compliance.weeeRegistrationNumber})
+                        </span>
+                      )}
+                    </p>
+                  </InfoRow>
                   <InfoRow icon={FileText} label="SCIP Reference">
                     <p className="font-mono text-xs text-muted-foreground">
                       {product.compliance?.scipReference || 'Not Provided'}
@@ -512,6 +535,15 @@ export default function ProductDetailView({
                           : 'Not available'
                       }
                     />
+                     <InfoRow
+                      icon={Lightbulb}
+                      label="Energy Efficiency Class"
+                      value={
+                        product.lifecycle?.energyEfficiencyClass ?
+                        <Badge variant="outline">{product.lifecycle.energyEfficiencyClass}</Badge>
+                        : 'Not available'
+                      }
+                    />
                     {product.battery && (
                       <InfoRow
                         icon={BatteryCharging}
@@ -528,6 +560,11 @@ export default function ProductDetailView({
                         </p>
                       </InfoRow>
                     )}
+                     <InfoRow
+                      icon={Recycle}
+                      label="Recycling Instructions"
+                      value={product.lifecycle?.recyclingInstructions || 'Not provided.'}
+                    />
                   </div>
                   {aiLifecycle && (
                     <Accordion

@@ -388,6 +388,22 @@ export default function ProductForm({
                         </FormItem>
                       )}
                     />
+                     <FormField
+                      control={form.control}
+                      name="conformityDocUrl"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Declaration of Conformity URL</FormLabel>
+                           <FormControl>
+                            <Input
+                              placeholder="https://example.com/doc.pdf"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="category"
@@ -771,6 +787,31 @@ export default function ProductForm({
                     <h3 className="text-lg font-semibold">
                       Lifecycle & Durability
                     </h3>
+                     <FormField
+                      control={form.control}
+                      name="lifecycle.energyEfficiencyClass"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Energy Efficiency Class</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a class" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {['A', 'B', 'C', 'D', 'E', 'F', 'G'].map(c => (
+                                <SelectItem key={c} value={c}>{c}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <FormField
                       control={form.control}
                       name="lifecycle.carbonFootprint"
@@ -853,6 +894,22 @@ export default function ProductForm({
                         )}
                       />
                     </div>
+                     <FormField
+                      control={form.control}
+                      name="lifecycle.recyclingInstructions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Recycling Instructions</FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Provide end-of-life instructions..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </TabsContent>
 
                   <TabsContent value="compliance" className="p-6 space-y-6">
@@ -889,76 +946,204 @@ export default function ProductForm({
                     />
                     <Separator />
                     <h3 className="text-lg font-semibold">Declarations</h3>
-                    <FormField
-                      control={form.control}
-                      name="compliance.rohsCompliant"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>RoHS Compliant</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                     <Accordion type="multiple" className="w-full space-y-4">
+                       <AccordionItem value="rohs">
+                        <AccordionTrigger>RoHS</AccordionTrigger>
+                        <AccordionContent className="pt-4 space-y-4">
+                           <FormField
+                            control={form.control}
+                            name="compliance.rohsCompliant"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                <div className="space-y-0.5">
+                                  <FormLabel>RoHS Compliant</FormLabel>
+                                </div>
+                                <FormControl>
+                                  <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="compliance.rohsExemption"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>RoHS Exemption</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., 6(c)" {...field} />
+                                </FormControl>
+                                <FormDescription>
+                                  If applicable, provide the RoHS exemption details.
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </AccordionContent>
+                       </AccordionItem>
+                       <AccordionItem value="reach">
+                         <AccordionTrigger>REACH / SCIP</AccordionTrigger>
+                         <AccordionContent className="pt-4 space-y-4">
+                            <FormField
+                              control={form.control}
+                              name="compliance.reachSVHC"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>REACH SVHC Declared</FormLabel>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="compliance.rohsExemption"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>RoHS Exemption</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., 6(c)" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            If applicable, provide the RoHS exemption details.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="compliance.reachSVHC"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <div className="space-y-0.5">
-                            <FormLabel>REACH SVHC Declared</FormLabel>
-                          </div>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <FormField
+                              control={form.control}
+                              name="compliance.scipReference"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>SCIP Reference</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g. 123e4567-e89b-12d3-a456-426614174000"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    The reference number from the SCIP database, if
+                                    applicable.
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="compliance.scipReference"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>SCIP Reference</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. 123e4567-e89b-12d3-a456-426614174000"
-                              {...field}
+                         </AccordionContent>
+                       </AccordionItem>
+                        <AccordionItem value="weee">
+                         <AccordionTrigger>WEEE</AccordionTrigger>
+                         <AccordionContent className="pt-4 space-y-4">
+                           <FormField
+                              control={form.control}
+                              name="compliance.weeeRegistered"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>WEEE Registered</FormLabel>
+                                    <FormDescription>
+                                      Is the product registered with a national WEEE scheme?
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
                             />
-                          </FormControl>
-                          <FormDescription>
-                            The reference number from the SCIP database, if
-                            applicable.
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                           <FormField
+                              control={form.control}
+                              name="compliance.weeeRegistrationNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>WEEE Registration Number</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., DE 12345678"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    The producer registration number for the WEEE scheme.
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                         </AccordionContent>
+                       </AccordionItem>
+                       <AccordionItem value="additional">
+                         <AccordionTrigger>Additional Declarations</AccordionTrigger>
+                         <AccordionContent className="pt-4 space-y-4">
+                           <FormField
+                              control={form.control}
+                              name="compliance.ceMarked"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>CE Marked</FormLabel>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="compliance.prop65WarningRequired"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>Prop 65 Warning Required</FormLabel>
+                                    <FormDescription>For products sold in California.</FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="compliance.foodContactSafe"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>Food Contact Safe</FormLabel>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="compliance.foodContactComplianceStandard"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Food Contact Standard</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., EU 10/2011"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                         </AccordionContent>
+                       </AccordionItem>
+                     </Accordion>
                   </TabsContent>
                 </div>
               </Tabs>

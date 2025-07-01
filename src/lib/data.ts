@@ -49,6 +49,8 @@ export let products: Product[] = [
       carbonFootprintMethod: 'ISO 14067',
       repairabilityScore: 7,
       expectedLifespan: 5,
+      energyEfficiencyClass: 'A',
+      recyclingInstructions: 'Remove band before recycling main body at a certified e-waste facility. Battery must be removed by a professional.',
     },
     battery: {
       type: 'Lithium-ion',
@@ -65,6 +67,8 @@ export let products: Product[] = [
       rohsCompliant: true,
       reachSVHC: false,
       ceMarked: true,
+      weeeRegistered: true,
+      weeeRegistrationNumber: 'DE 12345678',
     },
     verificationStatus: 'Verified',
     lastVerificationDate: '2024-07-22T14:00:00Z',
