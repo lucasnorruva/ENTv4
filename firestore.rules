@@ -2,107 +2,119 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-  
-    // --- Helper Functions ---
-    function isSignedIn() {
+
+    // Helper Functions to make rules more readable and reusable.
+    function isAuthenticated() {
       return request.auth != null;
     }
 
     function isUser(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+      return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function getUserData(userId) {
+      // It's safe to use `get` here because our rules below will ensure
+      // that this function is only ever called in an authorized context.
+      return get(/databases/$(database)/documents/users/$(userId)).data;
     }
 
-    function isAdmin() {
-      return isSignedIn() && getUserData().roles.hasAny(['Admin']);
+    function userHasRole(role) {
+      // Checks if the signed-in user's `roles` array contains the specified role.
+      return isAuthenticated() && role in getUserData(request.auth.uid).roles;
     }
 
-    function isAuditor() {
-      return isSignedIn() && getUserData().roles.hasAny(['Admin', 'Auditor']);
+    function userOwnsCompany(companyId) {
+      // Checks if the signed-in user belongs to the specified company.
+      return isAuthenticated() && getUserData(request.auth.uid).companyId == companyId;
     }
     
-    function isComplianceManager() {
-      return isSignedIn() && getUserData().roles.hasAny(['Admin', 'Compliance Manager']);
-    }
-    
-    function isDeveloper() {
-      return isSignedIn() && getUserData().roles.hasAny(['Admin', 'Developer']);
-    }
-    
-    function isOwner(docData) {
-      return isSignedIn() && getUserData().companyId == docData.companyId;
-    }
-
     // --- Collection Rules ---
 
-    // USERS: Users can read their own data. Admins can read/write any user.
+    // Rules for the 'users' collection
     match /users/{userId} {
-      allow read: if isUser(userId) || isAdmin();
-      allow write: if isAdmin();
+      // A user can read their own profile. Admins can read any profile.
+      allow read: if isUser(userId) || userHasRole('Admin');
+      
+      // A user can update their own profile. Admins can update any.
+      allow update: if isUser(userId) || userHasRole('Admin');
+      
+      // Only Admins can create or delete users through the UI.
+      allow create, delete: if userHasRole('Admin');
     }
     
-    // COMPANIES: Users can read their own company data. Admins can read/write any.
+    // Rules for the 'companies' collection
     match /companies/{companyId} {
-        allow read: if isSignedIn() && getUserData().companyId == companyId || isAdmin();
-        allow write: if isAdmin();
+      // A user can read their own company's details. Admins can read any.
+      allow read: if userOwnsCompany(companyId) || userHasRole('Admin');
+      
+      // Only Admins can create, update, or delete companies.
+      allow write: if userHasRole('Admin');
     }
 
-    // PRODUCTS: Complex rules based on role and ownership.
+    // Rules for the 'products' collection
     match /products/{productId} {
-      // Public can read published products.
-      // Authenticated users can read their own company's products.
-      // Admins/Auditors can read all products.
-      allow read: if resource.data.status == 'Published' || 
-                   (isSignedIn() && isOwner(resource.data)) ||
-                   isAuditor();
-                   
-      // Anyone in a company can create a product for that company.
-      allow create: if isSignedIn() && isOwner(request.resource.data);
+      // Anyone can read a published product.
+      // Authenticated users with global roles can read any product.
+      // Users can read products from their own company.
+      allow read: if resource.data.status == 'Published'
+                  || (isAuthenticated() && (
+                      userOwnsCompany(resource.data.companyId) ||
+                      userHasRole('Admin') ||
+                      userHasRole('Auditor') ||
+                      userHasRole('Compliance Manager') ||
+                      userHasRole('Business Analyst') ||
+                      userHasRole('Retailer') ||
+                      userHasRole('Recycler') ||
+                      userHasRole('Service Provider')
+                    ));
       
-      // Only users from the same company can update their products.
-      allow update: if isSignedIn() && isOwner(resource.data);
+      // Users can create a product for their own company.
+      allow create: if isAuthenticated() && userOwnsCompany(request.resource.data.companyId);
+
+      // Users can update a product if they are an admin or belong to the product's company.
+      // Fine-grained logic (e.g., preventing a supplier from approving their own product)
+      // is handled by server-side actions, which is a secure and standard pattern.
+      allow update: if isAuthenticated() && (userHasRole('Admin') || userOwnsCompany(resource.data.companyId));
       
-      // Only users from the same company or Admins can delete.
-      allow delete: if isSignedIn() && (isOwner(resource.data) || isAdmin());
+      // Users can delete a product if they are an admin or belong to the product's company.
+      allow delete: if isAuthenticated() && (userHasRole('Admin') || userOwnsCompany(resource.data.companyId));
     }
-    
-    // COMPLIANCE_PATHS: Authenticated users can read. Admins/Auditors can write.
+
+    // Rules for 'compliancePaths' collection
     match /compliancePaths/{pathId} {
-      allow read: if isSignedIn();
-      allow write: if isAuditor() || isComplianceManager();
+      // Any authenticated user can read the standards.
+      allow read: if isAuthenticated();
+      
+      // Only specific roles can modify the standards.
+      allow write: if userHasRole('Admin') || userHasRole('Compliance Manager') || userHasRole('Auditor');
     }
-    
-    // API_KEYS: Users can only manage their own keys.
-    match /apiKeys/{keyId} {
-        allow read, write: if isSignedIn() && request.auth.uid == resource.data.userId || isDeveloper();
-    }
-    
-    // AUDIT_LOGS: Read-only for admins for now. Writes happen server-side.
+
+    // Rules for 'auditLogs' collection
     match /auditLogs/{logId} {
-        allow read: if isAdmin();
-        allow write: if false; // Only backend can write
+      // Logs are created server-side by authenticated actions.
+      allow create: if isAuthenticated();
+      // Only Admins can read the full audit trail.
+      allow read: if userHasRole('Admin');
+      // Logs are immutable and cannot be changed or deleted.
+      allow update, delete: if false;
     }
     
-    // SERVICE_TICKETS & PRODUCTION_LINES: Accessible only by users in the same company
+    // Rules for other collections...
+    match /apiKeys/{keyId} {
+      allow read, write, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+    
     match /serviceTickets/{ticketId} {
-        allow read, write: if isSignedIn() && isOwner(resource.data);
+      allow read, write: if userHasRole('Service Provider') || userHasRole('Admin');
+    }
+    
+    match /settings/{docId} {
+      allow read, write: if userHasRole('Admin') || userHasRole('Developer');
     }
     
     match /productionLines/{lineId} {
-        allow read, write: if isSignedIn() && isOwner(resource.data);
-    }
-    
-    // SETTINGS: Admin/Developer only
-    match /settings/{docId} {
-        allow read, write: if isDeveloper();
-    }
-
-    // Default deny all other collections
-    match /{document=**} {
-      allow read, write: if false;
+      allow read: if userHasRole('Manufacturer') || userHasRole('Admin');
+      allow write: if false; // Managed server-side
     }
   }
 }
