@@ -11,8 +11,6 @@ import type {
   ApiKey,
   ApiSettings,
   CompliancePath,
-  ServiceTicket,
-  ProductionLine,
 } from './types';
 import {
   productFormSchema,
@@ -32,15 +30,10 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { validateProductData } from '@/ai/flows/validate-product-data';
 import type {
   SuggestImprovementsInput,
   SuggestImprovementsOutput,
 } from '@/types/ai-outputs';
-import { AiProduct } from '@/ai/schemas';
 
 import admin, { adminDb } from './firebase-admin';
 import { Collections, UserRoles } from './constants';
@@ -69,18 +62,6 @@ const docToProduct = (
     lastVerificationDate: data.lastVerificationDate
       ? fromTimestamp(data.lastVerificationDate)
       : undefined,
-  };
-};
-
-const docToCompliancePath = (
-  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
-): CompliancePath => {
-  const data = doc.data() as Omit<CompliancePath, 'id'>;
-  return {
-    ...data,
-    id: doc.id,
-    createdAt: fromTimestamp(data.createdAt),
-    updatedAt: fromTimestamp(data.updatedAt),
   };
 };
 
@@ -287,42 +268,6 @@ export async function markAsRecycled(
   return (await getProductById(productId, userId))!;
 }
 
-export async function resolveComplianceIssue(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  await adminDb
-    .collection(Collections.PRODUCTS)
-    .doc(productId)
-    .update({
-      verificationStatus: 'Not Submitted',
-      lastUpdated: admin.firestore.Timestamp.now(),
-    });
-  await logAuditEvent('compliance.resolved', productId, {}, userId);
-  return (await getProductById(productId, userId))!;
-}
-
-export async function exportProducts(
-  format: 'csv' | 'json',
-): Promise<string> {
-  const products = await getProducts();
-  if (format === 'json') {
-    return JSON.stringify(products, null, 2);
-  }
-  const headers = Object.keys(products[0]).join(',');
-  const rows = products.map(product => {
-    return Object.values(product)
-      .map(value => {
-        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
-        if (typeof value === 'object' && value !== null)
-          return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
-        return value;
-      })
-      .join(',');
-  });
-  return `${headers}\n${rows.join('\n')}`;
-}
-
 // --- ADMIN & GENERAL ACTIONS ---
 
 export async function getCompanies(): Promise<Company[]> {
@@ -331,8 +276,6 @@ export async function getCompanies(): Promise<Company[]> {
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...(doc.data() as Omit<Company, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
   }));
 }
 
@@ -359,7 +302,7 @@ export async function saveCompany(
     await logAuditEvent('company.created', companyRef.id, {}, userId);
   }
   const doc = await companyRef.get();
-  return { id: doc.id, ...doc.data(), createdAt: fromTimestamp(now), updatedAt: fromTimestamp(now) } as Company;
+  return { id: doc.id, ...doc.data() } as Company;
 }
 
 export async function deleteCompany(
@@ -398,8 +341,7 @@ export async function saveUser(
     await logAuditEvent('user.created', userRef.id, {}, adminId);
   }
   const doc = await userRef.get();
-  const data = doc.data() as Omit<User, 'id'>
-  return { id: doc.id, ...data, createdAt: fromTimestamp(data.createdAt), updatedAt: fromTimestamp(data.updatedAt) };
+  return { id: doc.id, ...doc.data() } as User;
 }
 
 export async function deleteUser(
@@ -415,18 +357,10 @@ export async function getCompliancePaths(): Promise<CompliancePath[]> {
     .collection(Collections.COMPLIANCE_PATHS)
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(docToCompliancePath);
-}
-
-export async function getCompliancePathById(
-  id: string,
-): Promise<CompliancePath | undefined> {
-  const doc = await adminDb
-    .collection(Collections.COMPLIANCE_PATHS)
-    .doc(id)
-    .get();
-  if (!doc.exists) return undefined;
-  return docToCompliancePath(doc);
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...(doc.data() as Omit<CompliancePath, 'id'>),
+  }));
 }
 
 export async function saveCompliancePath(
@@ -469,7 +403,7 @@ export async function saveCompliancePath(
     await logAuditEvent('compliance_path.created', pathRef.id, {}, userId);
   }
   const doc = await pathRef.get();
-  return { id: doc.id, ...doc.data(), createdAt: fromTimestamp(now), updatedAt: fromTimestamp(now) } as CompliancePath;
+  return { id: doc.id, ...doc.data() } as CompliancePath;
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
@@ -481,8 +415,6 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...(doc.data() as Omit<AuditLog, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
   }));
 }
 
@@ -496,8 +428,6 @@ export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...(doc.data() as Omit<AuditLog, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
   }));
 }
 
@@ -529,9 +459,6 @@ export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...(doc.data() as Omit<ApiKey, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
-    lastUsed: fromTimestamp(doc.data().lastUsed),
   }));
 }
 
@@ -550,11 +477,7 @@ export async function createApiKey(
     userId,
     createdAt: fromTimestamp(now),
     updatedAt: fromTimestamp(now),
-    lastUsed: fromTimestamp(
-      admin.firestore.Timestamp.fromMillis(now.toMillis() - 86400000),
-    ),
   };
-
   const docRef = await adminDb.collection(Collections.API_KEYS).add(keyData);
   await logAuditEvent('api_key.created', docRef.id, { label }, userId);
   return { key: { id: docRef.id, ...keyData }, rawToken };
@@ -588,13 +511,11 @@ export async function getApiSettings(): Promise<ApiSettings> {
   const doc = await adminDb.collection('settings').doc('api').get();
   if (!doc.exists) {
     // Return default settings if none exist
-    const defaultSettings: ApiSettings = {
+    return {
       isPublicApiEnabled: true,
       rateLimitPerMinute: 100,
       isWebhookSigningEnabled: true,
     };
-    await adminDb.collection('settings').doc('api').set(defaultSettings);
-    return defaultSettings;
   }
   return doc.data() as ApiSettings;
 }
@@ -607,29 +528,6 @@ export async function saveApiSettings(
   await adminDb.collection('settings').doc('api').set(validatedData);
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
   return validatedData;
-}
-
-export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  const snapshot = await adminDb.collection('serviceTickets').get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<ServiceTicket, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
-  }));
-}
-
-export async function getProductionLines(): Promise<ProductionLine[]> {
-  const snapshot = await adminDb.collection('productionLines').get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<ProductionLine, 'id'>),
-    createdAt: fromTimestamp(doc.data().createdAt),
-    updatedAt: fromTimestamp(doc.data().updatedAt),
-    lastMaintenance: fromTimestamp(doc.data().lastMaintenance),
-  }));
 }
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
