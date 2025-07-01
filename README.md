@@ -71,6 +71,8 @@ Follow these instructions to get the project running on your local machine for d
     NEXT_PUBLIC_FIREBASE_APP_ID=...
     ```
     If you plan to use only the Firebase Emulator for local development, you can start with an empty `.env` file.
+    
+    > **Important Note:** This `.env` file is locked and cannot be modified by the AI assistant. Please manage your environment variables manually.
 
 5.  **Seed the Database:**
     The application requires initial data to function correctly. Run the following command to populate your local Firestore emulator or cloud database with mock data.
