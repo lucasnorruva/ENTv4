@@ -11,6 +11,8 @@ import type {
   ApiKey,
   ApiSettings,
   CompliancePath,
+  ServiceTicket,
+  ProductionLine,
 } from './types';
 import {
   productFormSchema,
@@ -62,6 +64,80 @@ const docToProduct = (
     lastVerificationDate: data.lastVerificationDate
       ? fromTimestamp(data.lastVerificationDate)
       : undefined,
+  };
+};
+
+const docToCompany = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): Company => {
+  const data = doc.data() as Omit<Company, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+  };
+};
+
+const docToCompliancePath = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): CompliancePath => {
+  const data = doc.data() as Omit<CompliancePath, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+  };
+};
+
+const docToAuditLog = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): AuditLog => {
+  const data = doc.data() as Omit<AuditLog, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+  };
+};
+
+const docToApiKey = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): ApiKey => {
+  const data = doc.data() as Omit<ApiKey, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+    lastUsed: data.lastUsed ? fromTimestamp(data.lastUsed) : undefined,
+  };
+};
+
+const docToServiceTicket = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): ServiceTicket => {
+  const data = doc.data() as Omit<ServiceTicket, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+  };
+};
+
+const docToProductionLine = (
+  doc: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>,
+): ProductionLine => {
+  const data = doc.data() as Omit<ProductionLine, 'id'>;
+  return {
+    ...data,
+    id: doc.id,
+    createdAt: fromTimestamp(data.createdAt),
+    updatedAt: fromTimestamp(data.updatedAt),
+    lastMaintenance: fromTimestamp(data.lastMaintenance),
   };
 };
 
@@ -165,6 +241,7 @@ export async function saveProduct(
   const finalProduct = await getProductById(productRef.id, userId);
   if (!finalProduct) throw new Error('Failed to retrieve saved product');
 
+  revalidatePath('/dashboard/supplier/products');
   return finalProduct;
 }
 
@@ -174,6 +251,7 @@ export async function deleteProduct(
 ): Promise<void> {
   await adminDb.collection(Collections.PRODUCTS).doc(productId).delete();
   await logAuditEvent('product.deleted', productId, {}, userId);
+  revalidatePath('/dashboard/supplier/products');
 }
 
 export async function submitForReview(
@@ -186,6 +264,7 @@ export async function submitForReview(
     lastUpdated: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('passport.submitted', productId, {}, userId);
+  revalidatePath('/dashboard/supplier/products');
   return (await getProductById(productId, userId))!;
 }
 
@@ -199,6 +278,7 @@ export async function recalculateScore(
     lastUpdated: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
+  revalidatePath('/dashboard/supplier/products');
 }
 
 export async function approvePassport(
@@ -230,6 +310,8 @@ export async function approvePassport(
     { txHash: blockchainProof.txHash },
     userId,
   );
+  revalidatePath('/dashboard/auditor/audit');
+  revalidatePath('/dashboard/supplier/products');
   return (await getProductById(productId, userId))!;
 }
 
@@ -250,6 +332,8 @@ export async function rejectPassport(
     });
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
+  revalidatePath('/dashboard/auditor/audit');
+  revalidatePath('/dashboard/supplier/products');
   return (await getProductById(productId, userId))!;
 }
 
@@ -265,6 +349,24 @@ export async function markAsRecycled(
       lastUpdated: admin.firestore.Timestamp.now(),
     });
   await logAuditEvent('product.recycled', productId, {}, userId);
+  revalidatePath('/dashboard/recycler/eol');
+  return (await getProductById(productId, userId))!;
+}
+
+export async function resolveComplianceIssue(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  await adminDb
+    .collection(Collections.PRODUCTS)
+    .doc(productId)
+    .update({
+      verificationStatus: 'Not Submitted',
+      status: 'Draft',
+      lastUpdated: admin.firestore.Timestamp.now(),
+    });
+  await logAuditEvent('compliance.resolved', productId, {}, userId);
+  revalidatePath('/dashboard/compliance-manager/flagged');
   return (await getProductById(productId, userId))!;
 }
 
@@ -273,10 +375,7 @@ export async function markAsRecycled(
 export async function getCompanies(): Promise<Company[]> {
   const snapshot = await adminDb.collection(Collections.COMPANIES).get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<Company, 'id'>),
-  }));
+  return snapshot.docs.map(docToCompany);
 }
 
 export async function saveCompany(
@@ -301,8 +400,14 @@ export async function saveCompany(
     });
     await logAuditEvent('company.created', companyRef.id, {}, userId);
   }
+  revalidatePath('/dashboard/admin/companies');
   const doc = await companyRef.get();
-  return { id: doc.id, ...doc.data() } as Company;
+  return {
+    id: doc.id,
+    ...doc.data(),
+    createdAt: fromTimestamp(doc.data()?.createdAt),
+    updatedAt: fromTimestamp(doc.data()?.updatedAt),
+  } as Company;
 }
 
 export async function deleteCompany(
@@ -311,6 +416,7 @@ export async function deleteCompany(
 ): Promise<void> {
   await adminDb.collection(Collections.COMPANIES).doc(companyId).delete();
   await logAuditEvent('company.deleted', companyId, {}, userId);
+  revalidatePath('/dashboard/admin/companies');
 }
 
 export async function saveUser(
@@ -340,6 +446,7 @@ export async function saveUser(
     await userRef.set({ ...userData, createdAt: now });
     await logAuditEvent('user.created', userRef.id, {}, adminId);
   }
+  revalidatePath('/dashboard/admin/users');
   const doc = await userRef.get();
   return { id: doc.id, ...doc.data() } as User;
 }
@@ -350,6 +457,7 @@ export async function deleteUser(
 ): Promise<void> {
   await adminDb.collection(Collections.USERS).doc(userId).delete();
   await logAuditEvent('user.deleted', userId, {}, adminId);
+  revalidatePath('/dashboard/admin/users');
 }
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
@@ -357,10 +465,18 @@ export async function getCompliancePaths(): Promise<CompliancePath[]> {
     .collection(Collections.COMPLIANCE_PATHS)
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<CompliancePath, 'id'>),
-  }));
+  return snapshot.docs.map(docToCompliancePath);
+}
+
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
+  const doc = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .doc(id)
+    .get();
+  if (!doc.exists) return undefined;
+  return docToCompliancePath(doc);
 }
 
 export async function saveCompliancePath(
@@ -402,6 +518,7 @@ export async function saveCompliancePath(
     await pathRef.set({ ...pathData, createdAt: now });
     await logAuditEvent('compliance_path.created', pathRef.id, {}, userId);
   }
+  revalidatePath('/dashboard/admin/compliance');
   const doc = await pathRef.get();
   return { id: doc.id, ...doc.data() } as CompliancePath;
 }
@@ -412,10 +529,7 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
     .orderBy('createdAt', 'desc')
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<AuditLog, 'id'>),
-  }));
+  return snapshot.docs.map(docToAuditLog);
 }
 
 export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
@@ -425,10 +539,7 @@ export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
     .orderBy('createdAt', 'desc')
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<AuditLog, 'id'>),
-  }));
+  return snapshot.docs.map(docToAuditLog);
 }
 
 export async function logAuditEvent(
@@ -456,10 +567,7 @@ export async function getApiKeys(userId: string): Promise<ApiKey[]> {
     .where('userId', '==', userId)
     .get();
   if (snapshot.empty) return [];
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...(doc.data() as Omit<ApiKey, 'id'>),
-  }));
+  return snapshot.docs.map(docToApiKey);
 }
 
 export async function createApiKey(
@@ -480,6 +588,7 @@ export async function createApiKey(
   };
   const docRef = await adminDb.collection(Collections.API_KEYS).add(keyData);
   await logAuditEvent('api_key.created', docRef.id, { label }, userId);
+  revalidatePath('/dashboard/developer/keys');
   return { key: { id: docRef.id, ...keyData }, rawToken };
 }
 
@@ -494,8 +603,9 @@ export async function revokeApiKey(
     updatedAt: admin.firestore.Timestamp.now(),
   });
   await logAuditEvent('api_key.revoked', keyId, {}, userId);
+  revalidatePath('/dashboard/developer/keys');
   const doc = await keyRef.get();
-  return { id: doc.id, ...doc.data() } as ApiKey;
+  return docToApiKey(doc);
 }
 
 export async function deleteApiKey(
@@ -505,6 +615,7 @@ export async function deleteApiKey(
   // In a real app, check for ownership before deleting
   await adminDb.collection(Collections.API_KEYS).doc(keyId).delete();
   await logAuditEvent('api_key.deleted', keyId, {}, userId);
+  revalidatePath('/dashboard/developer/keys');
 }
 
 export async function getApiSettings(): Promise<ApiSettings> {
@@ -603,4 +714,22 @@ export async function runSuggestImprovements(
   input: SuggestImprovementsInput,
 ): Promise<SuggestImprovementsOutput> {
   return suggestImprovements(input);
+}
+
+export async function getServiceTickets(): Promise<ServiceTicket[]> {
+  const snapshot = await adminDb
+    .collection('serviceTickets')
+    .orderBy('createdAt', 'desc')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToServiceTicket);
+}
+
+export async function getProductionLines(): Promise<ProductionLine[]> {
+  const snapshot = await adminDb
+    .collection('productionLines')
+    .orderBy('name')
+    .get();
+  if (snapshot.empty) return [];
+  return snapshot.docs.map(docToProductionLine);
 }
