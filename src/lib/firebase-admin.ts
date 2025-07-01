@@ -46,8 +46,9 @@ function getAdminApp(): App {
     const serviceAccount = {
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // Replace escaped newlines from .env file with actual newlines
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      // The dotenv package automatically handles newlines in quoted .env variables.
+      // The explicit replace can cause issues with PEM parsing.
+      privateKey: process.env.FIREBASE_PRIVATE_KEY,
     };
     return initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -63,6 +64,7 @@ function getAdminApp(): App {
 
 const app = getAdminApp();
 
+// Explicitly use the initialized app to get the services. This is safer.
 export const adminDb = getFirestore(app);
 export const adminStorage = getStorage(app);
 export const adminAuth = getAuth(app);
