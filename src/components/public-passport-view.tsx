@@ -343,9 +343,14 @@ export default function PublicPassportView({
                 </Alert>
               )}
               <InfoRow icon={FileQuestion} label="Compliance Path">
-                <p className="text-sm text-muted-foreground">
-                  {compliancePath?.name ?? "No path selected."}
+                <p className="font-semibold text-foreground">
+                  {compliancePath?.name ?? 'No path selected.'}
                 </p>
+                {compliancePath?.description && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {compliancePath.description}
+                  </p>
+                )}
               </InfoRow>
               <InfoRow icon={Globe} label="Compliance Summary">
                 <p className="text-sm text-muted-foreground">
