@@ -111,14 +111,23 @@ export let products: Product[] = [
         recycledContent: 5,
         origin: 'South Korea',
       },
-      { name: 'Lithium-ion Battery', percentage: 20, origin: 'Japan' },
     ],
     manufacturing: {
       facility: 'Aero Plant 1',
       country: 'USA',
       emissionsKgCo2e: 25.0,
     },
-    packaging: { type: 'Molded Plastic', recyclable: false },
+    packaging: { type: 'Molded Plastic', recyclable: false, weight: 150 },
+    lifecycle: {
+      repairabilityScore: 5,
+      expectedLifespan: 3,
+    },
+    battery: {
+      type: 'Lithium Polymer',
+      capacityMah: 5200,
+      voltage: 15.2,
+      isRemovable: true,
+    },
     certifications: [{ name: 'FCC', issuer: 'FCC' }],
     verificationStatus: 'Pending',
     sustainability: {
@@ -134,7 +143,7 @@ export let products: Product[] = [
       {
         field: 'materials.percentage',
         warning:
-          'Material percentages add up to 100%. This is correct, but please double-check for accuracy.',
+          'Material percentages add up to 80%. Consider adding battery weight to composition.',
       },
     ],
   },
@@ -164,7 +173,7 @@ export let products: Product[] = [
       facility: 'Sustainable Threads Mill',
       country: 'India',
     },
-    packaging: { type: 'Compostable Bag', recyclable: true },
+    packaging: { type: 'Compostable Bag', recyclable: true, weight: 10 },
     certifications: [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade Certified', issuer: 'Fair Trade USA' },
@@ -202,7 +211,7 @@ export let products: Product[] = [
       },
     ],
     manufacturing: { facility: 'EcoFabric Taiwan', country: 'Taiwan' },
-    packaging: { type: 'Plastic Bag', recyclable: false },
+    packaging: { type: 'Plastic Bag', recyclable: false, weight: 30 },
     certifications: [],
     verificationStatus: 'Failed',
     lastVerificationDate: '2024-07-19T10:00:00Z',
@@ -250,7 +259,7 @@ export let products: Product[] = [
       { name: 'Steel', percentage: 30, origin: 'USA' },
     ],
     manufacturing: { facility: 'EcoHome Workshop', country: 'China' },
-    packaging: { type: 'Cardboard Box', recyclable: true },
+    packaging: { type: 'Cardboard Box', recyclable: true, weight: 500 },
     certifications: [{ name: 'FSC Certified', issuer: 'FSC' }],
     verificationStatus: 'Verified',
     blockchainProof: {
