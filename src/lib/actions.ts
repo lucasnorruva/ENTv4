@@ -25,6 +25,8 @@ import {
   CompliancePathFormValues,
   apiSettingsSchema,
   ApiSettingsFormValues,
+  serviceTicketFormSchema,
+  ServiceTicketFormValues,
 } from './schemas';
 import {
   anchorToPolygon,
@@ -145,14 +147,14 @@ export async function getProducts(userId?: string): Promise<Product[]> {
   if (userId) {
     const user = await getUserById(userId);
     if (!user) return [];
-    
+
     // Global read roles that can see all products
     const globalReadRoles: Role[] = [
-        UserRoles.ADMIN,
-        UserRoles.BUSINESS_ANALYST,
-        UserRoles.RETAILER,
+      UserRoles.ADMIN,
+      UserRoles.BUSINESS_ANALYST,
+      UserRoles.RETAILER,
     ];
-    
+
     const hasGlobalRead = globalReadRoles.some(role => hasRole(user, role));
 
     if (!hasGlobalRead) {
@@ -920,11 +922,72 @@ export async function exportProducts(
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
   const snapshot = await adminDb
-    .collection('serviceTickets')
+    .collection(Collections.SERVICE_TICKETS)
     .orderBy('createdAt', 'desc')
     .get();
   if (snapshot.empty) return [];
   return snapshot.docs.map(docToServiceTicket);
+}
+
+export async function saveServiceTicket(
+  values: ServiceTicketFormValues,
+  userId: string,
+  ticketId?: string,
+): Promise<ServiceTicket> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    throw new Error('Permission denied.');
+  }
+
+  const validatedData = serviceTicketFormSchema.parse(values);
+  const now = admin.firestore.Timestamp.now();
+  let ticketRef: admin.firestore.DocumentReference;
+
+  const ticketData = {
+    ...validatedData,
+    updatedAt: now,
+  };
+
+  if (ticketId) {
+    ticketRef = adminDb
+      .collection(Collections.SERVICE_TICKETS)
+      .doc(ticketId);
+    await ticketRef.update(ticketData);
+    await logAuditEvent('ticket.updated', ticketId, {}, userId);
+  } else {
+    ticketRef = adminDb.collection(Collections.SERVICE_TICKETS).doc();
+    await ticketRef.set({
+      ...ticketData,
+      createdAt: now,
+      userId,
+    });
+    await logAuditEvent('ticket.created', ticketRef.id, {}, userId);
+  }
+
+  const doc = await ticketRef.get();
+  return docToServiceTicket(doc);
+}
+
+export async function updateServiceTicketStatus(
+  ticketId: string,
+  status: 'Open' | 'In Progress' | 'Closed',
+  userId: string,
+): Promise<ServiceTicket> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    throw new Error('Permission denied.');
+  }
+
+  const ticketRef = adminDb
+    .collection(Collections.SERVICE_TICKETS)
+    .doc(ticketId);
+  await ticketRef.update({
+    status,
+    updatedAt: admin.firestore.Timestamp.now(),
+  });
+  await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
+  const doc = await ticketRef.get();
+  return docToServiceTicket(doc);
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {

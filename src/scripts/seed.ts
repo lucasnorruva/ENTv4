@@ -74,7 +74,7 @@ async function seedDatabase() {
   await seedCollection(Collections.USERS, mockUsers);
   await seedCollection(Collections.PRODUCTS, mockProducts);
   await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
-  await seedCollection('serviceTickets', mockServiceTickets);
+  await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
   await seedCollection('productionLines', mockProductionLines);
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);

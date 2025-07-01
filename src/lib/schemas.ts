@@ -101,3 +101,11 @@ export const apiSettingsSchema = z.object({
   isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
+
+export const serviceTicketFormSchema = z.object({
+  productId: z.string().min(1, 'A product must be selected.'),
+  customerName: z.string().min(2, 'Customer name is required.'),
+  issue: z.string().min(10, 'Issue description must be at least 10 characters.'),
+  status: z.enum(['Open', 'In Progress', 'Closed']),
+});
+export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;

@@ -7,6 +7,7 @@ export let serviceTickets: ServiceTicket[] = [
   {
     id: "tkt-001",
     productId: "pp-001",
+    userId: "user-service",
     customerName: "Alice Johnson",
     issue: "Device not holding a charge for more than 4 hours.",
     status: "Open",
@@ -16,6 +17,7 @@ export let serviceTickets: ServiceTicket[] = [
   {
     id: "tkt-002",
     productId: "pp-002",
+    userId: "user-service",
     customerName: "Bob Williams",
     issue: "One of the propellers is cracked after a minor crash.",
     status: "In Progress",
@@ -25,6 +27,7 @@ export let serviceTickets: ServiceTicket[] = [
   {
     id: "tkt-003",
     productId: "pp-001",
+    userId: "user-service",
     customerName: "Charlie Brown",
     issue: "Screen is flickering intermittently.",
     status: "Closed",
@@ -34,6 +37,7 @@ export let serviceTickets: ServiceTicket[] = [
   {
     id: "tkt-004",
     productId: "pp-005",
+    userId: "user-service",
     customerName: "Diana Prince",
     issue: "Missing one of the shelf pegs from the original packaging.",
     status: "Closed",

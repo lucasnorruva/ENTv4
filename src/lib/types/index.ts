@@ -173,6 +173,7 @@ export interface AuditLog extends BaseEntity {
  */
 export interface ServiceTicket extends BaseEntity {
   productId: string;
+  userId: string;
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
