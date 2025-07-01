@@ -9,24 +9,16 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 /**
- * Ensures a single initialization of the Firebase Admin App.
- *
- * This function handles three scenarios in order of priority:
- * 1.  **Development with Emulators:** If emulator host variables are set,
- *     it connects to the local emulators.
- * 2.  **Local Development against Live Project:** If local credentials are
- *     provided in a .env file, it uses them to connect.
- * 3.  **Production Environment:** In a deployed environment (like App Hosting),
- *     it uses the Application Default Credentials provided by the infrastructure.
- *
- * @returns The initialized Firebase Admin App.
+ * Initializes and returns the Firebase Admin App instance, ensuring it's a singleton.
+ * It prioritizes connection methods: Emulators > Local .env Credentials > Production Default.
  */
-function getAdminApp(): App {
+function initializeAdminApp(): App {
+  // Return existing app if already initialized
   if (getApps().length > 0) {
     return getApp();
   }
 
-  // Priority 1: Connect to Emulators if host variables are set
+  // 1. Connect to Emulators if host variables are set
   if (process.env.FIRESTORE_EMULATOR_HOST) {
     console.log(
       'Emulator environment detected. Initializing Admin SDK for emulators.',
@@ -34,37 +26,45 @@ function getAdminApp(): App {
     return initializeApp({ projectId: 'passportflow-dev' });
   }
 
-  // Priority 2: Use local service account credentials if provided in .env
-  if (
-    process.env.FIREBASE_PROJECT_ID &&
-    process.env.FIREBASE_CLIENT_EMAIL &&
-    process.env.FIREBASE_PRIVATE_KEY
-  ) {
+  // 2. Use local service account credentials from .env if provided
+  const {
+    FIREBASE_PROJECT_ID,
+    FIREBASE_CLIENT_EMAIL,
+    FIREBASE_PRIVATE_KEY,
+  } = process.env;
+
+  if (FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY) {
     console.log(
       'Local Firebase credentials found. Initializing Admin SDK for live project.',
     );
     const serviceAccount = {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // Replace literal `\n` characters with actual newlines
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      projectId: FIREBASE_PROJECT_ID,
+      clientEmail: FIREBASE_CLIENT_EMAIL,
+      // The private key must have newlines correctly formatted.
+      privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
     };
-    return initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
+
+    try {
+      return initializeApp({
+        credential: admin.credential.cert(serviceAccount),
+      });
+    } catch (error: any) {
+      throw new Error(
+        `Failed to parse service account credentials. Please ensure FIREBASE_PRIVATE_KEY in your .env file is correctly formatted. Original error: ${error.message}`,
+      );
+    }
   }
 
-  // Priority 3: Default to production environment credentials
+  // 3. Fallback to production environment credentials (Application Default Credentials)
   console.log(
     'Production environment detected. Initializing Admin SDK with default credentials.',
   );
   return initializeApp();
 }
 
-const app = getAdminApp();
+const adminApp = initializeAdminApp();
 
-// Explicitly use the initialized app to get the services. This is safer.
-export const adminDb = getFirestore(app);
-export const adminStorage = getStorage(app);
-export const adminAuth = getAuth(app);
+export const adminDb = getFirestore(adminApp);
+export const adminStorage = getStorage(adminApp);
+export const adminAuth = getAuth(adminApp);
 export default admin;
