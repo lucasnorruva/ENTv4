@@ -1,11 +1,13 @@
-// src/components/product-management.tsx
+// src/components/product-management-client.tsx
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Upload } from 'lucide-react';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 import type { Product, User, CompliancePath } from '@/types';
-import { UserRoles } from '@/lib/constants';
+import { Collections, UserRoles } from '@/lib/constants';
 
 import {
   Card,
@@ -19,65 +21,76 @@ import ProductForm from './product-form';
 import ProductTable from './product-table';
 import {
   deleteProduct,
-  getProducts,
   submitForReview,
   recalculateScore,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
+import ProductImportDialog from './product-import-dialog';
 
-interface ProductManagementProps {
+interface ProductManagementClientProps {
   user: User;
   compliancePaths: CompliancePath[];
   initialFilter?: string;
 }
 
-export default function ProductManagement({
+export default function ProductManagementClient({
   user,
   compliancePaths,
   initialFilter,
-}: ProductManagementProps) {
+}: ProductManagementClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const canCreate =
-    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
+  const canCreate = hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
   useEffect(() => {
-    // A function to fetch products from our local mock data source
-    const fetchProducts = async () => {
-      setIsLoading(true);
-      try {
-        const fetchedProducts = await getProducts(user.id);
-        // Sort products by lastUpdated date descending
-        const sortedProducts = fetchedProducts.sort(
-          (a, b) =>
-            new Date(b.lastUpdated).getTime() -
-            new Date(a.lastUpdated).getTime(),
+    setIsLoading(true);
+
+    const q = hasRole(user, UserRoles.ADMIN)
+      ? query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'))
+      : query(
+          collection(db, Collections.PRODUCTS),
+          where('companyId', '==', user.companyId),
+          orderBy('lastUpdated', 'desc'),
         );
-        setProducts(sortedProducts);
-      } catch (error) {
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const productData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Product,
+        );
+        setProducts(productData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching products:', error);
         toast({
           title: 'Error Fetching Data',
           description: 'Could not load product data. Please try again later.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
+      },
+    );
 
-    fetchProducts();
-  }, [user.id, toast, isPending]); // Rerun when user changes or an action finishes
+    return () => unsubscribe();
+  }, [user.id, user.companyId, toast]);
 
   const handleCreateNew = () => {
     setSelectedProduct(null);
     setIsSheetOpen(true);
   };
+  
+  const handleImport = () => {
+    setIsImportOpen(true);
+  }
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -130,25 +143,22 @@ export default function ProductManagement({
     });
   };
 
-  const handleSave = (savedProduct: Product) => {
-    startTransition(() => {
-      const index = products.findIndex(p => p.id === savedProduct.id);
-      if (index > -1) {
-        const newProducts = [...products];
-        newProducts[index] = savedProduct;
-        setProducts(newProducts);
-      } else {
-        setProducts([savedProduct, ...products]);
-      }
-      setIsSheetOpen(false);
-    });
+  const handleSave = () => {
+    // The real-time listener will automatically update the table.
+    setIsSheetOpen(false);
   };
+  
+  const handleImportSave = () => {
+    // The real-time listener will automatically update the table.
+    setIsImportOpen(false);
+  };
+
 
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div>
               <CardTitle>My Product Passports</CardTitle>
               <CardDescription>
@@ -156,9 +166,14 @@ export default function ProductManagement({
               </CardDescription>
             </div>
             {canCreate && (
-              <Button onClick={handleCreateNew}>
-                <Plus className="mr-2 h-4 w-4" /> Create New
-              </Button>
+              <div className="flex items-center gap-2">
+                 <Button variant="outline" onClick={handleImport}>
+                  <Upload className="mr-2 h-4 w-4" /> Import
+                </Button>
+                <Button onClick={handleCreateNew}>
+                  <Plus className="mr-2 h-4 w-4" /> Create New
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -188,6 +203,14 @@ export default function ProductManagement({
           onSave={handleSave}
           user={user}
           compliancePaths={compliancePaths}
+        />
+      )}
+      {canCreate && (
+        <ProductImportDialog
+          isOpen={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          onSave={handleImportSave}
+          user={user}
         />
       )}
     </>

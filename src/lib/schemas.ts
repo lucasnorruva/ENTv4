@@ -177,3 +177,29 @@ export const productionLineFormSchema = z.object({
 export type ProductionLineFormValues = z.infer<
   typeof productionLineFormSchema
 >;
+
+// Schema for validating a single product record from a CSV import
+export const bulkProductImportSchema = z.object({
+  productName: z.string().min(3, 'productName must be at least 3 characters.'),
+  productDescription: z.string().min(10, 'productDescription must be at least 10 characters.'),
+  gtin: z.string().regex(/^\d{8}$|^\d{12,14}$/, 'Invalid GTIN format').optional().or(z.literal('')),
+  category: z.string().min(1, 'category is required.'),
+  productImage: z.string().url().optional().or(z.literal('')),
+  manualUrl: z.string().url().optional().or(z.literal('')),
+  // Note: Materials can be a stringified JSON in the CSV
+  materials: z.string().optional().transform((val, ctx) => {
+    if (!val) return [];
+    try {
+      const parsed = JSON.parse(val);
+      return z.array(materialSchema).parse(parsed);
+    } catch (e) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Invalid JSON format for materials.",
+      });
+      return z.NEVER;
+    }
+  }),
+});
+
+export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;

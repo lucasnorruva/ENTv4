@@ -1,6 +1,6 @@
 // src/app/dashboard/auditor/products/page.tsx
 import { redirect } from 'next/navigation';
-import ProductManagement from '@/components/product-management';
+import ProductManagementClient from '@/components/product-management-client';
 import { getCompliancePaths } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
@@ -27,6 +27,6 @@ export default async function ProductsPage() {
   const compliancePaths = await getCompliancePaths();
 
   return (
-    <ProductManagement user={user} compliancePaths={compliancePaths} />
+    <ProductManagementClient user={user} compliancePaths={compliancePaths} />
   );
 }

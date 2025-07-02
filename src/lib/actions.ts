@@ -33,6 +33,8 @@ import {
   ProductionLineFormValues,
   apiKeyFormSchema,
   ApiKeyFormValues,
+  bulkProductImportSchema,
+  BulkProductImportValues
 } from './schemas';
 import {
   anchorToPolygon,
@@ -50,6 +52,7 @@ import {
   getUsers,
   getUsersByCompanyId,
   getUserByEmail as authGetUserByEmail,
+  getCurrentUser as authGetCurrentUser,
 } from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
@@ -539,6 +542,40 @@ export async function generateConformityDeclarationText(productId: string, userI
 export async function analyzeBillOfMaterials(bomText: string) {
   return await analyzeBillOfMaterialsFlow({ bomText });
 }
+
+export async function bulkCreateProducts(products: BulkProductImportValues[], userId: string): Promise<{ createdCount: number }> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found');
+  checkPermission(user, 'product:create');
+
+  const company = await getCompanyById(user.companyId);
+  if (!company) throw new Error('User company not found');
+
+  const now = FieldValue.serverTimestamp();
+  const batch = adminDb.batch();
+  
+  products.forEach(productData => {
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc();
+    const newProduct: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'lastUpdated'> = {
+      ...productData,
+      companyId: user.companyId,
+      supplier: company.name,
+      status: 'Draft',
+      productImage: productData.productImage || 'https://placehold.co/400x400.png',
+      materials: productData.materials || [],
+      endOfLifeStatus: 'Active',
+      verificationStatus: 'Not Submitted',
+      isProcessing: true, // Trigger AI flows
+    };
+    batch.set(docRef, { ...newProduct, createdAt: now, updatedAt: now, lastUpdated: now });
+    logAuditEvent('product.created', docRef.id, { source: 'bulk_import' }, userId);
+  });
+
+  await batch.commit();
+
+  return { createdCount: products.length };
+}
+
 
 // Helper function to recursively flatten a nested object for CSV export.
 const flattenObject = (obj: any, parentKey = '', res: Record<string, any> = {}) => {
