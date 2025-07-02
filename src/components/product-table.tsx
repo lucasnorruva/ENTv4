@@ -57,7 +57,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +76,7 @@ interface ProductTableProps {
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
+  initialFilter?: string;
 }
 
 export default function ProductTable({
@@ -86,6 +86,7 @@ export default function ProductTable({
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
+  initialFilter,
 }: ProductTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] =
@@ -93,13 +94,12 @@ export default function ProductTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [globalFilter, setGlobalFilter] = React.useState(initialFilter ?? '');
 
   const canEdit =
     user.roles.includes(UserRoles.ADMIN) ||
     user.roles.includes(UserRoles.SUPPLIER);
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
-
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -321,11 +321,15 @@ export default function ProductTable({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-        const search = filterValue.toLowerCase();
-        const productName = row.original.productName?.toLowerCase() ?? '';
-        const gtin = row.original.gtin?.toLowerCase() ?? '';
-        const supplier = row.original.supplier?.toLowerCase() ?? '';
-        return productName.includes(search) || gtin.includes(search) || supplier.includes(search);
+      const search = filterValue.toLowerCase();
+      const productName = row.original.productName?.toLowerCase() ?? '';
+      const gtin = row.original.gtin?.toLowerCase() ?? '';
+      const supplier = row.original.supplier?.toLowerCase() ?? '';
+      return (
+        productName.includes(search) ||
+        gtin.includes(search) ||
+        supplier.includes(search)
+      );
     },
     state: {
       sorting,
@@ -414,7 +418,9 @@ export default function ProductTable({
                   className="h-24 text-center"
                 >
                   <BookCopy className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-2 text-lg font-semibold">No Products Found</h3>
+                  <h3 className="mt-2 text-lg font-semibold">
+                    No Products Found
+                  </h3>
                   <p className="text-muted-foreground">
                     No results for the current filter.
                   </p>

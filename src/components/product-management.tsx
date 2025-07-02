@@ -29,11 +29,13 @@ import { hasRole } from '@/lib/auth-utils';
 interface ProductManagementProps {
   user: User;
   compliancePaths: CompliancePath[];
+  initialFilter?: string;
 }
 
 export default function ProductManagement({
   user,
   compliancePaths,
+  initialFilter,
 }: ProductManagementProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -173,7 +175,7 @@ export default function ProductManagement({
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
               onRecalculateScore={handleRecalculateScore}
-              compliancePaths={compliancePaths}
+              initialFilter={initialFilter}
             />
           )}
         </CardContent>
