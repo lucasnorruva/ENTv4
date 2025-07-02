@@ -71,7 +71,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
 
   const stats = {
     totalCompanies: allCompanies.length,
-    totalCompliancePaths: allCompliancePaths.length,
+    totalUsers: allUsers.length,
     totalProducts: allProducts.length,
     verifiedPassports: allProducts.filter(
       p => p.verificationStatus === 'Verified',
@@ -114,6 +114,18 @@ export default async function AdminDashboard({ user }: { user: User }) {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCompanies}</div>
             <p className="text-xs text-muted-foreground">Active tenants</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalUsers}</div>
+            <p className="text-xs text-muted-foreground">
+              Across all companies
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -166,20 +178,6 @@ export default async function AdminDashboard({ user }: { user: User }) {
             <p className="text-xs text-muted-foreground">
               Require compliance action
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Compliance Paths
-            </CardTitle>
-            <FileQuestion className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.totalCompliancePaths}
-            </div>
-            <p className="text-xs text-muted-foreground">Active rule sets</p>
           </CardContent>
         </Card>
       </div>

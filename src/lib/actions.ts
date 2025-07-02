@@ -464,7 +464,7 @@ export async function saveUser(
     fullName: validatedData.fullName,
     email: validatedData.email,
     companyId: validatedData.companyId,
-    roles: [validatedData.role],
+    roles: [validatedData.role as Role],
     updatedAt: now,
   };
 
