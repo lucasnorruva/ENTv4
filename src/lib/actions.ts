@@ -808,3 +808,35 @@ export async function updateServiceTicketStatus(
 export async function getProductionLines(): Promise<ProductionLine[]> {
   return Promise.resolve(mockProductionLines);
 }
+
+// --- DATA EXPORT ACTIONS ---
+
+export async function exportProducts(
+  format: 'csv' | 'json',
+): Promise<string> {
+  const products = await getProducts();
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+
+  // Handle CSV format
+  if (products.length === 0) return '';
+
+  const headers = Object.keys(products[0]).filter(
+    key => typeof products[0][key as keyof Product] !== 'object',
+  );
+  const csvRows = [headers.join(',')];
+
+  for (const product of products) {
+    const values = headers.map(header => {
+      let value = product[header as keyof Product] as any;
+      if (typeof value === 'string') {
+        value = `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
