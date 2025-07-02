@@ -27,8 +27,6 @@ import {
   ApiSettingsFormValues,
   serviceTicketFormSchema,
   ServiceTicketFormValues,
-  webhookFormSchema,
-  WebhookFormValues,
   productionLineFormSchema,
   ProductionLineFormValues,
   apiKeyFormSchema,
@@ -81,59 +79,6 @@ export async function getWebhooks(userId?: string): Promise<Webhook[]> {
     return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
   }
   return Promise.resolve(mockWebhooks);
-}
-
-export async function saveWebhook(
-  values: WebhookFormValues,
-  userId: string,
-  webhookId?: string,
-): Promise<Webhook> {
-  const validatedData = webhookFormSchema.parse(values);
-  const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied.');
-
-  const now = new Date().toISOString();
-  let savedWebhook: Webhook;
-
-  if (webhookId) {
-    const webhookIndex = mockWebhooks.findIndex(
-      w => w.id === webhookId && w.userId === userId,
-    );
-    if (webhookIndex === -1) throw new Error('Webhook not found');
-    savedWebhook = {
-      ...mockWebhooks[webhookIndex],
-      ...validatedData,
-      updatedAt: now,
-    };
-    mockWebhooks[webhookIndex] = savedWebhook;
-    await logAuditEvent('webhook.updated', webhookId, {}, userId);
-  } else {
-    savedWebhook = {
-      id: newId('wh'),
-      ...validatedData,
-      userId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    mockWebhooks.push(savedWebhook);
-    await logAuditEvent('webhook.created', savedWebhook.id, {}, userId);
-  }
-  return Promise.resolve(savedWebhook);
-}
-
-export async function deleteWebhook(
-  webhookId: string,
-  userId: string,
-): Promise<void> {
-  const index = mockWebhooks.findIndex(
-    w => w.id === webhookId && w.userId === userId,
-  );
-  if (index > -1) {
-    mockWebhooks.splice(index, 1);
-    await logAuditEvent('webhook.deleted', webhookId, {}, userId);
-  }
-  return Promise.resolve();
 }
 
 // --- PRODUCT ACTIONS ---

@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import {
   MoreHorizontal,
   Plus,
@@ -10,7 +9,6 @@ import {
   Trash2,
   Loader2,
   Webhook as WebhookIcon,
-  History,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -35,7 +33,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -68,7 +65,6 @@ export default function WebhookManagementClient({
   const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const router = useRouter();
 
   useEffect(() => {
     setIsLoading(true);
@@ -198,17 +194,6 @@ export default function WebhookManagementClient({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/developer/webhooks/${webhook.id}`,
-                              )
-                            }
-                          >
-                            <History className="mr-2 h-4 w-4" />
-                            View Deliveries
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem
