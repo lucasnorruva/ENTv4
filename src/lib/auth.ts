@@ -15,6 +15,14 @@ export async function getUsers(): Promise<User[]> {
 }
 
 /**
+ * Simulates fetching all companies from mock data.
+ * @returns A promise that resolves to an array of all companies.
+ */
+export async function getCompanies(): Promise<Company[]> {
+  return Promise.resolve(mockCompanies);
+}
+
+/**
  * Fetches users by their company ID from mock data.
  * @param companyId The ID of the company.
  * @returns A promise that resolves to an array of users in that company.
