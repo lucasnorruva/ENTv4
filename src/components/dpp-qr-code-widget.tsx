@@ -4,7 +4,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   CardFooter,
@@ -12,9 +11,12 @@ import {
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function DppQrCodeWidget({ productId }: { productId: string }) {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -26,6 +28,44 @@ export default function DppQrCodeWidget({ productId }: { productId: string }) {
       );
     }
   }, [productId]);
+
+  const handleDownload = async () => {
+    if (!qrCodeUrl) return;
+
+    try {
+      // Use fetch to get the image as a blob
+      const response = await fetch(qrCodeUrl);
+      if (!response.ok) {
+        throw new Error('Network response was not ok.');
+      }
+      const blob = await response.blob();
+
+      // Create a link element to trigger the download
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `norruva-dpp-${productId}.png`;
+
+      // Append to the DOM, click, and then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Clean up the object URL
+      URL.revokeObjectURL(link.href);
+
+      toast({
+        title: 'Download Started',
+        description: 'Your QR code is downloading.',
+      });
+    } catch (error) {
+      console.error('Failed to download QR code:', error);
+      toast({
+        title: 'Download Failed',
+        description: 'Could not download the QR code image.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   return (
     <Card>
@@ -52,7 +92,13 @@ export default function DppQrCodeWidget({ productId }: { productId: string }) {
         </p>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full">
+        <Button
+          variant="outline"
+          className="w-full"
+          onClick={handleDownload}
+          disabled={!qrCodeUrl}
+        >
+          <Download className="mr-2 h-4 w-4" />
           Download QR Code
         </Button>
       </CardFooter>
