@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
-import { format } from 'date-fns';
 import {
   Plus,
   Trash2,
@@ -14,10 +13,19 @@ import {
   MoreHorizontal,
   Edit,
 } from 'lucide-react';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { revokeApiKey, deleteApiKey, getApiKeys } from '@/lib/actions';
+import { revokeApiKey, deleteApiKey } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -75,22 +83,34 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchKeys() {
-      try {
-        const data = await getApiKeys(user.id);
-        setApiKeys(data);
-      } catch (e) {
+    const q = query(
+      collection(db, Collections.API_KEYS),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const keysData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as ApiKey,
+        );
+        setApiKeys(keysData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching API keys:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load API keys.',
+          description: 'Failed to load API keys in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchKeys();
-  }, [user.id, toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user.id, toast]);
 
   const handleCreateNew = () => {
     setSelectedApiKey(null);
@@ -107,8 +127,8 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
       setNewlyCreatedKey(result.rawToken);
       setIsViewKeyDialogOpen(true);
     }
-    // Let the useEffect re-fetch the data to update the table
-    startTransition(() => {});
+    // Real-time listener will update the table
+    setIsFormOpen(false);
   };
 
   const handleRevokeKey = (id: string) => {

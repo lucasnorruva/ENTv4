@@ -1,84 +1,111 @@
 // src/lib/auth.ts
-import { UserRoles, type Role, Collections } from './constants';
+import { Collections, UserRoles, type Role } from './constants';
 import type { User, Company } from '@/types';
-
-// MOCK DATA IMPORTS
-import { users as mockUsers } from './user-data';
-import { companies as mockCompanies } from './company-data';
+import { adminDb } from './firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
+import { users as mockUsers } from './user-data'; // Only for initial role lookup
 
 /**
- * Simulates fetching all users from mock data.
+ * Helper to convert a Firestore document snapshot into our typed object.
+ * @param doc The Firestore document snapshot.
+ * @returns The typed object.
+ */
+function docToType<T>(doc: FirebaseFirestore.DocumentSnapshot): T {
+  const data = doc.data() as any;
+  // Convert Firestore Timestamps to ISO strings for server actions
+  Object.keys(data).forEach(key => {
+    if (data[key] instanceof Timestamp) {
+      data[key] = data[key].toDate().toISOString();
+    }
+  });
+  return { id: doc.id, ...data } as T;
+}
+
+/**
+ * Fetches all users from the Firestore 'users' collection.
  * @returns A promise that resolves to an array of all users.
  */
 export async function getUsers(): Promise<User[]> {
-  return Promise.resolve(mockUsers);
+  const snapshot = await adminDb.collection(Collections.USERS).get();
+  return snapshot.docs.map(doc => docToType<User>(doc));
 }
 
 /**
- * Simulates fetching all companies from mock data.
+ * Fetches all companies from the Firestore 'companies' collection.
  * @returns A promise that resolves to an array of all companies.
  */
 export async function getCompanies(): Promise<Company[]> {
-  return Promise.resolve(mockCompanies);
+  const snapshot = await adminDb.collection(Collections.COMPANIES).get();
+  return snapshot.docs.map(doc => docToType<Company>(doc));
 }
 
 /**
- * Fetches users by their company ID from mock data.
+ * Fetches users by their company ID from Firestore.
  * @param companyId The ID of the company.
  * @returns A promise that resolves to an array of users in that company.
  */
 export async function getUsersByCompanyId(companyId: string): Promise<User[]> {
-  const users = mockUsers.filter(u => u.companyId === companyId);
-  return Promise.resolve(users);
+  const snapshot = await adminDb.collection(Collections.USERS).where('companyId', '==', companyId).get();
+  return snapshot.docs.map(doc => docToType<User>(doc));
 }
 
 /**
- * Fetches a user by their ID from mock data.
+ * Fetches a user by their ID from Firestore.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserById(id: string): Promise<User | undefined> {
-  const user = mockUsers.find(u => u.id === id);
-  return Promise.resolve(user);
+  const doc = await adminDb.collection(Collections.USERS).doc(id).get();
+  return doc.exists ? docToType<User>(doc) : undefined;
 }
 
 /**
- * Fetches a user by their email address from mock data.
+ * Fetches a user by their email address from Firestore.
  * @param email The email of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const user = mockUsers.find(u => u.email === email);
-  return Promise.resolve(user);
+  const snapshot = await adminDb.collection(Collections.USERS).where('email', '==', email).limit(1).get();
+  if (snapshot.empty) {
+    return undefined;
+  }
+  return docToType<User>(snapshot.docs[0]);
 }
 
 /**
- * Fetches a company by its ID from mock data.
+ * Fetches a company by its ID from Firestore.
  * @param id The ID of the company to fetch.
  * @returns A promise that resolves to the company or undefined if not found.
  */
 export async function getCompanyById(id: string): Promise<Company | undefined> {
-  const company = mockCompanies.find(c => c.id === id);
-  return Promise.resolve(company);
+  const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
+  return doc.exists ? docToType<Company>(doc) : undefined;
 }
 
 /**
- * Simulates fetching the current user based on a role from mock data.
+ * Simulates fetching the current user based on a role.
+ * This now fetches from Firestore but uses the mock data to find an ID for the role.
+ * In a real app, this would be derived from the authenticated session.
  * @param role The role to simulate being logged in as.
- * @returns A mock user object.
+ * @returns A user object.
  */
 export async function getCurrentUser(role: Role): Promise<User> {
-  const user = mockUsers.find(u => u.roles.includes(role));
+  // Find a mock user with the desired role to get their ID
+  const mockUser = mockUsers.find(u => u.roles.includes(role));
+  if (!mockUser) {
+    throw new Error(`No mock user found for role: ${role}`);
+  }
+
+  const user = await getUserById(mockUser.id);
   if (user) {
-    return Promise.resolve(user);
+    return user;
   }
 
-  // Fallback to the first user if no specific role is found.
-  if (mockUsers.length > 0) {
-    return Promise.resolve(mockUsers[0]);
+  // Fallback if the user isn't in Firestore yet
+  const firstUser = (await getUsers())[0];
+  if (firstUser) {
+      return firstUser;
   }
 
-  throw new Error(
-    "No users found in the mock data file (src/lib/user-data.ts).",
-  );
+  throw new Error("No users found in the database.");
 }

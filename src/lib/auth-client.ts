@@ -3,19 +3,25 @@
 'use client';
 
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import type { User } from '@/types';
 import { Collections } from './constants';
 
 let currentUserPromise: Promise<User | null> | null = null;
+let userCache: User | null = null;
 
 /**
  * Gets the current authenticated user's profile from Firestore.
- * This function is safe to call on the client-side and uses a promise to prevent multiple concurrent fetches.
+ * This function is safe to call on the client-side and uses a promise to prevent multiple concurrent fetches on initial load.
+ * It also caches the user object for subsequent synchronous calls.
  * @returns A promise that resolves to the User object or null if not authenticated.
  */
 export function getCurrentUser(): Promise<User | null> {
+  if (userCache) {
+    return Promise.resolve(userCache);
+  }
+  
   if (currentUserPromise) {
     return currentUserPromise;
   }
@@ -34,9 +40,9 @@ export function getCurrentUser(): Promise<User | null> {
                 id: userDoc.id,
                 ...userDoc.data(),
               } as User;
+              userCache = userData;
               resolve(userData);
             } else {
-              // This case might happen if there's a delay or error in user document creation after signup.
               console.warn("Authenticated user document not found in Firestore.");
               resolve(null);
             }
@@ -55,10 +61,37 @@ export function getCurrentUser(): Promise<User | null> {
     );
   });
 
-  // Reset the promise if it rejects to allow retries
+  // Reset the promise if it fails to allow retries, and clear cache
   currentUserPromise.catch(() => {
     currentUserPromise = null;
+    userCache = null;
   });
 
   return currentUserPromise;
+}
+
+/**
+ * Sets up a real-time listener for the current user's document.
+ * @param callback The function to call with the user data whenever it changes.
+ * @returns An unsubscribe function to detach the listener.
+ */
+export function onCurrentUserUpdate(callback: (user: User | null) => void): () => void {
+    return onAuthStateChanged(auth, (firebaseUser) => {
+        if(firebaseUser) {
+            const userDocRef = doc(db, Collections.USERS, firebaseUser.uid);
+            return onSnapshot(userDocRef, (doc) => {
+                if (doc.exists()) {
+                    const userData = { id: doc.id, ...doc.data() } as User;
+                    userCache = userData;
+                    callback(userData);
+                } else {
+                    userCache = null;
+                    callback(null);
+                }
+            });
+        } else {
+            userCache = null;
+            callback(null);
+        }
+    });
 }

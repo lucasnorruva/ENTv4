@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "test:ci": "jest --ci",
     "genkit:start": "npx genkit start",
-    "genkit:watch": "npx genkit start --watch"
+    "genkit:watch": "npx genkit start --watch",
+    "seed": "tsx src/scripts/seed.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.1.2",
@@ -38,8 +39,8 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
-    "firebase": "^11.10.0",
-    "firebase-admin": "^13.4.0",
+    "firebase": "^10.12.3",
+    "firebase-admin": "^12.2.0",
     "genkit": "^1.3.1",
     "lucide-react": "^0.408.0",
     "next": "^15.3.4",
