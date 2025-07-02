@@ -39,7 +39,12 @@ import {
 } from '@/services/blockchain';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { UserRoles, type Role } from './constants';
-import { getUserById, getCompanyById, getUsersByCompanyId } from './auth';
+import {
+  getUserById,
+  getCompanyById,
+  getUsersByCompanyId,
+  getUserByEmail as authGetUserByEmail,
+} from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
 
@@ -816,4 +821,10 @@ export async function updateServiceTicketStatus(
   mockServiceTickets[ticketIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
   return Promise.resolve(mockServiceTickets[ticketIndex]);
+}
+
+export async function getUserByEmail(
+  email: string,
+): Promise<User | undefined> {
+  return authGetUserByEmail(email);
 }
