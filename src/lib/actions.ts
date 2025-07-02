@@ -78,6 +78,19 @@ export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   return Promise.resolve(mockWebhooks);
 }
 
+export async function getWebhookById(
+  webhookId: string,
+  userId: string,
+): Promise<Webhook | undefined> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return undefined;
+
+  const webhook = mockWebhooks.find(
+    w => w.id === webhookId && w.userId === userId,
+  );
+  return Promise.resolve(webhook);
+}
+
 export async function saveWebhook(
   values: WebhookFormValues,
   userId: string,
@@ -129,6 +142,40 @@ export async function deleteWebhook(
     await logAuditEvent('webhook.deleted', webhookId, {}, userId);
   }
   return Promise.resolve();
+}
+
+export async function replayWebhook(
+  auditLogId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied.');
+
+  const log = mockAuditLogs.find(l => l.id === auditLogId);
+  if (!log || !log.action.startsWith('webhook.delivery')) {
+    throw new Error('Audit log not found or is not a webhook delivery log.');
+  }
+
+  const webhook = await getWebhookById(log.entityId, userId);
+  if (!webhook) {
+    throw new Error('Webhook configuration not found.');
+  }
+
+  const product = await getProductById(log.details.productId, userId);
+  if (!product) {
+    throw new Error(`Product with ID ${log.details.productId} not found.`);
+  }
+
+  // Not awaiting this, as it's a background task
+  sendWebhook(webhook, log.details.event, product);
+
+  await logAuditEvent(
+    'webhook.replay.triggered',
+    webhook.id,
+    { originalLogId: auditLogId },
+    userId,
+  );
 }
 
 // --- PRODUCT ACTIONS ---
@@ -399,7 +446,7 @@ export async function approvePassport(
     );
     for (const webhook of subscribedWebhooks) {
       // Intentionally not awaiting this to avoid blocking the main action
-      sendWebhook(webhook.url, 'product.published', updatedProduct);
+      sendWebhook(webhook, 'product.published', updatedProduct);
     }
   }
   // --- END NEW WEBHOOK LOGIC ---

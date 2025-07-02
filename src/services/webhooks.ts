@@ -1,8 +1,8 @@
 // src/services/webhooks.ts
 'use server';
 
-import type { Product } from '@/types';
-import { getApiSettings } from '@/lib/actions';
+import type { Product, Webhook } from '@/types';
+import { getApiSettings, logAuditEvent } from '@/lib/actions';
 import { createHmac } from 'crypto';
 
 // In a real app, this would be a securely stored secret from a secret manager.
@@ -11,15 +11,16 @@ const WEBHOOK_SECRET =
 
 /**
  * Sends a webhook notification to a specified URL.
- * @param url The URL to send the webhook to.
+ * @param webhook The webhook configuration object.
  * @param event The name of the event being triggered.
  * @param payload The data payload to send with the webhook.
  */
 export async function sendWebhook(
-  url: string,
+  webhook: Webhook,
   event: string,
   payload: Product,
 ) {
+  const { url, userId } = webhook;
   console.log(`Sending webhook for event '${event}' to URL: ${url}`);
 
   const apiSettings = await getApiSettings();
@@ -50,15 +51,38 @@ export async function sendWebhook(
       body,
     });
 
+    await logAuditEvent(
+      response.ok ? 'webhook.delivery.success' : 'webhook.delivery.failure',
+      webhook.id,
+      {
+        event,
+        statusCode: response.status,
+        productId: payload.id,
+        url,
+      },
+      userId,
+    );
+
     if (!response.ok) {
       console.error(
         `Webhook failed for ${url}. Status: ${response.status} ${response.statusText}`,
       );
-      // In a real app, you would implement retry logic here (e.g., with a queue).
     } else {
       console.log(`Webhook sent successfully to ${url}.`);
     }
   } catch (error) {
     console.error(`Error sending webhook to ${url}:`, error);
+    await logAuditEvent(
+      'webhook.delivery.failure',
+      webhook.id,
+      {
+        event,
+        statusCode: 500, // Generic server error for network failure
+        error: (error as Error).message,
+        productId: payload.id,
+        url,
+      },
+      userId,
+    );
   }
 }
