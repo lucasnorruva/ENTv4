@@ -59,6 +59,7 @@ export async function POST(
       category: product.category,
       supplier: product.supplier,
       materials: product.materials,
+      gtin: product.gtin,
       manufacturing: product.manufacturing,
       certifications: product.certifications,
       packaging: product.packaging,
