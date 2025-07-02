@@ -3,17 +3,9 @@
 
 import React, { useState, useTransition, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-} from 'firebase/firestore';
 
 import type { Product, User, CompliancePath } from '@/types';
-import { db } from '@/lib/firebase';
-import { Collections, UserRoles } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 
 import {
   Card,
@@ -27,6 +19,7 @@ import ProductForm from './product-form';
 import ProductTable from './product-table';
 import {
   deleteProduct,
+  getProducts,
   submitForReview,
   recalculateScore,
 } from '@/lib/actions';
@@ -53,58 +46,31 @@ export default function ProductManagement({
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
   useEffect(() => {
-    setIsLoading(true);
-    let q = query(
-      collection(db, Collections.PRODUCTS),
-      orderBy('lastUpdated', 'desc'),
-    );
-
-    // If user is not a global role, filter by their company
-    const globalRoles: UserRoles[] = [
-      UserRoles.ADMIN,
-      UserRoles.AUDITOR,
-      UserRoles.BUSINESS_ANALYST,
-      UserRoles.COMPLIANCE_MANAGER,
-      UserRoles.RETAILER,
-    ];
-    const isGlobal = globalRoles.some(role => hasRole(user, role));
-
-    if (!isGlobal) {
-      q = query(q, where('companyId', '==', user.companyId));
-    }
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const productsData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          // Convert Firestore Timestamps to ISO strings for client-side consistency
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-            lastUpdated: data.lastUpdated?.toDate().toISOString(),
-            lastVerificationDate:
-              data.lastVerificationDate?.toDate().toISOString(),
-          } as Product;
-        });
-        setProducts(productsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching products in real-time:', error);
+    // A function to fetch products from our local mock data source
+    const fetchProducts = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedProducts = await getProducts(user.id);
+        // Sort products by lastUpdated date descending
+        const sortedProducts = fetchedProducts.sort(
+          (a, b) =>
+            new Date(b.lastUpdated).getTime() -
+            new Date(a.lastUpdated).getTime(),
+        );
+        setProducts(sortedProducts);
+      } catch (error) {
         toast({
           title: 'Error Fetching Data',
           description: 'Could not load product data. Please try again later.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
+      }
+    };
 
-    return () => unsubscribe();
-  }, [user.companyId, user.roles, toast]);
+    fetchProducts();
+  }, [user.id, toast, isPending]); // Rerun when user changes or an action finishes
 
   const handleCreateNew = () => {
     setSelectedProduct(null);
@@ -163,7 +129,17 @@ export default function ProductManagement({
   };
 
   const handleSave = (savedProduct: Product) => {
-    setIsSheetOpen(false);
+    startTransition(() => {
+      const index = products.findIndex(p => p.id === savedProduct.id);
+      if (index > -1) {
+        const newProducts = [...products];
+        newProducts[index] = savedProduct;
+        setProducts(newProducts);
+      } else {
+        setProducts([savedProduct, ...products]);
+      }
+      setIsSheetOpen(false);
+    });
   };
 
   return (
