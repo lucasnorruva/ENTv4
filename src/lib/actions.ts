@@ -1267,7 +1267,7 @@ export async function saveNotificationPreferences(userId: string, prefs: any) {
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  const snapshot = await adminDb.collection(Collections.SERVICE_TICKETS).get();
+  const snapshot = await adminDb.collection(Collections.SERVICE_TICKETS).orderBy('createdAt', 'desc').get();
   return snapshot.docs.map(doc => docToType<ServiceTicket>(doc));
 }
 
