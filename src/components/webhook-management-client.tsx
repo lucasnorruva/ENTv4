@@ -9,8 +9,10 @@ import {
   Trash2,
   Loader2,
   Webhook as WebhookIcon,
+  BookOpen,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 import {
   Card,
@@ -34,6 +36,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -159,7 +162,12 @@ export default function WebhookManagementClient({
                 {webhooks.map(webhook => (
                   <TableRow key={webhook.id}>
                     <TableCell className="font-mono text-xs max-w-sm truncate">
-                      {webhook.url}
+                      <Link
+                        href={`/dashboard/developer/webhooks/${webhook.id}`}
+                        className="hover:underline"
+                      >
+                        {webhook.url}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Badge
@@ -190,10 +198,19 @@ export default function WebhookManagementClient({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <DropdownMenuItem
+                            asChild
+                          >
+                            <Link href={`/dashboard/developer/webhooks/${webhook.id}`}>
+                              <BookOpen className="mr-2 h-4 w-4" />
+                              View Logs
+                            </Link>
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEdit(webhook)}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <DropdownMenuItem

@@ -41,7 +41,6 @@ export async function sendWebhook(
       .update(body)
       .digest('hex');
     headers['X-Norruva-Signature'] = signature;
-    console.log(`Webhook signed with signature: ${signature}`);
   }
 
   try {

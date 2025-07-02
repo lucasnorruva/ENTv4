@@ -23,13 +23,19 @@ import { format } from 'date-fns';
 import {
   AlertCircle,
   CheckCircle,
-  Clock,
   Loader2,
   RefreshCw,
+  Webhook as WebhookIcon,
 } from 'lucide-react';
 import type { Webhook, AuditLog, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { replayWebhook } from '@/lib/actions';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface WebhookDeliveriesClientProps {
   webhook: Webhook;
@@ -43,10 +49,12 @@ export default function WebhookDeliveriesClient({
   user,
 }: WebhookDeliveriesClientProps) {
   const [logs] = useState(initialLogs);
+  const [replayingId, setReplayingId] = useState<string | null>(null);
   const [isReplaying, startReplayTransition] = useTransition();
   const { toast } = useToast();
 
   const handleReplay = (log: AuditLog) => {
+    setReplayingId(log.id);
     startReplayTransition(async () => {
       toast({
         title: 'Replaying webhook...',
@@ -56,7 +64,8 @@ export default function WebhookDeliveriesClient({
         await replayWebhook(log.id, user.id);
         toast({
           title: 'Success',
-          description: 'Webhook has been queued for redelivery.',
+          description:
+            'Webhook has been queued for redelivery. Refresh in a moment to see the new attempt.',
         });
       } catch (error) {
         toast({
@@ -64,6 +73,8 @@ export default function WebhookDeliveriesClient({
           description: 'Failed to replay webhook.',
           variant: 'destructive',
         });
+      } finally {
+        setReplayingId(null);
       }
     });
   };
@@ -107,16 +118,25 @@ export default function WebhookDeliveriesClient({
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      {log.action.includes('success') ? (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-destructive" />
-                      )}
-                      <span className="font-mono text-xs">
-                        {log.details.event}
-                      </span>
-                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-center gap-2">
+                            {log.action.includes('success') ? (
+                              <CheckCircle className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <AlertCircle className="h-4 w-4 text-destructive" />
+                            )}
+                            <span className="font-mono text-xs">
+                              {log.details.event}
+                            </span>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Event ID: {log.id}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell className="font-mono text-xs">
                     {log.details.productId}
@@ -130,7 +150,7 @@ export default function WebhookDeliveriesClient({
                         onClick={() => handleReplay(log)}
                         disabled={isReplaying}
                       >
-                        {isReplaying ? (
+                        {isReplaying && replayingId === log.id ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : (
                           <RefreshCw className="mr-2 h-4 w-4" />
@@ -144,7 +164,13 @@ export default function WebhookDeliveriesClient({
               {logs.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    No delivery attempts have been logged for this webhook yet.
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <WebhookIcon className="h-8 w-8 text-muted-foreground" />
+                      <p>
+                        No delivery attempts have been logged for this webhook
+                        yet.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               )}
