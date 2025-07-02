@@ -137,6 +137,14 @@ export const webhookFormSchema = z.object({
 });
 export type WebhookFormValues = z.infer<typeof webhookFormSchema>;
 
+export const apiKeyFormSchema = z.object({
+  label: z.string().min(3, 'Label must be at least 3 characters.'),
+  scopes: z
+    .array(z.string())
+    .min(1, 'You must select at least one scope.'),
+});
+export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
+
 export const serviceTicketFormSchema = z.object({
   productId: z.string().min(1, 'A product must be selected.'),
   customerName: z.string().min(2, 'Customer name is required.'),

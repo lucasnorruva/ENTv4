@@ -31,6 +31,8 @@ import {
   WebhookFormValues,
   productionLineFormSchema,
   ProductionLineFormValues,
+  apiKeyFormSchema,
+  ApiKeyFormValues,
 } from './schemas';
 import {
   anchorToPolygon,
@@ -994,36 +996,82 @@ export async function logAuditEvent(
 }
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
   return Promise.resolve(mockApiKeys.filter(k => k.userId === userId));
 }
 
-export async function createApiKey(
-  label: string,
+export async function saveApiKey(
+  values: ApiKeyFormValues,
   userId: string,
-): Promise<{ key: ApiKey; rawToken: string }> {
+  keyId?: string,
+): Promise<{ key: ApiKey; rawToken?: string }> {
+  const validatedData = apiKeyFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied.');
+
   const now = new Date().toISOString();
-  const rawToken = `nor_mock_${[...Array(32)]
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join('')}`;
-  const newKey: ApiKey = {
-    id: newId('key'),
-    label,
-    token: `nor_mock_******************${rawToken.slice(-4)}`,
-    status: 'Active',
-    userId,
-    createdAt: now,
-    updatedAt: now,
-    lastUsed: undefined,
-  };
-  mockApiKeys.push(newKey);
-  await logAuditEvent('api_key.created', newKey.id, { label }, userId);
-  return Promise.resolve({ key: newKey, rawToken });
+  let savedKey: ApiKey;
+  let rawToken: string | undefined = undefined;
+
+  if (keyId) {
+    // Update existing key
+    const keyIndex = mockApiKeys.findIndex(
+      k => k.id === keyId && k.userId === userId,
+    );
+    if (keyIndex === -1) throw new Error('API Key not found');
+    savedKey = {
+      ...mockApiKeys[keyIndex],
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      updatedAt: now,
+    };
+    mockApiKeys[keyIndex] = savedKey;
+    await logAuditEvent(
+      'api_key.updated',
+      keyId,
+      { changes: ['label', 'scopes'] },
+      userId,
+    );
+    return { key: savedKey };
+  } else {
+    // Create new key
+    rawToken = `nor_mock_${[...Array(32)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('')}`;
+
+    savedKey = {
+      id: newId('key'),
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      token: `nor_mock_******************${rawToken.slice(-4)}`,
+      status: 'Active',
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      lastUsed: undefined,
+    };
+    mockApiKeys.push(savedKey);
+    await logAuditEvent(
+      'api_key.created',
+      savedKey.id,
+      { label: savedKey.label },
+      userId,
+    );
+    return { key: savedKey, rawToken };
+  }
 }
 
 export async function revokeApiKey(
   keyId: string,
   userId: string,
 ): Promise<ApiKey> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('You do not have permission to revoke API keys.');
+  }
+
   const keyIndex = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
   );
@@ -1039,6 +1087,11 @@ export async function deleteApiKey(
   keyId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('You do not have permission to delete API keys.');
+  }
+  
   const index = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
   );

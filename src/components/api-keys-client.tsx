@@ -11,16 +11,17 @@ import {
   Check,
   Loader2,
   KeyRound,
+  MoreHorizontal,
+  Edit,
 } from 'lucide-react';
 
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { createApiKey, revokeApiKey, deleteApiKey } from '@/lib/actions';
+import { revokeApiKey, deleteApiKey, getApiKeys } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Table,
   TableBody,
@@ -38,7 +39,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   Dialog,
@@ -46,11 +46,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogTrigger,
   DialogDescription,
-  DialogClose,
 } from '@/components/ui/dialog';
-import { getApiKeys } from '@/lib/actions';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import ApiKeyForm from './api-key-form';
 
 interface ApiKeysClientProps {
   user: User;
@@ -62,8 +66,9 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newKeyLabel, setNewKeyLabel] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [selectedApiKey, setSelectedApiKey] = useState<ApiKey | null>(null);
+
   const [isViewKeyDialogOpen, setIsViewKeyDialogOpen] = useState(false);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null);
   const [hasCopied, setHasCopied] = useState(false);
@@ -87,35 +92,23 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
     fetchKeys();
   }, [user.id, toast, isPending]);
 
-  const handleCreateKey = () => {
-    if (!newKeyLabel) {
-      toast({
-        title: 'Label required',
-        description: 'Please provide a label for the new API key.',
-        variant: 'destructive',
-      });
-      return;
+  const handleCreateNew = () => {
+    setSelectedApiKey(null);
+    setIsFormOpen(true);
+  };
+  
+  const handleEdit = (key: ApiKey) => {
+    setSelectedApiKey(key);
+    setIsFormOpen(true);
+  };
+
+  const handleSave = (result: { key: ApiKey; rawToken?: string }) => {
+    if (result.rawToken) {
+      setNewlyCreatedKey(result.rawToken);
+      setIsViewKeyDialogOpen(true);
     }
-    startTransition(async () => {
-      try {
-        const { rawToken } = await createApiKey(newKeyLabel, user.id);
-        setNewlyCreatedKey(rawToken);
-        setIsViewKeyDialogOpen(true);
-        toast({
-          title: 'API Key Created',
-          description: `New key "${newKeyLabel}" has been created.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to create API key.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsCreateDialogOpen(false);
-        setNewKeyLabel('');
-      }
-    });
+    // Let the useEffect re-fetch the data to update the table
+    startTransition(() => {});
   };
 
   const handleRevokeKey = (id: string) => {
@@ -164,40 +157,10 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create API Key
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New API Key</DialogTitle>
-              <DialogDescription>
-                Give your key a descriptive label to help you identify it later.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Label htmlFor="key-label">Label</Label>
-              <Input
-                id="key-label"
-                value={newKeyLabel}
-                onChange={e => setNewKeyLabel(e.target.value)}
-                placeholder="e.g. My Production Server"
-              />
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button onClick={handleCreateKey} disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create Key
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={handleCreateNew}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create API Key
+        </Button>
       </div>
       {isLoading ? (
         <div className="flex justify-center items-center h-48">
@@ -209,8 +172,8 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
             <TableRow>
               <TableHead>Label</TableHead>
               <TableHead>Token</TableHead>
+              <TableHead>Scopes</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -222,54 +185,71 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                   {key.token}
                 </TableCell>
                 <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {key.scopes.map(scope => (
+                      <Badge key={scope} variant="secondary">
+                        {scope}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
                   <Badge
                     variant={key.status === 'Active' ? 'default' : 'secondary'}
                   >
                     {key.status}
                   </Badge>
                 </TableCell>
-                <TableCell>{format(new Date(key.createdAt), 'PPP')}</TableCell>
                 <TableCell className="text-right space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={isPending || key.status !== 'Active'}
-                    onClick={() => handleRevokeKey(key.id)}
-                  >
-                    <ShieldOff className="mr-2 h-3 w-3" />
-                    Revoke
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        disabled={isPending}
-                      >
-                        <Trash2 className="mr-2 h-3 w-3" />
-                        Delete
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" disabled={isPending}>
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          This action cannot be undone. This will permanently
-                          delete the API key "{key.label}".
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteKey(key.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => handleEdit(key)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Scopes
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleRevokeKey(key.id)}
+                        disabled={key.status !== 'Active'}
+                      >
+                        <ShieldOff className="mr-2 h-4 w-4" />
+                        Revoke
+                      </DropdownMenuItem>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem
+                            onSelect={e => e.preventDefault()}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently
+                              delete the API key "{key.label}".
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteKey(key.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -282,7 +262,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     <p className="text-muted-foreground">
                       Create your first API key to get started.
                     </p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
+                    <Button onClick={handleCreateNew}>
                       Create API Key
                     </Button>
                   </div>
@@ -292,6 +272,13 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
           </TableBody>
         </Table>
       )}
+      <ApiKeyForm
+        isOpen={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        apiKey={selectedApiKey}
+        user={user}
+        onSave={handleSave}
+      />
       <Dialog open={isViewKeyDialogOpen} onOpenChange={closeViewKeyDialog}>
         <DialogContent>
           <DialogHeader>
