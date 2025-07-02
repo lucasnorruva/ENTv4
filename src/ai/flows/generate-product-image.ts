@@ -10,13 +10,13 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const GenerateProductImageInputSchema = z.object({
+const GenerateProductImageInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A detailed description of the product.'),
 });
 export type GenerateProductImageInput = z.infer<typeof GenerateProductImageInputSchema>;
 
-export const GenerateProductImageOutputSchema = z.object({
+const GenerateProductImageOutputSchema = z.object({
   imageUrl: z
     .string()
     .describe(
