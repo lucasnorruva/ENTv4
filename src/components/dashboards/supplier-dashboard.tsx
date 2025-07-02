@@ -16,23 +16,27 @@ import {
   BookCopy,
   CheckCircle,
   Clock,
-  Hourglass,
   AlertTriangle,
   ListChecks,
 } from 'lucide-react';
 import { getProducts } from '@/lib/actions';
+import ComplianceOverviewChart from '../charts/compliance-overview-chart';
 
 export default async function SupplierDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);
   const stats = {
     total: products.length,
-    pending: products.filter(p => p.verificationStatus === 'Pending').length,
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
     failed: products.filter(p => p.verificationStatus === 'Failed').length,
-    drafts: products.filter(p => p.status === 'Draft').length,
-    qualityIssues: products.filter(
-      p => p.dataQualityWarnings && p.dataQualityWarnings.length > 0,
+    needsAction: products.filter(
+      p => p.status === 'Draft' || p.verificationStatus === 'Failed',
     ).length,
+  };
+
+  const complianceData = {
+    verified: stats.verified,
+    pending: products.filter(p => p.verificationStatus === 'Pending').length,
+    failed: stats.failed,
   };
 
   const productsNeedingAttention = products
@@ -42,11 +46,15 @@ export default async function SupplierDashboard({ user }: { user: User }) {
         p.verificationStatus === 'Failed' ||
         (p.dataQualityWarnings && p.dataQualityWarnings.length > 0),
     )
+    .sort(
+      (a, b) =>
+        new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+    )
     .slice(0, 5);
 
   const getAttentionVariant = (
     product: Product,
-  ): 'destructive' | 'secondary' => {
+  ): 'destructive' | 'secondary' | 'outline' => {
     if (product.verificationStatus === 'Failed') return 'destructive';
     if (product.dataQualityWarnings && product.dataQualityWarnings.length > 0)
       return 'secondary';
@@ -71,7 +79,7 @@ export default async function SupplierDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -89,20 +97,6 @@ export default async function SupplierDashboard({ user }: { user: User }) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Pending Review
-            </CardTitle>
-            <Hourglass className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">
-              Products awaiting auditor verification
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
               Verified Passports
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -110,21 +104,7 @@ export default async function SupplierDashboard({ user }: { user: User }) {
           <CardContent>
             <div className="text-2xl font-bold">{stats.verified}</div>
             <p className="text-xs text-muted-foreground">
-              Products that are fully compliant
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Data Quality Issues
-            </CardTitle>
-            <ListChecks className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.qualityIssues}</div>
-            <p className="text-xs text-muted-foreground">
-              Products with AI-flagged warnings
+              Fully compliant products
             </p>
           </CardContent>
         </Card>
@@ -134,9 +114,7 @@ export default async function SupplierDashboard({ user }: { user: User }) {
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.failed + stats.drafts}
-            </div>
+            <div className="text-2xl font-bold">{stats.needsAction}</div>
             <p className="text-xs text-muted-foreground">
               Drafts & Failed Verifications
             </p>
@@ -144,13 +122,23 @@ export default async function SupplierDashboard({ user }: { user: User }) {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Compliance Overview</CardTitle>
+            <CardDescription>
+              A breakdown of your products by verification status.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ComplianceOverviewChart data={complianceData} />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Products Requiring Attention</CardTitle>
             <CardDescription>
-              Review drafts, fix failed verifications, or address data quality
-              warnings.
+              Drafts, failures, or data quality issues.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -182,24 +170,39 @@ export default async function SupplierDashboard({ user }: { user: User }) {
             )}
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Manage Your Passports</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <ListChecks /> Data Quality
+            </CardTitle>
             <CardDescription>
-              Create, edit, and track the verification status of all your
-              product passports.
+              Review AI-detected issues in your product data.
             </CardDescription>
           </CardHeader>
-          <CardFooter className="gap-4">
-            <Button asChild>
-              <Link href="/dashboard/supplier/products">
-                Manage Products <ArrowRight className="ml-2 h-4 w-4" />
+          <CardFooter>
+            <Button asChild variant="secondary" className="w-full">
+              <Link href="/dashboard/supplier/data-quality">
+                Go to Report <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline">
+          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock /> Activity History
+            </CardTitle>
+            <CardDescription>
+              View a log of all actions you have taken on the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter>
+            <Button asChild variant="secondary" className="w-full">
               <Link href="/dashboard/supplier/history">
-                View Activity History <Clock className="ml-2 h-4 w-4" />
+                View History <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>
