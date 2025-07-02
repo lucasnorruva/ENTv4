@@ -60,7 +60,7 @@ export default async function NotificationsPanel({ user }: { user: User }) {
 
   return (
     <NotificationsClient
-      notifications={processedNotifications}
+      initialNotifications={processedNotifications}
       userId={user.id}
     />
   );

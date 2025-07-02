@@ -1,8 +1,7 @@
-
 // src/components/notifications-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import {
   Bell,
@@ -33,7 +32,6 @@ import { Badge } from './ui/badge';
 import type { ProcessedNotification } from './notifications-panel';
 import { markAllNotificationsAsRead } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -49,25 +47,25 @@ const actionIcons: Record<string, React.ElementType> = {
 };
 
 interface NotificationsClientProps {
-  notifications: ProcessedNotification[];
+  initialNotifications: ProcessedNotification[];
   userId: string;
 }
 
 export default function NotificationsClient({
-  notifications,
+  initialNotifications,
   userId,
 }: NotificationsClientProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState(initialNotifications);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  useEffect(() => {
-    // When the dropdown is opened and there are unread notifications,
-    // call the server action to mark them as read.
-    if (isOpen && unreadCount > 0) {
+  const handleOpenChange = (open: boolean) => {
+    if (open && unreadCount > 0) {
       startTransition(async () => {
+        // Optimistic update
+        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         try {
           await markAllNotificationsAsRead(userId);
         } catch (error) {
@@ -76,14 +74,15 @@ export default function NotificationsClient({
             description: 'Could not mark notifications as read.',
             variant: 'destructive',
           });
+          // Rollback on error
+          setNotifications(initialNotifications);
         }
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, unreadCount, userId]);
+  };
 
   return (
-    <DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
@@ -110,7 +109,7 @@ export default function NotificationsClient({
                 className="items-start gap-2"
               >
                 <div className="w-2 flex-shrink-0 pt-[9px]">
-                  {!notification.isRead && !isPending && (
+                  {!notification.isRead && (
                     <div className="h-2 w-2 rounded-full bg-primary" />
                   )}
                 </div>
