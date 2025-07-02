@@ -15,7 +15,6 @@ import {
   AlertCircle,
   BookCopy,
   ExternalLink,
-  FileQuestion,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -30,9 +29,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
-import { usePathname, useSearchParams } from "next/navigation";
 
-import type { Product, User, CompliancePath } from "@/types";
+import type { Product, User } from "@/types";
 import {
   Table,
   TableBody,
@@ -59,7 +57,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,18 +68,10 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { UserRoles } from "@/lib/constants";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 
 interface ProductTableProps {
   products: Product[];
   user: User;
-  compliancePaths: CompliancePath[];
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
@@ -92,29 +81,22 @@ interface ProductTableProps {
 export default function ProductTable({
   products,
   user,
-  compliancePaths,
   onEdit,
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
 }: ProductTableProps) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'lastUpdated', desc: true },
-  ]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const canEdit =
     user.roles.includes(UserRoles.ADMIN) ||
     user.roles.includes(UserRoles.SUPPLIER);
-
-  const basePath = pathname.split('/').slice(0, 3).join('/');
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -141,8 +123,6 @@ export default function ProductTable({
         return 'outline';
     }
   };
-
-  const pathMap = React.useMemo(() => new Map(compliancePaths.map(p => [p.id, p.name])), [compliancePaths]);
 
   const columns: ColumnDef<Product>[] = React.useMemo(
     () => [
@@ -171,7 +151,7 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
               <Link
-                href={`${basePath}/products/${row.original.id}`}
+                href={`/dashboard/supplier/products/${row.original.id}`}
                 className="font-medium hover:underline"
               >
                 {row.original.productName}
@@ -200,9 +180,10 @@ export default function ProductTable({
       {
         accessorKey: 'category',
         header: 'Category',
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
+      },
+      {
+        accessorKey: 'supplier',
+        header: 'Supplier',
       },
       {
         accessorKey: 'status',
@@ -223,49 +204,6 @@ export default function ProductTable({
             {row.original.verificationStatus ?? 'Not Submitted'}
           </Badge>
         ),
-      },
-       {
-        accessorKey: "sustainability.score",
-        id: "esgScore",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            ESG Score
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => {
-          const score = row.original.sustainability?.score;
-          return (
-            <div className="text-center font-medium">
-              {score !== undefined ? score : "N/A"}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: 'compliancePathId',
-        header: 'Compliance Path',
-        cell: ({ row }) => {
-          const pathId = row.original.compliancePathId;
-          const pathName = pathId ? pathMap.get(pathId) : 'N/A';
-          return pathName !== 'N/A' ? (
-             <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  <Badge variant="outline">{pathName}</Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{pathName}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <span className="text-muted-foreground text-xs italic">N/A</span>
-          );
-        },
       },
       {
         accessorKey: 'lastUpdated',
@@ -314,7 +252,7 @@ export default function ProductTable({
                       }
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
-                      Recalculate AI Data
+                      Recalculate AI Score
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => onSubmitForReview(product.id)}
@@ -364,7 +302,7 @@ export default function ProductTable({
         },
       },
     ],
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit, basePath, pathMap],
+    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit],
   );
 
   const table = useReactTable({
@@ -378,74 +316,32 @@ export default function ProductTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+        const search = filterValue.toLowerCase();
+        const productName = row.original.productName?.toLowerCase() ?? '';
+        const gtin = row.original.gtin?.toLowerCase() ?? '';
+        const supplier = row.original.supplier?.toLowerCase() ?? '';
+        return productName.includes(search) || gtin.includes(search) || supplier.includes(search);
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
-  React.useEffect(() => {
-    const query = searchParams.get('q');
-    if (query) {
-      table.getColumn('productName')?.setFilterValue(query);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, table.getColumn('productName')]);
-
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-2">
+      <div className="flex items-center py-4">
         <Input
-          placeholder="Filter products by name..."
-          value={
-            (table.getColumn('productName')?.getFilterValue() as string) ?? ''
-          }
-          onChange={event =>
-            table.getColumn('productName')?.setFilterValue(event.target.value)
-          }
+          placeholder="Filter by name, GTIN, or supplier..."
+          value={globalFilter ?? ''}
+          onChange={event => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
-        <Select
-          value={
-            (table.getColumn('status')?.getFilterValue() as string) ?? ''
-          }
-          onValueChange={value =>
-            table.getColumn('status')?.setFilterValue(value === 'All' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Statuses</SelectItem>
-            <SelectItem value="Published">Published</SelectItem>
-            <SelectItem value="Draft">Draft</SelectItem>
-            <SelectItem value="Archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select
-          value={
-            (table.getColumn('verificationStatus')?.getFilterValue() as string) ?? ''
-          }
-          onValueChange={value =>
-            table.getColumn('verificationStatus')?.setFilterValue(value === 'All' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by Verification" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="All">All Verifications</SelectItem>
-            <SelectItem value="Verified">Verified</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
-            <SelectItem value="Not Submitted">Not Submitted</SelectItem>
-          </SelectContent>
-        </Select>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -457,9 +353,6 @@ export default function ProductTable({
               .getAllColumns()
               .filter(column => column.getCanHide())
               .map(column => {
-                let colName = column.id;
-                if (colName === 'esgScore') colName = 'ESG Score';
-                if (colName === 'productName') colName = 'Product';
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
@@ -467,7 +360,7 @@ export default function ProductTable({
                     checked={column.getIsVisible()}
                     onCheckedChange={value => column.toggleVisibility(!!value)}
                   >
-                    {colName.replace(/([A-Z])/g, ' $1')}
+                    {column.id.replace(/([A-Z])/g, ' $1')}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -515,20 +408,13 @@ export default function ProductTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-48 text-center"
+                  className="h-24 text-center"
                 >
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <BookCopy className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="text-xl font-semibold">No Products Yet</h3>
-                    <p className="text-muted-foreground">
-                      Get started by creating your first product passport.
-                    </p>
-                    {canEdit && (
-                      <Button onClick={() => onEdit(null as any)}>
-                        Create New Passport
-                      </Button>
-                    )}
-                  </div>
+                  <BookCopy className="mx-auto h-12 w-12 text-muted-foreground" />
+                  <h3 className="mt-2 text-lg font-semibold">No Products Found</h3>
+                  <p className="text-muted-foreground">
+                    No results for the current filter.
+                  </p>
                 </TableCell>
               </TableRow>
             )}
@@ -536,6 +422,10 @@ export default function ProductTable({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
         <Button
           variant="outline"
           size="sm"

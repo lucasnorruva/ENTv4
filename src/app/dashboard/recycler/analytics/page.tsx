@@ -81,6 +81,7 @@ export default async function AnalyticsPage() {
     UserRoles.MANUFACTURER,
     UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
+    UserRoles.RETAILER,
   ];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {

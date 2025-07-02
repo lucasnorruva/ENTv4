@@ -47,5 +47,3 @@ The enterprise dashboard offers full visibility: multiple company accounts, deta
 
 ### Onboarding, audit trail & versioning
 Every user action is logged. When an enterprise user onboards, they get SSO/SAML access and are assigned a role; SMEs may use email/password signup with automated KYC. The portal maintains an immutable audit trail (who changed what and when) for each DPP. Every time a DPP VC is re-issued or edited, the old version is archived and a new version is chained. This means auditors can trace the entire history of a product passport.
-
-    
