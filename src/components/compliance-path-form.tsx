@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
@@ -25,7 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveCompliancePath } from '@/lib/actions';
 import {
@@ -33,6 +33,7 @@ import {
   type CompliancePathFormValues,
 } from '@/lib/schemas';
 import type { CompliancePath, User } from '@/types';
+import { Separator } from './ui/separator';
 
 interface CompliancePathFormProps {
   isOpen: boolean;
@@ -41,6 +42,61 @@ interface CompliancePathFormProps {
   onSave: (path: CompliancePath) => void;
   user: User;
 }
+
+const FieldArrayInput = ({
+  form,
+  name,
+  label,
+  placeholder,
+}: {
+  form: any;
+  name: 'regulations' | 'requiredKeywords' | 'bannedKeywords';
+  label: string;
+  placeholder: string;
+}) => {
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name,
+  });
+
+  return (
+    <div className="space-y-2">
+      <FormLabel>{label}</FormLabel>
+      {fields.map((field, index) => (
+        <div key={field.id} className="flex items-center gap-2">
+          <FormField
+            control={form.control}
+            name={`${name}.${index}.value`}
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormControl>
+                  <Input placeholder={placeholder} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => remove(index)}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+        </div>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => append({ value: '' })}
+      >
+        <Plus className="mr-2 h-4 w-4" /> Add
+      </Button>
+    </div>
+  );
+};
 
 export default function CompliancePathForm({
   isOpen,
@@ -58,10 +114,10 @@ export default function CompliancePathForm({
       name: '',
       description: '',
       category: '',
-      regulations: '',
-      minSustainabilityScore: undefined,
-      requiredKeywords: '',
-      bannedKeywords: '',
+      regulations: [{ value: 'ESPR' }],
+      minSustainabilityScore: 0,
+      requiredKeywords: [],
+      bannedKeywords: [],
     },
   });
 
@@ -72,20 +128,22 @@ export default function CompliancePathForm({
           name: path.name,
           description: path.description,
           category: path.category,
-          regulations: path.regulations.join(', '),
+          regulations: path.regulations.map(value => ({ value })),
           minSustainabilityScore: path.rules.minSustainabilityScore,
-          requiredKeywords: path.rules.requiredKeywords?.join(', '),
-          bannedKeywords: path.rules.bannedKeywords?.join(', '),
+          requiredKeywords:
+            path.rules.requiredKeywords?.map(value => ({ value })) || [],
+          bannedKeywords:
+            path.rules.bannedKeywords?.map(value => ({ value })) || [],
         });
       } else {
         form.reset({
           name: '',
           description: '',
           category: '',
-          regulations: '',
-          minSustainabilityScore: undefined,
-          requiredKeywords: '',
-          bannedKeywords: '',
+          regulations: [{ value: '' }],
+          minSustainabilityScore: 0,
+          requiredKeywords: [],
+          bannedKeywords: [],
         });
       }
     }
@@ -133,7 +191,10 @@ export default function CompliancePathForm({
                 <FormItem>
                   <FormLabel>Path Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., EU Toy Safety Standard" {...field} />
+                    <Input
+                      placeholder="e.g., EU Toy Safety Standard"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -152,82 +213,65 @@ export default function CompliancePathForm({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Category</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Electronics" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Product Category</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Electronics" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    This path will apply to products in this category.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Separator />
+            <h4 className="text-md font-semibold pt-2">Rules</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FieldArrayInput
+                form={form}
                 name="regulations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Regulations (comma-separated)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., ESPR, RoHS" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Regulations"
+                placeholder="e.g. RoHS"
               />
-            </div>
-            <h4 className="text-md font-semibold pt-2 border-t">Rules</h4>
-            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="minSustainabilityScore"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Min ESG Score</FormLabel>
+                    <FormLabel>Minimum ESG Score</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="e.g., 60" {...field} />
+                      <Input
+                        type="number"
+                        placeholder="e.g., 60"
+                        {...field}
+                        onChange={e => field.onChange(parseInt(e.target.value))}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="requiredKeywords"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Required Keywords (comma-separated)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Organic" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Product must contain one of these materials.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="bannedKeywords"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Banned Keywords (comma-separated)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Lead, Cadmium" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Product cannot contain any of these materials.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FieldArrayInput
+                form={form}
+                name="requiredKeywords"
+                label="Required Keywords"
+                placeholder="e.g. Organic"
+              />
+              <FieldArrayInput
+                form={form}
+                name="bannedKeywords"
+                label="Banned Keywords"
+                placeholder="e.g. Lead"
+              />
+            </div>
+
             <DialogFooter className="pt-4 border-t">
               <DialogClose asChild>
                 <Button type="button" variant="outline">

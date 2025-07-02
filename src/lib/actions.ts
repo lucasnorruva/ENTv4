@@ -879,20 +879,11 @@ export async function saveCompliancePath(
     name: validatedData.name,
     description: validatedData.description,
     category: validatedData.category,
-    regulations: validatedData.regulations
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean),
+    regulations: validatedData.regulations.map(r => r.value),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-      bannedKeywords: validatedData.bannedKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
+      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value),
+      bannedKeywords: validatedData.bannedKeywords?.map(k => k.value),
     },
     updatedAt: now,
   };
@@ -906,7 +897,14 @@ export async function saveCompliancePath(
     mockCompliancePaths[pathIndex] = savedPath;
     await logAuditEvent('compliance_path.updated', pathId, {}, userId);
   } else {
-    savedPath = { id: newId('cp'), ...pathData, createdAt: now };
+    savedPath = {
+      id: newId('cp'),
+      ...pathData,
+      createdAt: now,
+      rules: {
+        ...pathData.rules,
+      },
+    };
     mockCompliancePaths.push(savedPath);
     await logAuditEvent('compliance_path.created', savedPath.id, {}, userId);
   }
