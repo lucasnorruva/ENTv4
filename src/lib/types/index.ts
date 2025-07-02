@@ -70,6 +70,8 @@ export interface Lifecycle {
   carbonFootprintMethod?: string;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
+  energyEfficiencyClass?: string;
+  recyclingInstructions?: string;
 }
 
 export interface Battery {
@@ -84,6 +86,14 @@ export interface Compliance {
   rohsExemption?: string;
   reachSVHC?: boolean;
   scipReference?: string;
+  weeeRegistered?: boolean;
+  weeeRegistrationNumber?: string;
+  prop65WarningRequired?: boolean;
+  eudrCompliant?: boolean;
+  eudrDiligenceId?: string;
+  ceMarked?: boolean;
+  foodContactSafe?: boolean;
+  foodContactComplianceStandard?: string;
 }
 
 export interface ComplianceGap {
@@ -107,7 +117,7 @@ export interface SustainabilityData extends EsgScoreOutput {
  */
 export interface Product extends BaseEntity {
   companyId: string; // Foreign key to the Company
-  gtin?: string; // Global Trade Item Number
+  gtin?: string;
   productName: string;
   productDescription: string;
   productImage: string;
@@ -117,6 +127,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
+  conformityDocUrl?: string;
 
   // Structured Data Fields
   materials: Material[];
@@ -191,6 +202,7 @@ export interface ProductionLine extends BaseEntity {
   currentProduct: string;
   lastMaintenance: string;
 }
+
 
 /**
  * Represents a developer API key for integrations.

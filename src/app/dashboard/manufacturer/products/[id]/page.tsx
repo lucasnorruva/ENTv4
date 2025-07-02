@@ -1,5 +1,5 @@
 // src/app/dashboard/manufacturer/products/[id]/page.tsx
-import { getProductById, getCompliancePathById } from '@/lib/actions';
+import { getProductById, getCompliancePathById, getAuditLogsForUser } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductDetailView from '@/components/product-detail-view';
@@ -18,16 +18,21 @@ export default async function ProductDetailPage({
   if (!product) {
     notFound();
   }
+  
+  const [compliancePath, auditLogs] = await Promise.all([
+    product.compliancePathId
+      ? getCompliancePathById(product.compliancePathId)
+      : undefined,
+    getAuditLogsForUser(product.id)
+  ]);
 
-  const compliancePath = product.compliancePathId
-    ? await getCompliancePathById(product.compliancePathId)
-    : undefined;
 
   return (
     <ProductDetailView
       product={product}
       user={user}
       compliancePath={compliancePath}
+      auditLogs={auditLogs}
     />
   );
 }
