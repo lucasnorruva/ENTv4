@@ -13,6 +13,7 @@ export const Collections = {
   WEBHOOKS: 'webhooks',
   API_KEYS: 'apiKeys',
   SERVICE_TICKETS: 'serviceTickets',
+  PRODUCTION_LINES: 'productionLines',
 } as const;
 
 /**
