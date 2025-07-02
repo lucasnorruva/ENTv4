@@ -697,7 +697,6 @@ export async function bulkCreateProducts(
   return { createdCount: products.length };
 }
 
-
 // Helper function to recursively flatten a nested object for CSV export.
 const flattenObject = (
   obj: any,
@@ -883,7 +882,9 @@ export async function deleteUser(
   checkPermission(adminUser, 'user:manage');
   await adminDb.collection(Collections.USERS).doc(userId).delete();
   // Also delete from Firebase Auth
-  await adminAuth.deleteUser(userId).catch(e => console.error("Failed to delete user from Auth", e));
+  await adminAuth
+    .deleteUser(userId)
+    .catch(e => console.error('Failed to delete user from Auth', e));
   await logAuditEvent('user.deleted', userId, {}, adminId);
 }
 
@@ -895,7 +896,10 @@ export async function getCompliancePaths(): Promise<CompliancePath[]> {
 export async function getCompliancePathById(
   id: string,
 ): Promise<CompliancePath | undefined> {
-  const doc = await adminDb.collection(Collections.COMPLIANCE_PATHS).doc(id).get();
+  const doc = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .doc(id)
+    .get();
   return doc.exists ? docToType<CompliancePath>(doc) : undefined;
 }
 
@@ -1013,7 +1017,9 @@ export async function logAuditEvent(
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
+
   const snapshot = await adminDb
     .collection(Collections.API_KEYS)
     .where('userId', '==', userId)
@@ -1028,8 +1034,8 @@ export async function saveApiKey(
 ): Promise<{ key: ApiKey; rawToken?: string }> {
   const validatedData = apiKeyFormSchema.parse(values);
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new PermissionError('Permission denied.');
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const now = FieldValue.serverTimestamp();
 
@@ -1063,8 +1069,8 @@ export async function revokeApiKey(
   userId: string,
 ): Promise<ApiKey> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new PermissionError('Permission denied.');
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
   const doc = await docRef.get();
@@ -1085,8 +1091,8 @@ export async function deleteApiKey(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new PermissionError('Permission denied.');
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
   const doc = await docRef.get();
@@ -1112,8 +1118,15 @@ export async function saveApiSettings(
   values: ApiSettingsFormValues,
   userId: string,
 ): Promise<ApiSettings> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'admin:manage_settings');
+
   const validatedData = apiSettingsSchema.parse(values);
-  await adminDb.collection('settings').doc('api').set(validatedData, { merge: true });
+  await adminDb
+    .collection('settings')
+    .doc('api')
+    .set(validatedData, { merge: true });
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
   return validatedData;
 }
@@ -1163,23 +1176,26 @@ export async function createUserAndCompany(
   });
 }
 
-export async function setMfaStatus(userId: string, isEnabled: boolean): Promise<void> {
-    const user = await getUserById(userId);
-    if (!user) {
-        throw new Error('User not found.');
-    }
+export async function setMfaStatus(
+  userId: string,
+  isEnabled: boolean,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new Error('User not found.');
+  }
 
-    await adminDb.collection(Collections.USERS).doc(userId).update({
-        isMfaEnabled: isEnabled,
-        updatedAt: FieldValue.serverTimestamp()
-    });
+  await adminDb.collection(Collections.USERS).doc(userId).update({
+    isMfaEnabled: isEnabled,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 
-    await logAuditEvent(
-        isEnabled ? 'user.mfa.enabled' : 'user.mfa.disabled',
-        userId,
-        {},
-        userId
-    );
+  await logAuditEvent(
+    isEnabled ? 'user.mfa.enabled' : 'user.mfa.disabled',
+    userId,
+    {},
+    userId,
+  );
 }
 
 export async function completeOnboarding(
@@ -1260,6 +1276,10 @@ export async function saveServiceTicket(
   userId: string,
   ticketId?: string,
 ): Promise<ServiceTicket> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, ticketId ? 'ticket:update' : 'ticket:create');
+
   const validatedData = serviceTicketFormSchema.parse(values);
   const now = FieldValue.serverTimestamp();
 
@@ -1286,6 +1306,10 @@ export async function updateServiceTicketStatus(
   status: 'Open' | 'In Progress' | 'Closed',
   userId: string,
 ): Promise<ServiceTicket> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'ticket:update');
+
   const docRef = adminDb.collection(Collections.SERVICE_TICKETS).doc(ticketId);
   await docRef.update({ status, updatedAt: FieldValue.serverTimestamp() });
   await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
@@ -1303,6 +1327,10 @@ export async function saveProductionLine(
   userId: string,
   lineId?: string,
 ): Promise<ProductionLine> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'manufacturer:manage_lines');
+
   const validatedData = productionLineFormSchema.parse(values);
   const now = FieldValue.serverTimestamp();
 
@@ -1317,7 +1345,12 @@ export async function saveProductionLine(
   } else {
     const docRef = await adminDb
       .collection(Collections.PRODUCTION_LINES)
-      .add({ ...validatedData, createdAt: now, updatedAt: now, lastMaintenance: now });
+      .add({
+        ...validatedData,
+        createdAt: now,
+        updatedAt: now,
+        lastMaintenance: now,
+      });
     await logAuditEvent('production_line.created', docRef.id, {}, userId);
     const newDoc = await docRef.get();
     return docToType<ProductionLine>(newDoc);
@@ -1328,6 +1361,10 @@ export async function deleteProductionLine(
   lineId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'manufacturer:manage_lines');
+
   await adminDb.collection(Collections.PRODUCTION_LINES).doc(lineId).delete();
   await logAuditEvent('production_line.deleted', lineId, {}, userId);
 }

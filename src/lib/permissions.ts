@@ -28,7 +28,12 @@ export type Action =
   | 'product:resolve'
   | 'compliance:manage'
   | 'user:manage'
-  | 'company:manage';
+  | 'company:manage'
+  | 'developer:manage_api'
+  | 'admin:manage_settings'
+  | 'ticket:create'
+  | 'ticket:update'
+  | 'manufacturer:manage_lines';
 
 /**
  * Checks if a user has permission to perform a specific action.
@@ -74,19 +79,35 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:approve':
     case 'product:reject':
       return hasRole(user, UserRoles.AUDITOR);
-    
+
     case 'product:resolve':
       return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-      
+
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
 
     case 'compliance:manage':
-      return hasRole(user, UserRoles.COMPLIANCE_MANAGER) || hasRole(user, UserRoles.AUDITOR);
-      
+      return (
+        hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
+        hasRole(user, UserRoles.AUDITOR)
+      );
+
     case 'user:manage':
     case 'company:manage':
       return hasRole(user, UserRoles.ADMIN); // Handled by global admin check, but explicit here.
+
+    case 'developer:manage_api':
+      return hasRole(user, UserRoles.DEVELOPER);
+
+    case 'admin:manage_settings':
+      return hasRole(user, UserRoles.ADMIN);
+
+    case 'ticket:create':
+    case 'ticket:update':
+      return hasRole(user, UserRoles.SERVICE_PROVIDER);
+
+    case 'manufacturer:manage_lines':
+      return hasRole(user, UserRoles.MANUFACTURER);
 
     default:
       return false;
@@ -101,6 +122,10 @@ export function can(user: User, action: Action, resource?: any): boolean {
  */
 export function checkPermission(user: User, action: Action, resource?: any) {
   if (!can(user, action, resource)) {
-    throw new PermissionError(`User role(s) '${user.roles.join(', ')}' cannot perform action '${action}'.`);
+    throw new PermissionError(
+      `User role(s) '${user.roles.join(
+        ', ',
+      )}' cannot perform action '${action}'.`,
+    );
   }
 }
