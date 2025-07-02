@@ -140,3 +140,17 @@ export const serviceTicketFormSchema = z.object({
   status: z.enum(['Open', 'In Progress', 'Closed']),
 });
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
+
+export const productionLineFormSchema = z.object({
+  name: z.string().min(3, 'Line name must be at least 3 characters.'),
+  location: z.string().min(3, 'Location is required.'),
+  status: z.enum(['Active', 'Idle', 'Maintenance']),
+  outputPerHour: z.coerce
+    .number()
+    .int()
+    .min(0, 'Output must be a positive number.'),
+  currentProduct: z.string().min(1, 'Current product is required.'),
+});
+export type ProductionLineFormValues = z.infer<
+  typeof productionLineFormSchema
+>;
