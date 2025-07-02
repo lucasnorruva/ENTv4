@@ -173,6 +173,7 @@ export default function ProductManagement({
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
               onRecalculateScore={handleRecalculateScore}
+              compliancePaths={compliancePaths}
             />
           )}
         </CardContent>
