@@ -26,6 +26,7 @@ export interface User extends BaseEntity {
   companyId: string;
   roles: Role[];
   readNotificationIds?: string[];
+  onboardingComplete?: boolean;
 }
 
 /**
@@ -34,6 +35,7 @@ export interface User extends BaseEntity {
 export interface Company extends BaseEntity {
   name: string;
   ownerId: string; // ID of the user who created the company
+  industry?: string;
 }
 
 // --- PRODUCT DATA STRUCTURES ---

@@ -63,8 +63,8 @@ export default function SignupForm() {
       // After signup, create the user profile and company in our mock DB
       await createUserAndCompany(values.fullName, user.email!, user.uid);
 
-      // Redirect to the default new user dashboard.
-      router.push("/dashboard");
+      // Redirect to the new onboarding flow.
+      router.push("/onboarding");
     } catch (error: any) {
       toast({
         title: "Signup Failed",

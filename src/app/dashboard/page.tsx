@@ -17,16 +17,26 @@ export default function DashboardPage() {
         try {
           const user = await getUserByEmail(firebaseUser.email);
           if (user && user.roles.length > 0) {
+            // NEW: Check if onboarding is complete
+            if (!user.onboardingComplete) {
+              router.replace('/onboarding');
+              return;
+            }
             const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
             router.replace(`/dashboard/${roleSlug}`);
           } else {
             // Fallback if user is in Firebase Auth but not our DB.
-            console.warn(`User ${firebaseUser.email} not found in application database.`);
+            console.warn(
+              `User ${firebaseUser.email} not found in application database.`,
+            );
             router.replace('/login');
           }
         } catch (error) {
-           console.error("Error fetching user profile, redirecting to login", error);
-           router.replace('/login');
+          console.error(
+            'Error fetching user profile, redirecting to login',
+            error,
+          );
+          router.replace('/login');
         }
       } else {
         // No user logged in.

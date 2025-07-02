@@ -13,6 +13,7 @@ export let users: User[] = [
     createdAt: '2024-07-01T10:00:00Z',
     updatedAt: '2024-07-20T10:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-supplier',
@@ -23,6 +24,7 @@ export let users: User[] = [
     createdAt: '2024-07-02T11:00:00Z',
     updatedAt: '2024-07-19T11:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-auditor',
@@ -33,6 +35,7 @@ export let users: User[] = [
     createdAt: '2024-07-03T12:00:00Z',
     updatedAt: '2024-07-18T12:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-compliance',
@@ -43,6 +46,7 @@ export let users: User[] = [
     createdAt: '2024-07-04T13:00:00Z',
     updatedAt: '2024-07-17T13:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-manufacturer',
@@ -53,6 +57,7 @@ export let users: User[] = [
     createdAt: '2024-07-05T14:00:00Z',
     updatedAt: '2024-07-16T14:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-service',
@@ -63,6 +68,7 @@ export let users: User[] = [
     createdAt: '2024-07-06T15:00:00Z',
     updatedAt: '2024-07-15T15:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-recycler',
@@ -73,6 +79,7 @@ export let users: User[] = [
     createdAt: '2024-07-07T16:00:00Z',
     updatedAt: '2024-07-14T16:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-retailer',
@@ -83,6 +90,7 @@ export let users: User[] = [
     createdAt: '2024-07-08T17:00:00Z',
     updatedAt: '2024-07-13T17:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-developer',
@@ -93,6 +101,7 @@ export let users: User[] = [
     createdAt: '2024-07-08T17:00:00Z',
     updatedAt: '2024-07-13T17:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-analyst',
@@ -103,6 +112,7 @@ export let users: User[] = [
     createdAt: '2024-07-09T18:00:00Z',
     updatedAt: '2024-07-12T18:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-new-1',
@@ -113,6 +123,7 @@ export let users: User[] = [
     createdAt: '2024-07-22T09:00:00Z',
     updatedAt: '2024-07-22T09:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-new-2',
@@ -123,6 +134,7 @@ export let users: User[] = [
     createdAt: '2024-07-22T10:00:00Z',
     updatedAt: '2024-07-22T10:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-new-3',
@@ -133,8 +145,9 @@ export let users: User[] = [
     createdAt: '2024-07-22T11:00:00Z',
     updatedAt: '2024-07-22T11:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
-    {
+  {
     id: 'user-new-4',
     fullName: 'Marcus Cole',
     email: 'marcus.c@greentech.com',
@@ -143,6 +156,7 @@ export let users: User[] = [
     createdAt: '2024-07-23T14:00:00Z',
     updatedAt: '2024-07-23T14:00:00Z',
     readNotificationIds: [],
+    onboardingComplete: true,
   },
   {
     id: 'user-new-5',
@@ -153,5 +167,6 @@ export let users: User[] = [
     createdAt: '2024-07-23T15:00:00Z',
     updatedAt: '2024-07-23T15:00:00Z',
     readNotificationIds: [],
-  }
+    onboardingComplete: true,
+  },
 ];
