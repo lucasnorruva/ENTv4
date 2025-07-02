@@ -13,6 +13,7 @@ import DashboardSidebar from './dashboard-sidebar';
 import RoleSwitcher from './role-switcher';
 import NotificationsPanel from './notifications-panel';
 import GlobalSearchButton from './global-search-button';
+import { ThemeToggle } from './theme-toggle';
 
 interface DashboardShellProps {
   user: User;
@@ -40,6 +41,7 @@ export default function DashboardShell({
           <div className="flex items-center gap-2">
             <RoleSwitcher roles={user.roles} currentRole={role} />
             <NotificationsPanel user={user} />
+            <ThemeToggle />
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
