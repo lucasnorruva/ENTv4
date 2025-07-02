@@ -1,120 +1,130 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions to make rules more readable and reusable.
-    function isAuthenticated() {
+    // Helper functions
+    function isAuth() {
       return request.auth != null;
     }
 
     function isUser(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
+      return isAuth() && request.auth.uid == userId;
     }
     
-    function getUserData(userId) {
-      // It's safe to use `get` here because our rules below will ensure
-      // that this function is only ever called in an authorized context.
-      return get(/databases/$(database)/documents/users/$(userId)).data;
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function userHasRole(role) {
-      // Checks if the signed-in user's `roles` array contains the specified role.
-      return isAuthenticated() && role in getUserData(request.auth.uid).roles;
-    }
-
-    function userOwnsCompany(companyId) {
-      // Checks if the signed-in user belongs to the specified company.
-      return isAuthenticated() && getUserData(request.auth.uid).companyId == companyId;
+    function isRole(role) {
+      // Assumes roles is an array in the user document
+      return isAuth() && role in getUserData().roles;
     }
     
-    // --- Collection Rules ---
-
-    // Rules for the 'users' collection
+    function isAdmin() {
+      return isRole('Admin');
+    }
+    
+    function isOwner(companyId) {
+       return isAuth() && getUserData().companyId == companyId;
+    }
+    
+    // USERS collection
     match /users/{userId} {
-      // A user can read their own profile. Admins can read any profile.
-      allow read: if isUser(userId) || userHasRole('Admin');
+      // Any authenticated user can create their own user document during signup
+      allow create: if isUser(userId);
       
-      // A user can update their own profile. Admins can update any.
-      allow update: if isUser(userId) || userHasRole('Admin');
+      // A user can read their own data. Admins can read any user's data.
+      allow read: if isUser(userId) || isAdmin();
       
-      // Only Admins can create or delete users through the UI.
-      allow create, delete: if userHasRole('Admin');
+      // A user can update their own data. Admins can update any user's data.
+      allow update: if isUser(userId) || isAdmin();
+      
+      // Only Admins can delete users.
+      allow delete: if isAdmin();
     }
-    
-    // Rules for the 'companies' collection
+
+    // COMPANIES collection
     match /companies/{companyId} {
-      // A user can read their own company's details. Admins can read any.
-      allow read: if userOwnsCompany(companyId) || userHasRole('Admin');
-      
-      // Only Admins can create, update, or delete companies.
-      allow write: if userHasRole('Admin');
-    }
+        // Any authenticated user can view company details
+        allow read: if isAuth();
 
-    // Rules for the 'products' collection
+        // Only admins can create, update, or delete companies
+        allow write: if isAdmin();
+    }
+    
+    // PRODUCTS collection
     match /products/{productId} {
-      // Anyone can read a published product.
-      // Authenticated users with global roles can read any product.
-      // Users can read products from their own company.
-      allow read: if resource.data.status == 'Published'
-                  || (isAuthenticated() && (
-                      userOwnsCompany(resource.data.companyId) ||
-                      userHasRole('Admin') ||
-                      userHasRole('Auditor') ||
-                      userHasRole('Compliance Manager') ||
-                      userHasRole('Business Analyst') ||
-                      userHasRole('Retailer') ||
-                      userHasRole('Recycler') ||
-                      userHasRole('Service Provider')
-                    ));
+      // Anyone (including unauthenticated users) can read a published product.
+      // Authenticated users can read any product if they are an Admin or belong to a global read role.
+      // Users can also read any product belonging to their own company.
+      function canRead() {
+        let globalReadRoles = ['Admin', 'Auditor', 'Compliance Manager', 'Recycler', 'Service Provider', 'Business Analyst', 'Developer', 'Manufacturer', 'Retailer'];
+        return resource.data.status == 'Published' || 
+               (isAuth() && (isOwner(resource.data.companyId) || getUserData().roles.hasAny(globalReadRoles)));
+      }
+      allow read: if canRead();
       
-      // Users can create a product for their own company.
-      allow create: if isAuthenticated() && userOwnsCompany(request.resource.data.companyId);
+      // A user can create a product if they are authenticated and the companyId matches their own.
+      allow create: if isAuth() && isOwner(request.resource.data.companyId);
 
-      // Users can update a product if they are an admin or belong to the product's company.
-      // Fine-grained logic (e.g., preventing a supplier from approving their own product)
-      // is handled by server-side actions, which is a secure and standard pattern.
-      allow update: if isAuthenticated() && (userHasRole('Admin') || userOwnsCompany(resource.data.companyId));
-      
-      // Users can delete a product if they are an admin or belong to the product's company.
-      allow delete: if isAuthenticated() && (userHasRole('Admin') || userOwnsCompany(resource.data.companyId));
+      // A user can update a product if they belong to the product's company or are an admin.
+      allow update: if isAuth() && (isOwner(resource.data.companyId) || isAdmin());
+
+      // A user can delete a product if they belong to the product's company or are an admin.
+      allow delete: if isAuth() && (isOwner(resource.data.companyId) || isAdmin());
     }
-
-    // Rules for 'compliancePaths' collection
-    match /compliancePaths/{pathId} {
-      // Any authenticated user can read the standards.
-      allow read: if isAuthenticated();
-      
-      // Only specific roles can modify the standards.
-      allow write: if userHasRole('Admin') || userHasRole('Compliance Manager') || userHasRole('Auditor');
-    }
-
-    // Rules for 'auditLogs' collection
+    
+    // AUDIT LOGS collection
     match /auditLogs/{logId} {
-      // Logs are created server-side by authenticated actions.
-      allow create: if isAuthenticated();
-      // Only Admins can read the full audit trail.
-      allow read: if userHasRole('Admin');
-      // Logs are immutable and cannot be changed or deleted.
-      allow update, delete: if false;
+       // Only server-side logic can create logs. Client write is denied.
+       allow create: if false;
+
+       // A user can read their own audit logs. Admins can read all logs.
+       allow read: if isAuth() && (isUser(resource.data.userId) || isAdmin());
+       
+       // Logs are immutable from the client.
+       allow update, delete: if false;
     }
     
-    // Rules for other collections...
+    // API KEYS collection
     match /apiKeys/{keyId} {
-      allow read, write, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // User can only manage their own API keys
+      allow read, write: if isAuth() && isUser(resource.data.userId);
     }
     
+    // WEBHOOKS collection
+    match /webhooks/{webhookId} {
+       // User can only manage their own webhooks
+      allow read, write: if isAuth() && isUser(resource.data.userId);
+    }
+
+    // SERVICE TICKETS collection
     match /serviceTickets/{ticketId} {
-      allow read, write: if userHasRole('Service Provider') || userHasRole('Admin');
+        // Service providers and admins can manage tickets
+        allow read, write: if isAuth() && (isRole('Service Provider') || isAdmin());
     }
-    
-    match /settings/{docId} {
-      allow read, write: if userHasRole('Admin') || userHasRole('Developer');
-    }
-    
+
+    // PRODUCTION LINES collection
     match /productionLines/{lineId} {
-      allow read: if userHasRole('Manufacturer') || userHasRole('Admin');
-      allow write: if false; // Managed server-side
+        // Manufacturers and admins can manage production lines
+        allow read, write: if isAuth() && (isRole('Manufacturer') || isAdmin());
+    }
+    
+    // COMPLIANCE PATHS collection
+    match /compliancePaths/{pathId} {
+        // Most authenticated roles can read paths
+        allow read: if isAuth();
+        // Only certain roles can manage paths
+        allow write: if isAuth() && (isAdmin() || isRole('Compliance Manager') || isRole('Auditor'));
+    }
+
+    // SETTINGS collection
+    match /settings/{docId} {
+      // Only admins should be able to modify global settings
+      allow read: if isAuth();
+      allow write: if isAdmin();
     }
   }
 }
