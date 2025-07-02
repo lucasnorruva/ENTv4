@@ -39,6 +39,7 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { UserRoles, type Role } from './constants';
 import { getUserById, getCompanyById } from './auth';
 import { hasRole } from './auth-utils';
+import { sendWebhook } from '@/services/webhooks';
 
 // MOCK DATA IMPORTS
 import { products as mockProducts } from './data';
@@ -58,10 +59,13 @@ const newId = (prefix: string) =>
 
 // --- WEBHOOK ACTIONS ---
 
-export async function getWebhooks(userId: string): Promise<Webhook[]> {
-  const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
-  return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
+export async function getWebhooks(userId?: string): Promise<Webhook[]> {
+  if (userId) {
+    const user = await getUserById(userId);
+    if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
+    return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
+  }
+  return Promise.resolve(mockWebhooks);
 }
 
 export async function saveWebhook(
@@ -254,11 +258,25 @@ export async function deleteProduct(
   productId: string,
   userId: string,
 ): Promise<void> {
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex > -1) {
-    mockProducts.splice(productIndex, 1);
+  const index = mockProducts.findIndex(p => p.id === productId);
+  if (index > -1) {
+    mockProducts.splice(index, 1);
     await logAuditEvent('product.deleted', productId, {}, userId);
   }
+  return Promise.resolve();
+}
+
+export async function deleteProducts(
+  productIds: string[],
+  userId: string,
+): Promise<void> {
+  productIds.forEach(id => {
+    const index = mockProducts.findIndex(p => p.id === id);
+    if (index > -1) {
+      mockProducts.splice(index, 1);
+    }
+  });
+  await logAuditEvent('product.deleted_bulk', 'multiple', { count: productIds.length }, userId);
   return Promise.resolve();
 }
 
@@ -274,6 +292,21 @@ export async function submitForReview(
   await logAuditEvent('passport.submitted', productId, {}, userId);
 
   return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function submitProductsForReview(
+  productIds: string[],
+  userId: string,
+): Promise<void> {
+  productIds.forEach(id => {
+    const index = mockProducts.findIndex(p => p.id === id);
+    if (index > -1 && mockProducts[index].status === 'Draft') {
+      mockProducts[index].verificationStatus = 'Pending';
+      mockProducts[index].lastUpdated = new Date().toISOString();
+    }
+  });
+  await logAuditEvent('passport.submitted_bulk', 'multiple', { count: productIds.length }, userId);
+  return Promise.resolve();
 }
 
 export async function recalculateScore(
@@ -299,21 +332,42 @@ export async function approvePassport(
   const blockchainProof = await anchorToPolygon(product.id, productHash);
   const ebsiVcId = await generateEbsiCredential(product.id);
 
-  mockProducts[productIndex] = {
+  const updatedProduct = {
     ...product,
-    verificationStatus: 'Verified',
-    status: 'Published',
+    verificationStatus: 'Verified' as const,
+    status: 'Published' as const,
     lastVerificationDate: new Date().toISOString(),
     blockchainProof,
     ebsiVcId,
   };
+
+  mockProducts[productIndex] = updatedProduct;
+
   await logAuditEvent(
     'passport.approved',
     productId,
     { txHash: blockchainProof.txHash },
     userId,
   );
-  return Promise.resolve(mockProducts[productIndex]);
+
+  // --- NEW WEBHOOK LOGIC ---
+  const allWebhooks = await getWebhooks();
+  const subscribedWebhooks = allWebhooks.filter(
+    wh => wh.status === 'active' && wh.events.includes('product.published'),
+  );
+
+  if (subscribedWebhooks.length > 0) {
+    console.log(
+      `Found ${subscribedWebhooks.length} webhook(s) for product.published event.`,
+    );
+    for (const webhook of subscribedWebhooks) {
+      // Intentionally not awaiting this to avoid blocking the main action
+      sendWebhook(webhook.url, 'product.published', updatedProduct);
+    }
+  }
+  // --- END NEW WEBHOOK LOGIC ---
+
+  return Promise.resolve(updatedProduct);
 }
 
 export async function rejectPassport(
@@ -596,6 +650,7 @@ export async function createApiKey(
     userId,
     createdAt: now,
     updatedAt: now,
+    lastUsed: undefined,
   };
   mockApiKeys.push(newKey);
   await logAuditEvent('api_key.created', newKey.id, { label }, userId);
@@ -675,6 +730,7 @@ export async function createUserAndCompany(
     roles: [UserRoles.SUPPLIER],
     createdAt: now,
     updatedAt: now,
+    readNotificationIds: [],
   };
   mockUsers.push(newUser);
   return Promise.resolve();
