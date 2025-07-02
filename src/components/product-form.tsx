@@ -6,6 +6,8 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Plus, Sparkles, Trash2, BatteryCharging } from 'lucide-react';
 import Image from 'next/image';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 import { Button } from '@/components/ui/button';
 import {
