@@ -8,6 +8,7 @@ import {
 } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
+import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter'; // Import new helpers
 
 // In a real app, this would be a middleware or helper function
 // to extract the user from the Authorization header.
@@ -23,6 +24,8 @@ export async function GET(
 ) {
   try {
     const user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
+
     const product = await getProductById(params.id, user.id);
 
     if (!product) {
@@ -31,6 +34,9 @@ export async function GET(
 
     return NextResponse.json(product);
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json(
       { error: 'Authentication failed' },
       { status: 401 },
@@ -46,7 +52,11 @@ export async function PUT(
   const endpoint = `/api/v1/products/${params.id}`;
   try {
     user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json(
       { error: 'Authentication failed' },
       { status: 401 },
@@ -105,7 +115,11 @@ export async function DELETE(
   const endpoint = `/api/v1/products/${params.id}`;
   try {
     user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json(
       { error: 'Authentication failed' },
       { status: 401 },

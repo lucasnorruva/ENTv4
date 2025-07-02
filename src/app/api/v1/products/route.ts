@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
+import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter'; // Import new helpers
 
 // In a real app, this would be a middleware or helper function
 // to extract the user from the Authorization header.
@@ -16,10 +17,14 @@ async function getApiUser(request: NextRequest): Promise<User> {
 export async function GET(request: NextRequest) {
   try {
     const user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
     // The getProducts action already handles role-based filtering
     const products = await getProducts(user.id);
     return NextResponse.json(products);
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
   }
 }
@@ -28,7 +33,11 @@ export async function POST(request: NextRequest) {
   let user;
   try {
     user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
   }
 

@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import type { AiProduct } from '@/ai/schemas';
+import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter'; // Import new helpers
 
 async function getApiUser(request: NextRequest): Promise<User> {
   // Mock user for API access
@@ -22,7 +23,11 @@ export async function POST(
   let user;
   try {
     user = await getApiUser(request);
+    await checkRateLimit(user.id); // Check rate limit
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
   }
 
