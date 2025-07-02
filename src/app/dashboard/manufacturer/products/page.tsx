@@ -1,7 +1,7 @@
 // src/app/dashboard/manufacturer/products/page.tsx
 import { redirect } from 'next/navigation';
 import ProductManagement from '@/components/product-management';
-import { getCompliancePaths, getProducts } from '@/lib/actions';
+import { getCompliancePaths } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
@@ -23,16 +23,10 @@ export default async function ProductsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, compliancePaths] = await Promise.all([
-    getProducts(user.id),
-    getCompliancePaths(),
-  ]);
+  // Products are now fetched on the client side.
+  const compliancePaths = await getCompliancePaths();
 
   return (
-    <ProductManagement
-      initialProducts={products}
-      user={user}
-      compliancePaths={compliancePaths}
-    />
+    <ProductManagement user={user} compliancePaths={compliancePaths} />
   );
 }
