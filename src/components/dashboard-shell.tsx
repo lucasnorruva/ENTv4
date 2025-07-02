@@ -12,6 +12,7 @@ import {
 import DashboardSidebar from './dashboard-sidebar';
 import RoleSwitcher from './role-switcher';
 import NotificationsPanel from './notifications-panel';
+import GlobalSearchButton from './global-search-button';
 
 interface DashboardShellProps {
   user: User;
@@ -34,7 +35,7 @@ export default function DashboardShell({
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 shadow-sm backdrop-blur-sm sm:h-16 sm:px-6">
           <SidebarTrigger className="sm:hidden" />
           <div className="flex-1">
-            <h1 className="text-lg font-semibold">{role} Dashboard</h1>
+            <GlobalSearchButton userId={user.id} />
           </div>
           <div className="flex items-center gap-2">
             <RoleSwitcher roles={user.roles} currentRole={role} />

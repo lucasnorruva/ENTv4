@@ -47,6 +47,7 @@ import { UserRoles, type Role } from './constants';
 import {
   getUserById,
   getCompanyById,
+  getUsers,
   getUsersByCompanyId,
   getUserByEmail as authGetUserByEmail,
 } from './auth';
@@ -71,6 +72,68 @@ import { webhooks as mockWebhooks } from './webhook-data';
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
+
+// --- GLOBAL SEARCH ---
+export interface GlobalSearchResult {
+  products: Product[];
+  users: User[];
+  compliancePaths: CompliancePath[];
+}
+
+export async function globalSearch(
+  query: string,
+  userId: string,
+): Promise<GlobalSearchResult> {
+  if (!query) {
+    return { products: [], users: [], compliancePaths: [] };
+  }
+
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new PermissionError('User not found.');
+  }
+
+  const lowerCaseQuery = query.toLowerCase();
+
+  const [allProducts, allUsers, allPaths] = await Promise.all([
+    getProducts(userId),
+    getUsers(), // Fetch all users for potential filtering
+    getCompliancePaths(),
+  ]);
+
+  // Filter products
+  const products = allProducts
+    .filter(
+      p =>
+        p.productName.toLowerCase().includes(lowerCaseQuery) ||
+        p.category.toLowerCase().includes(lowerCaseQuery) ||
+        p.supplier.toLowerCase().includes(lowerCaseQuery) ||
+        p.gtin?.includes(lowerCaseQuery),
+    )
+    .slice(0, 5);
+
+  // Filter users, but only return results if the searcher is an Admin
+  const users = hasRole(user, UserRoles.ADMIN)
+    ? allUsers
+        .filter(
+          u =>
+            u.fullName.toLowerCase().includes(lowerCaseQuery) ||
+            u.email.toLowerCase().includes(lowerCaseQuery),
+        )
+        .slice(0, 5)
+    : [];
+
+  // Filter compliance paths
+  const compliancePaths = allPaths
+    .filter(
+      p =>
+        p.name.toLowerCase().includes(lowerCaseQuery) ||
+        p.description.toLowerCase().includes(lowerCaseQuery),
+    )
+    .slice(0, 5);
+
+  return { products, users, compliancePaths };
+}
 
 // --- WEBHOOK ACTIONS ---
 
