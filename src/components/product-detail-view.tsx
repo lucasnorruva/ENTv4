@@ -39,7 +39,7 @@ import {
   Utensils,
 } from 'lucide-react';
 
-import type { Product, User, CompliancePath } from '@/types';
+import type { Product, User, CompliancePath, AuditLog } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -96,7 +96,7 @@ export default function ProductDetailView({
   product: Product;
   user: User;
   compliancePath?: CompliancePath;
-  auditLogs: any[];
+  auditLogs: AuditLog[];
 }) {
   const { sustainability } = product;
   const esg = sustainability;

@@ -7,7 +7,11 @@ import ReportsClient from '@/components/reports-client';
 export default async function ReportsPage() {
   const user = await getCurrentUser(UserRoles.AUDITOR);
 
-  const allowedRoles = [UserRoles.AUDITOR, UserRoles.BUSINESS_ANALYST];
+  const allowedRoles = [
+    UserRoles.AUDITOR,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.COMPLIANCE_MANAGER,
+  ];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
