@@ -51,6 +51,7 @@ import {
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
 import type { AiProduct } from './ai/schemas';
+import { checkPermission, PermissionError } from './permissions';
 
 // MOCK DATA IMPORTS
 import { products as mockProducts } from './data';
@@ -276,28 +277,29 @@ export async function saveProduct(
   let savedProduct: Product;
 
   if (productId) {
-    const productIndex = mockProducts.findIndex(p => p.id === productId);
-    if (productIndex === -1) throw new Error('Product not found');
-    const existingProduct = mockProducts[productIndex];
+    const existingProduct = await getProductById(productId, user.id);
+    if (!existingProduct) throw new Error('Product not found');
+    
+    checkPermission(user, 'product:edit', existingProduct);
 
-    if (
-      existingProduct.companyId !== user.companyId &&
-      !hasRole(user, UserRoles.ADMIN)
-    ) {
-      throw new Error('Permission denied to edit this product.');
+    if (validatedData.status === 'Archived' && existingProduct.status !== 'Archived') {
+        checkPermission(user, 'product:archive', existingProduct);
     }
+    
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found in mock data');
 
     savedProduct = {
-      ...existingProduct,
+      ...mockProducts[productIndex],
       ...validatedData,
       lastUpdated: now,
       updatedAt: now,
       verificationStatus:
-        existingProduct.verificationStatus === 'Failed'
+        mockProducts[productIndex].verificationStatus === 'Failed'
           ? 'Not Submitted'
-          : existingProduct.verificationStatus,
+          : mockProducts[productIndex].verificationStatus,
       status:
-        existingProduct.verificationStatus === 'Failed'
+        mockProducts[productIndex].verificationStatus === 'Failed'
           ? 'Draft'
           : validatedData.status,
       isProcessing: true,
@@ -310,6 +312,7 @@ export async function saveProduct(
       userId,
     );
   } else {
+    checkPermission(user, 'product:create');
     const company = await getCompanyById(user.companyId);
     if (!company)
       throw new Error(`Company with ID ${user.companyId} not found.`);
@@ -329,7 +332,7 @@ export async function saveProduct(
       materials: validatedData.materials || [],
       isProcessing: true,
     };
-    mockProducts.unshift(savedProduct); // Add to beginning of array
+    mockProducts.unshift(savedProduct);
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
 
@@ -340,6 +343,14 @@ export async function deleteProduct(
   productId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+  
+  checkPermission(user, 'product:delete', product);
+
   const index = mockProducts.findIndex(p => p.id === productId);
   if (index > -1) {
     mockProducts.splice(index, 1);
@@ -352,6 +363,14 @@ export async function submitForReview(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:submit', product);
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -366,6 +385,14 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:recalculate', product);
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -394,10 +421,8 @@ export async function generateAndSaveProductImage(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied');
-
-  if (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.SUPPLIER)) {
-    throw new Error('You do not have permission to modify this product.');
-  }
+  
+  checkPermission(user, 'product:edit', product);
 
   const { productName, productDescription } = product;
   if (!productName || !productDescription) {
@@ -430,6 +455,11 @@ export async function approvePassport(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  checkPermission(user, 'product:approve');
+  
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -482,6 +512,11 @@ export async function rejectPassport(
   gaps: ComplianceGap[],
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  checkPermission(user, 'product:reject');
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -504,6 +539,14 @@ export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:recycle', product);
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -518,6 +561,11 @@ export async function resolveComplianceIssue(
   productId: string,
   userId: string,
 ): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
+  checkPermission(user, 'product:resolve');
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -540,8 +588,13 @@ export async function generateConformityDeclarationText(
   productId: string,
   userId: string,
 ): Promise<string> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied.');
+  
+  checkPermission(user, 'product:edit', product);
 
   const company = await getCompanyById(product.companyId);
   if (!company) throw new Error('Company not found for product.');
@@ -701,6 +754,10 @@ export async function saveCompany(
   companyId?: string,
 ): Promise<Company> {
   const validatedData = companyFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'company:manage');
+  
   const now = new Date().toISOString();
   let savedCompany: Company;
 
@@ -731,6 +788,10 @@ export async function deleteCompany(
   companyId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'company:manage');
+  
   const index = mockCompanies.findIndex(c => c.id === companyId);
   if (index > -1) {
     mockCompanies.splice(index, 1);
@@ -745,6 +806,10 @@ export async function saveUser(
   userId?: string,
 ): Promise<User> {
   const validatedData = userFormSchema.parse(values);
+  const adminUser = await getUserById(adminId);
+  if (!adminUser) throw new Error('Admin user not found');
+  checkPermission(adminUser, 'user:manage');
+
   const now = new Date().toISOString();
   let savedUser: User;
 
@@ -776,6 +841,10 @@ export async function saveUser(
 }
 
 export async function deleteUser(userId: string, adminId: string): Promise<void> {
+  const adminUser = await getUserById(adminId);
+  if (!adminUser) throw new Error('Admin user not found');
+  checkPermission(adminUser, 'user:manage');
+
   const index = mockUsers.findIndex(u => u.id === userId);
   if (index > -1) {
     mockUsers.splice(index, 1);
@@ -799,6 +868,10 @@ export async function saveCompliancePath(
   userId: string,
   pathId?: string,
 ): Promise<CompliancePath> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'compliance:manage');
+
   const validatedData = compliancePathFormSchema.parse(values);
   const now = new Date().toISOString();
 
@@ -844,6 +917,10 @@ export async function deleteCompliancePath(
   pathId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'compliance:manage');
+
   const index = mockCompliancePaths.findIndex(p => p.id === pathId);
   if (index > -1) {
     mockCompliancePaths.splice(index, 1);

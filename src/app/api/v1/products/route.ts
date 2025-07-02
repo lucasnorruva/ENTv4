@@ -3,7 +3,8 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
-import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter'; // Import new helpers
+import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter';
+import { PermissionError } from '@/lib/permissions';
 
 // In a real app, this would be a middleware or helper function
 // to extract the user from the Authorization header.
@@ -50,6 +51,9 @@ export async function POST(request: NextRequest) {
     await logAuditEvent('api.post', newProduct.id, { endpoint, status: 201, method: 'POST' }, user.id);
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error: any) {
+    if (error instanceof PermissionError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     // Check if it's a Zod validation error
     if (error.name === 'ZodError') {
       await logAuditEvent('api.post', 'N/A', { endpoint, status: 400, error: 'Invalid data', method: 'POST' }, user.id);

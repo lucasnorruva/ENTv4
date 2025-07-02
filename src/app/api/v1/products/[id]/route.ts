@@ -8,7 +8,8 @@ import {
 } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
-import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter'; // Import new helpers
+import { checkRateLimit, RateLimitError } from '@/lib/rate-limiter';
+import { PermissionError } from '@/lib/permissions';
 
 // In a real app, this would be a middleware or helper function
 // to extract the user from the Authorization header.
@@ -76,6 +77,9 @@ export async function PUT(
     );
     return NextResponse.json(updatedProduct);
   } catch (error: any) {
+    if (error instanceof PermissionError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     if (error.name === 'ZodError') {
       await logAuditEvent(
         'api.put',
@@ -148,6 +152,9 @@ export async function DELETE(
     );
     return new NextResponse(null, { status: 204 });
   } catch (error: any) {
+    if (error instanceof PermissionError) {
+      return NextResponse.json({ error: error.message }, { status: 403 });
+    }
     console.error(`API Product Deletion Error (ID: ${params.id}):`, error);
     await logAuditEvent(
       'api.delete',
