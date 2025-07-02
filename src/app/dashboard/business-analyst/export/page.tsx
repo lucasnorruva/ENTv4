@@ -1,6 +1,7 @@
 // src/app/dashboard/business-analyst/export/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
 import DataExportClient from '@/components/data-export-client';
 

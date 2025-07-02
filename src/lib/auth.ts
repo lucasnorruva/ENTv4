@@ -1,7 +1,6 @@
 // src/lib/auth.ts
 import { UserRoles, type Role, Collections } from './constants';
 import type { User, Company } from '@/types';
-import { hasRole } from './auth-utils';
 
 // MOCK DATA IMPORTS
 import { users as mockUsers } from './user-data';

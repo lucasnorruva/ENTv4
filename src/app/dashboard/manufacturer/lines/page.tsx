@@ -1,7 +1,8 @@
 // src/app/dashboard/manufacturer/lines/page.tsx
 import { redirect } from 'next/navigation';
 import { getProductionLines } from '@/lib/actions';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import {
   Card,
   CardContent,

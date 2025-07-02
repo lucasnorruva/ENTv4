@@ -1,6 +1,7 @@
 // src/app/dashboard/admin/compliance/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import CompliancePathManagement from '@/components/compliance-path-management';
 import { UserRoles } from '@/lib/constants';
 

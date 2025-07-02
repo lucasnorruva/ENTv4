@@ -1,6 +1,7 @@
 // src/app/dashboard/recycler/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, hasRole } from '@/lib/auth';
+import { getCurrentUser, getUsers } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
