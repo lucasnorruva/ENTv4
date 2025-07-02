@@ -53,7 +53,7 @@ export default function LandingPage() {
                     customer trust.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <div className="flex flex-wrap items-center gap-2">
                   <Button asChild size="lg">
                     <Link href="/signup">
                       Create Your First DPP
@@ -62,6 +62,9 @@ export default function LandingPage() {
                   </Button>
                   <Button asChild size="lg" variant="outline">
                     <Link href="/demo">Explore Features</Link>
+                  </Button>
+                  <Button asChild size="lg" variant="secondary">
+                    <Link href="/dashboard/admin">Take me to dashboard</Link>
                   </Button>
                 </div>
               </div>
