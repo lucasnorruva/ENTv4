@@ -1140,7 +1140,27 @@ export async function createUserAndCompany(
     updatedAt: now,
     readNotificationIds: [],
     onboardingComplete: false,
+    isMfaEnabled: false,
   });
+}
+
+export async function setMfaStatus(userId: string, isEnabled: boolean): Promise<void> {
+    const user = await getUserById(userId);
+    if (!user) {
+        throw new Error('User not found.');
+    }
+
+    await adminDb.collection(Collections.USERS).doc(userId).update({
+        isMfaEnabled: isEnabled,
+        updatedAt: FieldValue.serverTimestamp()
+    });
+
+    await logAuditEvent(
+        isEnabled ? 'user.mfa.enabled' : 'user.mfa.disabled',
+        userId,
+        {},
+        userId
+    );
 }
 
 export async function completeOnboarding(

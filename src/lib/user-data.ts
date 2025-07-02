@@ -14,6 +14,7 @@ export let users: User[] = [
     updatedAt: '2024-07-20T10:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-supplier',
@@ -25,6 +26,7 @@ export let users: User[] = [
     updatedAt: '2024-07-19T11:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-auditor',
@@ -36,6 +38,7 @@ export let users: User[] = [
     updatedAt: '2024-07-18T12:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-compliance',
@@ -47,6 +50,7 @@ export let users: User[] = [
     updatedAt: '2024-07-17T13:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-manufacturer',
@@ -58,6 +62,7 @@ export let users: User[] = [
     updatedAt: '2024-07-16T14:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-service',
@@ -69,6 +74,7 @@ export let users: User[] = [
     updatedAt: '2024-07-15T15:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-recycler',
@@ -80,6 +86,7 @@ export let users: User[] = [
     updatedAt: '2024-07-14T16:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-retailer',
@@ -91,6 +98,7 @@ export let users: User[] = [
     updatedAt: '2024-07-13T17:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-developer',
@@ -102,6 +110,7 @@ export let users: User[] = [
     updatedAt: '2024-07-13T17:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-analyst',
@@ -113,6 +122,7 @@ export let users: User[] = [
     updatedAt: '2024-07-12T18:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-new-1',
@@ -124,6 +134,7 @@ export let users: User[] = [
     updatedAt: '2024-07-22T09:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-new-2',
@@ -135,6 +146,7 @@ export let users: User[] = [
     updatedAt: '2024-07-22T10:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-new-3',
@@ -146,6 +158,7 @@ export let users: User[] = [
     updatedAt: '2024-07-22T11:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-new-4',
@@ -157,6 +170,7 @@ export let users: User[] = [
     updatedAt: '2024-07-23T14:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
   {
     id: 'user-new-5',
@@ -168,5 +182,6 @@ export let users: User[] = [
     updatedAt: '2024-07-23T15:00:00Z',
     readNotificationIds: [],
     onboardingComplete: true,
+    isMfaEnabled: false,
   },
 ];

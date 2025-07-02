@@ -1,9 +1,22 @@
-"use client";
+// src/components/login-form.tsx
+'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  signInWithEmailAndPassword,
+  getMultiFactorResolver,
+  TotpMultiFactorGenerator,
+  type MultiFactorResolver,
+} from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -11,74 +24,76 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import {
-  signInWithEmailAndPassword,
-  signInWithCustomToken,
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
-import { signInWithMockUser } from "@/lib/actions";
-import { users as mockUsers } from "@/lib/user-data";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address." }),
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
   password: z
     .string()
-    .min(6, { message: "Password must be at least 6 characters." }),
+    .min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
+const mfaSchema = z.object({
+  code: z.string().length(6, { message: 'Code must be 6 digits.' }),
 });
 
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [mfaResolver, setMfaResolver] = useState<MultiFactorResolver | null>(
+    null,
+  );
   const router = useRouter();
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const mfaForm = useForm<z.infer<typeof mfaSchema>>({
+    resolver: zodResolver(mfaSchema),
+    defaultValues: { code: '' },
+  });
+
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
-
-    const isMockUser = mockUsers.some(user => user.email === values.email);
-
     try {
-      if (isMockUser) {
-        // This is a pre-defined user, use the mock sign-in flow
-        const mockLoginResult = await signInWithMockUser(
-          values.email,
-          values.password,
-        );
-        if (mockLoginResult.success && mockLoginResult.token) {
-          await signInWithCustomToken(auth, mockLoginResult.token);
-          router.push('/dashboard');
-        } else {
-          toast({
-            title: 'Login Failed',
-            description:
-              mockLoginResult.error || 'Invalid credentials for mock user.',
-            variant: 'destructive',
-          });
-        }
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      toast({ title: 'Login Successful' });
+      router.push('/dashboard');
+    } catch (error: any) {
+      if (error.code === 'auth/multi-factor-auth-required') {
+        setMfaResolver(getMultiFactorResolver(auth, error));
       } else {
-        // This is a user created via sign-up, use standard email/password auth
-        await signInWithEmailAndPassword(auth, values.email, values.password);
-        router.push('/dashboard');
+        toast({
+          title: 'Login Failed',
+          description:
+            error.message ||
+            'An unexpected error occurred. Please check your credentials.',
+          variant: 'destructive',
+        });
       }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onMfaSubmit(values: z.infer<typeof mfaSchema>) {
+    if (!mfaResolver) return;
+    setIsLoading(true);
+    try {
+      const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+        mfaResolver.hints[0].uid,
+        values.code,
+      );
+      await mfaResolver.resolveSignIn(assertion);
+      toast({ title: 'Login Successful' });
+      router.push('/dashboard');
     } catch (error: any) {
       toast({
-        title: 'Login Failed',
-        description:
-          error.message ||
-          'An unexpected error occurred. Please check your credentials.',
+        title: '2FA Failed',
+        description: 'Invalid verification code. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -86,11 +101,41 @@ export default function LoginForm() {
     }
   }
 
+  if (mfaResolver) {
+    return (
+      <Form {...mfaForm}>
+        <form onSubmit={mfaForm.handleSubmit(onMfaSubmit)} className="grid gap-4">
+          <FormField
+            control={mfaForm.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Two-Factor Code</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="123456"
+                    {...field}
+                    autoComplete="one-time-code"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Verify
+          </Button>
+        </form>
+      </Form>
+    );
+  }
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+    <Form {...loginForm}>
+      <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="grid gap-4">
         <FormField
-          control={form.control}
+          control={loginForm.control}
           name="email"
           render={({ field }) => (
             <FormItem>
@@ -107,7 +152,7 @@ export default function LoginForm() {
           )}
         />
         <FormField
-          control={form.control}
+          control={loginForm.control}
           name="password"
           render={({ field }) => (
             <FormItem>
