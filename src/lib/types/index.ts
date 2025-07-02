@@ -142,6 +142,7 @@ export interface Product extends BaseEntity {
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
+  completenessScore?: number;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
@@ -202,7 +203,6 @@ export interface ProductionLine extends BaseEntity {
   currentProduct: string;
   lastMaintenance: string;
 }
-
 
 /**
  * Represents a developer API key for integrations.
