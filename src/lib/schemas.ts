@@ -53,6 +53,8 @@ const complianceSchema = z.object({
   weeeRegistered: z.boolean().optional(),
   weeeRegistrationNumber: z.string().optional(),
   prop65WarningRequired: z.boolean().optional(),
+  eudrCompliant: z.boolean().optional(),
+  eudrDiligenceId: z.string().optional(),
   ceMarked: z.boolean().optional(),
   foodContactSafe: z.boolean().optional(),
   foodContactComplianceStandard: z.string().optional(),
