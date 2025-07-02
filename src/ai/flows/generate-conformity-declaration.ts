@@ -11,7 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '../schemas';
 
-export const GenerateConformityDeclarationInputSchema = z.object({
+const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
   companyName: z.string().describe('The legal name of the manufacturer.'),
 });
@@ -19,7 +19,7 @@ export type GenerateConformityDeclarationInput = z.infer<
   typeof GenerateConformityDeclarationInputSchema
 >;
 
-export const GenerateConformityDeclarationOutputSchema = z.object({
+const GenerateConformityDeclarationOutputSchema = z.object({
   declarationText: z
     .string()
     .describe(
