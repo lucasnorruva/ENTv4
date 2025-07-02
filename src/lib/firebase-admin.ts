@@ -13,19 +13,24 @@ function initializeAdminApp(): App {
     return getApp();
   }
 
-  // When running locally via `npm run dev`, the `genkit:start` command
-  // automatically sets these environment variables, allowing the Admin SDK
-  // to connect to the local emulators.
-  if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    console.log('✅ Admin SDK: Detected emulator environment. Connecting...');
+  // When running in development, we forcefully connect to the emulators.
+  // This avoids issues where environment variables from one process (genkit)
+  // don't propagate to another (next dev).
+  if (process.env.NODE_ENV === 'development') {
+    console.log('✅ Admin SDK (Development Mode): Forcing connection to Firebase Emulators...');
+    // Setting these environment variables programmatically ensures the Admin SDK connects.
+    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+    process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
+    
     return initializeApp({
       projectId: 'passportflow-dev', // Use a consistent dev project ID for emulators
     });
   } else {
     // In a real production deployment (e.g., Cloud Run, Firebase Functions),
     // the SDK would automatically use the default credentials of the environment.
-    console.warn(
-      '⚠️ Admin SDK: Emulator environment variables not set. Assuming production-like environment (will fail without credentials).',
+    console.log(
+      'Admin SDK: Assuming production-like environment.',
     );
     return initializeApp();
   }
