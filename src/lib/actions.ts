@@ -998,9 +998,10 @@ export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   return Promise.resolve(mockApiKeys.filter(k => k.userId === userId));
 }
 
-export async function createApiKey(
+export async function saveApiKey(
   values: ApiKeyFormValues,
   userId: string,
+  keyId?: string,
 ): Promise<{ key: ApiKey; rawToken?: string }> {
   const validatedData = apiKeyFormSchema.parse(values);
   const user = await getUserById(userId);
@@ -1008,32 +1009,55 @@ export async function createApiKey(
     throw new Error('Permission denied.');
 
   const now = new Date().toISOString();
-  
-  const rawToken = `nor_mock_${[...Array(32)]
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join('')}`;
+  let savedKey: ApiKey;
+  let rawToken: string | undefined = undefined;
 
-  const savedKey: ApiKey = {
-    id: newId('key'),
-    label: validatedData.label,
-    scopes: validatedData.scopes,
-    token: `nor_mock_******************${rawToken.slice(-4)}`,
-    status: 'Active',
-    userId,
-    createdAt: now,
-    updatedAt: now,
-    lastUsed: undefined,
-  };
-  
-  mockApiKeys.push(savedKey);
-  await logAuditEvent(
-    'api_key.created',
-    savedKey.id,
-    { label: savedKey.label },
-    userId,
-  );
-  
-  return { key: savedKey, rawToken };
+  if (keyId) {
+    // Update existing key
+    const keyIndex = mockApiKeys.findIndex(
+      k => k.id === keyId && k.userId === userId,
+    );
+    if (keyIndex === -1) throw new Error('API Key not found');
+    savedKey = {
+      ...mockApiKeys[keyIndex],
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      updatedAt: now,
+    };
+    mockApiKeys[keyIndex] = savedKey;
+    await logAuditEvent(
+      'api_key.updated',
+      keyId,
+      { changes: ['label', 'scopes'] },
+      userId,
+    );
+    return { key: savedKey };
+  } else {
+    // Create new key
+    rawToken = `nor_mock_${[...Array(32)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('')}`;
+
+    savedKey = {
+      id: newId('key'),
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      token: `nor_mock_******************${rawToken.slice(-4)}`,
+      status: 'Active',
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      lastUsed: undefined,
+    };
+    mockApiKeys.push(savedKey);
+    await logAuditEvent(
+      'api_key.created',
+      savedKey.id,
+      { label: savedKey.label },
+      userId,
+    );
+    return { key: savedKey, rawToken };
+  }
 }
 
 export async function revokeApiKey(
