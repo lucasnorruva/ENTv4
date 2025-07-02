@@ -214,6 +214,16 @@ export interface ApiKey extends BaseEntity {
 }
 
 /**
+ * Represents a configurable webhook endpoint for integrations.
+ */
+export interface Webhook extends BaseEntity {
+  url: string;
+  events: string[]; // e.g., ['product.published', 'product.updated']
+  status: 'active' | 'inactive';
+  userId: string;
+}
+
+/**
  * Represents the global settings for the Norruva API.
  */
 export interface ApiSettings {

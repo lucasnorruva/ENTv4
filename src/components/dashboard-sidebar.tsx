@@ -27,6 +27,7 @@ import {
   Building2,
   ListChecks,
   ShoppingBag,
+  Webhook,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -232,6 +233,7 @@ const navConfig: Record<Role, NavConfig> = {
       label: 'Configuration',
       items: [
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
+        { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
         {
           title: 'API Settings',
           icon: Cog,

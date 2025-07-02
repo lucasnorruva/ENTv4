@@ -114,10 +114,21 @@ export const apiSettingsSchema = z.object({
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
 
+export const webhookFormSchema = z.object({
+  url: z.string().url({ message: 'Please enter a valid URL.' }),
+  events: z
+    .array(z.string())
+    .min(1, { message: 'You must select at least one event type.' }),
+  status: z.enum(['active', 'inactive']),
+});
+export type WebhookFormValues = z.infer<typeof webhookFormSchema>;
+
 export const serviceTicketFormSchema = z.object({
   productId: z.string().min(1, 'A product must be selected.'),
   customerName: z.string().min(2, 'Customer name is required.'),
-  issue: z.string().min(10, 'Issue description must be at least 10 characters.'),
+  issue: z
+    .string()
+    .min(10, 'Issue description must be at least 10 characters.'),
   status: z.enum(['Open', 'In Progress', 'Closed']),
 });
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
