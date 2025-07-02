@@ -572,6 +572,17 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
   );
 }
 
+export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+  return Promise.resolve(
+    mockAuditLogs
+      .filter(log => log.userId === userId)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+  );
+}
+
 export async function getAuditLogsForEntity(
   entityId: string,
 ): Promise<AuditLog[]> {
