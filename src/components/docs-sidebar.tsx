@@ -61,6 +61,10 @@ const docsConfig = {
           title: 'AI Prompt Design',
           href: '/docs/ai-prompt-design',
         },
+        {
+          title: 'Development Roadmap',
+          href: '/docs/roadmap',
+        },
       ],
     },
     {
