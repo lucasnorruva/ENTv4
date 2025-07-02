@@ -65,6 +65,7 @@ import DppQrCodeWidget from './dpp-qr-code-widget';
 import DppCompletenessWidget from './dpp-completeness-widget';
 import { AuditLogTimeline } from './audit-log-timeline';
 import AiSuggestionsWidget from './ai-suggestions-widget';
+import DocGenerationWidget from './doc-generation-widget';
 import { generateAndSaveProductImage } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
@@ -747,7 +748,8 @@ export default function ProductDetailView({
         </div>
         <div className="space-y-6">
           <DppQrCodeWidget productId={product.id} />
-          <AiSuggestionsWidget product={product} />
+          <AiSuggestionsWidget product={product} user={user} />
+          <DocGenerationWidget product={product} user={user} />
           <DppCompletenessWidget product={product} />
         </div>
       </div>

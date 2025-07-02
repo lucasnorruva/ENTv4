@@ -39,6 +39,7 @@ import {
 } from '@/services/blockchain';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage } from '@/ai/flows/generate-product-image';
+import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { UserRoles, type Role } from './constants';
 import {
   getUserById,
@@ -48,6 +49,7 @@ import {
 } from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
+import type { AiProduct } from './ai/schemas';
 
 // MOCK DATA IMPORTS
 import { products as mockProducts } from './data';
@@ -463,6 +465,42 @@ export async function suggestImprovements(input: {
   productDescription: string;
 }) {
   return await suggestImprovementsFlow(input);
+}
+
+export async function generateConformityDeclarationText(
+  productId: string,
+  userId: string,
+): Promise<string> {
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found for product.');
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const { declarationText } = await generateConformityDeclarationFlow({
+    product: aiProductInput,
+    companyName: company.name,
+  });
+
+  await logAuditEvent('doc.generated', productId, {}, userId);
+  return declarationText;
 }
 
 // Helper function to recursively flatten a nested object for CSV export.
