@@ -2,7 +2,6 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { MoreHorizontal, Plus, Loader2, Edit, Ticket } from 'lucide-react';
 
 import {
@@ -32,9 +31,11 @@ import {
 
 import type { ServiceTicket, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
-import { updateServiceTicketStatus, getProducts } from '@/lib/actions';
+import {
+  updateServiceTicketStatus,
+  getProducts,
+  getServiceTickets,
+} from '@/lib/actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { format } from 'date-fns';
 import { getCurrentUser } from '@/lib/auth-client';
@@ -52,60 +53,37 @@ export default function ServiceTicketsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    async function fetchInitialData() {
       setIsLoading(true);
       try {
         const currentUser = await getCurrentUser();
         if (!currentUser) throw new Error('User not found');
         setUser(currentUser);
-        const fetchedProducts = await getProducts(currentUser.id);
+        const [fetchedProducts, fetchedTickets] = await Promise.all([
+          getProducts(currentUser.id),
+          getServiceTickets(),
+        ]);
+
         setProducts(fetchedProducts);
+        setTickets(
+          fetchedTickets.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime(),
+          ),
+        );
       } catch (error) {
         toast({
           title: 'Error',
           description: 'Failed to load initial data.',
           variant: 'destructive',
         });
+      } finally {
+        setIsLoading(false);
       }
-    };
+    }
     fetchInitialData();
-  }, [toast]);
-
-  useEffect(() => {
-    if (!user) return;
-    const q = query(
-      collection(db, Collections.SERVICE_TICKETS),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const ticketsData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-          } as ServiceTicket;
-        });
-        setTickets(ticketsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching tickets:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load service tickets.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user, toast]);
+  }, [toast, isPending]); // Re-fetch on actions
 
   const handleCreateNew = () => {
     setSelectedTicket(null);
@@ -158,7 +136,7 @@ export default function ServiceTicketsPage() {
   };
 
   if (!user) {
-     return (
+    return (
       <div className="flex justify-center items-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>

@@ -12,6 +12,7 @@ import { productionLines as mockProductionLines } from '../lib/manufacturing-dat
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
 import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
+import { webhooks as mockWebhooks } from '../lib/webhook-data';
 import { Collections } from '../lib/constants';
 
 async function testFirestoreConnection() {
@@ -131,9 +132,10 @@ async function seedDatabase() {
   await seedCollection(Collections.PRODUCTS, mockProducts);
   await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
   await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
-  await seedCollection('productionLines', mockProductionLines);
+  await seedCollection(Collections.PRODUCTION_LINES, mockProductionLines);
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
+  await seedCollection(Collections.WEBHOOKS, mockWebhooks);
 
   // Seeding a single document for settings
   console.log('Seeding API settings...');
