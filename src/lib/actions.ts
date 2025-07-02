@@ -536,6 +536,45 @@ export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
   return csvRows.join('\n');
 }
 
+export async function exportComplianceReport(format: 'csv'): Promise<string> {
+  const products = await getProducts();
+  if (format !== 'csv') {
+    throw new Error('Unsupported format for compliance report.');
+  }
+
+  if (products.length === 0) {
+    return '';
+  }
+
+  const complianceData = products.map(p => ({
+    productId: p.id,
+    productName: p.productName,
+    supplier: p.supplier,
+    verificationStatus: p.verificationStatus,
+    isCompliant: p.sustainability?.isCompliant,
+    complianceSummary: p.sustainability?.complianceSummary,
+    gaps: p.sustainability?.gaps ? JSON.stringify(p.sustainability.gaps) : '[]',
+  }));
+
+  const headers = Object.keys(complianceData[0]).join(',');
+  const csvRows = [headers];
+
+  for (const item of complianceData) {
+    const values = Object.values(item).map(value => {
+      if (value === undefined || value === null) {
+        return '';
+      }
+      let stringValue = String(value);
+      if (/[",\n]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
 
 // --- ADMIN & GENERAL ACTIONS ---
 

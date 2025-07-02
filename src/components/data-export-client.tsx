@@ -15,11 +15,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { exportProducts } from '@/lib/actions';
+import { exportProducts, exportComplianceReport } from '@/lib/actions';
 
 export default function DataExportClient() {
   const [productFormat, setProductFormat] = useState('csv');
-  const [complianceFormat, setComplianceFormat] = useState('pdf');
   const [isGenerating, startTransition] = useTransition();
   const [generatingType, setGeneratingType] = useState<string | null>(null);
 
@@ -61,16 +60,19 @@ export default function DataExportClient() {
             description: 'Your export has been successfully generated.',
           });
         } else {
-          // Mock for Compliance report
           toast({
             title: 'Generating Compliance Report...',
-            description:
-              'This is a mock action. A real report would download shortly.',
+            description: `Your compliance data is being prepared as a .csv file.`,
           });
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          const fileContent = await exportComplianceReport('csv');
+          const mimeType = 'text/csv';
+          const fileName = `norruva-compliance-report-${
+            new Date().toISOString().split('T')[0]
+          }.csv`;
+          handleDownload(fileContent, fileName, mimeType);
           toast({
-            title: 'Compliance Report Ready!',
-            description: 'Mock compliance report generated.',
+            title: 'Compliance Report Downloaded!',
+            description: 'Your export has been successfully generated.',
           });
         }
       } catch (error) {
@@ -149,35 +151,21 @@ export default function DataExportClient() {
               all products.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <RadioGroup
-              defaultValue="pdf"
-              className="space-y-2"
-              onValueChange={setComplianceFormat}
-              value={complianceFormat}
-            >
-              <Label>File Format</Label>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="pdf" id="compliance-pdf" />
-                <Label htmlFor="compliance-pdf">PDF</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="xlsx" id="compliance-xlsx" />
-                <Label htmlFor="compliance-xlsx">Excel (XLSX)</Label>
-              </div>
-            </RadioGroup>
+          <CardContent className="flex-1">
+            <p className="text-sm text-muted-foreground">
+              This will generate a CSV file with the compliance status for all
+              products.
+            </p>
           </CardContent>
           <CardFooter>
             <Button
-              onClick={() =>
-                handleGenerateExport('Compliance', complianceFormat)
-              }
+              onClick={() => handleGenerateExport('Compliance', 'csv')}
               disabled={isGenerating}
             >
               {isGenerating && generatingType === 'Compliance' && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Generate Compliance Export
+              Generate Compliance Export (CSV)
             </Button>
           </CardFooter>
         </Card>
