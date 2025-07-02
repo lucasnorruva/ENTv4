@@ -13,27 +13,19 @@ function initializeAdminApp(): App {
     return getApp();
   }
 
-  // When running in development, we forcefully connect to the emulators.
-  // This avoids issues where environment variables from one process (genkit)
-  // don't propagate to another (next dev).
-  if (process.env.NODE_ENV === 'development') {
-    console.log('✅ Admin SDK (Development Mode): Forcing connection to Firebase Emulators...');
-    // Setting these environment variables programmatically ensures the Admin SDK connects.
-    process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
-    process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
-    process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
-    
-    return initializeApp({
-      projectId: 'passportflow-dev', // Use a consistent dev project ID for emulators
-    });
-  } else {
-    // In a real production deployment (e.g., Cloud Run, Firebase Functions),
-    // the SDK would automatically use the default credentials of the environment.
-    console.log(
-      'Admin SDK: Assuming production-like environment.',
-    );
-    return initializeApp();
-  }
+  // In a local development environment, the server-side Node.js process
+  // started by `next dev` does not automatically pick up the emulator
+  // environment variables.
+  // To ensure a reliable connection, we will forcefully set them here.
+  // This is a robust solution for the specific dev setup of this project.
+  console.log('✅ Admin SDK: Forcing connection to Firebase Emulators for local development...');
+  process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099';
+  process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080';
+  process.env.FIREBASE_STORAGE_EMULATOR_HOST = '127.0.0.1:9199';
+  
+  return initializeApp({
+    projectId: 'passportflow-dev', // Use a consistent dev project ID for emulators
+  });
 }
 
 const adminApp = initializeAdminApp();
