@@ -15,6 +15,7 @@ import {
   AlertCircle,
   BookCopy,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -57,7 +58,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,9 +143,22 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
+          const isProcessing = row.original.isProcessing;
 
           return (
             <div className="flex items-center gap-3">
+              {isProcessing && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>AI processing is in progress.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               <Image
                 src={row.original.productImage}
                 alt={row.original.productName}
@@ -229,7 +242,11 @@ export default function ProductTable({
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={product.isProcessing}
+                >
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>

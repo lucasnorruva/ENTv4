@@ -227,6 +227,7 @@ export async function saveProduct(
         existingProduct.verificationStatus === 'Failed'
           ? 'Draft'
           : validatedData.status,
+      isProcessing: true,
     };
     mockProducts[productIndex] = savedProduct;
     await logAuditEvent(
@@ -253,6 +254,7 @@ export async function saveProduct(
       endOfLifeStatus: 'Active',
       verificationStatus: 'Not Submitted',
       materials: validatedData.materials || [],
+      isProcessing: true,
     };
     mockProducts.unshift(savedProduct); // Add to beginning of array
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
@@ -291,10 +293,21 @@ export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<void> {
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  // Set the processing flag and sentinel value to trigger the cloud function
+  mockProducts[productIndex] = {
+    ...mockProducts[productIndex],
+    isProcessing: true,
+    sustainability: {
+      ...(mockProducts[productIndex].sustainability as any),
+      score: -1, // Sentinel value to trigger re-calculation
+    },
+  };
+
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
-  console.log(
-    `Mock recalculating score for ${productId}. In a real app, this would trigger a background job.`,
-  );
+  console.log(`Product ${productId} marked for score recalculation.`);
   return Promise.resolve();
 }
 

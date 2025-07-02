@@ -143,6 +143,7 @@ export interface Product extends BaseEntity {
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
   completenessScore?: number;
+  isProcessing?: boolean;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;

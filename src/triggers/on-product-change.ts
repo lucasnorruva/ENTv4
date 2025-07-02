@@ -183,6 +183,7 @@ export const onProductChange = onDocumentWritten(
       qrLabelText,
       dataQualityWarnings,
       completenessScore,
+      isProcessing: false,
     });
   },
 );
