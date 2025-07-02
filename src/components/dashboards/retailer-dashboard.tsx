@@ -10,7 +10,7 @@ import {
 import type { User } from '@/types';
 import { getProducts } from '@/lib/actions';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookCopy, ShieldAlert, Search } from 'lucide-react';
+import { ArrowRight, BarChart3, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import RetailerSearchForm from '../retailer-search-form';
@@ -19,7 +19,7 @@ export default async function RetailerDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);
   const stats = {
     totalProducts: products.length,
-    failedVerification: products.filter(p => p.verificationStatus === 'Failed')
+    verifiedProducts: products.filter(p => p.verificationStatus === 'Verified')
       .length,
   };
 
@@ -53,6 +53,13 @@ export default async function RetailerDashboard({ user }: { user: User }) {
           <CardContent>
             <RetailerSearchForm />
           </CardContent>
+          <CardFooter>
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link href="/dashboard/retailer/catalog">
+                Browse Full Catalog <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
         </Card>
 
         <Card className="lg:col-span-2">
@@ -107,46 +114,39 @@ export default async function RetailerDashboard({ user }: { user: User }) {
           </CardContent>
         </Card>
       </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Products in Catalog
-            </CardTitle>
-            <BookCopy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-muted-foreground" />
+            Market Analytics
+          </CardTitle>
+          <CardDescription>
+            Gain insights into the entire product ecosystem on Norruva to make
+            smarter decisions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-2xl font-bold">{stats.totalProducts}</p>
             <p className="text-xs text-muted-foreground">
-              Total products available on the platform
+              Total Products in Catalog
             </p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/retailer/catalog">
-                Browse Full Catalog <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardFooter>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Compliance Issues
-            </CardTitle>
-            <ShieldAlert className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.failedVerification}
-            </div>
+          </div>
+          <div>
+            <p className="text-2xl font-bold">{stats.verifiedProducts}</p>
             <p className="text-xs text-muted-foreground">
-              Products that failed verification
+              Verified & Compliant Products
             </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button asChild>
+            <Link href="/dashboard/retailer/analytics">
+              View Full Analytics <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
 }
