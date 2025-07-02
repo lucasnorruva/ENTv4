@@ -5,6 +5,32 @@ const now = new Date();
 
 export let auditLogs: AuditLog[] = [
   {
+    id: "log-wh-001",
+    userId: "user-developer",
+    action: "webhook.delivery.success",
+    entityId: "wh-001",
+    details: { event: "product.published", statusCode: 200, productId: "pp-001", url: "https://api.example.com/v1/norruva-hooks" },
+    createdAt: new Date(
+      new Date(now).setMinutes(now.getMinutes() - 5),
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(now).setMinutes(now.getMinutes() - 5),
+    ).toISOString(),
+  },
+  {
+    id: "log-wh-002",
+    userId: "user-developer",
+    action: "webhook.delivery.failure",
+    entityId: "wh-001",
+    details: { event: "product.updated", statusCode: 503, productId: "pp-002", url: "https://api.example.com/v1/norruva-hooks" },
+    createdAt: new Date(
+      new Date(now).setMinutes(now.getMinutes() - 10),
+    ).toISOString(),
+    updatedAt: new Date(
+      new Date(now).setMinutes(now.getMinutes() - 10),
+    ).toISOString(),
+  },
+  {
     id: "log-sys-001",
     userId: "user-admin",
     action: "settings.api.updated",

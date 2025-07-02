@@ -47,6 +47,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 interface NavItem {
   title: string;
@@ -320,8 +322,7 @@ export default function DashboardSidebar({
 
   const handleLogout = async () => {
     try {
-      // Since we're using a local mock, we don't have a real session to clear.
-      // We just redirect to login and show a toast.
+      await signOut(auth);
       toast({
         title: 'Logged Out',
         description: 'You have been successfully logged out.',
