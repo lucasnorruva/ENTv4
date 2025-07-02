@@ -38,6 +38,7 @@ import {
   hashProductData,
 } from '@/services/blockchain';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
+import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { UserRoles, type Role } from './constants';
 import {
   getUserById,
@@ -310,6 +311,46 @@ export async function recalculateScore(
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
   console.log(`Product ${productId} marked for score recalculation.`);
   return Promise.resolve();
+}
+
+export async function generateAndSaveProductImage(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+
+  if (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.SUPPLIER)) {
+    throw new Error('You do not have permission to modify this product.');
+  }
+
+  const { productName, productDescription } = product;
+  if (!productName || !productDescription) {
+    throw new Error(
+      'Product name and description are required to generate an image.',
+    );
+  }
+
+  console.log(`Generating image for product: ${productName}`);
+  const { imageUrl } = await generateProductImage({
+    productName,
+    productDescription,
+  });
+
+  // Update product in mock data
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].productImage = imageUrl;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+  mockProducts[productIndex].updatedAt = new Date().toISOString();
+
+  await logAuditEvent('product.image.generated', productId, {}, userId);
+
+  return Promise.resolve(mockProducts[productIndex]);
 }
 
 export async function approvePassport(

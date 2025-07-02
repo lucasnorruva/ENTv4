@@ -1,7 +1,8 @@
 // src/components/product-detail-view.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -37,6 +38,7 @@ import {
   Layers,
   Copyright,
   Utensils,
+  Loader2,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog } from '@/types';
@@ -63,6 +65,8 @@ import DppQrCodeWidget from './dpp-qr-code-widget';
 import DppCompletenessWidget from './dpp-completeness-widget';
 import { AuditLogTimeline } from './audit-log-timeline';
 import AiSuggestionsWidget from './ai-suggestions-widget';
+import { generateAndSaveProductImage } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
 function InfoRow({
   icon: Icon,
@@ -88,7 +92,7 @@ function InfoRow({
 }
 
 export default function ProductDetailView({
-  product,
+  product: productProp,
   user,
   compliancePath,
   auditLogs,
@@ -98,6 +102,38 @@ export default function ProductDetailView({
   compliancePath?: CompliancePath;
   auditLogs: AuditLog[];
 }) {
+  const [product, setProduct] = useState(productProp);
+  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setProduct(productProp);
+  }, [productProp]);
+
+  const handleGenerateImage = () => {
+    startImageGenerationTransition(async () => {
+      try {
+        const updatedProduct = await generateAndSaveProductImage(
+          product.id,
+          user.id,
+        );
+        setProduct(updatedProduct); // Optimistically update the UI
+        toast({
+          title: 'Image Generated',
+          description: 'The new product image has been generated and saved.',
+        });
+        router.refresh(); // Refresh server components to ensure consistency
+      } catch (error: any) {
+        toast({
+          title: 'Image Generation Failed',
+          description: error.message || 'An error occurred.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   const { sustainability } = product;
   const esg = sustainability;
   const aiLifecycle = sustainability?.lifecycleAnalysis;
@@ -190,9 +226,15 @@ export default function ProductDetailView({
                         variant="outline"
                         size="sm"
                         className="w-full mt-2"
+                        onClick={handleGenerateImage}
+                        disabled={isGeneratingImage}
                       >
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Generate Image
+                        {isGeneratingImage ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-2 h-4 w-4" />
+                        )}
+                        {isGeneratingImage ? 'Generating...' : 'Generate Image'}
                       </Button>
                     </div>
                     <div className="md:col-span-2 space-y-3 text-sm">
