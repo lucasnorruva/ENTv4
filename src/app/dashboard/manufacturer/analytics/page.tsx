@@ -1,6 +1,6 @@
 // src/app/dashboard/manufacturer/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers } from '@/lib/auth';
+import { getCurrentUser, getUsersByCompanyId } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
@@ -15,7 +15,7 @@ import {
   Activity,
   BookCopy,
   ShieldCheck,
-  Users,
+  FileEdit,
   Clock,
   Edit,
   FilePlus,
@@ -76,23 +76,16 @@ const generateComplianceRateData = (products: Product[]) => {
 export default async function AnalyticsPage() {
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
 
-  const allowedRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.MANUFACTURER,
-    UserRoles.RECYCLER,
-    UserRoles.SERVICE_PROVIDER,
-    UserRoles.RETAILER,
-  ];
+  const allowedRoles: Role[] = [UserRoles.MANUFACTURER];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, users, auditLogs] = await Promise.all([
+  const [products, companyUsers, auditLogs] = await Promise.all([
     getProducts(user.id),
-    getUsers(),
-    getAuditLogs(),
+    getUsersByCompanyId(user.companyId),
+    getAuditLogs({ companyId: user.companyId }),
   ]);
 
   const complianceData = {
@@ -127,17 +120,20 @@ export default async function AnalyticsPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const complianceRateData = generateComplianceRateData(products);
+  const productsInDraft = products.filter(p => p.status === 'Draft').length;
 
   const recentActivity = auditLogs.slice(0, 5);
   const productMap = new Map(products.map(p => [p.id, p.productName]));
-  const userMap = new Map(users.map(u => [u.id, u.fullName]));
+  const userMap = new Map(companyUsers.map(u => [u.id, u.fullName]));
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">System Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Manufacturer Analytics
+        </h1>
         <p className="text-muted-foreground">
-          An overview of platform activity and key metrics.
+          An overview of your company's product activity and key metrics.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
@@ -148,19 +144,17 @@ export default async function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all suppliers
-            </p>
+            <p className="text-xs text-muted-foreground">Managed by your company</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Products in Draft</CardTitle>
+            <FileEdit className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">All roles included</p>
+            <div className="text-2xl font-bold">{productsInDraft}</div>
+            <p className="text-xs text-muted-foreground">Awaiting completion</p>
           </CardContent>
         </Card>
         <Card>
@@ -173,7 +167,7 @@ export default async function AnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{complianceData.verified}</div>
             <p className="text-xs text-muted-foreground">
-              Successfully anchored on-chain
+              Successfully anchored
             </p>
           </CardContent>
         </Card>
@@ -193,7 +187,9 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Company Audits Today
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -215,7 +211,7 @@ export default async function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
             <CardDescription>
-              A view of new passports being created on the platform.
+              A view of new passports being created by your company.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -226,7 +222,7 @@ export default async function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Compliance Rate Over Time</CardTitle>
             <CardDescription>
-              The percentage of total products that are verified.
+              The percentage of your total products that are verified.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -237,7 +233,7 @@ export default async function AnalyticsPage() {
           <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
             <CardDescription>
-              A snapshot of the current verification status across all products.
+              A snapshot of the current verification status for your products.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -248,7 +244,7 @@ export default async function AnalyticsPage() {
           <CardHeader>
             <CardTitle>End-of-Life Status</CardTitle>
             <CardDescription>
-              A breakdown of the lifecycle status of all products.
+              A breakdown of the lifecycle status of your products.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -258,9 +254,9 @@ export default async function AnalyticsPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Recent Platform Activity</CardTitle>
+          <CardTitle>Recent Company Activity</CardTitle>
           <CardDescription>
-            A stream of the latest actions across the system.
+            A stream of the latest actions from users in your company.
           </CardDescription>
         </CardHeader>
         <CardContent>

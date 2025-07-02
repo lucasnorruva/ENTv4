@@ -79,7 +79,6 @@ export default async function AnalyticsPage() {
   const allowedRoles: Role[] = [
     UserRoles.ADMIN,
     UserRoles.BUSINESS_ANALYST,
-    UserRoles.MANUFACTURER,
     UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
     UserRoles.RETAILER,

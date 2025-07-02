@@ -39,7 +39,7 @@ import {
 } from '@/services/blockchain';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { UserRoles, type Role } from './constants';
-import { getUserById, getCompanyById } from './auth';
+import { getUserById, getCompanyById, getUsersByCompanyId } from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
 
@@ -566,10 +566,21 @@ export async function deleteCompliancePath(
   return Promise.resolve();
 }
 
-export async function getAuditLogs(): Promise<AuditLog[]> {
+export async function getAuditLogs(filters?: {
+  companyId?: string;
+}): Promise<AuditLog[]> {
+  let logs = [...mockAuditLogs];
+
+  if (filters?.companyId) {
+    const companyUsers = await getUsersByCompanyId(filters.companyId);
+    const userIds = new Set(companyUsers.map(u => u.id));
+    logs = logs.filter(log => userIds.has(log.userId));
+  }
+
   return Promise.resolve(
-    mockAuditLogs.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    logs.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     ),
   );
 }

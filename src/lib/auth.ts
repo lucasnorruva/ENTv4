@@ -15,6 +15,16 @@ export async function getUsers(): Promise<User[]> {
 }
 
 /**
+ * Fetches users by their company ID from mock data.
+ * @param companyId The ID of the company.
+ * @returns A promise that resolves to an array of users in that company.
+ */
+export async function getUsersByCompanyId(companyId: string): Promise<User[]> {
+  const users = mockUsers.filter(u => u.companyId === companyId);
+  return Promise.resolve(users);
+}
+
+/**
  * Fetches a user by their ID from mock data.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
