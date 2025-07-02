@@ -1,9 +1,8 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -68,6 +67,8 @@ import { AuditLogTimeline } from './audit-log-timeline';
 import AiSuggestionsWidget from './ai-suggestions-widget';
 import { generateAndSaveProductImage } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from './ui/label';
+import { Input } from './ui/input';
 
 function InfoRow({
   icon: Icon,
@@ -105,12 +106,29 @@ export default function ProductDetailView({
 }) {
   const [product, setProduct] = useState(productProp);
   const [isGeneratingImage, startImageGenerationTransition] = useTransition();
+  const [contextImagePreview, setContextImagePreview] = useState<string | null>(
+    null,
+  );
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     setProduct(productProp);
+    setContextImagePreview(null);
   }, [productProp]);
+
+  const handleContextImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setContextImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleGenerateImage = () => {
     startImageGenerationTransition(async () => {
@@ -118,12 +136,14 @@ export default function ProductDetailView({
         const updatedProduct = await generateAndSaveProductImage(
           product.id,
           user.id,
+          contextImagePreview ?? undefined,
         );
-        setProduct(updatedProduct); // Optimistically update the UI
+        setProduct(updatedProduct);
         toast({
           title: 'Image Generated',
           description: 'The new product image has been generated and saved.',
         });
+        setContextImagePreview(null);
         router.refresh(); // Refresh server components to ensure consistency
       } catch (error: any) {
         toast({
@@ -214,7 +234,7 @@ export default function ProductDetailView({
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="md:col-span-1">
+                    <div className="md:col-span-1 space-y-2">
                       <Image
                         src={product.productImage}
                         alt={product.productName}
@@ -223,10 +243,37 @@ export default function ProductDetailView({
                         className="rounded-lg border object-cover aspect-[3/2]"
                         data-ai-hint="product photo"
                       />
+                      <div className="grid items-center gap-1.5">
+                        <Label
+                          htmlFor="context-image"
+                          className="text-xs text-muted-foreground"
+                        >
+                          Optional: Provide a reference image (e.g., a sketch)
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="context-image"
+                            type="file"
+                            accept="image/*"
+                            className="text-xs h-9"
+                            onChange={handleContextImageChange}
+                            disabled={isGeneratingImage}
+                          />
+                          {contextImagePreview && (
+                            <Image
+                              src={contextImagePreview}
+                              alt="Context image preview"
+                              width={36}
+                              height={36}
+                              className="rounded-md object-cover border"
+                            />
+                          )}
+                        </div>
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="w-full mt-2"
+                        className="w-full"
                         onClick={handleGenerateImage}
                         disabled={isGeneratingImage}
                       >

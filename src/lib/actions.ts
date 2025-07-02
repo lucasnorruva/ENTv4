@@ -316,6 +316,7 @@ export async function recalculateScore(
 export async function generateAndSaveProductImage(
   productId: string,
   userId: string,
+  contextImageDataUri?: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
@@ -338,6 +339,7 @@ export async function generateAndSaveProductImage(
   const { imageUrl } = await generateProductImage({
     productName,
     productDescription,
+    contextImageDataUri,
   });
 
   // Update product in mock data
