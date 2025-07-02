@@ -1,6 +1,7 @@
 // src/app/dashboard/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, hasRole } from '@/lib/auth';
+import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
@@ -13,7 +14,8 @@ import {
 import {
   Activity,
   BookCopy,
-  FileQuestion,
+  FileEdit,
+  Building2,
   ShieldCheck,
   Users,
   Clock,
@@ -31,7 +33,7 @@ import ComplianceOverviewChart from '@/components/charts/compliance-overview-cha
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
+import type { AuditLog, Product, User } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
@@ -54,7 +56,6 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-// Helper to generate mock compliance rate data
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
   const sortedProducts = products.sort(
@@ -73,30 +74,31 @@ const generateComplianceRateData = (products: Product[]) => {
   return data;
 };
 
+const isGlobalScope = (user: User) =>
+  [
+    UserRoles.ADMIN,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.RECYCLER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.RETAILER,
+  ].some(role => hasRole(user, role));
+
 export default async function AnalyticsPage({
   searchParams,
 }: {
   searchParams: { role?: Role };
 }) {
+  // Use a default role if none is provided in the query params
   const selectedRole = searchParams.role || UserRoles.SUPPLIER;
   const user = await getCurrentUser(selectedRole);
+  
+  const isGlobal = isGlobalScope(user);
 
-  const allowedRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.MANUFACTURER,
-    UserRoles.RECYCLER,
-    UserRoles.SERVICE_PROVIDER,
-  ];
-
-  if (!allowedRoles.some(role => hasRole(user, role))) {
-    redirect('/dashboard');
-  }
-
-  const [products, users, auditLogs] = await Promise.all([
+  const [products, users, auditLogs, companies] = await Promise.all([
     getProducts(user.id),
     getUsers(),
-    getAuditLogs(),
+    isGlobal ? getAuditLogs() : getAuditLogs({ companyId: user.companyId }),
+    getCompanies(),
   ]);
 
   const complianceData = {
@@ -113,14 +115,10 @@ export default async function AnalyticsPage({
     disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
   };
 
-  // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
       const date = format(new Date(product.createdAt), 'yyyy-MM-dd');
-      if (!acc[date]) {
-        acc[date] = 0;
-      }
-      acc[date]++;
+      acc[date] = (acc[date] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
@@ -131,7 +129,6 @@ export default async function AnalyticsPage({
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const complianceRateData = generateComplianceRateData(products);
-
   const recentActivity = auditLogs.slice(0, 5);
   const productMap = new Map(products.map(p => [p.id, p.productName]));
   const userMap = new Map(users.map(u => [u.id, u.fullName]));
@@ -139,9 +136,9 @@ export default async function AnalyticsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">System Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{user.roles[0]} Analytics</h1>
         <p className="text-muted-foreground">
-          An overview of platform activity and key metrics.
+          An overview of product activity and key metrics.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
@@ -152,75 +149,83 @@ export default async function AnalyticsPage({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Across all suppliers
-            </p>
+            <p className="text-xs text-muted-foreground">{isGlobal ? "Across all suppliers" : "Managed by your company"}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">All roles included</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Verified Passports
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Verified Passports</CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{complianceData.verified}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully anchored on-chain
-            </p>
+            <p className="text-xs text-muted-foreground">Successfully anchored</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Products Recycled
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Products Recycled</CardTitle>
             <Recycle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{eolData.recycled}</div>
-            <p className="text-xs text-muted-foreground">
-              Marked as end-of-life
-            </p>
+            <p className="text-xs text-muted-foreground">Marked as end-of-life</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                auditLogs.filter(
-                  log =>
-                    new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes('passport.'),
-                ).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">In the last 24h</p>
-          </CardContent>
-        </Card>
+        { isGlobal ? (
+          <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{users.length}</div>
+                <p className="text-xs text-muted-foreground">All roles included</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Suppliers</CardTitle>
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{companies.length}</div>
+                <p className="text-xs text-muted-foreground">On the platform</p>
+              </CardContent>
+            </Card>
+          </>
+        ) : (
+           <>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Products in Draft</CardTitle>
+                <FileEdit className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{products.filter(p => p.status === 'Draft').length}</div>
+                <p className="text-xs text-muted-foreground">Awaiting completion</p>
+              </CardContent>
+            </Card>
+             <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{auditLogs.filter(log => new Date(log.createdAt) > subDays(new Date(), 1)).length}</div>
+                <p className="text-xs text-muted-foreground">In the last 24h</p>
+              </CardContent>
+            </Card>
+           </>
+        )}
+
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
-            <CardDescription>
-              A view of new passports being created on the platform.
-            </CardDescription>
+            <CardDescription>A view of new passports being created on the platform.</CardDescription>
           </CardHeader>
           <CardContent>
             <ProductsOverTimeChart data={productsOverTimeData} />
@@ -229,9 +234,7 @@ export default async function AnalyticsPage({
         <Card>
           <CardHeader>
             <CardTitle>Compliance Rate Over Time</CardTitle>
-            <CardDescription>
-              The percentage of total products that are verified.
-            </CardDescription>
+            <CardDescription>The percentage of total products that are verified.</CardDescription>
           </CardHeader>
           <CardContent>
             <ComplianceRateChart data={complianceRateData} />
@@ -240,9 +243,7 @@ export default async function AnalyticsPage({
         <Card>
           <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
-            <CardDescription>
-              A snapshot of the current verification status across all products.
-            </CardDescription>
+            <CardDescription>A snapshot of the current verification status across all products.</CardDescription>
           </CardHeader>
           <CardContent>
             <ComplianceOverviewChart data={complianceData} />
@@ -251,9 +252,7 @@ export default async function AnalyticsPage({
         <Card>
           <CardHeader>
             <CardTitle>End-of-Life Status</CardTitle>
-            <CardDescription>
-              A breakdown of the lifecycle status of all products.
-            </CardDescription>
+            <CardDescription>A breakdown of the lifecycle status of all products.</CardDescription>
           </CardHeader>
           <CardContent>
             <EolStatusChart data={eolData} />
@@ -262,10 +261,8 @@ export default async function AnalyticsPage({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Recent Platform Activity</CardTitle>
-          <CardDescription>
-            A stream of the latest actions across the system.
-          </CardDescription>
+          <CardTitle>Recent Activity</CardTitle>
+          <CardDescription>A stream of the latest actions across the system.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -282,21 +279,12 @@ export default async function AnalyticsPage({
                   <div className="flex-1">
                     <p className="text-sm font-medium">
                       {actionLabel}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        by {user}
-                      </span>
+                      <span className="font-normal text-muted-foreground">by {user}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Product: {product}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Product: {product}</p>
                   </div>
-                  <p
-                    className="text-xs text-muted-foreground shrink-0"
-                    suppressHydrationWarning
-                  >
-                    {formatDistanceToNow(new Date(log.createdAt), {
-                      addSuffix: true,
-                    })}
+                  <p className="text-xs text-muted-foreground shrink-0" suppressHydrationWarning>
+                    {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
                   </p>
                 </div>
               );
