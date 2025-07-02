@@ -52,6 +52,7 @@ import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';
 import type { AiProduct } from './ai/schemas';
 import { checkPermission, PermissionError } from './permissions';
+import { adminAuth } from './firebase-admin';
 
 // MOCK DATA IMPORTS
 import { products as mockProducts } from './data';
@@ -1237,4 +1238,48 @@ export async function getUserByEmail(
   email: string,
 ): Promise<User | undefined> {
   return authGetUserByEmail(email);
+}
+
+export async function signInWithMockUser(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  // Find user in our mock database
+  const user = mockUsers.find(u => u.email === email);
+  if (!user) {
+    return { success: false, error: 'User not found.' };
+  }
+
+  // For mock users, the password is 'password123'
+  if (password !== 'password123') {
+    return { success: false, error: 'Invalid password for mock user.' };
+  }
+
+  // If user is found and password is correct, ensure user exists in Auth emulator and get custom token.
+  try {
+    // Check if user exists in Auth, if not create them.
+    try {
+      await adminAuth.getUser(user.id);
+    } catch (error: any) {
+      if (error.code === 'auth/user-not-found') {
+        console.log(`Creating mock user in Auth emulator: ${user.email}`);
+        await adminAuth.createUser({
+          uid: user.id,
+          email: user.email,
+          password: password,
+          displayName: user.fullName,
+          emailVerified: true,
+        });
+      } else {
+        throw error; // Rethrow other admin errors
+      }
+    }
+
+    // Now that user exists, create a custom token for them to sign in on the client
+    const customToken = await adminAuth.createCustomToken(user.id);
+    return { success: true, token: customToken };
+  } catch (e: any) {
+    console.error('Error during mock sign in:', e);
+    return { success: false, error: 'Server error during sign in.' };
+  }
 }
