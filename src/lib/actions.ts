@@ -607,10 +607,10 @@ export async function suggestImprovements(input: {
   return await suggestImprovementsFlow(input);
 }
 
-export async function generateConformityDeclarationText(
+export async function generateAndSaveConformityDeclaration(
   productId: string,
   userId: string,
-): Promise<string> {
+): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   const product = await getProductById(productId, userId);
@@ -625,8 +625,22 @@ export async function generateConformityDeclarationText(
     companyName: company.name,
   });
 
-  await logAuditEvent('doc.generated', productId, {}, userId);
-  return declarationText;
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    declarationOfConformity: declarationText,
+    lastUpdated: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent(
+    'doc.generated',
+    productId,
+    { type: 'Declaration of Conformity' },
+    userId,
+  );
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
 }
 
 export async function analyzeBillOfMaterials(bomText: string) {
@@ -670,7 +684,12 @@ export async function bulkCreateProducts(
       updatedAt: now,
       lastUpdated: now,
     });
-    logAuditEvent('product.created', docRef.id, { source: 'bulk_import' }, userId);
+    logAuditEvent(
+      'product.created',
+      docRef.id,
+      { source: 'bulk_import' },
+      userId,
+    );
   });
 
   await batch.commit();

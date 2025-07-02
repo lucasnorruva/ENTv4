@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
 import {
   FilePenLine,
   Leaf,
@@ -309,19 +310,6 @@ export default function ProductDetailView({
                         label="Manufacturer"
                         value={product.supplier}
                       />
-                      {product.conformityDocUrl && (
-                        <InfoRow icon={FileText} label="Declaration of Conformity">
-                          <Link
-                            href={product.conformityDocUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline text-sm flex items-center gap-1"
-                          >
-                            View Document
-                            <LinkIcon className="h-3 w-3" />
-                          </Link>
-                        </InfoRow>
-                      )}
                     </div>
                   </div>
                   <Accordion
@@ -514,6 +502,18 @@ export default function ProductDetailView({
                       sustainability?.complianceSummary || 'Awaiting review.'
                     }
                   />
+
+                  {product.declarationOfConformity && (
+                    <InfoRow icon={FileText} label="Generated Declaration of Conformity">
+                      <Card className="mt-2 bg-muted/50">
+                        <CardContent className="p-4 prose prose-sm dark:prose-invert max-w-none text-xs">
+                          <ReactMarkdown>
+                            {product.declarationOfConformity}
+                          </ReactMarkdown>
+                        </CardContent>
+                      </Card>
+                    </InfoRow>
+                  )}
 
                   <Accordion
                     type="single"

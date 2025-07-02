@@ -74,11 +74,11 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  conformityDocUrl: z.string().url().optional().or(z.literal('')),
   category: z.string().min(1, 'Category is required.'),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
+  declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),

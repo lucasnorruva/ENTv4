@@ -129,19 +129,6 @@ export default function GeneralTab({
       />
       <FormField
         control={form.control}
-        name="conformityDocUrl"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Declaration of Conformity URL</FormLabel>
-            <FormControl>
-              <Input placeholder="https://example.com/doc.pdf" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
         name="category"
         render={({ field }) => (
           <FormItem>
