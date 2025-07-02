@@ -61,6 +61,8 @@ import {
 
 import DppQrCodeWidget from './dpp-qr-code-widget';
 import DppCompletenessWidget from './dpp-completeness-widget';
+import { AuditLogTimeline } from './audit-log-timeline';
+import AiSuggestionsWidget from './ai-suggestions-widget';
 
 function InfoRow({
   icon: Icon,
@@ -89,10 +91,12 @@ export default function ProductDetailView({
   product,
   user,
   compliancePath,
+  auditLogs,
 }: {
   product: Product;
   user: User;
   compliancePath?: CompliancePath;
+  auditLogs: any[];
 }) {
   const { sustainability } = product;
   const esg = sustainability;
@@ -163,7 +167,7 @@ export default function ProductDetailView({
               <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-              <TabsTrigger value="log">Verification Log</TabsTrigger>
+              <TabsTrigger value="log">Audit Log</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-4">
@@ -622,19 +626,13 @@ export default function ProductDetailView({
             </TabsContent>
 
             <TabsContent value="log" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Verification Log</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>Log details coming soon.</p>
-                </CardContent>
-              </Card>
+              <AuditLogTimeline logs={auditLogs} />
             </TabsContent>
           </Tabs>
         </div>
         <div className="space-y-6">
           <DppQrCodeWidget productId={product.id} />
+          <AiSuggestionsWidget product={product} />
           <DppCompletenessWidget product={product} />
         </div>
       </div>

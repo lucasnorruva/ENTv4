@@ -8,6 +8,7 @@ import { z } from 'zod';
  * necessary for AI analysis.
  */
 export const AiProductSchema = z.object({
+  gtin: z.string().optional().describe('The Global Trade Item Number (GTIN) of the product.'),
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A description of the product.'),
   category: z.string().describe('The product category.'),

@@ -92,9 +92,36 @@ export let products: Product[] = [
       complianceSummary:
         'Product is compliant with all known rules for its category.',
       gaps: [],
+      classification: {
+        esgCategory: 'Circular Design',
+        riskScore: 2,
+      },
+      lifecycleAnalysis: {
+        carbonFootprint: {
+          value: 15.5,
+          unit: 'kg CO2-eq',
+          summary:
+            'Estimated based on recycled aluminum body and typical electronics manufacturing in Germany.',
+        },
+        lifecycleStages: {
+          manufacturing:
+            'The highest impact comes from manufacturing the display and battery. Use of recycled aluminum significantly reduces this.',
+          usePhase:
+            'Energy consumption is low due to an efficient ARM-based processor. Impact primarily depends on user charging habits.',
+          endOfLife:
+            'High recyclability potential if disassembled correctly. The non-removable battery poses a challenge.',
+        },
+        highestImpactStage: 'Manufacturing',
+        improvementOpportunities: [
+          'Implement a take-back program for battery replacement and recycling.',
+          'Source display manufacturing from facilities powered by renewable energy.',
+          'Offer a version with a bio-based polymer band instead of fluoroelastomer.',
+        ],
+      },
     },
     endOfLifeStatus: 'Active',
     dataQualityWarnings: [],
+    completenessScore: 95,
   },
   {
     id: 'pp-002',
@@ -165,11 +192,12 @@ export let products: Product[] = [
           'Material percentages add up to 80%. Consider adding battery weight to composition.',
       },
     ],
+    completenessScore: 70,
   },
   {
     id: 'pp-003',
     companyId: 'comp-02',
-    gtin: '0555666777888',
+    gtin: '05556667778882',
     productName: 'Organic Cotton T-Shirt',
     productDescription:
       'A soft, breathable t-shirt made from 100% GOTS-certified organic cotton, ethically produced in a fair trade factory.',
@@ -216,11 +244,12 @@ export let products: Product[] = [
     },
     endOfLifeStatus: 'Active',
     dataQualityWarnings: [],
+    completenessScore: 80,
   },
   {
     id: 'pp-004',
     companyId: 'comp-02',
-    gtin: '0444333222111',
+    gtin: '04443332221115',
     productName: 'Recycled Polyester Jacket',
     productDescription:
       'A lightweight, water-resistant jacket made from recycled plastic bottles. Not compliant with the GOTS fashion path.',
@@ -272,11 +301,12 @@ export let products: Product[] = [
           'The product category is "Fashion" but it contains "Polyester". While common, this material is banned by the selected compliance path.',
       },
     ],
+    completenessScore: 85,
   },
   {
     id: 'pp-005',
     companyId: 'comp-03',
-    gtin: '0112233445566',
+    gtin: '01122334455667',
     productName: 'Modular Shelving Unit',
     productDescription:
       'A versatile shelving unit made from sustainably sourced bamboo and powder-coated steel.',
@@ -322,11 +352,12 @@ export let products: Product[] = [
     },
     endOfLifeStatus: 'Disposed',
     dataQualityWarnings: [],
+    completenessScore: 100,
   },
   {
     id: 'pp-006',
     companyId: 'comp-03',
-    gtin: '0888777666555',
+    gtin: '08887776665551',
     productName: 'Smart Nutrient Tracker Bottle',
     productDescription:
       'A smart water bottle that tracks your hydration and nutrient intake via a connected app. Made with food-grade stainless steel.',
@@ -371,11 +402,12 @@ export let products: Product[] = [
     },
     endOfLifeStatus: 'Active',
     dataQualityWarnings: [],
+    completenessScore: 90,
   },
   {
     id: 'pp-007',
     companyId: 'comp-02',
-    gtin: '0999888777666',
+    gtin: '09998887776668',
     productName: 'Artisan Leather Hiking Boots',
     productDescription:
       'Durable, handcrafted hiking boots made from responsibly sourced full-grain leather and natural rubber outsoles.',
@@ -422,5 +454,6 @@ export let products: Product[] = [
     },
     endOfLifeStatus: 'Active',
     dataQualityWarnings: [],
+    completenessScore: 100,
   },
 ];

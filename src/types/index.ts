@@ -70,13 +70,15 @@ export interface Lifecycle {
   carbonFootprintMethod?: string;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
+  energyEfficiencyClass?: string;
+  recyclingInstructions?: string;
 }
 
 export interface Battery {
-  type: string;
+  type?: string;
   capacityMah?: number;
   voltage?: number;
-  isRemovable: boolean;
+  isRemovable?: boolean;
 }
 
 export interface Compliance {
@@ -84,6 +86,14 @@ export interface Compliance {
   rohsExemption?: string;
   reachSVHC?: boolean;
   scipReference?: string;
+  weeeRegistered?: boolean;
+  weeeRegistrationNumber?: string;
+  prop65WarningRequired?: boolean;
+  eudrCompliant?: boolean;
+  eudrDiligenceId?: string;
+  ceMarked?: boolean;
+  foodContactSafe?: boolean;
+  foodContactComplianceStandard?: string;
 }
 
 export interface ComplianceGap {
@@ -107,6 +117,7 @@ export interface SustainabilityData extends EsgScoreOutput {
  */
 export interface Product extends BaseEntity {
   companyId: string; // Foreign key to the Company
+  gtin?: string;
   productName: string;
   productDescription: string;
   productImage: string;
@@ -116,6 +127,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
+  conformityDocUrl?: string;
 
   // Structured Data Fields
   materials: Material[];
@@ -130,6 +142,7 @@ export interface Product extends BaseEntity {
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
+  completenessScore?: number;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
@@ -200,6 +213,16 @@ export interface ApiKey extends BaseEntity {
   status: 'Active' | 'Revoked';
   userId: string;
   lastUsed?: string;
+}
+
+/**
+ * Represents a configurable webhook endpoint for integrations.
+ */
+export interface Webhook extends BaseEntity {
+  url: string;
+  events: string[]; // e.g., ['product.published', 'product.updated']
+  status: 'active' | 'inactive';
+  userId: string;
 }
 
 /**
