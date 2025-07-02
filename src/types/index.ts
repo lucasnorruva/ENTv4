@@ -213,6 +213,7 @@ export interface ApiKey extends BaseEntity {
   token: string; // This is a truncated, non-sensitive version for display
   status: 'Active' | 'Revoked';
   userId: string;
+  scopes: string[];
   lastUsed?: string;
 }
 
