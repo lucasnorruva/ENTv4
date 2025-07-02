@@ -1,27 +1,23 @@
 # Norruva: Digital Product Passport Platform
 
-Norruva is an enterprise-grade platform for creating, managing, and verifying Digital Product Passports (DPPs). It's designed to help businesses drive transparency, ensure compliance with global regulations, and build unshakable customer trust.
+The Norruva platform is an enterprise-grade, blockchain-anchored DPP-as-a-Service solution. Built for global scale and EU compliance, our platform enables manufacturers, brands, and supply chain partners to create, manage, and verify digital product passports with robust security and consumer-friendly accessibility.
 
-This project is built with Next.js, Firebase, and Genkit AI.
+## Vision
+To democratize sustainability and compliance by providing the world's most robust, scalable, and interoperable Digital Product Passport infrastructure — enabling every product to carry its complete digital identity from cradle to grave while creating new circular economy opportunities.
 
 ## Key Features
 
--   **Digital Product Passport Management**: Full CRUD functionality for creating and managing DPPs for any product.
--   **AI-Powered Insights**: Leverages Google's Gemini models via Genkit for:
-    -   Automated ESG (Environmental, Social, Governance) scoring.
-    -   Regulatory compliance gap analysis.
-    -   Product lifecycle analysis.
-    -   Consumer-friendly summary generation.
--   **Blockchain Anchoring**: Secures product data hashes on the Polygon blockchain for immutable proof of authenticity, with a design that's ready for EBSI integration.
--   **Comprehensive Compliance Matrix**: In-built knowledge of 75+ global standards like ESPR, RoHS, REACH, and more, with automated checks.
--   **Role-Based Access Control (RBAC)**: A multi-tenant system with distinct dashboards and permissions for various roles like Suppliers, Auditors, Compliance Managers, and more.
--   **Developer-Friendly API**: A REST API and webhook system for seamless integration with external ERPs, supply chain software, or e-commerce platforms.
+-   **AI-Powered Intelligence**: Leverage Google's Gemini models via Genkit for automated compliance checking against 75+ regulations, dynamic ESG scoring, supply chain risk assessment, and auto-generation of product descriptions and compliance summaries.
+-   **Enterprise Security**: Built on a zero-trust architecture with end-to-end encryption. All data integrity is secured via blockchain anchoring for immutable proof of authenticity.
+-   **Role-Based Access Control (RBAC)**: A multi-tenant system with distinct dashboards and granular permissions for various roles like Suppliers, Auditors, Compliance Managers, and more.
+-   **Seamless Integration**: A developer-friendly REST API, webhook system for real-time notifications, and connectors for integration with external ERPs, supply chain software, or e-commerce platforms.
 
 ## Tech Stack
 
 -   **Framework**: [Next.js](https://nextjs.org/) (with App Router)
 -   **Backend**: Local Mock Data (for development), [Firebase](https://firebase.google.com/) (for production)
--   **AI Integration**: [Genkit](https://firebase.google.com/docs/genkit)
+-   **AI & Machine Learning**: [Genkit](https://firebase.google.com/docs/genkit) for leveraging Google Gemini models for content analysis and enrichment.
+-   **Blockchain & Trust Layer**: [Polygon](https://polygon.technology/) for low-cost, energy-efficient Ethereum Layer 2 anchoring and smart contracts for immutable verification.
 -   **UI**: [React](https://reactjs.org/), [ShadCN UI](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
 -   **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/)
 
@@ -104,15 +100,17 @@ The platform includes a testing suite using Jest.
     ```bash
     npm run test:ci
     ```
+    
+## Contributing
+We welcome contributions! Please see our [Contributor Guidelines](./docs/contributing.md) for more details on our branching strategy, coding standards, and pull request process.
 
 ## Documentation
+This project includes detailed architectural and design documentation. You can find more information in the `/docs` directory, including:
 
-This project includes detailed architectural and design documentation. You can find more information in the `/docs` directory:
-
--   [`docs/ai-prompt-design.md`](./docs/ai-prompt-design.md): Guidelines for engineering effective prompts for the AI modules.
+-   [`docs/platform-architecture.md`](./docs/platform-architecture.md): High-level overview of the system architecture.
 -   [`docs/api.md`](./docs/api.md): REST API and webhook specifications.
--   [`docs/blockchain.md`](./docs/blockchain.md): Details on the blockchain anchoring strategy and smart contract design.
--   [`docs/compliance-matrix.md`](./docs/compliance-matrix.md): A comprehensive list of supported regulations and standards.
--   [`docs/roles.md`](./docs/roles.md): An overview of user roles and their responsibilities.
--   [`docs/versioning.md`](./docs/versioning.md): The platform's versioning strategy and release process.
-```
+-   [`docs/blockchain.md`](./docs/blockchain.md): Details on the blockchain anchoring strategy.
+-   [`docs/compliance-matrix.md`](./docs/compliance-matrix.md): A list of supported regulations.
+
+## License
+This project is licensed under the MIT License - see the LICENSE file for details.
