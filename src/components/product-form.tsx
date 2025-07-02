@@ -457,189 +457,200 @@ export default function ProductForm({
                     />
                   </TabsContent>
 
-                  <TabsContent value="data" className="p-6 space-y-6">
-                    <h3 className="text-lg font-semibold">Manufacturing</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="manufacturing.facility"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Facility</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="e.g. CleanEnergy Factory"
-                                {...field}
+                  <TabsContent value="data" className="p-6">
+                    <Accordion type="multiple" defaultValue={['manufacturing', 'materials']} className="w-full space-y-4">
+                      <AccordionItem value="manufacturing" className="border p-4 rounded-lg">
+                         <AccordionTrigger>
+                            <h3 className="text-lg font-semibold">Manufacturing</h3>
+                          </AccordionTrigger>
+                         <AccordionContent className="pt-4 space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="manufacturing.facility"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Facility</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        placeholder="e.g. CleanEnergy Factory"
+                                        {...field}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
                               />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="manufacturing.country"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Country</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g. Germany" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <Separator />
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">Materials</h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            appendMaterial({
-                              name: '',
-                              percentage: 0,
-                              recycledContent: 0,
-                              origin: '',
-                            })
-                          }
-                        >
-                          <Plus className="mr-2 h-4 w-4" /> Add Material
-                        </Button>
-                      </div>
-                      <div className="space-y-4">
-                        {materialFields.map((field, index) => (
-                          <div
-                            key={field.id}
-                            className="grid grid-cols-4 gap-2 items-start border p-4 rounded-md relative"
-                          >
-                            <FormItem className="col-span-4">
-                              <FormLabel>Material Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...form.register(`materials.${index}.name`)}
-                                  placeholder="e.g. Recycled Aluminum"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <FormItem>
-                              <FormLabel>Percentage</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...form.register(
-                                    `materials.${index}.percentage`,
-                                    { valueAsNumber: true },
-                                  )}
-                                  placeholder="e.g. 60"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <FormItem>
-                              <FormLabel>Recycled %</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  {...form.register(
-                                    `materials.${index}.recycledContent`,
-                                    { valueAsNumber: true },
-                                  )}
-                                  placeholder="e.g. 100"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <FormItem>
-                              <FormLabel>Origin</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...form.register(
-                                    `materials.${index}.origin`,
-                                  )}
-                                  placeholder="e.g. Germany"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute top-2 right-2"
-                              onClick={() => removeMaterial(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <Separator />
-                    <div>
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">
-                          Certifications
-                        </h3>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => appendCert({ name: '', issuer: '' })}
-                        >
-                          <Plus className="mr-2 h-4 w-4" /> Add Certificate
-                        </Button>
-                      </div>
-                      <div className="space-y-4">
-                        {certFields.map((field, index) => (
-                          <div
-                            key={field.id}
-                            className="grid grid-cols-2 gap-2 border p-4 rounded-md relative"
-                          >
-                            <FormItem>
-                              <FormLabel>Certificate Name</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...form.register(
-                                    `certifications.${index}.name`,
-                                  )}
-                                  placeholder="e.g. EcoCert"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <FormItem>
-                              <FormLabel>Issuer</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...form.register(
-                                    `certifications.${index}.issuer`,
-                                  )}
-                                  placeholder="e.g. EcoCert Group"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="absolute top-2 right-2"
-                              onClick={() => removeCert(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <Separator />
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="battery">
+                              <FormField
+                                control={form.control}
+                                name="manufacturing.country"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Country</FormLabel>
+                                    <FormControl>
+                                      <Input placeholder="e.g. Germany" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                         </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="materials" className="border p-4 rounded-lg">
+                        <AccordionTrigger>
+                          <h3 className="text-lg font-semibold">Materials</h3>
+                        </AccordionTrigger>
+                        <AccordionContent className="pt-4">
+                           <div className="flex justify-between items-center mb-4">
+                              <p className="text-sm text-muted-foreground">List all materials in the product.</p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  appendMaterial({
+                                    name: '',
+                                    percentage: 0,
+                                    recycledContent: 0,
+                                    origin: '',
+                                  })
+                                }
+                              >
+                                <Plus className="mr-2 h-4 w-4" /> Add Material
+                              </Button>
+                            </div>
+                            <div className="space-y-4">
+                              {materialFields.map((field, index) => (
+                                <div
+                                  key={field.id}
+                                  className="grid grid-cols-4 gap-2 items-start border p-4 rounded-md relative"
+                                >
+                                  <FormItem className="col-span-4">
+                                    <FormLabel>Material Name</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...form.register(`materials.${index}.name`)}
+                                        placeholder="e.g. Recycled Aluminum"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <FormItem>
+                                    <FormLabel>Percentage</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        {...form.register(
+                                          `materials.${index}.percentage`,
+                                          { valueAsNumber: true },
+                                        )}
+                                        placeholder="e.g. 60"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <FormItem>
+                                    <FormLabel>Recycled %</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        type="number"
+                                        {...form.register(
+                                          `materials.${index}.recycledContent`,
+                                          { valueAsNumber: true },
+                                        )}
+                                        placeholder="e.g. 100"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <FormItem>
+                                    <FormLabel>Origin</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...form.register(
+                                          `materials.${index}.origin`,
+                                        )}
+                                        placeholder="e.g. Germany"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => removeMaterial(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="certifications" className="border p-4 rounded-lg">
+                         <AccordionTrigger>
+                           <h3 className="text-lg font-semibold">Certifications</h3>
+                         </AccordionTrigger>
+                         <AccordionContent className="pt-4">
+                            <div className="flex justify-between items-center mb-4">
+                              <p className="text-sm text-muted-foreground">List relevant product or company certifications.</p>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => appendCert({ name: '', issuer: '' })}
+                              >
+                                <Plus className="mr-2 h-4 w-4" /> Add Certificate
+                              </Button>
+                            </div>
+                            <div className="space-y-4">
+                              {certFields.map((field, index) => (
+                                <div
+                                  key={field.id}
+                                  className="grid grid-cols-2 gap-2 border p-4 rounded-md relative"
+                                >
+                                  <FormItem>
+                                    <FormLabel>Certificate Name</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...form.register(
+                                          `certifications.${index}.name`,
+                                        )}
+                                        placeholder="e.g. EcoCert"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <FormItem>
+                                    <FormLabel>Issuer</FormLabel>
+                                    <FormControl>
+                                      <Input
+                                        {...form.register(
+                                          `certifications.${index}.issuer`,
+                                        )}
+                                        placeholder="e.g. EcoCert Group"
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-2 right-2"
+                                    onClick={() => removeCert(index)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                         </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="battery" className="border p-4 rounded-lg">
                         <AccordionTrigger>
                           <h3 className="text-lg font-semibold flex items-center gap-2">
                             <BatteryCharging />
