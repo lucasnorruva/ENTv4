@@ -71,12 +71,12 @@ export default function ApiSettingsClient({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>General API Configuration</CardTitle>
+            <CardTitle>General API Availability</CardTitle>
             <CardDescription>
-              Manage the availability and rate limits for the public API.
+              Manage the overall availability of the public API.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent>
             <FormField
               control={form.control}
               name="isPublicApiEnabled"
@@ -98,27 +98,74 @@ export default function ApiSettingsClient({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="rateLimitPerMinute"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rate Limit (Requests per Minute)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      className="max-w-xs"
-                      onChange={event => field.onChange(+event.target.value)}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Set the maximum number of requests a single IP can make per
-                    minute.
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>API Rate Limiting</CardTitle>
+            <CardDescription>
+              Set the maximum number of requests per minute for different API
+              tiers.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <FormField
+                control={form.control}
+                name="rateLimits.free"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Free Tier</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={event =>
+                          field.onChange(+event.target.value)
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rateLimits.pro"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Pro Tier</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={event =>
+                          field.onChange(+event.target.value)
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="rateLimits.enterprise"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Enterprise Tier</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={event =>
+                          field.onChange(+event.target.value)
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
 

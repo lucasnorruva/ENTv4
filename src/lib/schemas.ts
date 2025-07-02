@@ -117,7 +117,11 @@ export type CompliancePathFormValues = z.infer<
 
 export const apiSettingsSchema = z.object({
   isPublicApiEnabled: z.boolean(),
-  rateLimitPerMinute: z.coerce.number().int().min(0),
+  rateLimits: z.object({
+    free: z.coerce.number().int().min(0),
+    pro: z.coerce.number().int().min(0),
+    enterprise: z.coerce.number().int().min(0),
+  }),
   isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;

@@ -230,6 +230,10 @@ export interface Webhook extends BaseEntity {
  */
 export interface ApiSettings {
   isPublicApiEnabled: boolean;
-  rateLimitPerMinute: number;
+  rateLimits: {
+    free: number;
+    pro: number;
+    enterprise: number;
+  };
   isWebhookSigningEnabled: boolean;
 }

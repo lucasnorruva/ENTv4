@@ -3,6 +3,10 @@ import type { ApiSettings } from '@/types';
 
 export let apiSettings: ApiSettings = {
   isPublicApiEnabled: true,
-  rateLimitPerMinute: 100,
+  rateLimits: {
+    free: 100,
+    pro: 1000,
+    enterprise: 10000,
+  },
   isWebhookSigningEnabled: true,
 };
