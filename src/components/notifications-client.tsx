@@ -1,7 +1,7 @@
 // src/components/notifications-client.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Bell,
@@ -16,6 +16,7 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Loader2,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -29,8 +30,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import type { ProcessedNotification } from './notifications-panel';
-import { markAllNotificationsAsRead } from '@/lib/actions';
+import type { User, AuditLog, Product } from '@/types';
+import {
+  markAllNotificationsAsRead,
+  getAuditLogs,
+  getProducts,
+  getUsers,
+} from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
 const actionIcons: Record<string, React.ElementType> = {
@@ -46,28 +52,96 @@ const actionIcons: Record<string, React.ElementType> = {
   default: Clock,
 };
 
-interface NotificationsClientProps {
-  initialNotifications: ProcessedNotification[];
-  userId: string;
+const getActionLabel = (action: string): string => {
+  return action
+    .split('.')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+export interface ProcessedNotification {
+  id: string;
+  action: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  isRead: boolean;
 }
 
-export default function NotificationsClient({
-  initialNotifications,
-  userId,
-}: NotificationsClientProps) {
+interface NotificationsClientProps {
+  user: User;
+}
+
+export default function NotificationsClient({ user }: NotificationsClientProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
-  const [notifications, setNotifications] = useState(initialNotifications);
+  const [notifications, setNotifications] = useState<ProcessedNotification[]>(
+    [],
+  );
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      setIsLoading(true);
+      try {
+        const [logs, products, allUsers] = await Promise.all([
+          getAuditLogs({ companyId: user.companyId }),
+          getProducts(user.id),
+          getUsers(),
+        ]);
+
+        const productMap = new Map(products.map(p => [p.id, p.productName]));
+        const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
+
+        // Limit to recent logs
+        const recentLogs = logs.slice(0, 5);
+
+        const processedNotifications: ProcessedNotification[] = recentLogs.map(
+          log => {
+            const logUser = userMap.get(log.userId) || 'System';
+            const product = productMap.get(log.entityId);
+            const title = getActionLabel(log.action);
+            let description = `By ${logUser}`;
+            if (product) {
+              description += ` on "${product}"`;
+            }
+
+            const isRead = user.readNotificationIds?.includes(log.id) ?? false;
+
+            return {
+              id: log.id,
+              action: log.action,
+              title,
+              description,
+              createdAt: log.createdAt,
+              isRead,
+            };
+          },
+        );
+        setNotifications(processedNotifications);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load notifications.',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchNotifications();
+  }, [user.id, user.companyId, user.readNotificationIds, toast]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleOpenChange = (open: boolean) => {
     if (open && unreadCount > 0) {
       startTransition(async () => {
+        const previousNotifications = notifications;
         // Optimistic update
         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         try {
-          await markAllNotificationsAsRead(userId);
+          await markAllNotificationsAsRead(user.id);
         } catch (error) {
           toast({
             title: 'Error',
@@ -75,7 +149,7 @@ export default function NotificationsClient({
             variant: 'destructive',
           });
           // Rollback on error
-          setNotifications(initialNotifications);
+          setNotifications(previousNotifications);
         }
       });
     }
@@ -99,7 +173,11 @@ export default function NotificationsClient({
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {notifications.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center p-4">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : notifications.length > 0 ? (
           notifications.map(notification => {
             const Icon =
               actionIcons[notification.action] || actionIcons.default;
