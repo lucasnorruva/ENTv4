@@ -50,6 +50,45 @@ Creates a new product passport.
     }
     ```
 
+#### `GET /api/v1/products/{id}`
+
+Retrieves a single product passport by its ID.
+
+-   **Method**: `GET`
+-   **Success Response**: `200 OK`
+    ```json
+    {
+      "id": "pp-001",
+      "productName": "Eco-Friendly Smart Watch",
+      "..."
+    }
+    ```
+-   **Error Response**: `404 Not Found` if product doesn't exist or you don't have access.
+
+#### `PUT /api/v1/products/{id}`
+
+Updates an existing product passport. The provided body should contain only the fields to be updated.
+
+-   **Method**: `PUT`
+-   **Body**: Partial `Product` object with fields to update.
+-   **Success Response**: `200 OK`
+    ```json
+    {
+      "id": "pp-001",
+      "productName": "Updated Smart Watch Name",
+      "..."
+    }
+    ```
+-   **Error Response**: `400 Bad Request` if data is invalid, `404 Not Found` if product doesn't exist.
+
+#### `DELETE /api/v1/products/{id}`
+
+Deletes a product passport.
+
+-   **Method**: `DELETE`
+-   **Success Response**: `204 No Content`
+-   **Error Response**: `404 Not Found` if product doesn't exist.
+
 ### Compliance
 
 #### `POST /api/v1/compliance/check/{productId}`
