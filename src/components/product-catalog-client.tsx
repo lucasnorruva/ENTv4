@@ -10,16 +10,33 @@ import { Loader2, Search, ShoppingBag } from 'lucide-react';
 import ProductCard from './product-card';
 import { useSearchParams } from 'next/navigation';
 
+// Debounce hook to delay fetching data while user is typing
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 interface ProductCatalogClientProps {
   user: User;
 }
 
 const getRoleSlug = (role: string) => role.toLowerCase().replace(/ /g, '-');
 
-export default function ProductCatalogClient({ user }: ProductCatalogClientProps) {
+export default function ProductCatalogClient({
+  user,
+}: ProductCatalogClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const roleSlug = getRoleSlug(user.roles[0]);
@@ -33,8 +50,10 @@ export default function ProductCatalogClient({ user }: ProductCatalogClientProps
 
   useEffect(() => {
     setIsLoading(true);
-    getProducts(user.id)
+    getProducts(user.id, { searchQuery: debouncedSearchTerm })
       .then(data => {
+        // The filtering to 'Published' is now handled by the server action for public queries,
+        // but we keep it here as a safeguard for authenticated roles like retailer.
         setProducts(data.filter(p => p.status === 'Published'));
       })
       .catch(() => {
@@ -47,37 +66,35 @@ export default function ProductCatalogClient({ user }: ProductCatalogClientProps
       .finally(() => {
         setIsLoading(false);
       });
-  }, [user.id, toast]);
-
-  const filteredProducts = products.filter(product =>
-    product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.supplier.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  }, [user.id, debouncedSearchTerm, toast]);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
-           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-           <Input
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
             type="text"
-            placeholder="Search by product name, supplier, or category..."
+            placeholder="Search by product name, supplier, GTIN, or category..."
             className="w-full pl-10"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
         </div>
-      ) : filteredProducts.length > 0 ? (
+      ) : products.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map(product => (
-            <ProductCard key={product.id} product={product} roleSlug={roleSlug} />
+          {products.map(product => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              roleSlug={roleSlug}
+            />
           ))}
         </div>
       ) : (

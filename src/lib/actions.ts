@@ -180,29 +180,50 @@ export async function replayWebhook(
 
 // --- PRODUCT ACTIONS ---
 
-export async function getProducts(userId?: string): Promise<Product[]> {
-  if (!userId) {
-    return Promise.resolve(mockProducts);
+export async function getProducts(
+  userId?: string,
+  filters?: { searchQuery?: string },
+): Promise<Product[]> {
+  let user: User | undefined;
+  if (userId) {
+    user = await getUserById(userId);
+    if (!user) return [];
   }
 
-  const user = await getUserById(userId);
-  if (!user) return [];
+  let results = [...mockProducts];
 
+  // Apply search filter if provided
+  if (filters?.searchQuery) {
+    const query = filters.searchQuery.toLowerCase();
+    results = results.filter(
+      p =>
+        p.productName.toLowerCase().includes(query) ||
+        p.supplier.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        p.gtin?.toLowerCase().includes(query),
+    );
+  }
+
+  if (!userId) {
+    // Public access: only published products
+    return Promise.resolve(results.filter(p => p.status === 'Published'));
+  }
+
+  // Authenticated access
   const globalReadRoles: Role[] = [
     UserRoles.ADMIN,
     UserRoles.BUSINESS_ANALYST,
     UserRoles.RETAILER,
     UserRoles.SERVICE_PROVIDER,
   ];
-  const hasGlobalRead = globalReadRoles.some(role => hasRole(user, role));
+  const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
 
   if (hasGlobalRead) {
-    return Promise.resolve(mockProducts);
+    return Promise.resolve(results);
   }
 
-  return Promise.resolve(
-    mockProducts.filter(p => p.companyId === user.companyId),
-  );
+  // Company-specific access
+  return Promise.resolve(results.filter(p => p.companyId === user!.companyId));
 }
 
 export async function getProductById(
