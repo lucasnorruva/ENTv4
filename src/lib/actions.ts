@@ -1257,9 +1257,9 @@ export async function signInWithMockUser(
 
   // If user is found and password is correct, ensure user exists in Auth emulator and get custom token.
   try {
-    // Check if user exists in Auth, if not create them.
     try {
       await adminAuth.getUser(user.id);
+      console.log(`Mock user ${user.email} already exists in Auth emulator.`);
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
         console.log(`Creating mock user in Auth emulator: ${user.email}`);
@@ -1271,15 +1271,18 @@ export async function signInWithMockUser(
           emailVerified: true,
         });
       } else {
-        throw error; // Rethrow other admin errors
+        // Rethrow other admin errors to be caught by the outer catch block
+        console.error(`Error finding user ${user.id} in Auth:`, error);
+        throw new Error(
+          'Failed to query Firebase Auth. Is the admin SDK connected to the emulator?',
+        );
       }
     }
 
-    // Now that user exists, create a custom token for them to sign in on the client
     const customToken = await adminAuth.createCustomToken(user.id);
     return { success: true, token: customToken };
   } catch (e: any) {
-    console.error('Error during mock sign in:', e);
+    console.error('Error during mock sign in flow:', e);
     return { success: false, error: 'Server error during sign in.' };
   }
 }

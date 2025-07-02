@@ -23,6 +23,7 @@ import {
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { signInWithMockUser } from "@/lib/actions";
+import { users as mockUsers } from "@/lib/user-data";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Invalid email address." }),
@@ -46,47 +47,40 @@ export default function LoginForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+
+    const isMockUser = mockUsers.some(user => user.email === values.email);
+
     try {
-      // First, try signing in with regular Firebase Auth. This will work for users created via the signup form.
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      router.push('/dashboard');
-    } catch (error: any) {
-      // If regular login fails with an "invalid-credential" error, it might be a pre-defined mock user.
-      // Let's try our custom mock user sign-in flow.
-      if (error.code === 'auth/invalid-credential') {
+      if (isMockUser) {
+        // This is a pre-defined user, use the mock sign-in flow
         const mockLoginResult = await signInWithMockUser(
           values.email,
           values.password,
         );
-
         if (mockLoginResult.success && mockLoginResult.token) {
-          try {
-            await signInWithCustomToken(auth, mockLoginResult.token);
-            router.push('/dashboard');
-          } catch (customTokenError) {
-            toast({
-              title: 'Login Failed',
-              description: 'Could not complete sign in. Please try again.',
-              variant: 'destructive',
-            });
-          }
+          await signInWithCustomToken(auth, mockLoginResult.token);
+          router.push('/dashboard');
         } else {
           toast({
             title: 'Login Failed',
             description:
-              mockLoginResult.error ||
-              'Please check your email and password and try again.',
+              mockLoginResult.error || 'Invalid credentials for mock user.',
             variant: 'destructive',
           });
         }
       } else {
-        // Handle other Firebase errors (e.g., network issues)
-        toast({
-          title: 'Login Failed',
-          description: error.message || 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
+        // This is a user created via sign-up, use standard email/password auth
+        await signInWithEmailAndPassword(auth, values.email, values.password);
+        router.push('/dashboard');
       }
+    } catch (error: any) {
+      toast({
+        title: 'Login Failed',
+        description:
+          error.message ||
+          'An unexpected error occurred. Please check your credentials.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
