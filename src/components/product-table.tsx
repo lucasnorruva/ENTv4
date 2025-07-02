@@ -59,7 +59,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -223,6 +222,27 @@ export default function ProductTable({
             {row.original.verificationStatus ?? 'Not Submitted'}
           </Badge>
         ),
+      },
+       {
+        accessorKey: "sustainability.score",
+        id: "esgScore",
+        header: ({ column }) => (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            ESG Score
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        ),
+        cell: ({ row }) => {
+          const score = row.original.sustainability?.score;
+          return (
+            <div className="text-center font-medium">
+              {score !== undefined ? score : "N/A"}
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'compliancePathId',
@@ -437,7 +457,7 @@ export default function ProductTable({
               .filter(column => column.getCanHide())
               .map(column => {
                 let colName = column.id;
-                if (colName === 'sustainability') colName = 'ESG Score';
+                if (colName === 'esgScore') colName = 'ESG Score';
                 if (colName === 'productName') colName = 'Product';
                 return (
                   <DropdownMenuCheckboxItem
