@@ -194,3 +194,5 @@ export function AuditReviewDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
