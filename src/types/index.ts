@@ -143,6 +143,7 @@ export interface Product extends BaseEntity {
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
   completenessScore?: number;
+  isProcessing?: boolean;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
@@ -230,6 +231,10 @@ export interface Webhook extends BaseEntity {
  */
 export interface ApiSettings {
   isPublicApiEnabled: boolean;
-  rateLimitPerMinute: number;
+  rateLimits: {
+    free: number;
+    pro: number;
+    enterprise: number;
+  };
   isWebhookSigningEnabled: boolean;
 }

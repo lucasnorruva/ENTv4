@@ -142,6 +142,7 @@ export async function getProducts(userId?: string): Promise<Product[]> {
     UserRoles.ADMIN,
     UserRoles.BUSINESS_ANALYST,
     UserRoles.RETAILER,
+    UserRoles.SERVICE_PROVIDER,
   ];
   const hasGlobalRead = globalReadRoles.some(role => hasRole(user, role));
 
