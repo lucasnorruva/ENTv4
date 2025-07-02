@@ -29,8 +29,9 @@ export type GenerateProductImageInput = z.infer<
 const GenerateProductImageOutputSchema = z.object({
   imageUrl: z
     .string()
+    .url()
     .describe(
-      "The generated image as a data URI. Expected format: 'data:image/png;base64,<encoded_data>'."
+      "The generated image as a data URI. Expected format: 'data:image/png;base64,<encoded_data>'.",
     ),
 });
 export type GenerateProductImageOutput = z.infer<

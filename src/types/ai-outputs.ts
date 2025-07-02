@@ -39,6 +39,11 @@ import type {
   AnalyzeBomInput,
   AnalyzeBomOutput,
 } from "@/ai/flows/analyze-bom";
+import type {
+    GenerateProductImageInput,
+    GenerateProductImageOutput
+} from "@/ai/flows/generate-product-image";
+
 
 // Export Input types
 export type {
@@ -50,6 +55,7 @@ export type {
   GenerateQRLabelTextInput,
   ValidateProductDataInput,
   AnalyzeBomInput,
+  GenerateProductImageInput,
 };
 
 // Export Output types
@@ -63,4 +69,5 @@ export type {
   ValidateProductDataOutput,
   DataQualityWarning,
   AnalyzeBomOutput,
+  GenerateProductImageOutput,
 };
