@@ -715,6 +715,8 @@ export async function updateUserProfile(userId: string, fullName: string) {
   const user = mockUsers.find(u => u.id === userId);
   if (user) {
     user.fullName = fullName;
+    user.updatedAt = new Date().toISOString();
+    await logAuditEvent('user.profile.updated', userId, { fields: ['fullName'] }, userId);
   }
   return Promise.resolve();
 }
@@ -729,6 +731,7 @@ export async function updateUserPassword(
   console.log(
     `Password for user ${userId} has been updated in mock environment.`,
   );
+  await logAuditEvent('user.password.updated', userId, {}, userId);
   return Promise.resolve();
 }
 
@@ -737,6 +740,7 @@ export async function saveNotificationPreferences(
   prefs: any,
 ) {
   console.log(`Saving notification preferences for ${userId}`, prefs);
+  await logAuditEvent('user.notifications.updated', userId, { prefs }, userId);
   return Promise.resolve();
 }
 
