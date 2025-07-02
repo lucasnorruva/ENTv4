@@ -89,37 +89,43 @@ export async function getCompanyById(id: string): Promise<Company | undefined> {
  * @param role The role to simulate being logged in as.
  * @returns A user object.
  */
-export async function getCurrentUser(role: Role): Promise<User> {
+export async function getCurrentUser(role?: Role): Promise<User> {
+  if (!role) {
+    // If no role is provided, attempt to get the admin user by default,
+    // as it has the broadest permissions, making it a safe default for server-side operations.
+    role = UserRoles.ADMIN;
+  }
+
   // Find a mock user with the desired role to get their ID
-  const mockUser = mockUsers.find(u => u.roles.includes(role));
-  if (!mockUser) {
-    // This should not happen if mock data is consistent
-    throw new Error(`No mock user found for role: ${role}`);
+  const mockUser = mockUsers.find(u => u.roles.includes(role!));
+  
+  // Try to find the user in the database first
+  if (mockUser) {
+    const user = await getUserById(mockUser.id);
+    if (user) {
+      return user;
+    }
   }
 
-  // Attempt to fetch the user from Firestore using the mock user's ID
-  const user = await getUserById(mockUser.id);
-  if (user) {
-    return user;
-  }
-
-  // If the specific user is not in Firestore (e.g., seed script not run),
-  // check if there are any users at all.
+  // If the specific user isn't found (e.g., DB not seeded), try to find ANY user with that role.
   const allUsers = await getUsers();
   if (allUsers.length > 0) {
-    // As a fallback, find any user with the required role in the database.
-    const userInDbWithRole = allUsers.find(u => u.roles.includes(role));
+    const userInDbWithRole = allUsers.find(u => u.roles.includes(role!));
     if (userInDbWithRole) {
       return userInDbWithRole;
     }
-    // If no user with the role is found, return the first user as a last resort.
+    // As a last resort, return the first user to prevent crashes.
     return allUsers[0];
   }
-
-  // If the database is completely empty, return the original mock user object
-  // from the file to prevent the application from crashing during development.
-  console.warn(
-    `DATABASE EMPTY: Returning mock user object for role ${role}. Run 'npm run seed' to populate the database.`,
-  );
-  return mockUser;
+  
+  // This block is the final fallback for a completely empty environment.
+  if (mockUser) {
+    console.warn(
+      `DATABASE EMPTY and no users found. Returning mock user object for role ${role}. Run 'npm run seed' to populate the database.`,
+    );
+    return mockUser;
+  }
+  
+  // This should theoretically never be reached if mock data is correct.
+  throw new Error(`No users found in the database and no mock user for role: ${role}`);
 }

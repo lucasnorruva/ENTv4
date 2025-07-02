@@ -1,4 +1,3 @@
-
 // src/lib/actions.ts
 'use server';
 
@@ -35,9 +34,9 @@ import {
   apiKeyFormSchema,
   ApiKeyFormValues,
   bulkProductImportSchema,
-  BulkProductImportValues,
+  type BulkProductImportValues,
   onboardingFormSchema,
-  OnboardingFormValues,
+  type OnboardingFormValues,
 } from './schemas';
 import {
   anchorToPolygon,
@@ -55,7 +54,6 @@ import {
   getUsers,
   getUsersByCompanyId,
   getUserByEmail as authGetUserByEmail,
-  getCurrentUser as authGetCurrentUser,
 } from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';

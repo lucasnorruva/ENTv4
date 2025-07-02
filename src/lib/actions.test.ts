@@ -51,19 +51,20 @@ describe('Product Actions', () => {
     jest.clearAllMocks();
   });
 
-  it('getProducts should return all products', async () => {
-    adminDb.get.mockResolvedValue(mockCollection(mockProducts));
+  it('getProducts should return all published products for an unauthenticated user', async () => {
+    const publishedProducts = mockProducts.filter(p => p.status === 'Published');
+    adminDb.collection().where().orderBy().get.mockResolvedValue(mockCollection(publishedProducts));
     const products = await getProducts();
-    expect(products.length).toBe(mockProducts.length);
-    expect(products[0].productName).toBe(mockProducts[0].productName);
+    expect(products.length).toBe(publishedProducts.length);
     expect(adminDb.collection).toHaveBeenCalledWith('products');
+    expect(adminDb.where).toHaveBeenCalledWith('status', '==', 'Published');
   });
 
   it('getProductById should return a published product when no user is provided', async () => {
     const publishedProduct = mockProducts.find(p => p.status === 'Published');
     if (!publishedProduct) throw new Error("No published product in mock data");
     
-    adminDb.get.mockResolvedValue(mockDoc(publishedProduct));
+    adminDb.collection().doc().get.mockResolvedValue(mockDoc(publishedProduct));
     const product = await getProductById(publishedProduct.id);
     
     expect(product).toBeDefined();
@@ -75,7 +76,7 @@ describe('Product Actions', () => {
     const draftProduct = mockProducts.find(p => p.status === 'Draft');
     if (!draftProduct) throw new Error("No draft product in mock data");
 
-    adminDb.get.mockResolvedValue(mockDoc(draftProduct));
+    adminDb.collection().doc().get.mockResolvedValue(mockDoc(draftProduct));
     const product = await getProductById(draftProduct.id);
     
     expect(product).toBeUndefined();
@@ -89,7 +90,7 @@ describe('Product Actions', () => {
     const owner = mockUsers.find(u => u.companyId === draftProduct.companyId);
     if (!owner) throw new Error("No owner found for draft product");
 
-    adminDb.get.mockResolvedValue(mockDoc(draftProduct));
+    adminDb.collection().doc().get.mockResolvedValue(mockDoc(draftProduct));
     const product = await getProductById(draftProduct.id, owner.id);
     
     expect(product).toBeDefined();
@@ -97,7 +98,7 @@ describe('Product Actions', () => {
   });
   
   it('getProductById should return undefined when an invalid ID is provided', async () => {
-    adminDb.get.mockResolvedValue({ exists: false });
+    adminDb.collection().doc().get.mockResolvedValue({ exists: false });
     const product = await getProductById('invalid-id');
     expect(product).toBeUndefined();
   });
