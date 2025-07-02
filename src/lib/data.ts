@@ -130,6 +130,7 @@ export let products: Product[] = [
     createdAt: '2024-07-02T11:00:00Z',
     updatedAt: '2024-07-19T11:00:00Z',
     compliancePathId: 'cp-electronics-01',
+    manualUrl: 'https://example.com/manual-drone4k.pdf',
     materials: [
       {
         name: 'Carbon Fiber',
