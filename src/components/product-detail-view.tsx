@@ -462,6 +462,16 @@ export default function ProductDetailView({
                       )}
                     </p>
                   </InfoRow>
+                  <InfoRow icon={ShieldCheck} label="EUDR Compliant">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.eudrCompliant ? 'Yes' : 'No'}
+                      {product.compliance?.eudrDiligenceId && (
+                        <span className="ml-2 text-xs">
+                          (Diligence ID: {product.compliance.eudrDiligenceId})
+                        </span>
+                      )}
+                    </p>
+                  </InfoRow>
                   <InfoRow icon={FileText} label="SCIP Reference">
                     <p className="font-mono text-xs text-muted-foreground">
                       {product.compliance?.scipReference || 'Not Provided'}

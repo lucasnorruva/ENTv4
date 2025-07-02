@@ -4,7 +4,14 @@
 import React, { useEffect, useState, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Plus, Sparkles, Trash2, BatteryCharging } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+  BatteryCharging,
+  Leaf,
+} from 'lucide-react';
 import Image from 'next/image';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
@@ -979,8 +986,8 @@ export default function ProductForm({
                     />
                     <Separator />
                     <h3 className="text-lg font-semibold">Declarations</h3>
-                     <Accordion type="multiple" className="w-full space-y-4">
-                       <AccordionItem value="rohs">
+                     <Accordion type="multiple" defaultValue={['rohs']} className="w-full space-y-4">
+                       <AccordionItem value="rohs" className="border p-4 rounded-lg">
                         <AccordionTrigger>RoHS</AccordionTrigger>
                         <AccordionContent className="pt-4 space-y-4">
                            <FormField
@@ -1018,7 +1025,7 @@ export default function ProductForm({
                           />
                         </AccordionContent>
                        </AccordionItem>
-                       <AccordionItem value="reach">
+                       <AccordionItem value="reach" className="border p-4 rounded-lg">
                          <AccordionTrigger>REACH / SCIP</AccordionTrigger>
                          <AccordionContent className="pt-4 space-y-4">
                             <FormField
@@ -1060,7 +1067,7 @@ export default function ProductForm({
                             />
                          </AccordionContent>
                        </AccordionItem>
-                        <AccordionItem value="weee">
+                        <AccordionItem value="weee" className="border p-4 rounded-lg">
                          <AccordionTrigger>WEEE</AccordionTrigger>
                          <AccordionContent className="pt-4 space-y-4">
                            <FormField
@@ -1104,7 +1111,56 @@ export default function ProductForm({
                             />
                          </AccordionContent>
                        </AccordionItem>
-                       <AccordionItem value="additional">
+                       <AccordionItem value="eudr" className="border p-4 rounded-lg">
+                         <AccordionTrigger>
+                           <h3 className="flex items-center gap-2 font-semibold">
+                             <Leaf className="h-4 w-4" />
+                             EUDR
+                           </h3>
+                         </AccordionTrigger>
+                         <AccordionContent className="pt-4 space-y-4">
+                           <FormField
+                              control={form.control}
+                              name="compliance.eudrCompliant"
+                              render={({ field }) => (
+                                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                                  <div className="space-y-0.5">
+                                    <FormLabel>EUDR Compliant</FormLabel>
+                                    <FormDescription>
+                                      Product is compliant with EU Deforestation-Free Regulation.
+                                    </FormDescription>
+                                  </div>
+                                  <FormControl>
+                                    <Switch
+                                      checked={field.value}
+                                      onCheckedChange={field.onChange}
+                                    />
+                                  </FormControl>
+                                </FormItem>
+                              )}
+                            />
+                           <FormField
+                              control={form.control}
+                              name="compliance.eudrDiligenceId"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>EUDR Due Diligence ID</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      placeholder="e.g., DDS-12345-ABC"
+                                      {...field}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>
+                                    The reference ID for the due diligence statement.
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                         </AccordionContent>
+                       </AccordionItem>
+                       <AccordionItem value="additional" className="border p-4 rounded-lg">
                          <AccordionTrigger>Additional Declarations</AccordionTrigger>
                          <AccordionContent className="pt-4 space-y-4">
                            <FormField
