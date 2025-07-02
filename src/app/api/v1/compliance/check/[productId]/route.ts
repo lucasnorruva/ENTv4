@@ -56,6 +56,10 @@ export async function POST(
       materials: product.materials,
       manufacturing: product.manufacturing,
       certifications: product.certifications,
+      packaging: product.packaging,
+      lifecycle: product.lifecycle,
+      battery: product.battery,
+      compliance: product.compliance,
       verificationStatus: product.verificationStatus ?? 'Not Submitted',
       complianceSummary: product.sustainability?.complianceSummary,
     };
