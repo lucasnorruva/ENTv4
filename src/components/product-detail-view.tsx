@@ -747,10 +747,10 @@ export default function ProductDetailView({
           </Tabs>
         </div>
         <div className="space-y-6">
+          <DppCompletenessWidget product={product} />
           <DppQrCodeWidget productId={product.id} />
           <AiSuggestionsWidget product={product} user={user} />
           <DocGenerationWidget product={product} user={user} />
-          <DppCompletenessWidget product={product} />
         </div>
       </div>
     </div>
