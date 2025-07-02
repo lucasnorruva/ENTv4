@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, BarChart3, Search, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import RetailerSearchForm from '../retailer-search-form';
 
 export default async function RetailerDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);
@@ -51,14 +50,17 @@ export default async function RetailerDashboard({ user }: { user: User }) {
                 Product Lookup
               </CardTitle>
               <CardDescription>
-                Quickly find a product passport by its name or ID.
+                Browse and search the entire product catalog.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <RetailerSearchForm />
+              <p className="text-sm text-muted-foreground">
+                Click below to go to the full interactive catalog to search for
+                products.
+              </p>
             </CardContent>
             <CardFooter>
-              <Button asChild variant="outline" size="sm" className="w-full">
+              <Button asChild size="sm" className="w-full">
                 <Link href="/dashboard/retailer/catalog">
                   Browse Full Catalog <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

@@ -1,26 +1,23 @@
 // src/app/dashboard/retailer/catalog/page.tsx
-import ProductManagement from '@/components/product-management';
-import { getCompliancePaths } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
+import ProductCatalogClient from '@/components/product-catalog-client';
+import { Suspense } from 'react';
 
-export const dynamic = 'force-dynamic';
-
-export default async function CatalogPage({
-  searchParams,
-}: {
-  searchParams?: { q?: string };
-}) {
+export default async function CatalogPage() {
   const user = await getCurrentUser(UserRoles.RETAILER);
 
-  // Products are now fetched on the client side with a real-time listener in ProductManagement.
-  const compliancePaths = await getCompliancePaths();
-
   return (
-    <ProductManagement
-      user={user}
-      compliancePaths={compliancePaths}
-      initialFilter={searchParams?.q}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Product Catalog</h1>
+        <p className="text-muted-foreground">
+          Browse and search for all available product passports on the platform.
+        </p>
+      </div>
+      <Suspense>
+        <ProductCatalogClient user={user} />
+      </Suspense>
+    </div>
   );
 }
