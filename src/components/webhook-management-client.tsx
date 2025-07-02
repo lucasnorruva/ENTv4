@@ -11,7 +11,6 @@ import {
   Webhook as WebhookIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 import {
   Card,
@@ -48,10 +47,8 @@ import {
 } from '@/components/ui/alert-dialog';
 
 import type { Webhook, User } from '@/types';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteWebhook } from '@/lib/actions';
+import { getWebhooks, deleteWebhook } from '@/lib/actions';
 import WebhookForm from './webhook-form';
 
 interface WebhookManagementClientProps {
@@ -70,39 +67,28 @@ export default function WebhookManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.WEBHOOKS),
-      where('userId', '==', user.id),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const hooksData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-          } as Webhook;
-        });
-        setWebhooks(hooksData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching webhooks:', error);
+    async function fetchWebhooks() {
+      try {
+        const data = await getWebhooks(user.id);
+        setWebhooks(
+          data.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() -
+              new Date(a.createdAt).getTime(),
+          ),
+        );
+      } catch (e) {
         toast({
           title: 'Error',
           description: 'Failed to load webhooks.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user.id, toast]);
+      }
+    }
+    fetchWebhooks();
+  }, [user.id, toast, isPending]);
 
   const handleCreateNew = () => {
     setSelectedWebhook(null);

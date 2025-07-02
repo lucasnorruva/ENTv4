@@ -2,8 +2,14 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { MoreHorizontal, Plus, Edit, Trash2, Loader2, Users } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  Users,
+} from 'lucide-react';
 
 import {
   Card,
@@ -42,9 +48,7 @@ import {
 
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
-import { deleteUser } from '@/lib/actions';
+import { getUsers, deleteUser } from '@/lib/actions';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
@@ -63,34 +67,22 @@ export default function UserManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(collection(db, Collections.USERS), orderBy('fullName'));
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const usersData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-          } as User;
-        });
-        setUsers(usersData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching users:', error);
+    async function fetchUsers() {
+      try {
+        const data = await getUsers();
+        setUsers(data);
+      } catch (e) {
         toast({
           title: 'Error',
-          description: 'Failed to load user data.',
+          description: 'Failed to load users.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
+      }
+    }
+    fetchUsers();
+  }, [toast, isPending]);
 
   const handleCreateNew = () => {
     setSelectedUser(null);
@@ -228,19 +220,19 @@ export default function UserManagementClient({
                     </TableCell>
                   </TableRow>
                 ))}
-                 {users.length === 0 && !isLoading && (
+                {users.length === 0 && !isLoading && (
                   <TableRow>
                     <TableCell colSpan={5} className="h-48 text-center">
-                       <div className="flex flex-col items-center justify-center gap-4">
-                          <Users className="h-12 w-12 text-muted-foreground" />
-                          <h3 className="text-xl font-semibold">No Users Found</h3>
-                          <p className="text-muted-foreground">
-                            Invite the first user to get started.
-                          </p>
-                          <Button onClick={handleCreateNew}>
-                            Invite User
-                          </Button>
-                        </div>
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <Users className="h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold">
+                          No Users Found
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Invite the first user to get started.
+                        </p>
+                        <Button onClick={handleCreateNew}>Invite User</Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}

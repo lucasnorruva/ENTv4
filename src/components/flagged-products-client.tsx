@@ -4,7 +4,7 @@
 import React, { useTransition, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, ShieldAlert, ShieldCheck } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -15,11 +15,8 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveComplianceIssue } from '@/lib/actions';
+import { resolveComplianceIssue, getProducts } from '@/lib/actions';
 import type { Product, User } from '@/types';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 interface FlaggedProductsClientProps {
   user: User;
@@ -35,39 +32,22 @@ export default function FlaggedProductsClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Failed'),
-    );
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const productsData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            lastVerificationDate: data.lastVerificationDate
-              ?.toDate()
-              .toISOString(),
-          } as Product;
-        });
-        setProducts(productsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching flagged products:', error);
+    const fetchFlaggedProducts = async () => {
+      try {
+        const allProducts = await getProducts();
+        setProducts(allProducts.filter(p => p.verificationStatus === 'Failed'));
+      } catch (error) {
         toast({
           title: 'Error',
           description: 'Could not load flagged products.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
+      }
+    };
+    fetchFlaggedProducts();
+  }, [toast, isPending]);
 
   const handleResolve = (productId: string) => {
     startTransition(async () => {

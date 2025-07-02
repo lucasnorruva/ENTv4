@@ -12,13 +12,10 @@ import {
   Loader2,
   KeyRound,
 } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { createApiKey, revokeApiKey, deleteApiKey } from '@/lib/actions';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +49,7 @@ import {
   DialogDescription,
   DialogClose,
 } from '@/components/ui/dialog';
+import { getApiKeys } from '@/lib/actions';
 
 interface ApiKeysClientProps {
   user: User;
@@ -71,40 +69,22 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.API_KEYS),
-      where('userId', '==', user.id),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const keysData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-            lastUsed: data.lastUsed?.toDate().toISOString(),
-          } as ApiKey;
-        });
-        setApiKeys(keysData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching API keys:', error);
+    async function fetchKeys() {
+      try {
+        const data = await getApiKeys(user.id);
+        setApiKeys(data);
+      } catch (e) {
         toast({
           title: 'Error',
           description: 'Failed to load API keys.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user.id, toast]);
+      }
+    }
+    fetchKeys();
+  }, [user.id, toast, isPending]);
 
   const handleCreateKey = () => {
     if (!newKeyLabel) {
@@ -118,7 +98,6 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
     startTransition(async () => {
       try {
         const { rawToken } = await createApiKey(newKeyLabel, user.id);
-        // State will be updated by the listener, no need to call setApiKeys here.
         setNewlyCreatedKey(rawToken);
         setIsViewKeyDialogOpen(true);
         toast({

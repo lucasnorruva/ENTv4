@@ -1,7 +1,6 @@
 // src/app/dashboard/developer/webhooks/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser, hasRole } from '@/lib/auth';
-import { getWebhooks } from '@/lib/actions';
 import { UserRoles } from '@/lib/constants';
 import WebhookManagementClient from '@/components/webhook-management-client';
 

@@ -18,7 +18,6 @@ import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,9 +37,8 @@ import {
 } from '@/components/ui/table';
 import type { Product, User } from '@/types';
 import { AuditReviewDialog } from '@/components/audit-review-dialog';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
+import { getProducts } from '@/lib/actions';
 
 interface AuditQueueClientProps {
   user: User;
@@ -63,40 +61,31 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Pending'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const productsData = querySnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-            lastUpdated: data.lastUpdated?.toDate().toISOString(),
-          } as Product;
-        });
-        setProducts(productsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching audit queue:', error);
+    const fetchPendingProducts = async () => {
+      try {
+        const allProducts = await getProducts();
+        const pendingProducts = allProducts.filter(
+          p => p.verificationStatus === 'Pending',
+        );
+        setProducts(
+          pendingProducts.sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() -
+              new Date(a.updatedAt).getTime(),
+          ),
+        );
+      } catch (error) {
         toast({
           title: 'Error',
           description: 'Failed to load audit queue.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
+      }
+    };
+    fetchPendingProducts();
+  }, [toast, isDialogOpen]); // Re-fetch when dialog closes after an action
 
   const handleReviewClick = (product: Product) => {
     setSelectedProduct(product);

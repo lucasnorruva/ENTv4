@@ -39,7 +39,6 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { UserRoles, type Role } from './constants';
 import { getUserById, getCompanyById } from './auth';
 import { hasRole } from './auth-utils';
-import { sendWebhook } from '@/services/webhooks';
 
 // MOCK DATA IMPORTS
 import { products as mockProducts } from './data';
@@ -63,12 +62,6 @@ export async function getWebhooks(userId: string): Promise<Webhook[]> {
   const user = await getUserById(userId);
   if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
   return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
-}
-
-export async function getAllWebhooks(): Promise<Webhook[]> {
-  // In a real app, this would query the entire collection.
-  // For mock data, we just return the full list.
-  return Promise.resolve(mockWebhooks);
 }
 
 export async function saveWebhook(
@@ -314,48 +307,13 @@ export async function approvePassport(
     blockchainProof,
     ebsiVcId,
   };
-  const updatedProduct = mockProducts[productIndex];
-
   await logAuditEvent(
     'passport.approved',
     productId,
     { txHash: blockchainProof.txHash },
     userId,
   );
-
-  // --- Trigger Webhooks ---
-  try {
-    const allWebhooks = await getAllWebhooks();
-    const relevantWebhooks = allWebhooks.filter(
-      w => w.status === 'active' && w.events.includes('product.published'),
-    );
-
-    if (relevantWebhooks.length > 0) {
-      console.log(
-        `Triggering ${relevantWebhooks.length} webhook(s) for 'product.published' event...`,
-      );
-      // Fire and forget the webhook sending so it doesn't block the response.
-      Promise.allSettled(
-        relevantWebhooks.map(hook =>
-          sendWebhook(hook.url, 'product.published', updatedProduct),
-        ),
-      );
-      await logAuditEvent(
-        'webhook.triggered',
-        productId,
-        {
-          event: 'product.published',
-          count: relevantWebhooks.length,
-        },
-        'system',
-      );
-    }
-  } catch (error) {
-    console.error('Failed to process webhooks:', error);
-  }
-  // --- End Webhook Trigger ---
-
-  return Promise.resolve(updatedProduct);
+  return Promise.resolve(mockProducts[productIndex]);
 }
 
 export async function rejectPassport(

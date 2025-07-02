@@ -32,8 +32,6 @@ const lifecycleSchema = z.object({
   carbonFootprintMethod: z.string().optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
-  energyEfficiencyClass: z.enum(['A', 'B', 'C', 'D', 'E', 'F', 'G']).optional(),
-  recyclingInstructions: z.string().optional(),
 });
 
 const batterySchema = z.object({
@@ -48,14 +46,6 @@ const complianceSchema = z.object({
   rohsExemption: z.string().optional(),
   reachSVHC: z.boolean().optional(),
   scipReference: z.string().optional(),
-  prop65WarningRequired: z.boolean().optional(),
-  ceMarked: z.boolean().optional(),
-  foodContactSafe: z.boolean().optional(),
-  foodContactComplianceStandard: z.string().optional(),
-  weeeRegistered: z.boolean().optional(),
-  weeeRegistrationNumber: z.string().optional(),
-  eudrCompliant: z.boolean().optional(),
-  eudrDiligenceId: z.string().optional(),
 });
 
 export const productFormSchema = z.object({

@@ -39,7 +39,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { UserRoles } from '@/lib/constants';
 
 interface ServiceTicketFormProps {
   isOpen: boolean;

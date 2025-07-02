@@ -3,12 +3,6 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import {
-  collection,
-  onSnapshot,
-  orderBy,
-  query,
-} from 'firebase/firestore';
-import {
   MoreHorizontal,
   Plus,
   Edit,
@@ -18,10 +12,9 @@ import {
 } from 'lucide-react';
 
 import type { CompliancePath, User } from '@/types';
-import { db } from '@/lib/firebase';
-import { Collections, UserRoles } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompliancePath } from '@/lib/actions';
+import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions';
 import { hasRole } from '@/lib/auth-utils';
 
 import {
@@ -77,37 +70,22 @@ export default function CompliancePathManagement({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.COMPLIANCE_PATHS),
-      orderBy('name'),
-    );
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const pathsData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            ...data,
-            createdAt: data.createdAt?.toDate().toISOString(),
-            updatedAt: data.updatedAt?.toDate().toISOString(),
-          } as CompliancePath;
-        });
-        setPaths(pathsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching compliance paths:', error);
+    async function fetchPaths() {
+      try {
+        const data = await getCompliancePaths();
+        setPaths(data);
+      } catch (e) {
         toast({
           title: 'Error',
           description: 'Failed to load compliance paths.',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-    return () => unsubscribe();
-  }, [toast]);
+      }
+    }
+    fetchPaths();
+  }, [toast, isPending]);
 
   const handleCreateNew = () => {
     setSelectedPath(null);
@@ -135,7 +113,6 @@ export default function CompliancePathManagement({
   };
 
   const handleSave = (savedPath: CompliancePath) => {
-    // The listener updates the state, just close the form
     setIsFormOpen(false);
   };
 
@@ -143,11 +120,10 @@ export default function CompliancePathManagement({
     hasRole(user, UserRoles.ADMIN) ||
     hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
     hasRole(user, UserRoles.AUDITOR);
-  
+
   const canDelete =
     hasRole(user, UserRoles.ADMIN) ||
     hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-
 
   return (
     <>
