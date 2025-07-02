@@ -1,5 +1,7 @@
 // src/lib/schemas.ts
 import { z } from 'zod';
+import type { Role } from './constants';
+import { UserRoles } from './constants';
 
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
@@ -32,8 +34,6 @@ const lifecycleSchema = z.object({
   carbonFootprintMethod: z.string().optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
-  energyEfficiencyClass: z.string().optional(),
-  recyclingInstructions: z.string().optional(),
 });
 
 const batterySchema = z.object({
@@ -48,14 +48,6 @@ const complianceSchema = z.object({
   rohsExemption: z.string().optional(),
   reachSVHC: z.boolean().optional(),
   scipReference: z.string().optional(),
-  weeeRegistered: z.boolean().optional(),
-  weeeRegistrationNumber: z.string().optional(),
-  prop65WarningRequired: z.boolean().optional(),
-  eudrCompliant: z.boolean().optional(),
-  eudrDiligenceId: z.string().optional(),
-  ceMarked: z.boolean().optional(),
-  foodContactSafe: z.boolean().optional(),
-  foodContactComplianceStandard: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -76,7 +68,6 @@ export const productFormSchema = z.object({
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
-  conformityDocUrl: z.string().url().optional().or(z.literal('')),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),

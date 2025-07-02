@@ -266,20 +266,6 @@ export async function deleteProduct(
   return Promise.resolve();
 }
 
-export async function deleteProducts(
-  productIds: string[],
-  userId: string,
-): Promise<void> {
-  productIds.forEach(id => {
-    const index = mockProducts.findIndex(p => p.id === id);
-    if (index > -1) {
-      mockProducts.splice(index, 1);
-    }
-  });
-  await logAuditEvent('product.deleted_bulk', 'multiple', { count: productIds.length }, userId);
-  return Promise.resolve();
-}
-
 export async function submitForReview(
   productId: string,
   userId: string,
@@ -292,21 +278,6 @@ export async function submitForReview(
   await logAuditEvent('passport.submitted', productId, {}, userId);
 
   return Promise.resolve(mockProducts[productIndex]);
-}
-
-export async function submitProductsForReview(
-  productIds: string[],
-  userId: string,
-): Promise<void> {
-  productIds.forEach(id => {
-    const index = mockProducts.findIndex(p => p.id === id);
-    if (index > -1 && mockProducts[index].status === 'Draft') {
-      mockProducts[index].verificationStatus = 'Pending';
-      mockProducts[index].lastUpdated = new Date().toISOString();
-    }
-  });
-  await logAuditEvent('passport.submitted_bulk', 'multiple', { count: productIds.length }, userId);
-  return Promise.resolve();
 }
 
 export async function recalculateScore(
@@ -601,15 +572,6 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
   );
 }
 
-export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
-  const logs = mockAuditLogs
-    .filter(log => log.userId === userId)
-    .sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    );
-  return Promise.resolve(logs);
-}
-
 export async function logAuditEvent(
   action: string,
   entityId: string,
@@ -763,28 +725,6 @@ export async function saveNotificationPreferences(
 ) {
   console.log(`Saving notification preferences for ${userId}`, prefs);
   return Promise.resolve();
-}
-
-export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
-  const products = await getProducts();
-  if (format === 'json') {
-    return JSON.stringify(products, null, 2);
-  }
-
-  if (products.length === 0) return '';
-  const headers = Object.keys(products[0]).join(',');
-  const rows = products.map(product => {
-    return Object.values(product)
-      .map(value => {
-        if (typeof value === 'string') return `"${value.replace(/"/g, '""')}"`;
-        if (typeof value === 'object' && value !== null)
-          return `"${JSON.stringify(value).replace(/"/g, '""')}"`;
-        return value;
-      })
-      .join(',');
-  });
-
-  return [headers, ...rows].join('\n');
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
