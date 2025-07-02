@@ -23,7 +23,6 @@ import type { Product, User } from '@/types';
 import { markAsRecycled, getProducts } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Recycle } from 'lucide-react';
-import { UserRoles } from '@/lib/constants';
 
 interface EolProductsClientProps {
   user: User;
