@@ -108,6 +108,12 @@ export default function PublicPassportView({
           <p className="text-sm text-muted-foreground mt-4">
             Supplied by: <strong>{product.supplier}</strong>
           </p>
+          {product.gtin && (
+            <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+              <Fingerprint className="h-4 w-4" />
+              GTIN: <strong className="font-mono">{product.gtin}</strong>
+            </p>
+          )}
         </div>
       </CardHeader>
       <CardContent className="p-6">

@@ -5,6 +5,7 @@ export let products: Product[] = [
   {
     id: 'pp-001',
     companyId: 'comp-02',
+    gtin: '09501101420014',
     productName: 'Eco-Friendly Smart Watch Series 5',
     productDescription:
       'A sleek smartwatch made from recycled aluminum and sustainable materials, featuring a long-lasting battery and comprehensive health tracking.',
@@ -98,6 +99,7 @@ export let products: Product[] = [
   {
     id: 'pp-002',
     companyId: 'comp-03',
+    gtin: '01234567890123',
     productName: 'Pro-Grade 4K Drone',
     productDescription:
       'A professional-grade quadcopter with a 4K camera, 30-minute flight time, and advanced obstacle avoidance sensors.',
@@ -167,6 +169,7 @@ export let products: Product[] = [
   {
     id: 'pp-003',
     companyId: 'comp-02',
+    gtin: '0555666777888',
     productName: 'Organic Cotton T-Shirt',
     productDescription:
       'A soft, breathable t-shirt made from 100% GOTS-certified organic cotton, ethically produced in a fair trade factory.',
@@ -217,6 +220,7 @@ export let products: Product[] = [
   {
     id: 'pp-004',
     companyId: 'comp-02',
+    gtin: '0444333222111',
     productName: 'Recycled Polyester Jacket',
     productDescription:
       'A lightweight, water-resistant jacket made from recycled plastic bottles. Not compliant with the GOTS fashion path.',
@@ -272,6 +276,7 @@ export let products: Product[] = [
   {
     id: 'pp-005',
     companyId: 'comp-03',
+    gtin: '0112233445566',
     productName: 'Modular Shelving Unit',
     productDescription:
       'A versatile shelving unit made from sustainably sourced bamboo and powder-coated steel.',
@@ -321,6 +326,7 @@ export let products: Product[] = [
   {
     id: 'pp-006',
     companyId: 'comp-03',
+    gtin: '0888777666555',
     productName: 'Smart Nutrient Tracker Bottle',
     productDescription:
       'A smart water bottle that tracks your hydration and nutrient intake via a connected app. Made with food-grade stainless steel.',
@@ -369,6 +375,7 @@ export let products: Product[] = [
   {
     id: 'pp-007',
     companyId: 'comp-02',
+    gtin: '0999888777666',
     productName: 'Artisan Leather Hiking Boots',
     productDescription:
       'Durable, handcrafted hiking boots made from responsibly sourced full-grain leather and natural rubber outsoles.',

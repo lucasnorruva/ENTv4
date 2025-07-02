@@ -59,6 +59,14 @@ const complianceSchema = z.object({
 });
 
 export const productFormSchema = z.object({
+  gtin: z
+    .string()
+    .regex(
+      /^\d{8}$|^\d{12,14}$/,
+      'Invalid GTIN format. Must be 8, 12, 13, or 14 digits.',
+    )
+    .optional()
+    .or(z.literal('')),
   productName: z.string().min(3, 'Product name must be at least 3 characters.'),
   productDescription: z
     .string()

@@ -102,6 +102,7 @@ export default function ProductForm({
           compliance: product.compliance || {},
         }
       : {
+          gtin: '',
           productName: '',
           productDescription: '',
           productImage: undefined,
@@ -149,6 +150,7 @@ export default function ProductForm({
         product
           ? {
               ...product,
+              gtin: product.gtin ?? '',
               productImage: product.productImage ?? '',
               manufacturing: product.manufacturing || {
                 facility: '',
@@ -163,6 +165,7 @@ export default function ProductForm({
               compliance: product.compliance || {},
             }
           : {
+              gtin: '',
               productName: '',
               productDescription: '',
               productImage: '',
@@ -327,6 +330,25 @@ export default function ProductForm({
                               {...field}
                             />
                           </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                      control={form.control}
+                      name="gtin"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>GTIN (Global Trade Item Number)</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g. 09501101420014"
+                              {...field}
+                            />
+                          </FormControl>
+                           <FormDescription>
+                            The unique GS1 barcode number for your product (8, 12, 13, or 14 digits).
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

@@ -117,6 +117,7 @@ export interface SustainabilityData extends EsgScoreOutput {
  */
 export interface Product extends BaseEntity {
   companyId: string; // Foreign key to the Company
+  gtin?: string; // Global Trade Item Number
   productName: string;
   productDescription: string;
   productImage: string;

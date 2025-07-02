@@ -197,6 +197,13 @@ export default function ProductDetailView({
                         label="Description"
                         value={product.productDescription}
                       />
+                      {product.gtin && (
+                        <InfoRow
+                          icon={Fingerprint}
+                          label="GTIN"
+                          value={<span className="font-mono">{product.gtin}</span>}
+                        />
+                      )}
                       <InfoRow
                         icon={Tag}
                         label="Category"
