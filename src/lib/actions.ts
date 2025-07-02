@@ -408,6 +408,80 @@ export async function suggestImprovements(input: {
   return await suggestImprovementsFlow(input);
 }
 
+// Helper function to recursively flatten a nested object for CSV export.
+const flattenObject = (
+  obj: any,
+  parentKey = '',
+  res: Record<string, any> = {},
+) => {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const propName = parentKey ? `${parentKey}_${key}` : key;
+      const value = obj[key];
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
+        flattenObject(value, propName, res);
+      } else if (Array.isArray(value)) {
+        // Stringify arrays of objects for CSV.
+        res[propName] = JSON.stringify(value);
+      } else {
+        res[propName] = value;
+      }
+    }
+  }
+  return res;
+};
+
+export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
+  const products = await getProducts();
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+
+  // Handle CSV conversion
+  if (products.length === 0) {
+    return '';
+  }
+
+  const flatProducts = products.map(flattenObject);
+
+  // Get a comprehensive list of all possible headers from all products
+  const allHeaders = Array.from(
+    flatProducts.reduce((acc, product) => {
+      Object.keys(product).forEach(key => acc.add(key));
+      return acc;
+    }, new Set<string>()),
+  ).sort();
+
+  const csvRows = [allHeaders.join(',')];
+
+  for (const product of flatProducts) {
+    const values = allHeaders.map(header => {
+      const value = product[header];
+
+      if (value === undefined || value === null) {
+        return '';
+      }
+
+      let stringValue =
+        typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+      // Escape quotes by doubling them and wrap the whole string in quotes if it contains commas, quotes, or newlines.
+      if (/[",\n]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
+
+
 // --- ADMIN & GENERAL ACTIONS ---
 
 export async function getCompanies(): Promise<Company[]> {
