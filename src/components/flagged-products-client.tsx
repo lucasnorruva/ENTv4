@@ -107,7 +107,7 @@ export default function FlaggedProductsClient({
               </TableCell>
               <TableCell className="text-right">
                 <Button asChild variant="outline" size="sm" className="mr-2">
-                  <Link href={`/products/${product.id}`} target="_blank">
+                  <Link href={`/dashboard/compliance-manager/products/${product.id}`} target="_blank">
                     View Details
                   </Link>
                 </Button>
