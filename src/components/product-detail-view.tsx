@@ -1,8 +1,9 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -278,6 +279,7 @@ export default function ProductDetailView({
                   <Accordion
                     type="single"
                     collapsible
+                    defaultValue="data"
                     className="w-full mt-4"
                   >
                     <AccordionItem value="data">
@@ -464,61 +466,75 @@ export default function ProductDetailView({
                       sustainability?.complianceSummary || 'Awaiting review.'
                     }
                   />
-                  <InfoRow icon={ShieldCheck} label="RoHS Compliant">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
-                      {product.compliance?.rohsExemption && (
-                        <span className="ml-2 text-xs">
-                          (Exemption: {product.compliance.rohsExemption})
-                        </span>
-                      )}
-                    </p>
-                  </InfoRow>
-                   <InfoRow icon={Copyright} label="CE Marked">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.ceMarked ? 'Yes' : 'No'}
-                    </p>
-                  </InfoRow>
-                   <InfoRow icon={Utensils} label="Food Contact Safe">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.foodContactSafe ? 'Yes' : 'No'}
-                       {product.compliance?.foodContactComplianceStandard && (
-                        <span className="ml-2 text-xs">
-                          (Standard: {product.compliance.foodContactComplianceStandard})
-                        </span>
-                      )}
-                    </p>
-                  </InfoRow>
-                   <InfoRow icon={AlertTriangle} label="Prop 65 Warning">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.prop65WarningRequired ? 'Required' : 'Not Required'}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={Recycle} label="WEEE Compliance">
-                    <p className="text-sm text-muted-foreground">
-                      Registered: {product.compliance?.weeeRegistered ? 'Yes' : 'No'}
-                      {product.compliance?.weeeRegistrationNumber && (
-                        <span className="ml-2 font-mono text-xs">
-                          ({product.compliance.weeeRegistrationNumber})
-                        </span>
-                      )}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={ShieldCheck} label="EUDR Compliant">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.eudrCompliant ? 'Yes' : 'No'}
-                      {product.compliance?.eudrDiligenceId && (
-                        <span className="ml-2 text-xs">
-                          (Diligence ID: {product.compliance.eudrDiligenceId})
-                        </span>
-                      )}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={FileText} label="SCIP Reference">
-                    <p className="font-mono text-xs text-muted-foreground">
-                      {product.compliance?.scipReference || 'Not Provided'}
-                    </p>
-                  </InfoRow>
+
+                  <Accordion
+                    type="single"
+                    collapsible
+                    defaultValue="declarations"
+                    className="w-full mt-4"
+                  >
+                     <AccordionItem value="declarations">
+                        <AccordionTrigger>Declarations</AccordionTrigger>
+                        <AccordionContent>
+                            <InfoRow icon={ShieldCheck} label="RoHS Compliant">
+                                <p className="text-sm text-muted-foreground">
+                                {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
+                                {product.compliance?.rohsExemption && (
+                                    <span className="ml-2 text-xs">
+                                    (Exemption: {product.compliance.rohsExemption})
+                                    </span>
+                                )}
+                                </p>
+                            </InfoRow>
+                            <InfoRow icon={Copyright} label="CE Marked">
+                                <p className="text-sm text-muted-foreground">
+                                {product.compliance?.ceMarked ? 'Yes' : 'No'}
+                                </p>
+                            </InfoRow>
+                            <InfoRow icon={Utensils} label="Food Contact Safe">
+                                <p className="text-sm text-muted-foreground">
+                                {product.compliance?.foodContactSafe ? 'Yes' : 'No'}
+                                {product.compliance?.foodContactComplianceStandard && (
+                                    <span className="ml-2 text-xs">
+                                    (Standard: {product.compliance.foodContactComplianceStandard})
+                                    </span>
+                                )}
+                                </p>
+                            </InfoRow>
+                            <InfoRow icon={AlertTriangle} label="Prop 65 Warning">
+                                <p className="text-sm text-muted-foreground">
+                                {product.compliance?.prop65WarningRequired ? 'Required' : 'Not Required'}
+                                </p>
+                            </InfoRow>
+                            <InfoRow icon={Recycle} label="WEEE Compliance">
+                                <p className="text-sm text-muted-foreground">
+                                Registered: {product.compliance?.weeeRegistered ? 'Yes' : 'No'}
+                                {product.compliance?.weeeRegistrationNumber && (
+                                    <span className="ml-2 font-mono text-xs">
+                                    ({product.compliance.weeeRegistrationNumber})
+                                    </span>
+                                )}
+                                </p>
+                            </InfoRow>
+                             <InfoRow icon={Leaf} label="EUDR Compliant">
+                                <p className="text-sm text-muted-foreground">
+                                {product.compliance?.eudrCompliant ? 'Yes' : 'No'}
+                                {product.compliance?.eudrDiligenceId && (
+                                    <span className="ml-2 text-xs">
+                                    (Diligence ID: {product.compliance.eudrDiligenceId})
+                                    </span>
+                                )}
+                                </p>
+                            </InfoRow>
+                            <InfoRow icon={FileText} label="SCIP Reference">
+                                <p className="font-mono text-xs text-muted-foreground">
+                                {product.compliance?.scipReference || 'Not Provided'}
+                                </p>
+                            </InfoRow>
+                        </AccordionContent>
+                     </AccordionItem>
+                  </Accordion>
+                 
                   <InfoRow icon={FileText} label="Certifications">
                     {product.certifications &&
                     product.certifications.length > 0 ? (
