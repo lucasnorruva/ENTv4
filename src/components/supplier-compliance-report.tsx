@@ -50,7 +50,7 @@ const ProductListTable = ({ products }: { products: Product[] }) => (
                         <TableCell>{format(new Date(product.updatedAt), 'PPP')}</TableCell>
                         <TableCell className="text-right">
                            <Button asChild variant="outline" size="sm">
-                               <Link href={`/dashboard/supplier/products`}>View</Link>
+                               <Link href={`/dashboard/supplier/products/${product.id}`}>View</Link>
                            </Button>
                         </TableCell>
                     </TableRow>

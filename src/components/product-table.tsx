@@ -97,6 +97,8 @@ export default function ProductTable({
   const canEdit =
     user.roles.includes(UserRoles.ADMIN) ||
     user.roles.includes(UserRoles.SUPPLIER);
+  const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
+
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -151,7 +153,7 @@ export default function ProductTable({
                 data-ai-hint="product photo"
               />
               <Link
-                href={`/dashboard/supplier/products/${row.original.id}`}
+                href={`/dashboard/${roleSlug}/products/${row.original.id}`}
                 className="font-medium hover:underline"
               >
                 {row.original.productName}
@@ -302,7 +304,7 @@ export default function ProductTable({
         },
       },
     ],
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit],
+    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit, roleSlug],
   );
 
   const table = useReactTable({
