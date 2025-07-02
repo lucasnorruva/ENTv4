@@ -40,6 +40,7 @@ import {
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
+import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
 import { UserRoles, type Role } from './constants';
 import {
   getUserById,
@@ -569,6 +570,10 @@ export async function generateConformityDeclarationText(
 
   await logAuditEvent('doc.generated', productId, {}, userId);
   return declarationText;
+}
+
+export async function analyzeBillOfMaterials(bomText: string) {
+  return await analyzeBillOfMaterialsFlow({ bomText });
 }
 
 // Helper function to recursively flatten a nested object for CSV export.

@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
+import BomAnalysisWidget from '../bom-analysis-widget';
 
 interface DataTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -56,6 +57,12 @@ export default function DataTab({
   appendCert,
   removeCert,
 }: DataTabProps) {
+  const handleApplyBom = (materials: ProductFormValues['materials']) => {
+    if (materials) {
+      form.setValue('materials', materials, { shouldValidate: true });
+    }
+  };
+
   return (
     <div className="p-6">
       <Accordion
@@ -105,10 +112,12 @@ export default function DataTab({
           <AccordionTrigger>
             <h3 className="text-lg font-semibold">Materials</h3>
           </AccordionTrigger>
-          <AccordionContent className="pt-4">
-            <div className="flex justify-between items-center mb-4">
+          <AccordionContent className="pt-4 space-y-6">
+            <BomAnalysisWidget onApply={handleApplyBom} />
+
+            <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">
-                List all materials in the product.
+                Or add materials manually.
               </p>
               <Button
                 type="button"
@@ -160,9 +169,12 @@ export default function DataTab({
                     <FormControl>
                       <Input
                         type="number"
-                        {...form.register(`materials.${index}.recycledContent`, {
-                          valueAsNumber: true,
-                        })}
+                        {...form.register(
+                          `materials.${index}.recycledContent`,
+                          {
+                            valueAsNumber: true,
+                          },
+                        )}
                         placeholder="e.g. 100"
                       />
                     </FormControl>
