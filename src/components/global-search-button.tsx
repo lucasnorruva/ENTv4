@@ -1,3 +1,4 @@
+
 // src/components/global-search-button.tsx
 'use client';
 
@@ -25,6 +26,7 @@ import type { Product, User, CompliancePath } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
+import { getCurrentUser } from '@/lib/auth-client';
 
 interface GlobalSearchResult {
   products: Product[];
@@ -52,9 +54,7 @@ export default function GlobalSearchButton({
   useEffect(() => {
     // This is a simplified way to get the current user on the client.
     // In a real app, you might use a more robust state management solution.
-    import('@/lib/auth-client').then(authClient => {
-      authClient.getCurrentUser().then(setUser);
-    });
+    getCurrentUser().then(setUser);
   }, []);
 
   useEffect(() => {
