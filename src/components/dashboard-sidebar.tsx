@@ -198,7 +198,7 @@ const navConfig: Record<Role, NavConfig> = {
       label: 'Retail Operations',
       items: [
         { title: 'Product Catalog', icon: Package, href: 'catalog' },
-        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Market Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
   ],
