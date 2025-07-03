@@ -1,5 +1,4 @@
-
-"use server";
+'use server';
 
 /**
  * @fileOverview An AI agent for validating product data quality and detecting anomalies.
@@ -10,9 +9,9 @@
  * - ValidateProductDataOutput - The return type for the function.
  */
 
-import { ai } from "@/ai/genkit";
-import { z } from "genkit";
-import { AiProductSchema } from "../schemas";
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import { AiProductSchema } from '../schemas';
 
 const ValidateProductDataInputSchema = z.object({
   product: AiProductSchema,
@@ -22,8 +21,8 @@ export type ValidateProductDataInput = z.infer<
 >;
 
 const DataQualityWarningSchema = z.object({
-  field: z.string().describe("The specific field with a potential issue."),
-  warning: z.string().describe("A description of the potential data anomaly."),
+  field: z.string().describe('The specific field with a potential issue.'),
+  warning: z.string().describe('A description of the potential data anomaly.'),
 });
 export type DataQualityWarning = z.infer<typeof DataQualityWarningSchema>;
 
@@ -31,7 +30,7 @@ const ValidateProductDataOutputSchema = z.object({
   warnings: z
     .array(DataQualityWarningSchema)
     .describe(
-      "A list of data quality warnings. If the data is clean, this will be an empty array.",
+      'A list of data quality warnings. If the data is clean, this will be an empty array.',
     ),
 });
 export type ValidateProductDataOutput = z.infer<
@@ -45,7 +44,7 @@ export async function validateProductData(
 }
 
 const prompt = ai.definePrompt({
-  name: "validateProductDataPrompt",
+  name: 'validateProductDataPrompt',
   input: { schema: ValidateProductDataInputSchema },
   output: { schema: ValidateProductDataOutputSchema },
   prompt: `SYSTEM: You are a meticulous data quality analyst AI. Your task is to analyze structured product data and identify potential anomalies or errors. Do not be overly strict; only flag clear potential issues.
@@ -72,11 +71,11 @@ Manufacturing:
 
 const validateProductDataFlow = ai.defineFlow(
   {
-    name: "validateProductDataFlow",
+    name: 'validateProductDataFlow',
     inputSchema: ValidateProductDataInputSchema,
     outputSchema: ValidateProductDataOutputSchema,
   },
-  async (input) => {
+  async input => {
     const { output } = await prompt(input);
     return output!;
   },
