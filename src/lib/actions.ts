@@ -47,6 +47,7 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
+import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { Collections, UserRoles, type Role } from './constants';
 import {
@@ -724,6 +725,26 @@ export async function analyzeBillOfMaterials(bomText: string) {
   return await analyzeBillOfMaterialsFlow({ bomText });
 }
 
+export async function createProductFromImage(
+  imageDataUri: string,
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'product:create');
+
+  const result = await createProductFromImageFlow({ imageDataUri });
+
+  await logAuditEvent(
+    'product.created.from_image_analysis',
+    'pre-creation',
+    { productName: result.productName },
+    userId,
+  );
+
+  return result;
+}
+
 export async function bulkCreateProducts(
   products: BulkProductImportValues[],
   userId: string,
@@ -960,7 +981,7 @@ export async function saveUser(
       disabled: false,
     });
 
-    const newUserData = {
+    const newUserData: Omit<User, 'id'> = {
       fullName: validatedData.fullName,
       email: validatedData.email,
       companyId: validatedData.companyId,
@@ -968,12 +989,16 @@ export async function saveUser(
       readNotificationIds: [],
       onboardingComplete: true, // Admin-created users are onboarded by default
       isMfaEnabled: false,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     const docRef = adminDb.collection(Collections.USERS).doc(newUserRecord.uid);
-    await docRef.set(newUserData);
+    await docRef.set({
+      ...newUserData,
+      createdAt: now,
+      updatedAt: now,
+    });
 
     await logAuditEvent(
       'user.created',

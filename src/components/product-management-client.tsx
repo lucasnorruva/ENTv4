@@ -2,12 +2,19 @@
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
-import { Plus, Loader2, Upload } from 'lucide-react';
-import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
+import {
+  collection,
+  onSnapshot,
+  query,
+  where,
+  orderBy,
+} from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { Collections, UserRoles } from '@/lib/constants';
+import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
 
 import {
   Card,
@@ -27,6 +34,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
 import ProductImportDialog from './product-import-dialog';
+import ProductCreationFromImageDialog from './product-creation-from-image-dialog';
 
 interface ProductManagementClientProps {
   user: User;
@@ -43,17 +51,22 @@ export default function ProductManagementClient({
   const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const canCreate = hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
+  const canCreate =
+    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
   useEffect(() => {
     setIsLoading(true);
 
     const q = hasRole(user, UserRoles.ADMIN)
-      ? query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'))
+      ? query(
+          collection(db, Collections.PRODUCTS),
+          orderBy('lastUpdated', 'desc'),
+        )
       : query(
           collection(db, Collections.PRODUCTS),
           where('companyId', '==', user.companyId),
@@ -87,10 +100,25 @@ export default function ProductManagementClient({
     setSelectedProduct(null);
     setIsSheetOpen(true);
   };
-  
+
   const handleImport = () => {
     setIsImportOpen(true);
-  }
+  };
+
+  const handleCreateFromImage = () => {
+    setIsCreateFromImageOpen(true);
+  };
+
+  const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
+    const partialProduct: Partial<Product> = {
+      productName: data.productName,
+      productDescription: data.productDescription,
+      category: data.category,
+      status: 'Draft',
+    };
+    setSelectedProduct(partialProduct as Product);
+    setIsSheetOpen(true);
+  };
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -147,12 +175,11 @@ export default function ProductManagementClient({
     // The real-time listener will automatically update the table.
     setIsSheetOpen(false);
   };
-  
+
   const handleImportSave = () => {
     // The real-time listener will automatically update the table.
     setIsImportOpen(false);
   };
-
 
   return (
     <>
@@ -167,8 +194,11 @@ export default function ProductManagementClient({
             </div>
             {canCreate && (
               <div className="flex items-center gap-2">
-                 <Button variant="outline" onClick={handleImport}>
+                <Button variant="outline" onClick={handleImport}>
                   <Upload className="mr-2 h-4 w-4" /> Import
+                </Button>
+                <Button variant="outline" onClick={handleCreateFromImage}>
+                  <Sparkles className="mr-2 h-4 w-4" /> Create from Image
                 </Button>
                 <Button onClick={handleCreateNew}>
                   <Plus className="mr-2 h-4 w-4" /> Create New
@@ -210,6 +240,14 @@ export default function ProductManagementClient({
           isOpen={isImportOpen}
           onOpenChange={setIsImportOpen}
           onSave={handleImportSave}
+          user={user}
+        />
+      )}
+      {canCreate && (
+        <ProductCreationFromImageDialog
+          isOpen={isCreateFromImageOpen}
+          onOpenChange={setIsCreateFromImageOpen}
+          onAnalysisComplete={handleAnalysisComplete}
           user={user}
         />
       )}
