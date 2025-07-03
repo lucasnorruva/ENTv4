@@ -10,7 +10,7 @@ All API requests must be authenticated using an API key. Include your key in the
 
 ---
 
-## Endpoints
+## REST API (v1)
 
 ### Products
 
@@ -42,7 +42,7 @@ Retrieves a list of all product passports for your organization.
 Creates a new product passport.
 
 -   **Method**: `POST`
--   **Body**: `Product` object (without `id` or timestamps).
+-   **Body**: A valid `Product` object.
 -   **Success Response**: `201 Created`
     ```json
     {
@@ -113,6 +113,29 @@ Triggers an on-demand compliance check for a specific product.
       "summary": "Product is compliant with all known rules for its category."
     }
     ```
+
+---
+
+## GraphQL API
+
+In addition to our REST API, we offer a GraphQL endpoint for more flexible data queries.
+
+- **Endpoint**: `/api/graphql`
+- **Method**: `POST`
+
+You can use a GraphQL client to interact with this endpoint. It supports introspection, so you can explore the full schema using tools like Postman or Apollo Studio.
+
+### Example Query
+
+```graphql
+query GetProducts {
+  products {
+    id
+    productName
+    status
+  }
+}
+```
 
 ---
 _This is a preliminary version of the API documentation. More endpoints will be added._

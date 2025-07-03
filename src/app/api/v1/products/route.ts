@@ -4,6 +4,7 @@ import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
 import { PermissionError } from '@/lib/permissions';
+import { UserRoles } from '@/lib/constants';
 
 // In a real app, this would be a middleware or helper function
 // to extract the user from the Authorization header.
@@ -11,7 +12,7 @@ async function getApiUser(request: NextRequest): Promise<User> {
   // For this mock, we'll use a hardcoded role.
   // A real implementation would verify a JWT.
   // The "Developer" role seems appropriate for API access.
-  return getCurrentUser('Developer');
+  return getCurrentUser(UserRoles.DEVELOPER);
 }
 
 export async function GET(request: NextRequest) {
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
     console.error('API Product Creation Error:', error);
     await logAuditEvent('api.post', 'N/A', { endpoint, status: 500, error: 'Internal Server Error', method: 'POST' }, user.id);
     return NextResponse.json(
-      { message: 'Internal Server Error' },
+      { message: 'Internal Server Error', error: error.message },
       { status: 500 },
     );
   }
