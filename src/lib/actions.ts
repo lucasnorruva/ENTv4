@@ -899,7 +899,7 @@ export async function deleteUser(
 }
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  const snapshot = await adminDb.collection(Collections.COMPLIANCE_PATHS).get();
+  const snapshot = await adminDb.collection(Collections.COMPLIANCE_PATHS).orderBy("name", "asc").get();
   return snapshot.docs.map(doc => docToType<CompliancePath>(doc));
 }
 
@@ -932,8 +932,8 @@ export async function saveCompliancePath(
     regulations: validatedData.regulations.map(r => r.value),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value),
-      bannedKeywords: validatedData.bannedKeywords?.map(k => k.value),
+      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value) || [],
+      bannedKeywords: validatedData.bannedKeywords?.map(k => k.value) || [],
     },
     updatedAt: now,
   };

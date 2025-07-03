@@ -12,11 +12,19 @@ import {
   FileQuestion,
   Search,
 } from 'lucide-react';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import type { CompliancePath, User } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions';
+import { deleteCompliancePath } from '@/lib/actions';
 import { hasRole } from '@/lib/auth-utils';
 
 import {
@@ -25,7 +33,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -62,22 +69,33 @@ export default function CompliancePathManagement({
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchPaths() {
-      try {
-        const data = await getCompliancePaths();
-        setPaths(data);
-      } catch (e) {
+    const q = query(
+      collection(db, Collections.COMPLIANCE_PATHS),
+      orderBy('name', 'asc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const pathsData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as CompliancePath,
+        );
+        setPaths(pathsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching compliance paths:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load compliance paths.',
+          description: 'Failed to load compliance paths in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchPaths();
-  }, [toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const filteredPaths = useMemo(() => {
     if (!searchTerm) return paths;
@@ -172,7 +190,11 @@ export default function CompliancePathManagement({
                     {canManage && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 -mt-2 -mr-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 -mt-2 -mr-2"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -194,9 +216,12 @@ export default function CompliancePathManagement({
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                  <AlertDialogTitle>
+                                    Are you sure?
+                                  </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    This will permanently delete the path "{path.name}".
+                                    This will permanently delete the path "
+                                    {path.name}".
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -237,14 +262,24 @@ export default function CompliancePathManagement({
                     <h4 className="font-semibold text-sm mb-2">Rules</h4>
                     <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
                       {path.rules.minSustainabilityScore && (
-                        <li>Min. ESG Score: {path.rules.minSustainabilityScore}</li>
+                        <li>
+                          Min. ESG Score: {path.rules.minSustainabilityScore}
+                        </li>
                       )}
-                      {path.rules.requiredKeywords && path.rules.requiredKeywords.length > 0 && (
-                        <li>Required Materials: {path.rules.requiredKeywords.join(', ')}</li>
-                      )}
-                      {path.rules.bannedKeywords && path.rules.bannedKeywords.length > 0 && (
-                        <li>Banned Materials: {path.rules.bannedKeywords.join(', ')}</li>
-                      )}
+                      {path.rules.requiredKeywords &&
+                        path.rules.requiredKeywords.length > 0 && (
+                          <li>
+                            Required Materials:{' '}
+                            {path.rules.requiredKeywords.join(', ')}
+                          </li>
+                        )}
+                      {path.rules.bannedKeywords &&
+                        path.rules.bannedKeywords.length > 0 && (
+                          <li>
+                            Banned Materials:{' '}
+                            {path.rules.bannedKeywords.join(', ')}
+                          </li>
+                        )}
                     </ul>
                   </div>
                 </CardContent>
@@ -254,7 +289,9 @@ export default function CompliancePathManagement({
         ) : (
           <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg">
             <ListTree className="mx-auto h-12 w-12" />
-            <h3 className="mt-4 text-lg font-semibold">No Compliance Paths Found</h3>
+            <h3 className="mt-4 text-lg font-semibold">
+              No Compliance Paths Found
+            </h3>
             <p>No paths match your search, or none have been created yet.</p>
             {canManage && (
               <Button onClick={handleCreateNew} className="mt-4">
