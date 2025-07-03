@@ -66,8 +66,6 @@ import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows
 // MOCK DATA IMPORTS (To be removed or refactored)
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
-import { apiKeys as mockApiKeys } from './api-key-data';
-import { webhooks as mockWebhooks } from './webhook-data';
 
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
@@ -88,12 +86,16 @@ function docToType<T>(doc: FirebaseFirestore.DocumentSnapshot): T {
 // --- WEBHOOK ACTIONS ---
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
-  if (userId) {
-    const user = await getUserById(userId);
-    if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
-    return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
-  }
-  return Promise.resolve(mockWebhooks);
+  if (!userId) return []; // Should not be called without a user
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
+
+  const snapshot = await adminDb
+    .collection(Collections.WEBHOOKS)
+    .where('userId', '==', userId)
+    .get();
+  return snapshot.docs.map(doc => docToType<Webhook>(doc));
 }
 
 export async function getWebhookById(
@@ -101,11 +103,14 @@ export async function getWebhookById(
   userId: string,
 ): Promise<Webhook | undefined> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied');
-  return Promise.resolve(
-    mockWebhooks.find(w => w.id === id && w.userId === userId),
-  );
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
+
+  const doc = await adminDb.collection(Collections.WEBHOOKS).doc(id).get();
+  if (!doc.exists || doc.data()?.userId !== userId) {
+    return undefined;
+  }
+  return docToType<Webhook>(doc);
 }
 
 export async function saveWebhook(
@@ -114,35 +119,38 @@ export async function saveWebhook(
   webhookId?: string,
 ): Promise<Webhook> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied');
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
 
   const validatedData = webhookFormSchema.parse(values);
-  const now = new Date().toISOString();
 
   if (webhookId) {
-    const webhookIndex = mockWebhooks.findIndex(
-      w => w.id === webhookId && w.userId === userId,
-    );
-    if (webhookIndex === -1) throw new Error('Webhook not found');
-    mockWebhooks[webhookIndex] = {
-      ...mockWebhooks[webhookIndex],
+    const docRef = adminDb.collection(Collections.WEBHOOKS).doc(webhookId);
+    // Ensure the user owns this webhook
+    const existing = await docRef.get();
+    if (!existing.exists || existing.data()?.userId !== userId) {
+      throw new PermissionError('Webhook not found or permission denied.');
+    }
+
+    await docRef.update({
       ...validatedData,
-      updatedAt: now,
-    };
+      updatedAt: FieldValue.serverTimestamp(),
+    });
     await logAuditEvent('webhook.updated', webhookId, {}, userId);
-    return mockWebhooks[webhookIndex];
+    const updatedDoc = await docRef.get();
+    return docToType<Webhook>(updatedDoc);
   } else {
-    const newWebhook: Webhook = {
-      id: newId('wh'),
+    const docRef = adminDb.collection(Collections.WEBHOOKS).doc();
+    const newWebhook = {
       ...validatedData,
       userId,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
-    mockWebhooks.push(newWebhook);
-    await logAuditEvent('webhook.created', newWebhook.id, {}, userId);
-    return newWebhook;
+    await docRef.set(newWebhook);
+    await logAuditEvent('webhook.created', docRef.id, {}, userId);
+    const newDoc = await docRef.get();
+    return docToType<Webhook>(newDoc);
   }
 }
 
@@ -151,15 +159,17 @@ export async function deleteWebhook(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied');
-  const index = mockWebhooks.findIndex(
-    w => w.id === webhookId && w.userId === userId,
-  );
-  if (index > -1) {
-    mockWebhooks.splice(index, 1);
-    await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
+
+  const docRef = adminDb.collection(Collections.WEBHOOKS).doc(webhookId);
+  const existing = await docRef.get();
+  if (!existing.exists || existing.data()?.userId !== userId) {
+    throw new PermissionError('Webhook not found or permission denied.');
   }
+
+  await docRef.delete();
+  await logAuditEvent('webhook.deleted', webhookId, {}, userId);
 }
 
 export async function replayWebhook(
@@ -167,8 +177,8 @@ export async function replayWebhook(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied');
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
 
   const log = await getAuditLogById(logId);
   if (
@@ -193,7 +203,8 @@ export async function replayWebhook(
     userId,
   );
 
-  await sendWebhook(webhook, log.details.event, product);
+  // Intentionally not awaiting this to avoid blocking the main action
+  sendWebhook(webhook, log.details.event, product);
 }
 
 // --- PRODUCT ACTIONS ---
@@ -1076,7 +1087,9 @@ export async function logAuditEvent(
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
+
   const snapshot = await adminDb
     .collection(Collections.API_KEYS)
     .where('userId', '==', userId)
@@ -1091,10 +1104,8 @@ export async function saveApiKey(
 ): Promise<{ key: ApiKey; rawToken?: string }> {
   const validatedData = apiKeyFormSchema.parse(values);
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied.');
-
-  const now = FieldValue.serverTimestamp();
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
 
   if (keyId) {
     const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
@@ -1105,7 +1116,7 @@ export async function saveApiKey(
     await docRef.update({
       label: validatedData.label,
       scopes: validatedData.scopes,
-      updatedAt: now,
+      updatedAt: FieldValue.serverTimestamp(),
     });
     await logAuditEvent(
       'api_key.updated',
@@ -1126,8 +1137,8 @@ export async function saveApiKey(
       token: `nor_mock_******************${rawToken.slice(-4)}`,
       status: 'Active' as const,
       userId,
-      createdAt: now,
-      updatedAt: now,
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
     };
     await docRef.set(newKey);
     await logAuditEvent(
@@ -1146,9 +1157,8 @@ export async function revokeApiKey(
   userId: string,
 ): Promise<ApiKey> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
-    throw new PermissionError('You do not have permission to revoke API keys.');
-  }
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
 
   const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
   const existingKey = await docRef.get();
@@ -1169,9 +1179,8 @@ export async function deleteApiKey(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
-    throw new PermissionError('You do not have permission to delete API keys.');
-  }
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'developer:manage_api');
 
   const docRef = adminDb.collection(Collections.API_KEYS).doc(keyId);
   const existingKey = await docRef.get();
@@ -1229,20 +1238,23 @@ export async function completeOnboarding(
   values: OnboardingFormValues,
   userId: string,
 ) {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User to onboard not found.');
+  const userRef = adminDb.collection(Collections.USERS).doc(userId);
+  const companyRef = adminDb.collection(Collections.COMPANIES).doc(); // New company
 
-  const companyRef = adminDb
-    .collection(Collections.COMPANIES)
-    .doc(user.companyId);
+  const companyData = {
+    name: values.companyName,
+    industry: values.industry,
+    ownerId: userId,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
 
   await adminDb.runTransaction(async transaction => {
-    transaction.update(companyRef, {
-      name: values.companyName,
-      industry: values.industry,
-      updatedAt: FieldValue.serverTimestamp(),
-    });
-    transaction.update(adminDb.collection(Collections.USERS).doc(userId), {
+    // Create the company
+    transaction.set(companyRef, companyData);
+    // Update the user
+    transaction.update(userRef, {
+      companyId: companyRef.id,
       onboardingComplete: true,
       updatedAt: FieldValue.serverTimestamp(),
     });
@@ -1251,7 +1263,7 @@ export async function completeOnboarding(
   await logAuditEvent(
     'user.onboarded',
     userId,
-    { companyId: user.companyId },
+    { companyId: companyRef.id },
     userId,
   );
 }

@@ -5,10 +5,16 @@ dotenv.config(); // Explicitly load .env file at the top
 import admin, { adminDb } from '../lib/firebase-admin';
 import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
-import { apiKeys as mockApiKeys } from '../lib/api-key-data';
-import { webhooks as mockWebhooks } from '../lib/webhook-data';
 import { Collections, UserRoles } from '../lib/constants';
-import type { Company, Product, User, CompliancePath, AuditLog } from '@/types';
+import type {
+  Company,
+  Product,
+  User,
+  CompliancePath,
+  AuditLog,
+  Webhook,
+  ApiKey,
+} from '@/types';
 
 // --- MOCK DATA DEFINITIONS (MOVED FROM DEPRECATED FILES) ---
 const mockCompanies: Omit<Company, 'createdAt' | 'updatedAt'>[] = [
@@ -285,6 +291,43 @@ const mockAuditLogs: Omit<AuditLog, 'createdAt' | 'updatedAt'>[] = [
       productId: 'pp-002',
       url: 'https://api.example.com/v1/norruva-hooks',
     },
+  },
+];
+
+const mockApiKeys: Omit<ApiKey, 'createdAt' | 'updatedAt'>[] = [
+  {
+    id: 'key-001',
+    label: 'My Production Server',
+    token: 'nor_prod_******************1234',
+    status: 'Active',
+    userId: 'user-developer',
+    scopes: ['product:read', 'product:write', 'compliance:read'],
+    lastUsed: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
+  },
+  {
+    id: 'key-002',
+    label: 'Old Integration (Revoked)',
+    token: 'nor_rev_******************5678',
+    status: 'Revoked',
+    userId: 'user-developer',
+    scopes: ['product:read'],
+  },
+];
+
+const mockWebhooks: Omit<Webhook, 'createdAt' | 'updatedAt'>[] = [
+  {
+    id: 'wh-001',
+    url: 'https://api.example.com/v1/norruva-hooks',
+    events: ['product.published', 'product.updated'],
+    status: 'active',
+    userId: 'user-developer',
+  },
+  {
+    id: 'wh-002',
+    url: 'https://alerts.example.com/dpp-compliance-failures',
+    events: ['compliance.failed'],
+    status: 'inactive',
+    userId: 'user-developer',
   },
 ];
 // --- END MOCK DATA ---
