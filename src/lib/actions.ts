@@ -47,6 +47,7 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
+import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { Collections, UserRoles, type Role } from './constants';
 import {
   getUserById,
@@ -567,6 +568,72 @@ export async function rejectPassport(
     'sustainability.gaps': gaps,
   });
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function runComplianceCheck(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+  checkPermission(user, 'product:run_compliance', product);
+
+  if (!product.compliancePathId) {
+    throw new Error('Product has no compliance path assigned.');
+  }
+  const compliancePath = await getCompliancePathById(product.compliancePathId);
+  if (!compliancePath) {
+    throw new Error('Compliance path not found.');
+  }
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const complianceResult = await summarizeComplianceGaps({
+    product: aiProductInput,
+    compliancePath,
+  });
+
+  const updatePayload: Partial<Product> = {
+    sustainability: {
+      ...(product.sustainability as any),
+      isCompliant: complianceResult.isCompliant,
+      complianceSummary: complianceResult.complianceSummary,
+      gaps: complianceResult.gaps,
+    },
+    lastUpdated: new Date().toISOString(),
+    lastVerificationDate: new Date().toISOString(),
+  };
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update(updatePayload);
+
+  await logAuditEvent(
+    'compliance.check.manual',
+    productId,
+    { result: complianceResult },
+    userId,
+  );
+  
   const updatedDoc = await docRef.get();
   return docToType<Product>(updatedDoc);
 }

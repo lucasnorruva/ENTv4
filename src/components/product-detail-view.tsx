@@ -67,10 +67,13 @@ import DppCompletenessWidget from './dpp-completeness-widget';
 import { AuditLogTimeline } from './audit-log-timeline';
 import AiSuggestionsWidget from './ai-suggestions-widget';
 import DocGenerationWidget from './doc-generation-widget';
+import ComplianceAnalysisWidget from './compliance-analysis-widget';
 import { generateAndSaveProductImage } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
 
 function InfoRow({
   icon: Icon,
@@ -160,6 +163,10 @@ export default function ProductDetailView({
   const { sustainability } = product;
   const esg = sustainability;
   const aiLifecycle = sustainability?.lifecycleAnalysis;
+  const canRunComplianceCheck =
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.AUDITOR) ||
+    hasRole(user, UserRoles.COMPLIANCE_MANAGER);
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -749,6 +756,9 @@ export default function ProductDetailView({
         <div className="space-y-6">
           <DppCompletenessWidget product={product} />
           <DppQrCodeWidget productId={product.id} />
+          {canRunComplianceCheck && (
+            <ComplianceAnalysisWidget product={product} user={user} />
+          )}
           <AiSuggestionsWidget product={product} />
           <DocGenerationWidget product={product} user={user} />
         </div>

@@ -26,6 +26,7 @@ export type Action =
   | 'product:recalculate'
   | 'product:recycle'
   | 'product:resolve'
+  | 'product:run_compliance'
   | 'compliance:manage'
   | 'user:manage'
   | 'company:manage'
@@ -79,6 +80,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:approve':
     case 'product:reject':
       return hasRole(user, UserRoles.AUDITOR);
+      
+    case 'product:run_compliance':
+      return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);
 
     case 'product:resolve':
       return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
