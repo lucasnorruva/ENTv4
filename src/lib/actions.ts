@@ -64,7 +64,6 @@ import { FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 
 // MOCK DATA IMPORTS (To be removed or refactored)
-import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { apiKeys as mockApiKeys } from './api-key-data';
@@ -93,11 +92,9 @@ export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   if (userId) {
     const user = await getUserById(userId);
     if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
-    const snapshot = await adminDb.collection(Collections.WEBHOOKS).where('userId', '==', userId).get();
-    return snapshot.docs.map(doc => docToType<Webhook>(doc));
+    return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
   }
-  const snapshot = await adminDb.collection(Collections.WEBHOOKS).get();
-  return snapshot.docs.map(doc => docToType<Webhook>(doc));
+  return Promise.resolve(mockWebhooks);
 }
 
 export async function getWebhookById(
@@ -107,11 +104,9 @@ export async function getWebhookById(
   const user = await getUserById(userId);
   if (!user || !hasRole(user, UserRoles.DEVELOPER))
     throw new Error('Permission denied');
-  
-  const doc = await adminDb.collection(Collections.WEBHOOKS).doc(id).get();
-  if (!doc.exists || doc.data()?.userId !== userId) return undefined;
-  
-  return docToType<Webhook>(doc);
+  return Promise.resolve(
+    mockWebhooks.find(w => w.id === id && w.userId === userId),
+  );
 }
 
 export async function saveWebhook(
@@ -124,29 +119,31 @@ export async function saveWebhook(
     throw new Error('Permission denied');
 
   const validatedData = webhookFormSchema.parse(values);
-  const now = FieldValue.serverTimestamp();
+  const now = new Date().toISOString();
 
   if (webhookId) {
-    const docRef = adminDb.collection(Collections.WEBHOOKS).doc(webhookId);
-    const existing = await docRef.get();
-    if (!existing.exists || existing.data()?.userId !== userId) throw new Error('Webhook not found or permission denied');
-    
-    await docRef.update({ ...validatedData, updatedAt: now });
+    const webhookIndex = mockWebhooks.findIndex(
+      w => w.id === webhookId && w.userId === userId,
+    );
+    if (webhookIndex === -1) throw new Error('Webhook not found');
+    mockWebhooks[webhookIndex] = {
+      ...mockWebhooks[webhookIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
     await logAuditEvent('webhook.updated', webhookId, {}, userId);
-    const updatedDoc = await docRef.get();
-    return docToType<Webhook>(updatedDoc);
+    return mockWebhooks[webhookIndex];
   } else {
-    const docRef = adminDb.collection(Collections.WEBHOOKS).doc();
-    const newWebhook = {
+    const newWebhook: Webhook = {
+      id: newId('wh'),
       ...validatedData,
       userId,
       createdAt: now,
       updatedAt: now,
     };
-    await docRef.set(newWebhook);
-    await logAuditEvent('webhook.created', docRef.id, {}, userId);
-    const newDoc = await docRef.get();
-    return docToType<Webhook>(newDoc);
+    mockWebhooks.push(newWebhook);
+    await logAuditEvent('webhook.created', newWebhook.id, {}, userId);
+    return newWebhook;
   }
 }
 
@@ -157,13 +154,13 @@ export async function deleteWebhook(
   const user = await getUserById(userId);
   if (!user || !hasRole(user, UserRoles.DEVELOPER))
     throw new Error('Permission denied');
-
-  const docRef = adminDb.collection(Collections.WEBHOOKS).doc(webhookId);
-  const existing = await docRef.get();
-  if (!existing.exists || existing.data()?.userId !== userId) throw new Error('Webhook not found or permission denied');
-
-  await docRef.delete();
-  await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+  const index = mockWebhooks.findIndex(
+    w => w.id === webhookId && w.userId === userId,
+  );
+  if (index > -1) {
+    mockWebhooks.splice(index, 1);
+    await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+  }
 }
 
 export async function replayWebhook(
@@ -174,7 +171,7 @@ export async function replayWebhook(
   if (!user || !hasRole(user, UserRoles.DEVELOPER))
     throw new Error('Permission denied');
 
-  const log = await getAuditLogById(logId);
+  const log = mockAuditLogs.find(l => l.id === logId);
   if (
     !log ||
     log.action !== 'webhook.delivery.failure' ||
@@ -183,7 +180,7 @@ export async function replayWebhook(
     throw new Error('Invalid or non-replayable event log.');
   }
 
-  const webhook = await getWebhookById(log.entityId, userId);
+  const webhook = mockWebhooks.find(wh => wh.id === log.entityId);
   const product = await getProductById(log.details.productId, userId);
 
   if (!webhook || !product) {
@@ -1193,43 +1190,6 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
   });
 }
 
-export async function createUserAndCompany(
-  name: string,
-  email: string,
-  userId: string,
-) {
-  const userRef = adminDb.collection(Collections.USERS).doc(userId);
-  const companyRef = adminDb.collection(Collections.COMPANIES).doc();
-
-  const now = FieldValue.serverTimestamp();
-
-  const companyData = {
-    name: `${name}'s Company`,
-    ownerId: userId,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  const userData = {
-    fullName: name,
-    email: email,
-    companyId: companyRef.id,
-    roles: [UserRoles.SUPPLIER] as Role[],
-    createdAt: now,
-    updatedAt: now,
-    readNotificationIds: [],
-    onboardingComplete: false,
-    isMfaEnabled: false,
-  };
-
-  await adminDb.runTransaction(async (transaction) => {
-    transaction.set(companyRef, companyData);
-    transaction.set(userRef, userData);
-  });
-
-  await logAuditEvent('user.signed_up', userId, { companyId: companyRef.id }, userId);
-}
-
 export async function completeOnboarding(
   values: OnboardingFormValues,
   userId: string,
@@ -1358,8 +1318,7 @@ export async function saveSupportTicket(values: SupportTicketFormValues, userId?
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  const snapshot = await adminDb.collection(Collections.SERVICE_TICKETS).get();
-  return snapshot.docs.map(doc => docToType<ServiceTicket>(doc));
+  return Promise.resolve(mockServiceTickets);
 }
 
 export async function saveServiceTicket(
@@ -1368,22 +1327,31 @@ export async function saveServiceTicket(
   ticketId?: string,
 ): Promise<ServiceTicket> {
   const validatedData = serviceTicketFormSchema.parse(values);
-  const now = FieldValue.serverTimestamp();
-  
+  const now = new Date().toISOString();
+  let savedTicket: ServiceTicket;
+
   if (ticketId) {
-    const docRef = adminDb.collection(Collections.SERVICE_TICKETS).doc(ticketId);
-    await docRef.update({ ...validatedData, updatedAt: now });
+    const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
+    if (ticketIndex === -1) throw new Error('Ticket not found');
+    savedTicket = {
+      ...mockServiceTickets[ticketIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
+    mockServiceTickets[ticketIndex] = savedTicket;
     await logAuditEvent('ticket.updated', ticketId, {}, userId);
-    const updatedDoc = await docRef.get();
-    return docToType<ServiceTicket>(updatedDoc);
   } else {
-    const docRef = adminDb.collection(Collections.SERVICE_TICKETS).doc();
-    const newTicket = { ...validatedData, userId, createdAt: now, updatedAt: now };
-    await docRef.set(newTicket);
-    await logAuditEvent('ticket.created', docRef.id, {}, userId);
-    const newDoc = await docRef.get();
-    return docToType<ServiceTicket>(newDoc);
+    savedTicket = {
+      id: newId('tkt'),
+      ...validatedData,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockServiceTickets.unshift(savedTicket);
+    await logAuditEvent('ticket.created', savedTicket.id, {}, userId);
   }
+  return Promise.resolve(savedTicket);
 }
 
 export async function updateServiceTicketStatus(
@@ -1391,16 +1359,16 @@ export async function updateServiceTicketStatus(
   status: 'Open' | 'In Progress' | 'Closed',
   userId: string,
 ): Promise<ServiceTicket> {
-  const docRef = adminDb.collection(Collections.SERVICE_TICKETS).doc(ticketId);
-  await docRef.update({ status, updatedAt: FieldValue.serverTimestamp() });
+  const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
+  if (ticketIndex === -1) throw new Error('Ticket not found');
+  mockServiceTickets[ticketIndex].status = status;
+  mockServiceTickets[ticketIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
-  const updatedDoc = await docRef.get();
-  return docToType<ServiceTicket>(updatedDoc);
+  return Promise.resolve(mockServiceTickets[ticketIndex]);
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  const snapshot = await adminDb.collection(Collections.PRODUCTION_LINES).get();
-  return snapshot.docs.map(doc => docToType<ProductionLine>(doc));
+  return Promise.resolve(mockProductionLines);
 }
 
 export async function saveProductionLine(
@@ -1409,7 +1377,9 @@ export async function saveProductionLine(
   lineId?: string,
 ): Promise<ProductionLine> {
   const validatedData = productionLineFormSchema.parse(values);
-  const now = FieldValue.serverTimestamp();
+  const now = new Date().toISOString();
+  let savedLine: ProductionLine;
+
   const lineData = {
     ...validatedData,
     outputPerHour: Number(validatedData.outputPerHour),
@@ -1417,31 +1387,37 @@ export async function saveProductionLine(
   };
 
   if (lineId) {
-    const docRef = adminDb.collection(Collections.PRODUCTION_LINES).doc(lineId);
-    await docRef.update(lineData);
-    await logAuditEvent('production_line.updated', lineId, {}, userId);
-    const updatedDoc = await docRef.get();
-    return docToType<ProductionLine>(updatedDoc);
-  } else {
-    const docRef = adminDb.collection(Collections.PRODUCTION_LINES).doc();
-    const newLine = {
+    const lineIndex = mockProductionLines.findIndex(l => l.id === lineId);
+    if (lineIndex === -1) throw new Error('Line not found');
+    savedLine = {
+      ...mockProductionLines[lineIndex],
       ...lineData,
-      lastMaintenance: new Date().toISOString(),
+    };
+    mockProductionLines[lineIndex] = savedLine;
+    await logAuditEvent('production_line.updated', lineId, {}, userId);
+  } else {
+    savedLine = {
+      id: newId('line'),
+      ...lineData,
+      lastMaintenance: now,
       createdAt: now,
     };
-    await docRef.set(newLine);
-    await logAuditEvent('production_line.created', docRef.id, {}, userId);
-    const newDoc = await docRef.get();
-    return docToType<ProductionLine>(newDoc);
+    mockProductionLines.push(savedLine);
+    await logAuditEvent('production_line.created', savedLine.id, {}, userId);
   }
+  return Promise.resolve(savedLine);
 }
 
 export async function deleteProductionLine(
   lineId: string,
   userId: string,
 ): Promise<void> {
-  await adminDb.collection(Collections.PRODUCTION_LINES).doc(lineId).delete();
-  await logAuditEvent('production_line.deleted', lineId, {}, userId);
+  const index = mockProductionLines.findIndex(l => l.id === lineId);
+  if (index > -1) {
+    mockProductionLines.splice(index, 1);
+    await logAuditEvent('production_line.deleted', lineId, {}, userId);
+  }
+  return Promise.resolve();
 }
 
 export async function getUserByEmail(
@@ -1544,4 +1520,41 @@ export async function createProductFromImage(
   checkPermission(user, 'product:create');
   
   return await createProductFromImageFlow({ imageDataUri });
+}
+
+export async function runDataValidationCheck(productId: string, userId: string): Promise<void> {
+    const user = await getUserById(userId);
+    if (!user) throw new Error("User not found.");
+
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error("Product not found or permission denied.");
+
+    checkPermission(user, 'product:validate_data', product);
+    
+    // Convert product to the AI schema
+    const aiProductInput: AiProduct = {
+      productName: product.productName,
+      productDescription: product.productDescription,
+      category: product.category,
+      supplier: product.supplier,
+      materials: product.materials,
+      gtin: product.gtin,
+      manufacturing: product.manufacturing,
+      certifications: product.certifications,
+      packaging: product.packaging,
+      lifecycle: product.lifecycle,
+      battery: product.battery,
+      compliance: product.compliance,
+      verificationStatus: product.verificationStatus ?? 'Not Submitted',
+      complianceSummary: product.sustainability?.complianceSummary,
+    };
+
+    const { warnings } = await validateProductData({ product: aiProductInput });
+
+    await adminDb.collection(Collections.PRODUCTS).doc(productId).update({
+        dataQualityWarnings: warnings,
+        lastUpdated: FieldValue.serverTimestamp()
+    });
+
+    await logAuditEvent('product.data.validated', productId, { warningCount: warnings.length }, userId);
 }
