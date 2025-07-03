@@ -1,4 +1,3 @@
-
 // src/lib/actions.ts
 'use server';
 
@@ -572,7 +571,7 @@ export async function runDataValidationCheck(
         }
       }
     } catch (error) {
-       const currentIndex = mockProducts.findIndex(p => p.id === productId);
+      const currentIndex = mockProducts.findIndex(p => p.id === productId);
       if (currentIndex !== -1) {
         mockProducts[currentIndex].isProcessing = false;
       }
@@ -665,7 +664,7 @@ export async function runComplianceCheck(
       if (currentIndex !== -1) {
         mockProducts[currentIndex].isProcessing = false;
       }
-       await logAuditEvent(
+      await logAuditEvent(
         'product.compliance.failed',
         productId,
         { error: (error as Error).message },
@@ -905,7 +904,10 @@ export async function generateAndSaveConformityDeclaration(
   const company = await getCompanyById(product.companyId);
   if (!company) throw new Error('Company not found');
 
-  const declarationText = await generateConformityDeclarationText(productId, userId);
+  const declarationText = await generateConformityDeclarationText(
+    productId,
+    userId,
+  );
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -1270,11 +1272,17 @@ export async function saveCompliancePath(
     name: validatedData.name,
     description: validatedData.description,
     category: validatedData.category,
-    regulations: validatedData.regulations.map(item => item.value).filter(Boolean),
+    regulations: validatedData.regulations
+      .map(item => item.value)
+      .filter(Boolean),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords?.map(item => item.value).filter(Boolean),
-      bannedKeywords: validatedData.bannedKeywords?.map(item => item.value).filter(Boolean),
+      requiredKeywords: validatedData.requiredKeywords
+        ?.map(item => item.value)
+        .filter(Boolean),
+      bannedKeywords: validatedData.bannedKeywords
+        ?.map(item => item.value)
+        .filter(Boolean),
     },
     updatedAt: now,
   };
@@ -1493,7 +1501,7 @@ export async function saveApiSettings(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'admin:manage_settings');
-  
+
   const validatedData = apiSettingsSchema.parse(values);
   Object.assign(mockApiSettings, validatedData);
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
