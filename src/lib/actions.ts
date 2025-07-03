@@ -66,18 +66,7 @@ import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows
 import { validateProductData } from '@/ai/flows/validate-product-data';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { adminDb } from './firebase-admin';
-import { FieldValue } from 'firebase-admin/firestore';
-
-// MOCK DATA IMPORTS
-import { products as mockProducts } from './data';
-import { apiKeys as mockApiKeys } from './api-key-data';
-import { webhooks as mockWebhooks } from './webhook-data';
-import { serviceTickets as mockServiceTickets } from './service-ticket-data';
-import { productionLines as mockProductionLines } from './manufacturing-data';
-
-// Helper for mock data manipulation
-const newId = (prefix: string) =>
-  `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
+import { FieldValue, type Query } from 'firebase-admin/firestore';
 
 // --- WEBHOOK ACTIONS ---
 
@@ -188,7 +177,7 @@ export async function getProducts(
     if (!user) return [];
   }
 
-  let query: admin.firestore.Query = adminDb.collection(Collections.PRODUCTS);
+  let query: Query = adminDb.collection(Collections.PRODUCTS);
 
   if (!userId) {
     // Public access: only published products
@@ -1000,7 +989,7 @@ export async function getAuditLogs(filters?: {
   entityId?: string;
   userId?: string;
 }): Promise<AuditLog[]> {
-  let query: admin.firestore.Query = adminDb.collection(Collections.AUDIT_LOGS);
+  let query: Query = adminDb.collection(Collections.AUDIT_LOGS);
 
   if (filters?.companyId) {
     const companyUsers = await getUsersByCompanyId(filters.companyId);
