@@ -14,6 +14,6 @@ export default async function CompaniesPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Initial data is now fetched on the client side with a real-time listener.
+  // The client component will fetch and listen to company data in real-time.
   return <CompanyManagementClient adminUser={user} />;
 }

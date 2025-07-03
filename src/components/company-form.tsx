@@ -52,6 +52,7 @@ export default function CompanyForm({
     defaultValues: {
       name: '',
       ownerId: '',
+      industry: '',
     },
   });
 
@@ -61,11 +62,13 @@ export default function CompanyForm({
         form.reset({
           name: company.name,
           ownerId: company.ownerId,
+          industry: company.industry || '',
         });
       } else {
         form.reset({
           name: '',
           ownerId: '',
+          industry: '',
         });
       }
     }
@@ -125,6 +128,19 @@ export default function CompanyForm({
                   <FormLabel>Owner User ID</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., user-admin" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="industry"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Industry</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Electronics" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

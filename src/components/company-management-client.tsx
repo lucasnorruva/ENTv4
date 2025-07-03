@@ -1,15 +1,17 @@
 // src/components/company-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useMemo } from 'react';
 import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
+  MoreHorizontal,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  Building2,
+  ArrowUpDown,
+  ChevronDown,
+} from 'lucide-react';
 import {
   ColumnDef,
   SortingState,
@@ -23,16 +25,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import {
-  MoreHorizontal,
-  Plus,
-  Edit,
-  Trash2,
-  Loader2,
-  Building2,
-  ArrowUpDown,
-  ChevronDown,
-} from 'lucide-react';
 
 import {
   Card,
@@ -72,7 +64,7 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompany } from '@/lib/actions';
+import { getCompanies, deleteCompany } from '@/lib/actions';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
@@ -89,44 +81,31 @@ export default function CompanyManagementClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const [sorting, setSorting] = React.useState<SortingState>([
+  const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
   ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    {},
   );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [globalFilter, setGlobalFilter] = useState('');
 
   useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.COMPANIES),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const companiesData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Company,
-        );
-        setCompanies(companiesData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching companies:', error);
+    const fetchCompanies = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getCompanies();
+        setCompanies(data);
+      } catch (error) {
         toast({
-          title: 'Error',
-          description: 'Failed to load companies in real-time.',
+          title: 'Error loading companies',
           variant: 'destructive',
         });
+      } finally {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+      }
+    };
+    fetchCompanies();
   }, [toast]);
 
   const handleCreateNew = () => {
@@ -143,6 +122,7 @@ export default function CompanyManagementClient({
     startTransition(async () => {
       try {
         await deleteCompany(companyId, adminUser.id);
+        setCompanies(prev => prev.filter(c => c.id !== companyId));
         toast({
           title: 'Company Deleted',
           description: 'The company has been successfully deleted.',
@@ -158,11 +138,17 @@ export default function CompanyManagementClient({
   };
 
   const handleSave = (savedCompany: Company) => {
-    // The listener will update the state, so we just need to close the form.
+    setCompanies(prev => {
+      const exists = prev.some(c => c.id === savedCompany.id);
+      if (exists) {
+        return prev.map(c => (c.id === savedCompany.id ? savedCompany : c));
+      }
+      return [savedCompany, ...prev];
+    });
     setIsFormOpen(false);
   };
 
-  const columns: ColumnDef<Company>[] = React.useMemo(
+  const columns: ColumnDef<Company>[] = useMemo(
     () => [
       {
         accessorKey: 'name',
@@ -180,11 +166,8 @@ export default function CompanyManagementClient({
         ),
       },
       {
-        accessorKey: 'id',
-        header: 'Company ID',
-        cell: ({ row }) => (
-          <div className="font-mono text-xs">{row.original.id}</div>
-        ),
+        accessorKey: 'industry',
+        header: 'Industry',
       },
       {
         accessorKey: 'ownerId',
@@ -260,7 +243,6 @@ export default function CompanyManagementClient({
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isPending],
   );
 
@@ -302,7 +284,7 @@ export default function CompanyManagementClient({
         <CardContent>
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter by name or ID..."
+              placeholder="Filter by name..."
               value={globalFilter ?? ''}
               onChange={event => setGlobalFilter(event.target.value)}
               className="max-w-sm"
