@@ -35,7 +35,8 @@ export type Action =
   | 'developer:manage_api'
   | 'admin:manage_settings'
   | 'ticket:create'
-  | 'ticket:update';
+  | 'ticket:update'
+  | 'manufacturer:manage_lines';
 
 /**
  * Checks if a user has permission to perform a specific action.
@@ -121,6 +122,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'ticket:update':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
       
+    case 'manufacturer:manage_lines':
+      return hasRole(user, UserRoles.MANUFACTURER);
+
     default:
       return false;
   }
