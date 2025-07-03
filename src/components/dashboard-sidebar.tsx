@@ -38,6 +38,7 @@ import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarSeparator,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { UserRoles, type Role } from '@/lib/constants';
 import type { User } from '@/types';
@@ -286,6 +287,7 @@ export default function DashboardSidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
+  const { toggleSidebar } = useSidebar();
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = getRoleSlug(userRole);
 
@@ -312,6 +314,10 @@ export default function DashboardSidebar({
       window.open(href, '_blank');
     } else {
       router.push(href);
+    }
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+        toggleSidebar();
     }
   };
 
