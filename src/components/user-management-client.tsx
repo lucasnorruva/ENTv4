@@ -13,6 +13,14 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import {
   ColumnDef,
   SortingState,
   ColumnFiltersState,
@@ -66,7 +74,7 @@ import {
 
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getUsers, deleteUser } from '@/lib/actions';
+import { deleteUser } from '@/lib/actions';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
@@ -95,22 +103,33 @@ export default function UserManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchUsers() {
-      try {
-        const data = await getUsers();
-        setUsers(data);
-      } catch (e) {
+    const q = query(
+      collection(db, Collections.USERS),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const usersData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as User,
+        );
+        setUsers(usersData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching users:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load users.',
+          description: 'Failed to load users in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchUsers();
-  }, [toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedUser(null);

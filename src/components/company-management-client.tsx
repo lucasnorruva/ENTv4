@@ -3,6 +3,14 @@
 
 import React, { useState, useTransition, useEffect } from 'react';
 import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import {
   ColumnDef,
   SortingState,
   ColumnFiltersState,
@@ -64,7 +72,7 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, deleteCompany } from '@/lib/actions';
+import { deleteCompany } from '@/lib/actions';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
@@ -93,22 +101,33 @@ export default function CompanyManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchCompanies() {
-      try {
-        const data = await getCompanies();
-        setCompanies(data);
-      } catch (e) {
+    const q = query(
+      collection(db, Collections.COMPANIES),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const companiesData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Company,
+        );
+        setCompanies(companiesData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching companies:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load companies.',
+          description: 'Failed to load companies in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchCompanies();
-  }, [toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedCompany(null);
