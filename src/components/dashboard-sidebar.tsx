@@ -2,7 +2,7 @@
 // src/components/dashboard-sidebar.tsx
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutGrid,
   BookCopy,
@@ -56,6 +56,7 @@ interface NavItem {
   icon: React.ElementType;
   href: string;
   external?: boolean;
+  unified?: boolean;
 }
 
 interface NavGroup {
@@ -72,7 +73,7 @@ const navConfig: Record<Role, NavConfig> = {
     {
       label: 'Platform Management',
       items: [
-        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics', unified: true },
         { title: 'Users', icon: Users, href: 'users' },
         { title: 'Companies', icon: Building2, href: 'companies' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
@@ -141,6 +142,7 @@ const navConfig: Record<Role, NavConfig> = {
           title: 'Analytics',
           icon: BarChart3,
           href: 'analytics',
+          unified: true,
         },
       ],
     },
@@ -202,7 +204,7 @@ const navConfig: Record<Role, NavConfig> = {
       label: 'Retail Operations',
       items: [
         { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
-        { title: 'Market Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics', unified: true },
       ],
     },
   ],
@@ -211,9 +213,10 @@ const navConfig: Record<Role, NavConfig> = {
       label: 'Analytics',
       items: [
         {
-          title: 'System Analytics',
+          title: 'Analytics',
           icon: BarChart3,
           href: 'analytics',
+          unified: true,
         },
         {
           title: 'Sustainability Metrics',
@@ -280,6 +283,7 @@ const navConfig: Record<Role, NavConfig> = {
           title: 'Analytics',
           icon: BarChart3,
           href: 'analytics',
+          unified: true,
         },
       ],
     },
@@ -299,6 +303,7 @@ const navConfig: Record<Role, NavConfig> = {
           title: 'Analytics',
           icon: BarChart3,
           href: 'analytics',
+          unified: true,
         },
       ],
     },
@@ -316,7 +321,6 @@ export default function DashboardSidebar({
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = getRoleSlug(userRole);
@@ -343,9 +347,7 @@ export default function DashboardSidebar({
     if (external) {
       window.open(href, '_blank');
     } else {
-      const currentRole = searchParams.get('role');
-      const destination = currentRole ? `${href}?role=${currentRole}` : href;
-      router.push(destination);
+      router.push(href);
     }
   };
 
@@ -387,29 +389,30 @@ export default function DashboardSidebar({
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map(item => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    onClick={() =>
-                      handleNavigate(
-                        item.external
-                          ? item.href
-                          : `/dashboard/${roleSlug}/${item.href}`,
-                        item.external,
-                      )
-                    }
-                    tooltip={item.title}
-                    isActive={
-                      pathname.startsWith(
-                        `/dashboard/${roleSlug}/${item.href}`,
-                      ) && !item.external
-                    }
-                  >
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {group.items.map(item => {
+                const destination = item.unified
+                  ? `/dashboard/${item.href}?role=${roleSlug}`
+                  : item.external
+                  ? item.href
+                  : `/dashboard/${roleSlug}/${item.href}`;
+
+                const isActive = item.unified
+                  ? pathname === `/dashboard/${item.href}`
+                  : pathname.startsWith(`/dashboard/${roleSlug}/${item.href}`) && !item.external;
+                
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      onClick={() => handleNavigate(destination, item.external)}
+                      tooltip={item.title}
+                      isActive={isActive}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroup>
         ))}

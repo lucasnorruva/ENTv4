@@ -1,3 +1,4 @@
+
 // src/app/dashboard/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
@@ -14,8 +15,6 @@ import {
 import {
   Activity,
   BookCopy,
-  FileEdit,
-  Building2,
   ShieldCheck,
   Users,
   Clock,
@@ -28,6 +27,8 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Building2,
+  FileEdit,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -81,17 +82,21 @@ const isGlobalScope = (user: User) =>
     UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
     UserRoles.RETAILER,
+    UserRoles.AUDITOR,
+    UserRoles.COMPLIANCE_MANAGER,
   ].some(role => hasRole(user, role));
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: { role?: Role };
+  searchParams: { role?: string };
 }) {
-  // Use a default role if none is provided in the query params
-  const selectedRole = searchParams.role || UserRoles.SUPPLIER;
-  const user = await getCurrentUser(selectedRole);
+  const selectedRole =
+    (searchParams.role?.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) as Role) ||
+    UserRoles.SUPPLIER;
   
+  const user = await getCurrentUser(selectedRole);
+
   const isGlobal = isGlobalScope(user);
 
   const [products, users, auditLogs, companies] = await Promise.all([
@@ -132,11 +137,12 @@ export default async function AnalyticsPage({
   const recentActivity = auditLogs.slice(0, 5);
   const productMap = new Map(products.map(p => [p.id, p.productName]));
   const userMap = new Map(users.map(u => [u.id, u.fullName]));
+  const pageTitle = hasRole(user, UserRoles.ADMIN) ? 'System Analytics' : `${user.roles[0]} Analytics`;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{user.roles[0]} Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{pageTitle}</h1>
         <p className="text-muted-foreground">
           An overview of product activity and key metrics.
         </p>
@@ -172,7 +178,7 @@ export default async function AnalyticsPage({
             <p className="text-xs text-muted-foreground">Marked as end-of-life</p>
           </CardContent>
         </Card>
-        { isGlobal ? (
+        { hasRole(user, UserRoles.ADMIN) && (
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -195,7 +201,8 @@ export default async function AnalyticsPage({
               </CardContent>
             </Card>
           </>
-        ) : (
+        )}
+        { hasRole(user, UserRoles.MANUFACTURER) && (
            <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -219,7 +226,6 @@ export default async function AnalyticsPage({
             </Card>
            </>
         )}
-
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card>
