@@ -66,7 +66,8 @@ import {
 
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUser, getUsers } from '@/lib/actions';
+import { deleteUser } from '@/lib/actions';
+import { getUsers } from '@/lib/auth';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
