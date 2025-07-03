@@ -157,8 +157,14 @@ export default function ProductManagementClient({
     setIsSheetOpen(false);
   };
 
-  const handleImportSave = (newProducts: Product[]) => {
-    setProducts(prev => [...newProducts, ...prev]);
+  const handleImportSave = () => {
+    // In a real app with a database, we'd refetch or get the new products.
+    // For this mock, we'll just close and let the user see the new products on next load/sort.
+    // A better implementation would involve returning the created products from the action.
+    toast({
+      title: 'Import in Progress',
+      description: 'New products will appear in the table shortly.',
+    });
     setIsImportOpen(false);
   };
 
@@ -214,7 +220,7 @@ export default function ProductManagementClient({
         <ProductImportDialog
           isOpen={isImportOpen}
           onOpenChange={setIsImportOpen}
-          onSave={() => {}} // Will be re-implemented
+          onSave={handleImportSave}
           user={user}
         />
       )}
