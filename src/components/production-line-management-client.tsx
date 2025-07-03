@@ -11,14 +11,6 @@ import {
   Loader2,
   Factory,
 } from 'lucide-react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -57,7 +49,7 @@ import {
 
 import type { ProductionLine, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteProductionLine, getProducts } from '@/lib/actions';
+import { getProductionLines, deleteProductionLine, getProducts } from '@/lib/actions';
 import ProductionLineForm from './production-line-form';
 
 interface ProductionLineManagementClientProps {
@@ -78,44 +70,23 @@ export default function ProductionLineManagementClient({
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsLoading(true);
-    // Fetch products once for the form dropdown
-    getProducts(user.id)
-      .then(setProducts)
-      .catch(err => {
-        toast({
-          title: 'Error',
-          description: 'Could not load products for selection.',
-          variant: 'destructive',
-        });
-      });
-      
-    const q = query(
-      collection(db, Collections.PRODUCTION_LINES),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const linesData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as ProductionLine,
-        );
-        setLines(linesData);
+    // For a real-time app, you'd use a listener here.
+    // For mock data, a simple fetch is fine.
+    async function fetchInitialData() {
+      try {
+        const [initialLines, initialProducts] = await Promise.all([
+            getProductionLines(),
+            getProducts(user.id)
+        ]);
+        setLines(initialLines);
+        setProducts(initialProducts);
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to load initial data.', variant: 'destructive'});
+      } finally {
         setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching production lines:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load production lines in real-time.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+      }
+    }
+    fetchInitialData();
   }, [toast, user.id]);
 
   const handleCreateNew = () => {
@@ -132,6 +103,7 @@ export default function ProductionLineManagementClient({
     startTransition(async () => {
       try {
         await deleteProductionLine(lineId, user.id);
+        setLines(prev => prev.filter(l => l.id !== lineId));
         toast({
           title: 'Production Line Deleted',
         });
@@ -146,7 +118,8 @@ export default function ProductionLineManagementClient({
   };
 
   const handleSave = () => {
-    // The real-time listener will handle updates automatically
+    // Optimistically re-fetch after save
+    getProductionLines().then(setLines);
     setIsFormOpen(false);
   };
 
@@ -179,7 +152,7 @@ export default function ProductionLineManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading && lines.length === 0 ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
