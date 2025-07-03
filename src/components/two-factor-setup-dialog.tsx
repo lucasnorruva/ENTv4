@@ -11,6 +11,7 @@ import {
 import { auth } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { setMfaStatus } from '@/lib/actions';
+import type { User } from '@/types';
 
 import {
   Dialog,
@@ -29,12 +30,14 @@ interface TwoFactorSetupDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSuccess: () => void;
+  user: User;
 }
 
 export default function TwoFactorSetupDialog({
   isOpen,
   onOpenChange,
   onSuccess,
+  user,
 }: TwoFactorSetupDialogProps) {
   const [qrCodeUri, setQrCodeUri] = useState<string | null>(null);
   const [secret, setSecret] = useState<TotpSecret | null>(null);
@@ -78,9 +81,12 @@ export default function TwoFactorSetupDialog({
           secret,
           verificationCode,
         );
-        await multiFactor(auth.currentUser).enroll(assertion, 'My Authenticator App');
+        await multiFactor(auth.currentUser).enroll(
+          assertion,
+          'My Authenticator App',
+        );
 
-        await setMfaStatus(auth.currentUser.uid, true);
+        await setMfaStatus(user.id, true, user.id);
 
         toast({
           title: 'Success!',
@@ -104,7 +110,7 @@ export default function TwoFactorSetupDialog({
     setVerificationCode('');
     onOpenChange(false);
   };
-  
+
   const copySecretToClipboard = () => {
     if (secret?.secretKey) {
       navigator.clipboard.writeText(secret.secretKey);
@@ -130,20 +136,32 @@ export default function TwoFactorSetupDialog({
         ) : (
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-md flex justify-center">
-              {qrCodeUri && (
-                <QRCode value={qrCodeUri} size={200} />
-              )}
+              {qrCodeUri && <QRCode value={qrCodeUri} size={200} />}
             </div>
-             <Alert>
+            <Alert>
               <ShieldCheck className="h-4 w-4" />
               <AlertTitle>Can't scan the code?</AlertTitle>
               <AlertDescription>
-                You can also manually enter the setup key into your authenticator app.
+                You can also manually enter the setup key into your
+                authenticator app.
                 <div className="relative mt-2">
-                    <Input readOnly value={secret?.secretKey || ""} className="font-mono pr-12 bg-muted"/>
-                    <Button size="icon" variant="ghost" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={copySecretToClipboard}>
-                        {hasCopied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                    </Button>
+                  <Input
+                    readOnly
+                    value={secret?.secretKey || ''}
+                    className="font-mono pr-12 bg-muted"
+                  />
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+                    onClick={copySecretToClipboard}
+                  >
+                    {hasCopied ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               </AlertDescription>
             </Alert>
@@ -164,9 +182,7 @@ export default function TwoFactorSetupDialog({
           </Button>
           <Button
             onClick={handleVerifyAndEnroll}
-            disabled={
-              isPending || isLoading || verificationCode.length !== 6
-            }
+            disabled={isPending || isLoading || verificationCode.length !== 6}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Verify & Enable

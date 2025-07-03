@@ -29,6 +29,8 @@ export type Action =
   | 'product:run_compliance'
   | 'compliance:manage'
   | 'user:manage'
+  | 'user:edit'
+  | 'user:change_password'
   | 'company:manage'
   | 'developer:manage_api'
   | 'admin:manage_settings'
@@ -40,7 +42,7 @@ export type Action =
  * Checks if a user has permission to perform a specific action.
  * @param user The user performing the action.
  * @param action The action being performed.
- * @param resource Optional resource being acted upon (e.g., a Product).
+ * @param resource Optional resource being acted upon (e.g., a Product or another User).
  * @returns true if the user has permission, false otherwise.
  */
 export function can(user: User, action: Action, resource?: any): boolean {
@@ -50,7 +52,10 @@ export function can(user: User, action: Action, resource?: any): boolean {
   }
 
   const product = resource as Product | undefined;
+  const targetUser = resource as User | undefined;
+
   const isOwner = product ? user.companyId === product.companyId : false;
+  const isSelf = targetUser ? user.id === targetUser.id : false;
 
   switch (action) {
     case 'product:create':
@@ -80,9 +85,12 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:approve':
     case 'product:reject':
       return hasRole(user, UserRoles.AUDITOR);
-      
+
     case 'product:run_compliance':
-      return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);
+      return (
+        hasRole(user, UserRoles.AUDITOR) ||
+        hasRole(user, UserRoles.COMPLIANCE_MANAGER)
+      );
 
     case 'product:resolve':
       return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
@@ -99,6 +107,12 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'user:manage':
     case 'company:manage':
       return hasRole(user, UserRoles.ADMIN); // Handled by global admin check, but explicit here.
+
+    case 'user:edit':
+      return isSelf;
+
+    case 'user:change_password':
+      return isSelf;
 
     case 'developer:manage_api':
       return hasRole(user, UserRoles.DEVELOPER);

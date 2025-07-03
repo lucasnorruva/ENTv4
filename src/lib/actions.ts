@@ -633,7 +633,7 @@ export async function runComplianceCheck(
     { result: complianceResult },
     userId,
   );
-  
+
   const updatedDoc = await docRef.get();
   return docToType<Product>(updatedDoc);
 }
@@ -1262,24 +1262,27 @@ export async function createUserAndCompany(
 }
 
 export async function setMfaStatus(
-  userId: string,
+  userIdToUpdate: string,
   isEnabled: boolean,
+  callerId: string,
 ): Promise<void> {
-  const user = await getUserById(userId);
-  if (!user) {
-    throw new Error('User not found.');
-  }
+  const caller = await getUserById(callerId);
+  if (!caller) throw new PermissionError('Caller not found');
 
-  await adminDb.collection(Collections.USERS).doc(userId).update({
+  const userToUpdate = await getUserById(userIdToUpdate);
+  if (!userToUpdate) throw new Error('User to update not found.');
+  checkPermission(caller, 'user:edit', userToUpdate);
+
+  await adminDb.collection(Collections.USERS).doc(userIdToUpdate).update({
     isMfaEnabled: isEnabled,
     updatedAt: FieldValue.serverTimestamp(),
   });
 
   await logAuditEvent(
     isEnabled ? 'user.mfa.enabled' : 'user.mfa.disabled',
-    userId,
+    userIdToUpdate,
     {},
-    userId,
+    callerId,
   );
 }
 
@@ -1314,41 +1317,71 @@ export async function completeOnboarding(
   return { user: updatedUser, company: updatedCompany };
 }
 
-export async function updateUserProfile(userId: string, fullName: string) {
+export async function updateUserProfile(
+  userIdToUpdate: string,
+  fullName: string,
+  callerId: string,
+) {
+  const caller = await getUserById(callerId);
+  if (!caller) throw new PermissionError('Caller not found');
+
+  const userToUpdate = await getUserById(userIdToUpdate);
+  if (!userToUpdate) throw new Error('User to update not found.');
+  checkPermission(caller, 'user:edit', userToUpdate);
+
   await adminDb
     .collection(Collections.USERS)
-    .doc(userId)
+    .doc(userIdToUpdate)
     .update({
       fullName,
       updatedAt: FieldValue.serverTimestamp(),
     });
   await logAuditEvent(
     'user.profile.updated',
-    userId,
+    userIdToUpdate,
     { fields: ['fullName'] },
-    userId,
+    callerId,
   );
 }
 
 export async function updateUserPassword(
-  userId: string,
+  userIdToUpdate: string,
   current: string,
   newPass: string,
+  callerId: string,
 ) {
-  // This is a complex operation involving re-authentication that can't be safely
-  // done from a server action without the user's current password, which we don't want to handle.
-  // In a real app, this flow would be handled entirely on the client-side using the Firebase JS SDK.
-  // For the mock, we simulate success.
+  const caller = await getUserById(callerId);
+  if (!caller) throw new PermissionError('Caller not found');
+
+  const userToUpdate = await getUserById(userIdToUpdate);
+  if (!userToUpdate) throw new Error('User to update not found.');
+  checkPermission(caller, 'user:change_password', userToUpdate);
+
   if (current !== 'password123') throw new Error('Incorrect current password.');
-  await adminAuth.updateUser(userId, { password: newPass });
-  console.log(`Password for user ${userId} has been updated.`);
-  await logAuditEvent('user.password.updated', userId, {}, userId);
+  await adminAuth.updateUser(userIdToUpdate, { password: newPass });
+  console.log(`Password for user ${userIdToUpdate} has been updated.`);
+  await logAuditEvent('user.password.updated', userIdToUpdate, {}, callerId);
 }
 
-export async function saveNotificationPreferences(userId: string, prefs: any) {
-  // This would update a user's notification settings in Firestore.
-  console.log(`Saving notification preferences for ${userId}`, prefs);
-  await logAuditEvent('user.notifications.updated', userId, { prefs }, userId);
+export async function saveNotificationPreferences(
+  userIdToUpdate: string,
+  prefs: any,
+  callerId: string,
+) {
+  const caller = await getUserById(callerId);
+  if (!caller) throw new PermissionError('Caller not found');
+
+  const userToUpdate = await getUserById(userIdToUpdate);
+  if (!userToUpdate) throw new Error('User to update not found.');
+  checkPermission(caller, 'user:edit', userToUpdate);
+
+  console.log(`Saving notification preferences for ${userIdToUpdate}`, prefs);
+  await logAuditEvent(
+    'user.notifications.updated',
+    userIdToUpdate,
+    { prefs },
+    callerId,
+  );
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {

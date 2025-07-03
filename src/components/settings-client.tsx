@@ -50,7 +50,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
   const handleProfileSave = () => {
     startTransition(async () => {
       try {
-        await updateUserProfile(user.id, fullName);
+        await updateUserProfile(user.id, fullName, user.id);
         toast({
           title: 'Profile Updated',
           description: 'Your full name has been successfully updated.',
@@ -76,7 +76,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
     }
     startTransition(async () => {
       try {
-        await updateUserPassword(user.id, currentPassword, newPassword);
+        await updateUserPassword(user.id, currentPassword, newPassword, user.id);
         toast({
           title: 'Password Updated',
           description: 'Your password has been successfully changed.',
@@ -98,7 +98,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
   const handleNotificationsSave = () => {
     startTransition(async () => {
       try {
-        await saveNotificationPreferences(user.id, {}); // Pass preferences object here
+        await saveNotificationPreferences(user.id, {}, user.id);
         toast({
           title: 'Preferences Saved',
           description: 'Your notification settings have been updated.',
@@ -121,7 +121,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         // Assuming only one factor (TOTP) is enrolled.
         // A real app might let the user choose which factor to unenroll.
         await mfaUser.unenroll(mfaUser.enrolledFactors[0]);
-        await setMfaStatus(user.id, false);
+        await setMfaStatus(user.id, false, user.id);
         toast({
           title: '2FA Disabled',
           description: 'Two-factor authentication has been disabled.',
@@ -299,6 +299,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         isOpen={is2faDialogOpen}
         onOpenChange={setIs2faDialogOpen}
         onSuccess={on2faSuccess}
+        user={user}
       />
     </>
   );
