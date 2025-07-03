@@ -132,7 +132,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
       return hasRole(user, UserRoles.ADMIN);
 
     case 'support:manage':
-      return false; // Only admins can manage for now (handled by global check)
+      return hasRole(user, UserRoles.ADMIN);
 
     case 'manufacturer:manage_lines':
       return hasRole(user, UserRoles.MANUFACTURER);
