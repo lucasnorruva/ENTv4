@@ -25,9 +25,9 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: Role[];
-  readNotificationIds: string[];
   onboardingComplete: boolean;
   isMfaEnabled: boolean;
+  readNotificationIds: string[];
 }
 
 /**
