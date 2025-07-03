@@ -1,3 +1,4 @@
+
 // src/lib/actions.ts
 'use server';
 
@@ -286,6 +287,9 @@ export async function getProducts(
     UserRoles.BUSINESS_ANALYST,
     UserRoles.RETAILER,
     UserRoles.SERVICE_PROVIDER,
+    UserRoles.AUDITOR,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.RECYCLER,
   ];
 
   const hasGlobalRead =
