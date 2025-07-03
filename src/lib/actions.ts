@@ -76,7 +76,7 @@ import { apiKeys as mockApiKeys } from './api-key-data';
 import { apiSettings as mockApiSettings } from './api-settings-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { webhooks as mockWebhooks } from './webhook-data';
-import { runComplianceCheck } from '@/triggers/scheduled-verifications';
+import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { runDataValidationCheck } from '@/triggers/on-product-change';
 
 // Helper for mock data manipulation
@@ -469,6 +469,76 @@ export async function recalculateScore(
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
   console.log(`Product ${productId} marked for score recalculation.`);
   return Promise.resolve();
+}
+
+export async function runComplianceCheck(productId: string, userId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:run_compliance', product);
+
+  if (!product.compliancePathId) {
+    throw new Error('This product does not have a compliance path assigned.');
+  }
+  const compliancePath = await getCompliancePathById(product.compliancePathId);
+  if (!compliancePath) {
+    throw new Error(
+      `Compliance path ${product.compliancePathId} could not be found.`,
+    );
+  }
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found');
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const complianceResult = await summarizeComplianceGaps({
+    product: aiProductInput,
+    compliancePath: compliancePath,
+  });
+
+  const currentSustainability = mockProducts[productIndex].sustainability;
+
+  const updatedProduct = {
+    ...mockProducts[productIndex],
+    sustainability: {
+      ...currentSustainability!,
+      isCompliant: complianceResult.isCompliant,
+      complianceSummary: complianceResult.complianceSummary,
+      gaps: complianceResult.gaps,
+    },
+    isProcessing: false,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent(
+    'product.compliance.checked',
+    productId,
+    { result: complianceResult },
+    userId,
+  );
 }
 
 export async function generateAndSaveProductImage(
@@ -1062,20 +1132,11 @@ export async function saveCompliancePath(
     name: validatedData.name,
     description: validatedData.description,
     category: validatedData.category,
-    regulations: validatedData.regulations
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean),
+    regulations: validatedData.regulations.map(item => item.value).filter(Boolean),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-      bannedKeywords: validatedData.bannedKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
+      requiredKeywords: validatedData.requiredKeywords?.map(item => item.value).filter(Boolean),
+      bannedKeywords: validatedData.bannedKeywords?.map(item => item.value).filter(Boolean),
     },
     updatedAt: now,
   };

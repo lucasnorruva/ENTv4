@@ -109,10 +109,10 @@ export const compliancePathFormSchema = z.object({
   name: z.string().min(3, 'Path name is required.'),
   description: z.string().min(10, 'Description is required.'),
   category: z.string().min(1, 'Category is required.'),
-  regulations: z.string().min(1, 'At least one regulation is required.'),
+  regulations: z.array(z.object({ value: z.string().min(1, "Regulation cannot be empty.") })).min(1, "At least one regulation is required."),
   minSustainabilityScore: z.coerce.number().min(0).max(100).optional(),
-  requiredKeywords: z.string().optional(),
-  bannedKeywords: z.string().optional(),
+  requiredKeywords: z.array(z.object({ value: z.string() })).optional(),
+  bannedKeywords: z.array(z.object({ value: z.string() })).optional(),
 });
 export type CompliancePathFormValues = z.infer<
   typeof compliancePathFormSchema
