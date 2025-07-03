@@ -3,142 +3,40 @@
 // In a real Firebase project, this would be a Cloud Function.
 'use server';
 
-import type {
-  Product,
-  SustainabilityData,
-  DataQualityWarning,
-} from '../types';
-import type { AiProduct } from '../ai/schemas';
+// NOTE: Most of the logic from this file has been centralized into
+// the `processProductAi` function within `src/lib/actions.ts`.
+// This was done to allow manual re-triggering of the same comprehensive
+// AI pipeline that runs on product creation/update.
 
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { classifyProduct } from '@/ai/flows/classify-product';
-import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
-import { validateProductData } from '@/ai/flows/validate-product-data';
-import { getCompanyById } from '../lib/auth';
-import { getCompliancePathById } from '../lib/actions';
+// This file is kept as a placeholder to represent where a real
+// Firestore trigger would live in a production Firebase architecture.
+// A real implementation would look something like this:
+/*
+import { onDocumentWritten } from 'firebase-functions/v2/firestore';
+import { processProductAi } from '@/lib/actions'; // Hypothetical import
 
-const runAllAiFlows = async (
-  productData: AiProduct,
-): Promise<{
-  sustainability: SustainabilityData;
-  qrLabelText: string;
-  dataQualityWarnings: DataQualityWarning[];
-}> => {
-  console.log(`Running AI flows for product: ${productData.productName}`);
-  const [
-    esgResult,
-    qrLabelResult,
-    classificationResult,
-    lifecycleAnalysisResult,
-    validationResult,
-  ] = await Promise.all([
-    calculateSustainability({ product: productData }),
-    generateQRLabelText({ product: productData }),
-    classifyProduct({ product: productData }),
-    analyzeProductLifecycle({ product: productData }),
-    validateProductData({ product: productData }),
-  ]);
-  console.log(`AI flows completed for product: ${productData.productName}`);
-
-  return {
-    sustainability: {
-      ...esgResult,
-      classification: classificationResult,
-      lifecycleAnalysis: lifecycleAnalysisResult,
-      isCompliant: false, // Will be updated later in the process
-      complianceSummary: 'Awaiting compliance analysis.',
-    },
-    qrLabelText: qrLabelResult.qrLabelText,
-    dataQualityWarnings: validationResult.warnings,
-  };
-};
-
-const calculateCompleteness = (product: Product): number => {
-  const fieldsToTrack = [
-    { key: 'productName' },
-    { key: 'productDescription' },
-    { key: 'category' },
-    { key: 'materials' },
-    { key: 'manufacturing.country' },
-    { key: 'packaging.type' },
-    { key: 'compliancePathId' },
-    { key: 'sustainability.score' },
-  ];
-
-  const get = (obj: any, path: string) =>
-    path.split('.').reduce((o, i) => o?.[i], obj);
-
-  let completedFields = 0;
-  fieldsToTrack.forEach(field => {
-    const value = get(product, field.key);
-    const isComplete = Array.isArray(value) ? value.length > 0 : !!value;
-    if (isComplete) {
-      completedFields++;
+export const onProductChange = onDocumentWritten(
+  "products/{productId}",
+  async (event) => {
+    const product = event.data?.after.data();
+    const beforeProduct = event.data?.before.data();
+    if (!product) {
+      return;
     }
-  });
+    // Logic to prevent infinite loops and check if processing is needed
+    if (product.isProcessing || hasChanged(beforeProduct, product)) {
+       await processProductAi(product);
+    }
+  }
+);
+*/
 
-  return Math.round((completedFields / fieldsToTrack.length) * 100);
-};
-
-export async function runDataValidationCheck(product: Product): Promise<{
-  sustainability: SustainabilityData;
-  qrLabelText: string;
-  dataQualityWarnings: DataQualityWarning[];
-}> {
+export async function runDataValidationCheck(
+  productId: string,
+  userId: string,
+) {
   console.log(
-    `Processing change for product: ${product.id} - ${product.productName}`,
+    `Mock trigger: Data validation check would run here for product ${productId}. Logic is now in actions.ts.`,
   );
-
-  const company = await getCompanyById(product.companyId);
-  if (!company) {
-    throw new Error(
-      `Company with ID ${product.companyId} not found for product ${product.id}`,
-    );
-  }
-
-  const aiProductInput: AiProduct = {
-    productName: product.productName,
-    productDescription: product.productDescription,
-    category: product.category,
-    supplier: company.name,
-    materials: product.materials,
-    manufacturing: product.manufacturing,
-    certifications: product.certifications,
-    packaging: product.packaging,
-    lifecycle: product.lifecycle,
-    battery: product.battery,
-    compliance: product.compliance,
-    verificationStatus: product.verificationStatus ?? 'Not Submitted',
-    complianceSummary: product.sustainability?.complianceSummary,
-  };
-
-  const { sustainability, qrLabelText, dataQualityWarnings } =
-    await runAllAiFlows(aiProductInput);
-
-  // Run compliance check if a path is assigned
-  if (product.compliancePathId) {
-    const path = await getCompliancePathById(product.compliancePathId);
-    if (path) {
-      console.log(`Running compliance gap analysis against path: ${path.name}`);
-      const complianceResult = await summarizeComplianceGaps({
-        product: aiProductInput,
-        compliancePath: path,
-      });
-      sustainability.isCompliant = complianceResult.isCompliant;
-      sustainability.complianceSummary = complianceResult.complianceSummary;
-      sustainability.gaps = complianceResult.gaps;
-    }
-  }
-
-  // Calculate completeness score based on the newly generated data
-  const completenessScore = calculateCompleteness({
-    ...product,
-    sustainability,
-  });
-
-  sustainability.completenessScore = completenessScore;
-
-  return { sustainability, qrLabelText, dataQualityWarnings };
+  return Promise.resolve();
 }

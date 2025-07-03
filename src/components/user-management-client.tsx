@@ -70,11 +70,11 @@ import { deleteUser, getUsers } from '@/lib/actions';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
-  adminUser: User;
+  user: User;
 }
 
 export default function UserManagementClient({
-  adminUser,
+  user: adminUser,
 }: UserManagementClientProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -92,19 +92,19 @@ export default function UserManagementClient({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  
+
   const fetchUsers = useCallback(() => {
-      setIsLoading(true);
-      getUsers()
-        .then(setUsers)
-        .catch(() => {
-          toast({
-            title: 'Error',
-            description: 'Failed to load users.',
-            variant: 'destructive',
-          });
-        })
-        .finally(() => setIsLoading(false));
+    setIsLoading(true);
+    getUsers()
+      .then(setUsers)
+      .catch(() => {
+        toast({
+          title: 'Error',
+          description: 'Failed to load users.',
+          variant: 'destructive',
+        });
+      })
+      .finally(() => setIsLoading(false));
   }, [toast]);
 
   useEffect(() => {
@@ -142,11 +142,11 @@ export default function UserManagementClient({
 
   const handleSave = (savedUser: User) => {
     setUsers(prev => {
-        const exists = prev.some(u => u.id === savedUser.id);
-        if (exists) {
-            return prev.map(u => u.id === savedUser.id ? savedUser : u);
-        }
-        return [savedUser, ...prev];
+      const exists = prev.some(u => u.id === savedUser.id);
+      if (exists) {
+        return prev.map(u => (u.id === savedUser.id ? savedUser : u));
+      }
+      return [savedUser, ...prev];
     });
     setIsFormOpen(false);
   };
@@ -170,7 +170,9 @@ export default function UserManagementClient({
               <AvatarImage
                 src={`https://i.pravatar.cc/150?u=${row.original.id}`}
               />
-              <AvatarFallback>{row.original.fullName.charAt(0)}</AvatarFallback>
+              <AvatarFallback>
+                {row.original.fullName.charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <span className="font-medium">{row.original.fullName}</span>
           </div>
