@@ -153,7 +153,7 @@ export default function ProductDetailView({
                 {product.verificationStatus || 'Not Submitted'}
               </Badge>
               <span>·</span>
-              <span>
+              <span suppressHydrationWarning>
                 Last updated: {format(new Date(product.lastUpdated), 'PPP')}
               </span>
             </div>
