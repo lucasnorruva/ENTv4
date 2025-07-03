@@ -910,24 +910,7 @@ export async function suggestImprovements(input: {
   productName: string;
   productDescription: string;
 }) {
-  return await suggestImprovementsFlow({
-    product: {
-      productName: input.productName,
-      productDescription: input.productDescription,
-      category: 'unknown',
-      supplier: 'unknown',
-      materials: [],
-      gtin: '',
-      manufacturing: undefined,
-      certifications: [],
-      packaging: undefined,
-      lifecycle: undefined,
-      battery: undefined,
-      compliance: undefined,
-      verificationStatus: 'Not Submitted',
-      complianceSummary: undefined,
-    },
-  });
+  return await suggestImprovementsFlow(input);
 }
 
 export async function addServiceRecord(

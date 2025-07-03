@@ -11,7 +11,6 @@
 
 import { ai } from "@/ai/genkit";
 import { z } from "genkit";
-import { AiProductSchema } from "../schemas";
 
 const SuggestImprovementsInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -67,14 +66,11 @@ Product Description: {{{productDescription}}}
 const suggestImprovementsFlow = ai.defineFlow(
   {
     name: "suggestImprovementsFlow",
-    inputSchema: z.object({ product: AiProductSchema }),
+    inputSchema: SuggestImprovementsInputSchema,
     outputSchema: SuggestImprovementsOutputSchema,
   },
   async (input) => {
-    const { output } = await suggestImprovementsPrompt({
-      productName: input.product.productName,
-      productDescription: input.product.productDescription,
-    });
+    const { output } = await suggestImprovementsPrompt(input);
     return output!;
   },
 );
