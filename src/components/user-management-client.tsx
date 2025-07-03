@@ -160,6 +160,7 @@ export default function UserManagementClient({
   };
 
   const handleSave = (savedUser: User) => {
+    // The real-time listener will handle updates automatically
     setIsFormOpen(false);
   };
 
