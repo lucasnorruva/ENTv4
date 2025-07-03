@@ -100,7 +100,7 @@ export default function FlaggedProductsClient({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {isLoading ? (
+        {isLoading && products.length === 0 ? (
           <TableRow>
             <TableCell colSpan={4} className="h-48 text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />

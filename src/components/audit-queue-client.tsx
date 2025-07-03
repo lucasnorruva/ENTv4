@@ -255,7 +255,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading ? (
+            {isLoading && products.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}

@@ -25,6 +25,14 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -64,7 +72,7 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getCompanies, deleteCompany } from '@/lib/actions';
+import { deleteCompany } from '@/lib/actions';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
@@ -91,21 +99,32 @@ export default function CompanyManagementClient({
   const [globalFilter, setGlobalFilter] = useState('');
 
   useEffect(() => {
-    const fetchCompanies = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getCompanies();
-        setCompanies(data);
-      } catch (error) {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.COMPANIES),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const companiesData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Company,
+        );
+        setCompanies(companiesData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching companies:', error);
         toast({
           title: 'Error loading companies',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
-    fetchCompanies();
+      },
+    );
+
+    return () => unsubscribe();
   }, [toast]);
 
   const handleCreateNew = () => {
@@ -122,7 +141,6 @@ export default function CompanyManagementClient({
     startTransition(async () => {
       try {
         await deleteCompany(companyId, adminUser.id);
-        setCompanies(prev => prev.filter(c => c.id !== companyId));
         toast({
           title: 'Company Deleted',
           description: 'The company has been successfully deleted.',
@@ -138,13 +156,7 @@ export default function CompanyManagementClient({
   };
 
   const handleSave = (savedCompany: Company) => {
-    setCompanies(prev => {
-      const exists = prev.some(c => c.id === savedCompany.id);
-      if (exists) {
-        return prev.map(c => (c.id === savedCompany.id ? savedCompany : c));
-      }
-      return [savedCompany, ...prev];
-    });
+    // The real-time listener will handle the update
     setIsFormOpen(false);
   };
 

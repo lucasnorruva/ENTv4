@@ -105,7 +105,7 @@ export default function EolProductsClient({ user }: EolProductsClientProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {isLoading && products.length === 0 ? (
           <div className="flex justify-center items-center h-48">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>

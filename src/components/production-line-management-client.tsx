@@ -167,7 +167,7 @@ export default function ProductionLineManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading && lines.length === 0 ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
