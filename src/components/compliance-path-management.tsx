@@ -9,7 +9,6 @@ import {
   Trash2,
   Loader2,
   ListTree,
-  FileQuestion,
   Search,
 } from 'lucide-react';
 import {
@@ -47,6 +46,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import CompliancePathForm from './compliance-path-form';
 import { Input } from './ui/input';
 
@@ -261,7 +266,7 @@ export default function CompliancePathManagement({
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Rules</h4>
                     <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                      {path.rules.minSustainabilityScore && (
+                      {path.rules.minSustainabilityScore !== undefined && (
                         <li>
                           Min. ESG Score: {path.rules.minSustainabilityScore}
                         </li>
