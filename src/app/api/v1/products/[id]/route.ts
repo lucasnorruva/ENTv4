@@ -30,7 +30,15 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    return NextResponse.json(product);
+    const productWithLinks = {
+      ...product,
+      _links: {
+        self: { href: `/api/v1/products/${product.id}` },
+        complianceCheck: { href: `/api/v1/compliance/check/${product.id}` },
+      },
+    };
+
+    return NextResponse.json(productWithLinks);
   } catch (error: any) {
     return NextResponse.json(
       { error: 'Authentication failed' },

@@ -19,7 +19,13 @@ export async function GET(request: NextRequest) {
     const user = await getApiUser(request);
     // The getProducts action already handles role-based filtering
     const products = await getProducts(user.id);
-    return NextResponse.json(products);
+    const productsWithLinks = products.map(product => ({
+      ...product,
+      _links: {
+        self: { href: `/api/v1/products/${product.id}` },
+      },
+    }));
+    return NextResponse.json(productsWithLinks);
   } catch (error: any) {
     return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
   }

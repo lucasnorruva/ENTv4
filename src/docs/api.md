@@ -29,7 +29,10 @@ Retrieves a list of all product passports for your organization.
         "id": "pp-001",
         "productName": "Eco-Friendly Smart Watch",
         "status": "Published",
-        "..."
+        "...",
+        "_links": {
+          "self": { "href": "/api/v1/products/pp-001" }
+        }
       }
     ]
     ```
@@ -60,7 +63,11 @@ Retrieves a single product passport by its ID.
     {
       "id": "pp-001",
       "productName": "Eco-Friendly Smart Watch",
-      "..."
+      "...",
+      "_links": {
+        "self": { "href": "/api/v1/products/pp-001" },
+        "complianceCheck": { "href": "/api/v1/compliance/check/pp-001" }
+      }
     }
     ```
 -   **Error Response**: `404 Not Found` if product doesn't exist or you don't have access.
