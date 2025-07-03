@@ -11,6 +11,14 @@ import {
   Loader2,
   Factory,
 } from 'lucide-react';
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -49,7 +57,7 @@ import {
 
 import type { ProductionLine, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getProductionLines, deleteProductionLine } from '@/lib/actions';
+import { deleteProductionLine } from '@/lib/actions';
 import ProductionLineForm from './production-line-form';
 
 interface ProductionLineManagementClientProps {
@@ -70,22 +78,33 @@ export default function ProductionLineManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchLines() {
-      try {
-        const data = await getProductionLines();
-        setLines(data);
-      } catch (e) {
+    const q = query(
+      collection(db, Collections.PRODUCTION_LINES),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const linesData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as ProductionLine,
+        );
+        setLines(linesData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching production lines:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load production lines.',
+          description: 'Failed to load production lines in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchLines();
-  }, [toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedLine(null);
@@ -115,6 +134,7 @@ export default function ProductionLineManagementClient({
   };
 
   const handleSave = () => {
+    // The real-time listener will handle updates automatically
     setIsFormOpen(false);
   };
 
