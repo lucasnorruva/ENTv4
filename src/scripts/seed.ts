@@ -13,6 +13,7 @@ import type {
   Webhook,
   ApiKey,
   ServiceTicket,
+  ProductionLine,
 } from '@/types';
 
 // --- MOCK DATA DEFINITIONS (MOVED FROM DEPRECATED FILES) ---
@@ -353,6 +354,34 @@ const mockServiceTickets: Omit<ServiceTicket, 'createdAt' | 'updatedAt'>[] = [
     imageUrl: 'https://placehold.co/600x400.png',
   },
 ];
+
+const mockProductionLines: Omit<ProductionLine, 'createdAt' | 'updatedAt' | 'lastMaintenance'>[] = [
+    {
+      id: 'line-001',
+      name: 'Assembly Line Alpha',
+      location: 'Eco-Factory 1, Germany',
+      status: 'Active',
+      outputPerHour: 100,
+      currentProduct: 'Eco-Friendly Smart Watch Series 5',
+    },
+    {
+      id: 'line-002',
+      name: 'Drone Assembly Delta',
+      location: 'Aero Plant 1, USA',
+      status: 'Maintenance',
+      outputPerHour: 50,
+      currentProduct: 'Pro-Grade 4K Drone',
+    },
+    {
+      id: 'line-003',
+      name: 'Textile Line Gamma',
+      location: 'Sustainable Threads Mill, India',
+      status: 'Idle',
+      outputPerHour: 500,
+      currentProduct: 'Organic Cotton T-Shirt',
+    },
+  ];
+
 // --- END MOCK DATA ---
 
 async function testFirestoreConnection() {
@@ -466,6 +495,12 @@ async function seedCollection(
       dataToSeed.updatedAt = admin.firestore.Timestamp.now();
     if (!dataToSeed.lastUpdated)
       dataToSeed.lastUpdated = admin.firestore.Timestamp.now();
+    
+    // Specific for production lines
+    if(collectionName === Collections.PRODUCTION_LINES && !dataToSeed.lastMaintenance) {
+      dataToSeed.lastMaintenance = admin.firestore.Timestamp.now();
+    }
+
 
     batch.set(docRef, dataToSeed);
   }
@@ -502,9 +537,10 @@ async function seedDatabase() {
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
   await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
+  await seedCollection(Collections.PRODUCTION_LINES, mockProductionLines);
+
 
   // Clear collections that should be empty on start
-  await clearCollection(Collections.PRODUCTION_LINES);
   await clearCollection(Collections.SUPPORT_TICKETS);
   await clearCollection(Collections.API_RATE_LIMITS);
 
