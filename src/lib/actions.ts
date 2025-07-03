@@ -33,6 +33,11 @@ import {
   ProductionLineFormValues,
   apiKeyFormSchema,
   ApiKeyFormValues,
+  bulkProductImportSchema,
+  OnboardingFormValues,
+  onboardingFormSchema,
+  supportTicketFormSchema,
+  SupportTicketFormValues,
 } from './schemas';
 import {
   anchorToPolygon,
@@ -43,7 +48,7 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
-import { UserRoles, type Role } from './constants';
+import { UserRoles, type Role, Collections } from './constants';
 import {
   getUserById,
   getCompanyById,
@@ -56,9 +61,9 @@ import type { AiProduct } from './ai/schemas';
 import { checkPermission, PermissionError } from './permissions';
 import { adminAuth, adminDb } from './firebase-admin';
 import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 
-// MOCK DATA IMPORTS
-import { products as mockProducts } from './data';
+// MOCK DATA IMPORTS (To be removed or refactored)
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
@@ -72,6 +77,18 @@ import { webhooks as mockWebhooks } from './webhook-data';
 const newId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
 
+function docToType<T>(doc: FirebaseFirestore.DocumentSnapshot): T {
+  const data = doc.data() as any;
+  if (!data) return { id: doc.id } as T; // Handle case where doc exists but data is empty
+  // Convert Firestore Timestamps to ISO strings for server actions
+  Object.keys(data).forEach(key => {
+    if (data[key] instanceof Timestamp) {
+      data[key] = data[key].toDate().toISOString();
+    }
+  });
+  return { id: doc.id, ...data } as T;
+}
+
 // --- WEBHOOK ACTIONS ---
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
@@ -83,21 +100,145 @@ export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   return Promise.resolve(mockWebhooks);
 }
 
+export async function getWebhookById(
+  id: string,
+  userId: string,
+): Promise<Webhook | undefined> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+  return Promise.resolve(
+    mockWebhooks.find(w => w.id === id && w.userId === userId),
+  );
+}
+
+export async function saveWebhook(
+  values: WebhookFormValues,
+  userId: string,
+  webhookId?: string,
+): Promise<Webhook> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+
+  const validatedData = webhookFormSchema.parse(values);
+  const now = new Date().toISOString();
+
+  if (webhookId) {
+    const webhookIndex = mockWebhooks.findIndex(
+      w => w.id === webhookId && w.userId === userId,
+    );
+    if (webhookIndex === -1) throw new Error('Webhook not found');
+    mockWebhooks[webhookIndex] = {
+      ...mockWebhooks[webhookIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
+    await logAuditEvent('webhook.updated', webhookId, {}, userId);
+    return mockWebhooks[webhookIndex];
+  } else {
+    const newWebhook: Webhook = {
+      id: newId('wh'),
+      ...validatedData,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockWebhooks.push(newWebhook);
+    await logAuditEvent('webhook.created', newWebhook.id, {}, userId);
+    return newWebhook;
+  }
+}
+
+export async function deleteWebhook(
+  webhookId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+  const index = mockWebhooks.findIndex(
+    w => w.id === webhookId && w.userId === userId,
+  );
+  if (index > -1) {
+    mockWebhooks.splice(index, 1);
+    await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+  }
+}
+
+export async function replayWebhook(
+  logId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+
+  const log = mockAuditLogs.find(l => l.id === logId);
+  if (
+    !log ||
+    log.action !== 'webhook.delivery.failure' ||
+    !log.details.productId
+  ) {
+    throw new Error('Invalid or non-replayable event log.');
+  }
+
+  const webhook = mockWebhooks.find(wh => wh.id === log.entityId);
+  const product = await getProductById(log.details.productId, userId);
+
+  if (!webhook || !product) {
+    throw new Error('Associated webhook or product not found.');
+  }
+
+  await logAuditEvent(
+    'webhook.replay.initiated',
+    webhook.id,
+    { originalLogId: logId, productId: product.id },
+    userId,
+  );
+
+  await sendWebhook(webhook, log.details.event, product);
+}
+
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(
   userId?: string,
   filters?: { searchQuery?: string },
 ): Promise<Product[]> {
-  let user: User | undefined;
-  if (userId) {
-    user = await getUserById(userId);
-    if (!user) return [];
+  const user = userId ? await getUserById(userId) : undefined;
+
+  let productsQuery: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
+    adminDb.collection(Collections.PRODUCTS);
+
+  if (!user) {
+    // Public access: only published products are visible
+    productsQuery = productsQuery.where('status', '==', 'Published');
+  } else {
+    // Authenticated access
+    const globalReadRoles: Role[] = [
+      UserRoles.ADMIN,
+      UserRoles.BUSINESS_ANALYST,
+      UserRoles.RETAILER,
+      UserRoles.SERVICE_PROVIDER,
+      UserRoles.AUDITOR,
+      UserRoles.COMPLIANCE_MANAGER,
+      UserRoles.RECYCLER,
+      UserRoles.DEVELOPER,
+    ];
+    const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
+
+    if (!hasGlobalRead && hasRole(user, UserRoles.MANUFACTURER)) {
+      productsQuery = productsQuery.where('supplier', '==', user.companyId);
+    } else if (!hasGlobalRead) {
+      productsQuery = productsQuery.where('companyId', '==', user.companyId);
+    }
   }
 
-  let results = [...mockProducts];
+  const snapshot = await productsQuery.orderBy('lastUpdated', 'desc').get();
+  let results = snapshot.docs.map(doc => docToType<Product>(doc));
 
-  // Apply search filter if provided
+  // Apply search filter if provided (client-side filtering for simplicity)
   if (filters?.searchQuery) {
     const query = filters.searchQuery.toLowerCase();
     results = results.filter(
@@ -109,38 +250,22 @@ export async function getProducts(
     );
   }
 
-  if (!userId) {
-    // Public access: only published products
-    return Promise.resolve(results.filter(p => p.status === 'Published'));
-  }
-
-  // Authenticated access
-  const globalReadRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.RETAILER,
-    UserRoles.SERVICE_PROVIDER,
-  ];
-  const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
-
-  if (hasGlobalRead) {
-    return Promise.resolve(results);
-  }
-
-  // Company-specific access
-  return Promise.resolve(results.filter(p => p.companyId === user!.companyId));
+  return results;
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const product = mockProducts.find(p => p.id === id);
-  if (!product) return undefined;
+  const doc = await adminDb.collection(Collections.PRODUCTS).doc(id).get();
+  if (!doc.exists) return undefined;
+
+  const product = docToType<Product>(doc);
 
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
   }
+
   const user = await getUserById(userId);
   if (!user) return undefined;
 
@@ -176,52 +301,59 @@ export async function saveProduct(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
-  const now = new Date().toISOString();
-  let savedProduct: Product;
+  const now = FieldValue.serverTimestamp();
 
   if (productId) {
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
     const existingProduct = await getProductById(productId, user.id);
     if (!existingProduct) throw new Error('Product not found');
-    
+
     checkPermission(user, 'product:edit', existingProduct);
 
-    if (validatedData.status === 'Archived' && existingProduct.status !== 'Archived') {
-        checkPermission(user, 'product:archive', existingProduct);
+    if (
+      validatedData.status === 'Archived' &&
+      existingProduct.status !== 'Archived'
+    ) {
+      checkPermission(user, 'product:archive', existingProduct);
     }
-    
-    const productIndex = mockProducts.findIndex(p => p.id === productId);
-    if (productIndex === -1) throw new Error('Product not found in mock data');
 
-    savedProduct = {
-      ...mockProducts[productIndex],
+    const updateData: Partial<Product> & {
+      lastUpdated: FieldValue;
+      updatedAt: FieldValue;
+    } = {
       ...validatedData,
       lastUpdated: now,
       updatedAt: now,
       verificationStatus:
-        mockProducts[productIndex].verificationStatus === 'Failed'
+        existingProduct.verificationStatus === 'Failed'
           ? 'Not Submitted'
-          : mockProducts[productIndex].verificationStatus,
+          : existingProduct.verificationStatus,
       status:
-        mockProducts[productIndex].verificationStatus === 'Failed'
+        existingProduct.verificationStatus === 'Failed'
           ? 'Draft'
           : validatedData.status,
       isProcessing: true,
     };
-    mockProducts[productIndex] = savedProduct;
+
+    await docRef.update(updateData);
     await logAuditEvent(
       'product.updated',
       productId,
       { changes: Object.keys(values) },
       userId,
     );
+
+    const updatedDoc = await docRef.get();
+    return docToType<Product>(updatedDoc);
   } else {
     checkPermission(user, 'product:create');
     const company = await getCompanyById(user.companyId);
     if (!company)
       throw new Error(`Company with ID ${user.companyId} not found.`);
 
-    savedProduct = {
-      id: newId('pp'),
+    const newProductRef = adminDb.collection(Collections.PRODUCTS).doc();
+
+    const newProductData = {
       ...validatedData,
       companyId: user.companyId,
       supplier: company.name,
@@ -230,16 +362,18 @@ export async function saveProduct(
       createdAt: now,
       updatedAt: now,
       lastUpdated: now,
-      endOfLifeStatus: 'Active',
-      verificationStatus: 'Not Submitted',
+      endOfLifeStatus: 'Active' as const,
+      verificationStatus: 'Not Submitted' as const,
       materials: validatedData.materials || [],
       isProcessing: true,
     };
-    mockProducts.unshift(savedProduct);
-    await logAuditEvent('product.created', savedProduct.id, {}, userId);
-  }
 
-  return Promise.resolve(savedProduct);
+    await newProductRef.set(newProductData);
+    await logAuditEvent('product.created', newProductRef.id, {}, userId);
+
+    const newDoc = await newProductRef.get();
+    return docToType<Product>(newDoc);
+  }
 }
 
 export async function deleteProduct(
@@ -251,15 +385,11 @@ export async function deleteProduct(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
-  
+
   checkPermission(user, 'product:delete', product);
 
-  const index = mockProducts.findIndex(p => p.id === productId);
-  if (index > -1) {
-    mockProducts.splice(index, 1);
-    await logAuditEvent('product.deleted', productId, {}, userId);
-  }
-  return Promise.resolve();
+  await adminDb.collection(Collections.PRODUCTS).doc(productId).delete();
+  await logAuditEvent('product.deleted', productId, {}, userId);
 }
 
 export async function submitForReview(
@@ -268,20 +398,22 @@ export async function submitForReview(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:submit', product);
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Pending',
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
 
-  mockProducts[productIndex].verificationStatus = 'Pending';
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
   await logAuditEvent('passport.submitted', productId, {}, userId);
 
-  return Promise.resolve(mockProducts[productIndex]);
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
 }
 
 export async function recalculateScore(
@@ -290,28 +422,19 @@ export async function recalculateScore(
 ): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recalculate', product);
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-
-  // Set the processing flag and sentinel value to trigger the cloud function
-  mockProducts[productIndex] = {
-    ...mockProducts[productIndex],
+  await adminDb.collection(Collections.PRODUCTS).doc(productId).update({
     isProcessing: true,
-    sustainability: {
-      ...(mockProducts[productIndex].sustainability as any),
-      score: -1, // Sentinel value to trigger re-calculation
-    },
-  };
+    'sustainability.score': -1,
+  });
 
   await logAuditEvent('product.recalculate_score', productId, {}, userId);
   console.log(`Product ${productId} marked for score recalculation.`);
-  return Promise.resolve();
 }
 
 export async function generateAndSaveProductImage(
@@ -324,7 +447,7 @@ export async function generateAndSaveProductImage(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied');
-  
+
   checkPermission(user, 'product:edit', product);
 
   const { productName, productDescription } = product;
@@ -334,24 +457,75 @@ export async function generateAndSaveProductImage(
     );
   }
 
-  console.log(`Generating image for product: ${productName}`);
   const { imageUrl } = await generateProductImage({
     productName,
     productDescription,
     contextImageDataUri,
   });
 
-  // Update product in mock data
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].productImage = imageUrl;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-  mockProducts[productIndex].updatedAt = new Date().toISOString();
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    productImage: imageUrl,
+    lastUpdated: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 
   await logAuditEvent('product.image.generated', productId, {}, userId);
 
-  return Promise.resolve(mockProducts[productIndex]);
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function generateAndSaveConformityDeclaration(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:edit', product);
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found for product.');
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const { declarationText } = await generateConformityDeclarationFlow({
+    product: aiProductInput,
+    companyName: company.name,
+  });
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    declarationOfConformity: declarationText,
+    lastUpdated: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent(
+    'doc.generated',
+    productId,
+    { docType: 'Declaration of Conformity' },
+    userId,
+  );
 }
 
 export async function approvePassport(
@@ -360,27 +534,24 @@ export async function approvePassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
-  checkPermission(user, 'product:approve');
-  
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
 
-  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:approve');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
   const productHash = await hashProductData(product);
   const blockchainProof = await anchorToPolygon(product.id, productHash);
   const ebsiVcId = await generateEbsiCredential(product.id);
 
-  const updatedProduct = {
-    ...product,
-    verificationStatus: 'Verified' as const,
-    status: 'Published' as const,
-    lastVerificationDate: new Date().toISOString(),
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Verified',
+    status: 'Published',
+    lastVerificationDate: FieldValue.serverTimestamp(),
     blockchainProof,
     ebsiVcId,
-  };
-
-  mockProducts[productIndex] = updatedProduct;
+  });
 
   await logAuditEvent(
     'passport.approved',
@@ -389,24 +560,21 @@ export async function approvePassport(
     userId,
   );
 
-  // --- NEW WEBHOOK LOGIC ---
+  const updatedDoc = await docRef.get();
+  const updatedProduct = docToType<Product>(updatedDoc);
+
   const allWebhooks = await getWebhooks();
   const subscribedWebhooks = allWebhooks.filter(
     wh => wh.status === 'active' && wh.events.includes('product.published'),
   );
 
   if (subscribedWebhooks.length > 0) {
-    console.log(
-      `Found ${subscribedWebhooks.length} webhook(s) for product.published event.`,
-    );
     for (const webhook of subscribedWebhooks) {
-      // Intentionally not awaiting this to avoid blocking the main action
       sendWebhook(webhook, 'product.published', updatedProduct);
     }
   }
-  // --- END NEW WEBHOOK LOGIC ---
 
-  return Promise.resolve(updatedProduct);
+  return updatedProduct;
 }
 
 export async function rejectPassport(
@@ -417,25 +585,21 @@ export async function rejectPassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   checkPermission(user, 'product:reject');
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-
-  mockProducts[productIndex] = {
-    ...mockProducts[productIndex],
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
     verificationStatus: 'Failed',
-    lastVerificationDate: new Date().toISOString(),
-    sustainability: {
-      ...mockProducts[productIndex].sustainability!,
-      complianceSummary: reason,
-      gaps,
-    },
-  };
+    lastVerificationDate: FieldValue.serverTimestamp(),
+    'sustainability.complianceSummary': reason,
+    'sustainability.gaps': gaps,
+  });
 
   await logAuditEvent('passport.rejected', productId, { reason }, userId);
-  return Promise.resolve(mockProducts[productIndex]);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
 }
 
 export async function markAsRecycled(
@@ -444,20 +608,22 @@ export async function markAsRecycled(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recycle', product);
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    endOfLifeStatus: 'Recycled',
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
 
-  mockProducts[productIndex].endOfLifeStatus = 'Recycled';
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
 
-  return Promise.resolve(mockProducts[productIndex]);
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
 }
 
 export async function resolveComplianceIssue(
@@ -466,18 +632,20 @@ export async function resolveComplianceIssue(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   checkPermission(user, 'product:resolve');
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Not Submitted',
+    status: 'Draft',
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
 
-  mockProducts[productIndex].verificationStatus = 'Not Submitted';
-  mockProducts[productIndex].status = 'Draft';
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
   await logAuditEvent('compliance.resolved', productId, {}, userId);
 
-  return Promise.resolve(mockProducts[productIndex]);
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
 }
 
 export async function suggestImprovements(input: {
@@ -493,10 +661,10 @@ export async function generateConformityDeclarationText(
 ): Promise<string> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied.');
-  
+
   checkPermission(user, 'product:edit', product);
 
   const company = await getCompanyById(product.companyId);
@@ -660,7 +828,7 @@ export async function saveCompany(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'company:manage');
-  
+
   const now = new Date().toISOString();
   let savedCompany: Company;
 
@@ -694,7 +862,7 @@ export async function deleteCompany(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'company:manage');
-  
+
   const index = mockCompanies.findIndex(c => c.id === companyId);
   if (index > -1) {
     mockCompanies.splice(index, 1);
@@ -722,6 +890,8 @@ export async function saveUser(
     companyId: validatedData.companyId,
     roles: [validatedData.role as Role],
     updatedAt: now,
+    onboardingComplete: true, // Assume completion
+    isMfaEnabled: false,
   };
 
   if (userId) {
@@ -743,7 +913,10 @@ export async function saveUser(
   return Promise.resolve(savedUser);
 }
 
-export async function deleteUser(userId: string, adminId: string): Promise<void> {
+export async function deleteUser(
+  userId: string,
+  adminId: string,
+): Promise<void> {
   const adminUser = await getUserById(adminId);
   if (!adminUser) throw new Error('Admin user not found');
   checkPermission(adminUser, 'user:manage');
@@ -782,20 +955,11 @@ export async function saveCompliancePath(
     name: validatedData.name,
     description: validatedData.description,
     category: validatedData.category,
-    regulations: validatedData.regulations
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean),
+    regulations: validatedData.regulations.map(r => r.value),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-      bannedKeywords: validatedData.bannedKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
+      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value),
+      bannedKeywords: validatedData.bannedKeywords?.map(k => k.value),
     },
     updatedAt: now,
   };
@@ -991,7 +1155,7 @@ export async function deleteApiKey(
   if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
     throw new PermissionError('You do not have permission to delete API keys.');
   }
-  
+
   const index = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
   );
@@ -1039,66 +1203,136 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
   return Promise.resolve();
 }
 
-export async function createUserAndCompany(
-  name: string,
-  email: string,
+export async function completeOnboarding(
+  values: OnboardingFormValues,
   userId: string,
 ) {
-  const now = new Date().toISOString();
-  const newCompany: Company = {
-    id: newId('comp'),
-    name: `${name}'s Company`,
-    ownerId: userId,
-    createdAt: now,
-    updatedAt: now,
-  };
-  mockCompanies.push(newCompany);
+  const userRef = adminDb.collection(Collections.USERS).doc(userId);
+  const companyRef = adminDb.collection(Collections.COMPANIES).doc(); // New company
 
-  const newUser: User = {
-    id: userId,
-    fullName: name,
-    email: email,
-    companyId: newCompany.id,
-    roles: [UserRoles.SUPPLIER],
-    createdAt: now,
-    updatedAt: now,
-    readNotificationIds: [],
+  const companyData = {
+    name: values.companyName,
+    industry: values.industry,
+    ownerId: userId,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
   };
-  mockUsers.push(newUser);
-  return Promise.resolve();
+
+  await adminDb.runTransaction(async transaction => {
+    // Create the company
+    transaction.set(companyRef, companyData);
+    // Update the user
+    transaction.update(userRef, {
+      companyId: companyRef.id,
+      onboardingComplete: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  await logAuditEvent('user.onboarded', userId, { companyId: companyRef.id }, userId);
 }
 
-export async function updateUserProfile(userId: string, fullName: string) {
-  const user = mockUsers.find(u => u.id === userId);
-  if (user) {
-    user.fullName = fullName;
-    user.updatedAt = new Date().toISOString();
-    await logAuditEvent('user.profile.updated', userId, { fields: ['fullName'] }, userId);
-  }
-  return Promise.resolve();
+export async function updateUserProfile(
+  userId: string,
+  fullName: string,
+  editorId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+
+  checkPermission(editor, 'user:edit', user);
+
+  await adminDb.collection(Collections.USERS).doc(userId).update({
+    fullName: fullName,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  await adminAuth.updateUser(userId, { displayName: fullName });
+  await logAuditEvent(
+    'user.profile.updated',
+    userId,
+    { fields: ['fullName'] },
+    editorId,
+  );
 }
 
 export async function updateUserPassword(
   userId: string,
-  current: string,
   newPass: string,
+  editorId: string,
 ) {
-  if (current !== 'password123')
-    throw new Error('Incorrect current password.');
-  console.log(
-    `Password for user ${userId} has been updated in mock environment.`,
-  );
-  await logAuditEvent('user.password.updated', userId, {}, userId);
-  return Promise.resolve();
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:change_password', user);
+
+  await adminAuth.updateUser(userId, { password: newPass });
+  await logAuditEvent('user.password.updated', userId, {}, editorId);
 }
 
 export async function saveNotificationPreferences(
   userId: string,
   prefs: any,
+  editorId: string,
 ) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:edit', user);
+
+  // This is a mock implementation. A real one would save to user's doc.
   console.log(`Saving notification preferences for ${userId}`, prefs);
-  await logAuditEvent('user.notifications.updated', userId, { prefs }, userId);
+  await logAuditEvent(
+    'user.notifications.updated',
+    userId,
+    { prefs },
+    editorId,
+  );
   return Promise.resolve();
+}
+
+export async function setMfaStatus(userId: string, status: boolean, editorId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:edit', user);
+
+  await adminDb.collection(Collections.USERS).doc(userId).update({
+    isMfaEnabled: status,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  await logAuditEvent(
+    `user.mfa.${status ? 'enabled' : 'disabled'}`,
+    userId,
+    {},
+    editorId,
+  );
+}
+
+export async function saveSupportTicket(values: SupportTicketFormValues, userId?: string) {
+    const validatedData = supportTicketFormSchema.parse(values);
+    const docRef = adminDb.collection("supportTickets").doc();
+    await docRef.set({
+      ...validatedData,
+      userId: userId || null,
+      status: "Open",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    if (userId) {
+      await logAuditEvent('support.ticket.created', docRef.id, {}, userId);
+    }
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
@@ -1166,6 +1400,7 @@ export async function saveProductionLine(
 
   const lineData = {
     ...validatedData,
+    outputPerHour: Number(validatedData.outputPerHour),
     updatedAt: now,
   };
 
@@ -1213,8 +1448,8 @@ export async function signInWithMockUser(
   email: string,
   password: string,
 ): Promise<{ success: boolean; token?: string; error?: string }> {
-  // Find user in our mock database
-  const user = mockUsers.find(u => u.email === email);
+  const user = await getUserByEmail(email);
+
   if (!user) {
     return { success: false, error: 'User not found.' };
   }
@@ -1224,33 +1459,62 @@ export async function signInWithMockUser(
     return { success: false, error: 'Invalid password for mock user.' };
   }
 
-  // If user is found and password is correct, ensure user exists in Auth emulator and get custom token.
+  // If user is found and password is correct, get custom token.
   try {
-    try {
-      await adminAuth.getUser(user.id);
-    } catch (error: any) {
-      if (error.code === 'auth/user-not-found') {
-        console.log(`Creating mock user in Auth emulator: ${user.email}`);
-        await adminAuth.createUser({
-          uid: user.id,
-          email: user.email,
-          password: password,
-          displayName: user.fullName,
-          emailVerified: true,
-        });
-      } else {
-        // Rethrow other admin errors to be caught by the outer catch block
-        console.error(`Error finding user ${user.id} in Auth:`, error);
-        throw new Error(
-          'Failed to query Firebase Auth. Is the admin SDK connected to the emulator?',
-        );
-      }
-    }
-
     const customToken = await adminAuth.createCustomToken(user.id);
     return { success: true, token: customToken };
   } catch (e: any) {
     console.error('Error during mock sign in flow:', e);
     return { success: false, error: 'Server error during sign in.' };
   }
+}
+
+export async function bulkCreateProducts(
+  products: any[],
+  userId: string,
+): Promise<{ createdCount: number }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+
+  const company = await getCompanyById(user.companyId);
+  if (!company) throw new Error(`Company with ID ${user.companyId} not found.`);
+
+  const batch = adminDb.batch();
+  const now = FieldValue.serverTimestamp();
+
+  products.forEach(productData => {
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc();
+    const newProduct = {
+      ...productData,
+      companyId: user.companyId,
+      supplier: company.name,
+      productImage: productData.productImage || 'https://placehold.co/400x400.png',
+      status: 'Draft',
+      lastUpdated: now,
+      createdAt: now,
+      updatedAt: now,
+      endOfLifeStatus: 'Active',
+      verificationStatus: 'Not Submitted',
+      isProcessing: true,
+    };
+    batch.set(docRef, newProduct);
+  });
+
+  await batch.commit();
+  await logAuditEvent('product.bulk_import', user.companyId, { count: products.length }, userId);
+
+  return { createdCount: products.length };
+}
+
+
+export async function createProductFromImage(
+  imageDataUri: string,
+  userId: string,
+): Promise<any> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+  
+  return await createProductFromImageFlow({ imageDataUri });
 }

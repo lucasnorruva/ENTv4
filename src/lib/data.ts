@@ -1,345 +1,1520 @@
-// src/lib/data.ts
-import type { Product } from './types';
+// src/lib/actions.ts
+'use server';
 
-export let products: Product[] = [
-  {
-    id: 'pp-001',
-    companyId: 'comp-02',
-    gtin: '09501101420014',
-    productName: 'Eco-Friendly Smart Watch Series 5',
-    productDescription:
-      'A sleek smartwatch made from recycled aluminum and sustainable materials, featuring a long-lasting battery and comprehensive health tracking.',
-    productImage: 'https://placehold.co/400x400.png',
-    category: 'Electronics',
-    supplier: 'GreenTech Supplies',
-    status: 'Published',
-    lastUpdated: '2024-07-21T10:00:00Z',
-    createdAt: '2024-07-01T10:00:00Z',
-    updatedAt: '2024-07-21T10:00:00Z',
-    compliancePathId: 'cp-electronics-01',
-    manualUrl: 'https://example.com/manual-sw5.pdf',
-    materials: [
-      {
-        name: 'Recycled Aluminum',
-        percentage: 60,
-        recycledContent: 100,
-        origin: 'Germany',
-      },
-      {
-        name: 'Fluoroelastomer',
-        percentage: 20,
-        recycledContent: 0,
-        origin: 'China',
-      },
-      { name: 'Gorilla Glass', percentage: 20, origin: 'USA' },
-    ],
-    manufacturing: {
-      facility: 'Eco-Factory 1',
-      country: 'Germany',
-      emissionsKgCo2e: 15.5,
-    },
-    packaging: {
-      type: 'Recycled Cardboard',
-      recyclable: true,
-      recycledContent: 100,
-      weight: 50,
-    },
-    lifecycle: {
-      carbonFootprint: 15.5,
-      carbonFootprintMethod: 'ISO 14067',
-      repairabilityScore: 7,
-      expectedLifespan: 5,
-    },
-    battery: {
-      type: 'Lithium-ion',
-      capacityMah: 3110,
-      voltage: 3.83,
-      isRemovable: false,
-    },
-    certifications: [
-      { name: 'CE', issuer: 'TÜV SÜD' },
-      { name: 'RoHS Compliant', issuer: 'Intertek' },
-      { name: 'ISO 14001', issuer: 'Eco-Factory 1' },
-    ],
-    compliance: {
-      rohsCompliant: true,
-      reachSVHC: false,
-    },
-    verificationStatus: 'Verified',
-    lastVerificationDate: '2024-07-22T14:00:00Z',
-    blockchainProof: {
-      txHash: '0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
-      explorerUrl:
-        'https://www.oklink.com/amoy/tx/0x123abc456def7890123abc456def7890123abc456def7890123abc456def',
-      blockHeight: 51842069,
-    },
-    ebsiVcId: 'did:ebsi:z2d5i1d9o8f7g6h5j4k3l2m1n0p',
-    qrLabelText:
-      'Verified to meet EU standards for sustainability and safety, this watch is crafted from 100% recycled aluminum.',
-    sustainability: {
-      score: 85,
-      environmental: 90,
-      social: 80,
-      governance: 88,
-      isCompliant: true,
-      complianceSummary:
-        'Product is compliant with all known rules for its category.',
-      gaps: [],
-      classification: {
-        esgCategory: 'Circular Design',
-        riskScore: 2,
-      },
-      lifecycleAnalysis: {
-        carbonFootprint: {
-          value: 15.5,
-          unit: 'kg CO2-eq',
-          summary:
-            'Estimated based on recycled aluminum body and typical electronics manufacturing in Germany.',
-        },
-        lifecycleStages: {
-          manufacturing:
-            'The highest impact comes from manufacturing the display and battery. Use of recycled aluminum significantly reduces this.',
-          usePhase:
-            'Energy consumption is low due to an efficient ARM-based processor. Impact primarily depends on user charging habits.',
-          endOfLife:
-            'High recyclability potential if disassembled correctly. The non-removable battery poses a challenge.',
-        },
-        highestImpactStage: 'Manufacturing',
-        improvementOpportunities: [
-          'Implement a take-back program for battery replacement and recycling.',
-          'Source display manufacturing from facilities powered by renewable energy.',
-          'Offer a version with a bio-based polymer band instead of fluoroelastomer.',
-        ],
-      },
-    },
-    endOfLifeStatus: 'Active',
-    dataQualityWarnings: [],
-  },
-  {
-    id: 'pp-002',
-    companyId: 'comp-03',
-    gtin: '01234567890123',
-    productName: 'Pro-Grade 4K Drone',
-    productDescription:
-      'A professional-grade quadcopter with a 4K camera, 30-minute flight time, and advanced obstacle avoidance sensors.',
-    productImage: 'https://placehold.co/400x400.png',
-    category: 'Electronics',
-    supplier: 'AeroDynamics Inc.',
-    status: 'Published',
-    lastUpdated: '2024-07-19T11:00:00Z',
-    createdAt: '2024-07-02T11:00:00Z',
-    updatedAt: '2024-07-19T11:00:00Z',
-    compliancePathId: 'cp-electronics-01',
-    manualUrl: 'https://example.com/manual-drone4k.pdf',
-    materials: [
-      {
-        name: 'Carbon Fiber',
-        percentage: 50,
-        recycledContent: 10,
-        origin: 'USA',
-      },
-      {
-        name: 'ABS Plastic',
-        percentage: 30,
-        recycledContent: 5,
-        origin: 'South Korea',
-      },
-    ],
-    manufacturing: {
-      facility: 'Aero Plant 1',
-      country: 'USA',
-      emissionsKgCo2e: 25.0,
-    },
-    packaging: { type: 'Molded Plastic', recyclable: false, weight: 150 },
-    lifecycle: {
-      repairabilityScore: 5,
-      expectedLifespan: 3,
-    },
-    battery: {
-      type: 'Lithium Polymer',
-      capacityMah: 5200,
-      voltage: 15.2,
-      isRemovable: true,
-    },
-    certifications: [{ name: 'FCC', issuer: 'FCC' }],
-    compliance: {
-      rohsCompliant: true,
-      reachSVHC: true,
-      scipReference: 'mock-scip-ref-12345',
-    },
+import type {
+  Product,
+  ComplianceGap,
+  Company,
+  AuditLog,
+  User,
+  ApiKey,
+  ApiSettings,
+  CompliancePath,
+  ServiceTicket,
+  ProductionLine,
+  Webhook,
+} from './types';
+import {
+  productFormSchema,
+  type ProductFormValues,
+  userFormSchema,
+  UserFormValues,
+  companyFormSchema,
+  CompanyFormValues,
+  compliancePathFormSchema,
+  type CompliancePathFormValues,
+  apiSettingsSchema,
+  ApiSettingsFormValues,
+  serviceTicketFormSchema,
+  ServiceTicketFormValues,
+  webhookFormSchema,
+  WebhookFormValues,
+  productionLineFormSchema,
+  ProductionLineFormValues,
+  apiKeyFormSchema,
+  ApiKeyFormValues,
+  bulkProductImportSchema,
+  OnboardingFormValues,
+  onboardingFormSchema,
+  supportTicketFormSchema,
+  SupportTicketFormValues,
+} from './schemas';
+import {
+  anchorToPolygon,
+  generateEbsiCredential,
+  hashProductData,
+} from '@/services/blockchain';
+import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
+import { generateProductImage } from '@/ai/flows/generate-product-image';
+import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
+import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
+import { UserRoles, type Role, Collections } from './constants';
+import {
+  getUserById,
+  getCompanyById,
+  getUsersByCompanyId,
+  getUserByEmail as authGetUserByEmail,
+} from './auth';
+import { hasRole } from './auth-utils';
+import { sendWebhook } from '@/services/webhooks';
+import type { AiProduct } from './ai/schemas';
+import { checkPermission, PermissionError } from './permissions';
+import { adminAuth, adminDb } from './firebase-admin';
+import { FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
+
+// MOCK DATA IMPORTS (To be removed or refactored)
+import { users as mockUsers } from './user-data';
+import { companies as mockCompanies } from './company-data';
+import { compliancePaths as mockCompliancePaths } from './compliance-data';
+import { serviceTickets as mockServiceTickets } from './service-ticket-data';
+import { productionLines as mockProductionLines } from './manufacturing-data';
+import { apiKeys as mockApiKeys } from './api-key-data';
+import { auditLogs as mockAuditLogs } from './audit-log-data';
+import { webhooks as mockWebhooks } from './webhook-data';
+
+// Helper for mock data manipulation
+const newId = (prefix: string) =>
+  `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
+
+function docToType<T>(doc: FirebaseFirestore.DocumentSnapshot): T {
+  const data = doc.data() as any;
+  if (!data) return { id: doc.id } as T; // Handle case where doc exists but data is empty
+  // Convert Firestore Timestamps to ISO strings for server actions
+  Object.keys(data).forEach(key => {
+    if (data[key] instanceof Timestamp) {
+      data[key] = data[key].toDate().toISOString();
+    }
+  });
+  return { id: doc.id, ...data } as T;
+}
+
+// --- WEBHOOK ACTIONS ---
+
+export async function getWebhooks(userId?: string): Promise<Webhook[]> {
+  if (userId) {
+    const user = await getUserById(userId);
+    if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
+    return Promise.resolve(mockWebhooks.filter(w => w.userId === userId));
+  }
+  return Promise.resolve(mockWebhooks);
+}
+
+export async function getWebhookById(
+  id: string,
+  userId: string,
+): Promise<Webhook | undefined> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+  return Promise.resolve(
+    mockWebhooks.find(w => w.id === id && w.userId === userId),
+  );
+}
+
+export async function saveWebhook(
+  values: WebhookFormValues,
+  userId: string,
+  webhookId?: string,
+): Promise<Webhook> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+
+  const validatedData = webhookFormSchema.parse(values);
+  const now = new Date().toISOString();
+
+  if (webhookId) {
+    const webhookIndex = mockWebhooks.findIndex(
+      w => w.id === webhookId && w.userId === userId,
+    );
+    if (webhookIndex === -1) throw new Error('Webhook not found');
+    mockWebhooks[webhookIndex] = {
+      ...mockWebhooks[webhookIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
+    await logAuditEvent('webhook.updated', webhookId, {}, userId);
+    return mockWebhooks[webhookIndex];
+  } else {
+    const newWebhook: Webhook = {
+      id: newId('wh'),
+      ...validatedData,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockWebhooks.push(newWebhook);
+    await logAuditEvent('webhook.created', newWebhook.id, {}, userId);
+    return newWebhook;
+  }
+}
+
+export async function deleteWebhook(
+  webhookId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+  const index = mockWebhooks.findIndex(
+    w => w.id === webhookId && w.userId === userId,
+  );
+  if (index > -1) {
+    mockWebhooks.splice(index, 1);
+    await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+  }
+}
+
+export async function replayWebhook(
+  logId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied');
+
+  const log = mockAuditLogs.find(l => l.id === logId);
+  if (
+    !log ||
+    log.action !== 'webhook.delivery.failure' ||
+    !log.details.productId
+  ) {
+    throw new Error('Invalid or non-replayable event log.');
+  }
+
+  const webhook = mockWebhooks.find(wh => wh.id === log.entityId);
+  const product = await getProductById(log.details.productId, userId);
+
+  if (!webhook || !product) {
+    throw new Error('Associated webhook or product not found.');
+  }
+
+  await logAuditEvent(
+    'webhook.replay.initiated',
+    webhook.id,
+    { originalLogId: logId, productId: product.id },
+    userId,
+  );
+
+  await sendWebhook(webhook, log.details.event, product);
+}
+
+// --- PRODUCT ACTIONS ---
+
+export async function getProducts(
+  userId?: string,
+  filters?: { searchQuery?: string },
+): Promise<Product[]> {
+  const user = userId ? await getUserById(userId) : undefined;
+
+  let productsQuery: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
+    adminDb.collection(Collections.PRODUCTS);
+
+  if (!user) {
+    // Public access: only published products are visible
+    productsQuery = productsQuery.where('status', '==', 'Published');
+  } else {
+    // Authenticated access
+    const globalReadRoles: Role[] = [
+      UserRoles.ADMIN,
+      UserRoles.BUSINESS_ANALYST,
+      UserRoles.RETAILER,
+      UserRoles.SERVICE_PROVIDER,
+      UserRoles.AUDITOR,
+      UserRoles.COMPLIANCE_MANAGER,
+      UserRoles.RECYCLER,
+      UserRoles.DEVELOPER,
+    ];
+    const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
+
+    if (!hasGlobalRead && hasRole(user, UserRoles.MANUFACTURER)) {
+      productsQuery = productsQuery.where('supplier', '==', user.companyId);
+    } else if (!hasGlobalRead) {
+      productsQuery = productsQuery.where('companyId', '==', user.companyId);
+    }
+  }
+
+  const snapshot = await productsQuery.orderBy('lastUpdated', 'desc').get();
+  let results = snapshot.docs.map(doc => docToType<Product>(doc));
+
+  // Apply search filter if provided (client-side filtering for simplicity)
+  if (filters?.searchQuery) {
+    const query = filters.searchQuery.toLowerCase();
+    results = results.filter(
+      p =>
+        p.productName.toLowerCase().includes(query) ||
+        p.supplier.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        p.gtin?.toLowerCase().includes(query),
+    );
+  }
+
+  return results;
+}
+
+export async function getProductById(
+  id: string,
+  userId?: string,
+): Promise<Product | undefined> {
+  const doc = await adminDb.collection(Collections.PRODUCTS).doc(id).get();
+  if (!doc.exists) return undefined;
+
+  const product = docToType<Product>(doc);
+
+  if (!userId) {
+    return product.status === 'Published' ? product : undefined;
+  }
+
+  const user = await getUserById(userId);
+  if (!user) return undefined;
+
+  const globalReadRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.AUDITOR,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.RECYCLER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
+    UserRoles.RETAILER,
+  ];
+
+  const hasGlobalReadAccess = globalReadRoles.some(role =>
+    hasRole(user, role),
+  );
+
+  if (hasGlobalReadAccess || user.companyId === product.companyId) {
+    return product;
+  }
+
+  return product.status === 'Published' ? product : undefined;
+}
+
+export async function saveProduct(
+  values: ProductFormValues,
+  userId: string,
+  productId?: string,
+): Promise<Product> {
+  const validatedData = productFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const now = FieldValue.serverTimestamp();
+
+  if (productId) {
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+    const existingProduct = await getProductById(productId, user.id);
+    if (!existingProduct) throw new Error('Product not found');
+
+    checkPermission(user, 'product:edit', existingProduct);
+
+    if (
+      validatedData.status === 'Archived' &&
+      existingProduct.status !== 'Archived'
+    ) {
+      checkPermission(user, 'product:archive', existingProduct);
+    }
+
+    const updateData: Partial<Product> & {
+      lastUpdated: FieldValue;
+      updatedAt: FieldValue;
+    } = {
+      ...validatedData,
+      lastUpdated: now,
+      updatedAt: now,
+      verificationStatus:
+        existingProduct.verificationStatus === 'Failed'
+          ? 'Not Submitted'
+          : existingProduct.verificationStatus,
+      status:
+        existingProduct.verificationStatus === 'Failed'
+          ? 'Draft'
+          : validatedData.status,
+      isProcessing: true,
+    };
+
+    await docRef.update(updateData);
+    await logAuditEvent(
+      'product.updated',
+      productId,
+      { changes: Object.keys(values) },
+      userId,
+    );
+
+    const updatedDoc = await docRef.get();
+    return docToType<Product>(updatedDoc);
+  } else {
+    checkPermission(user, 'product:create');
+    const company = await getCompanyById(user.companyId);
+    if (!company)
+      throw new Error(`Company with ID ${user.companyId} not found.`);
+
+    const newProductRef = adminDb.collection(Collections.PRODUCTS).doc();
+
+    const newProductData = {
+      ...validatedData,
+      companyId: user.companyId,
+      supplier: company.name,
+      productImage:
+        validatedData.productImage || 'https://placehold.co/400x400.png',
+      createdAt: now,
+      updatedAt: now,
+      lastUpdated: now,
+      endOfLifeStatus: 'Active' as const,
+      verificationStatus: 'Not Submitted' as const,
+      materials: validatedData.materials || [],
+      isProcessing: true,
+    };
+
+    await newProductRef.set(newProductData);
+    await logAuditEvent('product.created', newProductRef.id, {}, userId);
+
+    const newDoc = await newProductRef.get();
+    return docToType<Product>(newDoc);
+  }
+}
+
+export async function deleteProduct(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:delete', product);
+
+  await adminDb.collection(Collections.PRODUCTS).doc(productId).delete();
+  await logAuditEvent('product.deleted', productId, {}, userId);
+}
+
+export async function submitForReview(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:submit', product);
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
     verificationStatus: 'Pending',
-    sustainability: {
-      score: 68,
-      environmental: 65,
-      social: 70,
-      governance: 75,
-      isCompliant: false,
-      complianceSummary: 'Awaiting auditor review.',
-    },
-    endOfLifeStatus: 'Active',
-    dataQualityWarnings: [
-      {
-        field: 'materials.percentage',
-        warning:
-          'Material percentages add up to 80%. Consider adding battery weight to composition.',
-      },
-    ],
-  },
-  {
-    id: 'pp-003',
-    companyId: 'comp-02',
-    gtin: '05556667778882',
-    productName: 'Organic Cotton T-Shirt',
-    productDescription:
-      'A soft, breathable t-shirt made from 100% GOTS-certified organic cotton, ethically produced in a fair trade factory.',
-    productImage: 'https://placehold.co/400x400.png',
-    category: 'Fashion',
-    supplier: 'GreenTech Supplies',
-    status: 'Draft',
-    lastUpdated: '2024-07-20T12:00:00Z',
-    createdAt: '2024-07-03T12:00:00Z',
-    updatedAt: '2024-07-20T12:00:00Z',
-    compliancePathId: 'cp-fashion-01',
-    materials: [
-      {
-        name: 'Organic Cotton',
-        percentage: 100,
-        recycledContent: 0,
-        origin: 'India',
-      },
-    ],
-    manufacturing: {
-      facility: 'Sustainable Threads Mill',
-      country: 'India',
-    },
-    packaging: { type: 'Compostable Bag', recyclable: true, weight: 10 },
-    lifecycle: {
-      expectedLifespan: 2,
-    },
-    certifications: [
-      { name: 'GOTS', issuer: 'Control Union' },
-      { name: 'Fair Trade Certified', issuer: 'Fair Trade USA' },
-    ],
-    compliance: {
-      rohsCompliant: true,
-      reachSVHC: false,
-    },
-    verificationStatus: 'Not Submitted',
-    sustainability: {
-      score: 92,
-      environmental: 95,
-      social: 98,
-      governance: 80,
-      isCompliant: false,
-      complianceSummary: '',
-    },
-    endOfLifeStatus: 'Active',
-    dataQualityWarnings: [],
-  },
-  {
-    id: 'pp-004',
-    companyId: 'comp-02',
-    gtin: '04443332221115',
-    productName: 'Recycled Polyester Jacket',
-    productDescription:
-      'A lightweight, water-resistant jacket made from recycled plastic bottles. Not compliant with the GOTS fashion path.',
-    productImage: 'https://placehold.co/400x400.png',
-    category: 'Fashion',
-    supplier: 'GreenTech Supplies',
-    status: 'Published',
-    lastUpdated: '2024-07-18T13:00:00Z',
-    createdAt: '2024-07-04T13:00:00Z',
-    updatedAt: '2024-07-18T13:00:00Z',
-    compliancePathId: 'cp-fashion-01',
-    materials: [
-      {
-        name: 'Recycled Polyester',
-        percentage: 100,
-        recycledContent: 100,
-        origin: 'Taiwan',
-      },
-    ],
-    manufacturing: { facility: 'EcoFabric Taiwan', country: 'Taiwan' },
-    packaging: { type: 'Plastic Bag', recyclable: false, weight: 30 },
-    certifications: [],
-    compliance: {
-      rohsCompliant: true,
-      reachSVHC: false,
-    },
-    verificationStatus: 'Failed',
-    lastVerificationDate: '2024-07-19T10:00:00Z',
-    sustainability: {
-      score: 55,
-      environmental: 70,
-      social: 50,
-      governance: 60,
-      isCompliant: false,
-      complianceSummary:
-        "Product failed verification with 1 issue(s). Contains banned material 'Polyester'.",
-      gaps: [
-        {
-          regulation: 'Global Organic Textile Standard',
-          issue: "Product contains a banned material: 'Recycled Polyester'.",
-        },
-      ],
-    },
-    endOfLifeStatus: 'Recycled',
-    dataQualityWarnings: [
-      {
-        field: 'materials',
-        warning:
-          'The product category is "Fashion" but it contains "Polyester". While common, this material is banned by the selected compliance path.',
-      },
-    ],
-  },
-  {
-    id: 'pp-005',
-    companyId: 'comp-03',
-    gtin: '01122334455667',
-    productName: 'Modular Shelving Unit',
-    productDescription:
-      'A versatile shelving unit made from sustainably sourced bamboo and powder-coated steel.',
-    productImage: 'https://placehold.co/400x400.png',
-    category: 'Home Goods',
-    supplier: 'AeroDynamics Inc.',
-    status: 'Archived',
-    lastUpdated: '2024-07-15T15:00:00Z',
-    createdAt: '2024-07-05T15:00:00Z',
-    updatedAt: '2024-07-15T15:00:00Z',
-    compliancePathId: 'cp-homegoods-01',
-    manualUrl: 'https://example.com/manual-shelving.pdf',
-    materials: [
-      { name: 'Bamboo', percentage: 70, origin: 'China' },
-      { name: 'Steel', percentage: 30, origin: 'USA' },
-    ],
-    manufacturing: { facility: 'EcoHome Workshop', country: 'China' },
-    packaging: { type: 'Cardboard Box', recyclable: true, weight: 500 },
-    lifecycle: {
-      repairabilityScore: 9,
-      expectedLifespan: 15,
-    },
-    certifications: [{ name: 'FSC Certified', issuer: 'FSC' }],
-    compliance: {
-      rohsCompliant: true,
-      reachSVHC: false,
-    },
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent('passport.submitted', productId, {}, userId);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function recalculateScore(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:recalculate', product);
+
+  await adminDb.collection(Collections.PRODUCTS).doc(productId).update({
+    isProcessing: true,
+    'sustainability.score': -1,
+  });
+
+  await logAuditEvent('product.recalculate_score', productId, {}, userId);
+  console.log(`Product ${productId} marked for score recalculation.`);
+}
+
+export async function generateAndSaveProductImage(
+  productId: string,
+  userId: string,
+  contextImageDataUri?: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied');
+
+  checkPermission(user, 'product:edit', product);
+
+  const { productName, productDescription } = product;
+  if (!productName || !productDescription) {
+    throw new Error(
+      'Product name and description are required to generate an image.',
+    );
+  }
+
+  const { imageUrl } = await generateProductImage({
+    productName,
+    productDescription,
+    contextImageDataUri,
+  });
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    productImage: imageUrl,
+    lastUpdated: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent('product.image.generated', productId, {}, userId);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function generateAndSaveConformityDeclaration(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:edit', product);
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found for product.');
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const { declarationText } = await generateConformityDeclarationFlow({
+    product: aiProductInput,
+    companyName: company.name,
+  });
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    declarationOfConformity: declarationText,
+    lastUpdated: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent(
+    'doc.generated',
+    productId,
+    { docType: 'Declaration of Conformity' },
+    userId,
+  );
+}
+
+export async function approvePassport(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  checkPermission(user, 'product:approve');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  const productHash = await hashProductData(product);
+  const blockchainProof = await anchorToPolygon(product.id, productHash);
+  const ebsiVcId = await generateEbsiCredential(product.id);
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
     verificationStatus: 'Verified',
-    blockchainProof: {
-      txHash: '0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
-      explorerUrl:
-        'https://www.oklink.com/amoy/tx/0x456def7890123abc456def7890123abc456def7890123abc456def123abc',
-      blockHeight: 51842070,
+    status: 'Published',
+    lastVerificationDate: FieldValue.serverTimestamp(),
+    blockchainProof,
+    ebsiVcId,
+  });
+
+  await logAuditEvent(
+    'passport.approved',
+    productId,
+    { txHash: blockchainProof.txHash },
+    userId,
+  );
+
+  const updatedDoc = await docRef.get();
+  const updatedProduct = docToType<Product>(updatedDoc);
+
+  const allWebhooks = await getWebhooks();
+  const subscribedWebhooks = allWebhooks.filter(
+    wh => wh.status === 'active' && wh.events.includes('product.published'),
+  );
+
+  if (subscribedWebhooks.length > 0) {
+    for (const webhook of subscribedWebhooks) {
+      sendWebhook(webhook, 'product.published', updatedProduct);
+    }
+  }
+
+  return updatedProduct;
+}
+
+export async function rejectPassport(
+  productId: string,
+  reason: string,
+  gaps: ComplianceGap[],
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  checkPermission(user, 'product:reject');
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Failed',
+    lastVerificationDate: FieldValue.serverTimestamp(),
+    'sustainability.complianceSummary': reason,
+    'sustainability.gaps': gaps,
+  });
+
+  await logAuditEvent('passport.rejected', productId, { reason }, userId);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function markAsRecycled(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:recycle', product);
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    endOfLifeStatus: 'Recycled',
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent('product.recycled', productId, {}, userId);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function resolveComplianceIssue(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  checkPermission(user, 'product:resolve');
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({
+    verificationStatus: 'Not Submitted',
+    status: 'Draft',
+    lastUpdated: FieldValue.serverTimestamp(),
+  });
+
+  await logAuditEvent('compliance.resolved', productId, {}, userId);
+
+  const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function suggestImprovements(input: {
+  productName: string;
+  productDescription: string;
+}) {
+  return await suggestImprovementsFlow(input);
+}
+
+export async function generateConformityDeclarationText(
+  productId: string,
+  userId: string,
+): Promise<string> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:edit', product);
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found for product.');
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const { declarationText } = await generateConformityDeclarationFlow({
+    product: aiProductInput,
+    companyName: company.name,
+  });
+
+  await logAuditEvent('doc.generated', productId, {}, userId);
+  return declarationText;
+}
+
+export async function analyzeBillOfMaterials(bomText: string) {
+  return await analyzeBillOfMaterialsFlow({ bomText });
+}
+
+// Helper function to recursively flatten a nested object for CSV export.
+const flattenObject = (
+  obj: any,
+  parentKey = '',
+  res: Record<string, any> = {},
+) => {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      const propName = parentKey ? `${parentKey}_${key}` : key;
+      const value = obj[key];
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
+        flattenObject(value, propName, res);
+      } else if (Array.isArray(value)) {
+        // Stringify arrays of objects for CSV.
+        res[propName] = JSON.stringify(value);
+      } else {
+        res[propName] = value;
+      }
+    }
+  }
+  return res;
+};
+
+export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
+  const products = await getProducts();
+  if (format === 'json') {
+    return JSON.stringify(products, null, 2);
+  }
+
+  // Handle CSV conversion
+  if (products.length === 0) {
+    return '';
+  }
+
+  const flatProducts = products.map(flattenObject);
+
+  // Get a comprehensive list of all possible headers from all products
+  const allHeaders = Array.from(
+    flatProducts.reduce((acc, product) => {
+      Object.keys(product).forEach(key => acc.add(key));
+      return acc;
+    }, new Set<string>()),
+  ).sort();
+
+  const csvRows = [allHeaders.join(',')];
+
+  for (const product of flatProducts) {
+    const values = allHeaders.map(header => {
+      const value = product[header];
+
+      if (value === undefined || value === null) {
+        return '';
+      }
+
+      let stringValue =
+        typeof value === 'object' ? JSON.stringify(value) : String(value);
+
+      // Escape quotes by doubling them and wrap the whole string in quotes if it contains commas, quotes, or newlines.
+      if (/[",\n]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
+
+export async function exportComplianceReport(format: 'csv'): Promise<string> {
+  const products = await getProducts();
+  if (format !== 'csv') {
+    throw new Error('Unsupported format for compliance report.');
+  }
+
+  if (products.length === 0) {
+    return '';
+  }
+
+  const complianceData = products.map(p => ({
+    productId: p.id,
+    productName: p.productName,
+    supplier: p.supplier,
+    verificationStatus: p.verificationStatus,
+    isCompliant: p.sustainability?.isCompliant,
+    complianceSummary: p.sustainability?.complianceSummary,
+    gaps: p.sustainability?.gaps ? JSON.stringify(p.sustainability.gaps) : '[]',
+  }));
+
+  const headers = Object.keys(complianceData[0]).join(',');
+  const csvRows = [headers];
+
+  for (const item of complianceData) {
+    const values = Object.values(item).map(value => {
+      if (value === undefined || value === null) {
+        return '';
+      }
+      let stringValue = String(value);
+      if (/[",\n]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  return csvRows.join('\n');
+}
+
+// --- ADMIN & GENERAL ACTIONS ---
+
+export async function getCompanies(): Promise<Company[]> {
+  return Promise.resolve(mockCompanies);
+}
+
+export async function saveCompany(
+  values: CompanyFormValues,
+  userId: string,
+  companyId?: string,
+): Promise<Company> {
+  const validatedData = companyFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'company:manage');
+
+  const now = new Date().toISOString();
+  let savedCompany: Company;
+
+  if (companyId) {
+    const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
+    if (companyIndex === -1) throw new Error('Company not found');
+    savedCompany = {
+      ...mockCompanies[companyIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
+    mockCompanies[companyIndex] = savedCompany;
+    await logAuditEvent('company.updated', companyId, {}, userId);
+  } else {
+    savedCompany = {
+      id: newId('comp'),
+      ...validatedData,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockCompanies.push(savedCompany);
+    await logAuditEvent('company.created', savedCompany.id, {}, userId);
+  }
+  return Promise.resolve(savedCompany);
+}
+
+export async function deleteCompany(
+  companyId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'company:manage');
+
+  const index = mockCompanies.findIndex(c => c.id === companyId);
+  if (index > -1) {
+    mockCompanies.splice(index, 1);
+    await logAuditEvent('company.deleted', companyId, {}, userId);
+  }
+  return Promise.resolve();
+}
+
+export async function saveUser(
+  values: UserFormValues,
+  adminId: string,
+  userId?: string,
+): Promise<User> {
+  const validatedData = userFormSchema.parse(values);
+  const adminUser = await getUserById(adminId);
+  if (!adminUser) throw new Error('Admin user not found');
+  checkPermission(adminUser, 'user:manage');
+
+  const now = new Date().toISOString();
+  let savedUser: User;
+
+  const userData = {
+    fullName: validatedData.fullName,
+    email: validatedData.email,
+    companyId: validatedData.companyId,
+    roles: [validatedData.role as Role],
+    updatedAt: now,
+    onboardingComplete: true, // Assume completion
+    isMfaEnabled: false,
+  };
+
+  if (userId) {
+    const userIndex = mockUsers.findIndex(u => u.id === userId);
+    if (userIndex === -1) throw new Error('User not found');
+    savedUser = { ...mockUsers[userIndex], ...userData };
+    mockUsers[userIndex] = savedUser;
+    await logAuditEvent('user.updated', userId, {}, adminId);
+  } else {
+    savedUser = {
+      id: newId('user'),
+      ...userData,
+      createdAt: now,
+      readNotificationIds: [],
+    };
+    mockUsers.push(savedUser);
+    await logAuditEvent('user.created', savedUser.id, {}, adminId);
+  }
+  return Promise.resolve(savedUser);
+}
+
+export async function deleteUser(
+  userId: string,
+  adminId: string,
+): Promise<void> {
+  const adminUser = await getUserById(adminId);
+  if (!adminUser) throw new Error('Admin user not found');
+  checkPermission(adminUser, 'user:manage');
+
+  const index = mockUsers.findIndex(u => u.id === userId);
+  if (index > -1) {
+    mockUsers.splice(index, 1);
+    await logAuditEvent('user.deleted', userId, {}, adminId);
+  }
+  return Promise.resolve();
+}
+
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  return Promise.resolve(mockCompliancePaths);
+}
+
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
+  return Promise.resolve(mockCompliancePaths.find(p => p.id === id));
+}
+
+export async function saveCompliancePath(
+  values: CompliancePathFormValues,
+  userId: string,
+  pathId?: string,
+): Promise<CompliancePath> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'compliance:manage');
+
+  const validatedData = compliancePathFormSchema.parse(values);
+  const now = new Date().toISOString();
+
+  const pathData = {
+    name: validatedData.name,
+    description: validatedData.description,
+    category: validatedData.category,
+    regulations: validatedData.regulations.map(r => r.value),
+    rules: {
+      minSustainabilityScore: validatedData.minSustainabilityScore,
+      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value),
+      bannedKeywords: validatedData.bannedKeywords?.map(k => k.value),
     },
-    ebsiVcId: 'did:ebsi:z7i1r9t6g3f1e9c7b5a3z1y9x7w5v3u1',
-    sustainability: {
-      score: 78,
-      environmental: 85,
-      social: 70,
-      governance: 75,
-      isCompliant: false,
-      complianceSummary: '',
-    },
-    endOfLifeStatus: 'Disposed',
-    dataQualityWarnings: [],
-  },
-];
+    updatedAt: now,
+  };
+
+  let savedPath: CompliancePath;
+
+  if (pathId) {
+    const pathIndex = mockCompliancePaths.findIndex(p => p.id === pathId);
+    if (pathIndex === -1) throw new Error('Path not found');
+    savedPath = { ...mockCompliancePaths[pathIndex], ...pathData };
+    mockCompliancePaths[pathIndex] = savedPath;
+    await logAuditEvent('compliance_path.updated', pathId, {}, userId);
+  } else {
+    savedPath = { id: newId('cp'), ...pathData, createdAt: now };
+    mockCompliancePaths.push(savedPath);
+    await logAuditEvent('compliance_path.created', savedPath.id, {}, userId);
+  }
+  return Promise.resolve(savedPath);
+}
+
+export async function deleteCompliancePath(
+  pathId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'compliance:manage');
+
+  const index = mockCompliancePaths.findIndex(p => p.id === pathId);
+  if (index > -1) {
+    mockCompliancePaths.splice(index, 1);
+    await logAuditEvent('compliance_path.deleted', pathId, {}, userId);
+  }
+  return Promise.resolve();
+}
+
+export async function getAuditLogs(filters?: {
+  companyId?: string;
+}): Promise<AuditLog[]> {
+  let logs = [...mockAuditLogs];
+
+  if (filters?.companyId) {
+    const companyUsers = await getUsersByCompanyId(filters.companyId);
+    const userIds = new Set(companyUsers.map(u => u.id));
+    logs = logs.filter(log => userIds.has(log.userId));
+  }
+
+  return Promise.resolve(
+    logs.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    ),
+  );
+}
+
+export async function getAuditLogsForUser(userId: string): Promise<AuditLog[]> {
+  return Promise.resolve(
+    mockAuditLogs
+      .filter(log => log.userId === userId)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+  );
+}
+
+export async function getAuditLogsForEntity(
+  entityId: string,
+): Promise<AuditLog[]> {
+  return Promise.resolve(
+    mockAuditLogs
+      .filter(log => log.entityId === entityId)
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+  );
+}
+
+export async function logAuditEvent(
+  action: string,
+  entityId: string,
+  details: Record<string, any>,
+  userId: string,
+): Promise<AuditLog> {
+  const now = new Date().toISOString();
+  const log: AuditLog = {
+    id: newId('log'),
+    userId,
+    action,
+    entityId,
+    details,
+    createdAt: now,
+    updatedAt: now,
+  };
+  mockAuditLogs.unshift(log); // Add to beginning
+  return Promise.resolve(log);
+}
+
+export async function getApiKeys(userId: string): Promise<ApiKey[]> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
+  return Promise.resolve(mockApiKeys.filter(k => k.userId === userId));
+}
+
+export async function saveApiKey(
+  values: ApiKeyFormValues,
+  userId: string,
+  keyId?: string,
+): Promise<{ key: ApiKey; rawToken?: string }> {
+  const validatedData = apiKeyFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER))
+    throw new Error('Permission denied.');
+
+  const now = new Date().toISOString();
+  let savedKey: ApiKey;
+  let rawToken: string | undefined = undefined;
+
+  if (keyId) {
+    // Update existing key
+    const keyIndex = mockApiKeys.findIndex(
+      k => k.id === keyId && k.userId === userId,
+    );
+    if (keyIndex === -1) throw new Error('API Key not found');
+    savedKey = {
+      ...mockApiKeys[keyIndex],
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      updatedAt: now,
+    };
+    mockApiKeys[keyIndex] = savedKey;
+    await logAuditEvent(
+      'api_key.updated',
+      keyId,
+      { changes: ['label', 'scopes'] },
+      userId,
+    );
+    return { key: savedKey };
+  } else {
+    // Create new key
+    rawToken = `nor_mock_${[...Array(32)]
+      .map(() => Math.floor(Math.random() * 16).toString(16))
+      .join('')}`;
+
+    savedKey = {
+      id: newId('key'),
+      label: validatedData.label,
+      scopes: validatedData.scopes,
+      token: `nor_mock_******************${rawToken.slice(-4)}`,
+      status: 'Active',
+      userId,
+      createdAt: now,
+      updatedAt: now,
+      lastUsed: undefined,
+    };
+    mockApiKeys.push(savedKey);
+    await logAuditEvent(
+      'api_key.created',
+      savedKey.id,
+      { label: savedKey.label },
+      userId,
+    );
+    return { key: savedKey, rawToken };
+  }
+}
+
+export async function revokeApiKey(
+  keyId: string,
+  userId: string,
+): Promise<ApiKey> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('You do not have permission to revoke API keys.');
+  }
+
+  const keyIndex = mockApiKeys.findIndex(
+    k => k.id === keyId && k.userId === userId,
+  );
+  if (keyIndex === -1)
+    throw new Error('API Key not found or permission denied.');
+  mockApiKeys[keyIndex].status = 'Revoked';
+  mockApiKeys[keyIndex].updatedAt = new Date().toISOString();
+  await logAuditEvent('api_key.revoked', keyId, {}, userId);
+  return Promise.resolve(mockApiKeys[keyIndex]);
+}
+
+export async function deleteApiKey(
+  keyId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('You do not have permission to delete API keys.');
+  }
+
+  const index = mockApiKeys.findIndex(
+    k => k.id === keyId && k.userId === userId,
+  );
+  if (index > -1) {
+    mockApiKeys.splice(index, 1);
+    await logAuditEvent('api_key.deleted', keyId, {}, userId);
+  }
+  return Promise.resolve();
+}
+
+export async function getApiSettings(): Promise<ApiSettings> {
+  const doc = await adminDb.collection('settings').doc('api').get();
+  if (doc.exists) {
+    return doc.data() as ApiSettings;
+  }
+  // Return default settings if the document doesn't exist
+  return {
+    isPublicApiEnabled: true,
+    rateLimits: { free: 100, pro: 1000, enterprise: 10000 },
+    isWebhookSigningEnabled: true,
+  };
+}
+
+export async function saveApiSettings(
+  values: ApiSettingsFormValues,
+  userId: string,
+): Promise<ApiSettings> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'admin:manage_settings');
+
+  const validatedData = apiSettingsSchema.parse(values);
+  await adminDb
+    .collection('settings')
+    .doc('api')
+    .set(validatedData, { merge: true });
+  await logAuditEvent('settings.api.updated', 'global', { values }, userId);
+  return validatedData;
+}
+
+export async function markAllNotificationsAsRead(userId: string): Promise<void> {
+  const user = mockUsers.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  user.readNotificationIds = mockAuditLogs.map(log => log.id);
+  return Promise.resolve();
+}
+
+export async function completeOnboarding(
+  values: OnboardingFormValues,
+  userId: string,
+) {
+  const userRef = adminDb.collection(Collections.USERS).doc(userId);
+  const companyRef = adminDb.collection(Collections.COMPANIES).doc(); // New company
+
+  const companyData = {
+    name: values.companyName,
+    industry: values.industry,
+    ownerId: userId,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+
+  await adminDb.runTransaction(async transaction => {
+    // Create the company
+    transaction.set(companyRef, companyData);
+    // Update the user
+    transaction.update(userRef, {
+      companyId: companyRef.id,
+      onboardingComplete: true,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+  });
+
+  await logAuditEvent('user.onboarded', userId, { companyId: companyRef.id }, userId);
+}
+
+export async function updateUserProfile(
+  userId: string,
+  fullName: string,
+  editorId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+
+  checkPermission(editor, 'user:edit', user);
+
+  await adminDb.collection(Collections.USERS).doc(userId).update({
+    fullName: fullName,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  await adminAuth.updateUser(userId, { displayName: fullName });
+  await logAuditEvent(
+    'user.profile.updated',
+    userId,
+    { fields: ['fullName'] },
+    editorId,
+  );
+}
+
+export async function updateUserPassword(
+  userId: string,
+  newPass: string,
+  editorId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:change_password', user);
+
+  await adminAuth.updateUser(userId, { password: newPass });
+  await logAuditEvent('user.password.updated', userId, {}, editorId);
+}
+
+export async function saveNotificationPreferences(
+  userId: string,
+  prefs: any,
+  editorId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:edit', user);
+
+  // This is a mock implementation. A real one would save to user's doc.
+  console.log(`Saving notification preferences for ${userId}`, prefs);
+  await logAuditEvent(
+    'user.notifications.updated',
+    userId,
+    { prefs },
+    editorId,
+  );
+  return Promise.resolve();
+}
+
+export async function setMfaStatus(userId: string, status: boolean, editorId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const editor = await getUserById(editorId);
+  if (!editor) throw new Error('Editor not found');
+  
+  checkPermission(editor, 'user:edit', user);
+
+  await adminDb.collection(Collections.USERS).doc(userId).update({
+    isMfaEnabled: status,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  await logAuditEvent(
+    `user.mfa.${status ? 'enabled' : 'disabled'}`,
+    userId,
+    {},
+    editorId,
+  );
+}
+
+export async function saveSupportTicket(values: SupportTicketFormValues, userId?: string) {
+    const validatedData = supportTicketFormSchema.parse(values);
+    const docRef = adminDb.collection("supportTickets").doc();
+    await docRef.set({
+      ...validatedData,
+      userId: userId || null,
+      status: "Open",
+      createdAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    if (userId) {
+      await logAuditEvent('support.ticket.created', docRef.id, {}, userId);
+    }
+}
+
+export async function getServiceTickets(): Promise<ServiceTicket[]> {
+  return Promise.resolve(mockServiceTickets);
+}
+
+export async function saveServiceTicket(
+  values: ServiceTicketFormValues,
+  userId: string,
+  ticketId?: string,
+): Promise<ServiceTicket> {
+  const validatedData = serviceTicketFormSchema.parse(values);
+  const now = new Date().toISOString();
+  let savedTicket: ServiceTicket;
+
+  if (ticketId) {
+    const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
+    if (ticketIndex === -1) throw new Error('Ticket not found');
+    savedTicket = {
+      ...mockServiceTickets[ticketIndex],
+      ...validatedData,
+      updatedAt: now,
+    };
+    mockServiceTickets[ticketIndex] = savedTicket;
+    await logAuditEvent('ticket.updated', ticketId, {}, userId);
+  } else {
+    savedTicket = {
+      id: newId('tkt'),
+      ...validatedData,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockServiceTickets.unshift(savedTicket);
+    await logAuditEvent('ticket.created', savedTicket.id, {}, userId);
+  }
+  return Promise.resolve(savedTicket);
+}
+
+export async function updateServiceTicketStatus(
+  ticketId: string,
+  status: 'Open' | 'In Progress' | 'Closed',
+  userId: string,
+): Promise<ServiceTicket> {
+  const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
+  if (ticketIndex === -1) throw new Error('Ticket not found');
+  mockServiceTickets[ticketIndex].status = status;
+  mockServiceTickets[ticketIndex].updatedAt = new Date().toISOString();
+  await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
+  return Promise.resolve(mockServiceTickets[ticketIndex]);
+}
+
+export async function getProductionLines(): Promise<ProductionLine[]> {
+  return Promise.resolve(mockProductionLines);
+}
+
+export async function saveProductionLine(
+  values: ProductionLineFormValues,
+  userId: string,
+  lineId?: string,
+): Promise<ProductionLine> {
+  const validatedData = productionLineFormSchema.parse(values);
+  const now = new Date().toISOString();
+  let savedLine: ProductionLine;
+
+  const lineData = {
+    ...validatedData,
+    outputPerHour: Number(validatedData.outputPerHour),
+    updatedAt: now,
+  };
+
+  if (lineId) {
+    const lineIndex = mockProductionLines.findIndex(l => l.id === lineId);
+    if (lineIndex === -1) throw new Error('Line not found');
+    savedLine = {
+      ...mockProductionLines[lineIndex],
+      ...lineData,
+    };
+    mockProductionLines[lineIndex] = savedLine;
+    await logAuditEvent('production_line.updated', lineId, {}, userId);
+  } else {
+    savedLine = {
+      id: newId('line'),
+      ...lineData,
+      lastMaintenance: now,
+      createdAt: now,
+    };
+    mockProductionLines.push(savedLine);
+    await logAuditEvent('production_line.created', savedLine.id, {}, userId);
+  }
+  return Promise.resolve(savedLine);
+}
+
+export async function deleteProductionLine(
+  lineId: string,
+  userId: string,
+): Promise<void> {
+  const index = mockProductionLines.findIndex(l => l.id === lineId);
+  if (index > -1) {
+    mockProductionLines.splice(index, 1);
+    await logAuditEvent('production_line.deleted', lineId, {}, userId);
+  }
+  return Promise.resolve();
+}
+
+export async function getUserByEmail(
+  email: string,
+): Promise<User | undefined> {
+  return authGetUserByEmail(email);
+}
+
+export async function signInWithMockUser(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; token?: string; error?: string }> {
+  const user = await getUserByEmail(email);
+
+  if (!user) {
+    return { success: false, error: 'User not found.' };
+  }
+
+  // For mock users, the password is 'password123'
+  if (password !== 'password123') {
+    return { success: false, error: 'Invalid password for mock user.' };
+  }
+
+  // If user is found and password is correct, get custom token.
+  try {
+    const customToken = await adminAuth.createCustomToken(user.id);
+    return { success: true, token: customToken };
+  } catch (e: any) {
+    console.error('Error during mock sign in flow:', e);
+    return { success: false, error: 'Server error during sign in.' };
+  }
+}
+
+export async function bulkCreateProducts(
+  products: any[],
+  userId: string,
+): Promise<{ createdCount: number }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+
+  const company = await getCompanyById(user.companyId);
+  if (!company) throw new Error(`Company with ID ${user.companyId} not found.`);
+
+  const batch = adminDb.batch();
+  const now = FieldValue.serverTimestamp();
+
+  products.forEach(productData => {
+    const docRef = adminDb.collection(Collections.PRODUCTS).doc();
+    const newProduct = {
+      ...productData,
+      companyId: user.companyId,
+      supplier: company.name,
+      productImage: productData.productImage || 'https://placehold.co/400x400.png',
+      status: 'Draft',
+      lastUpdated: now,
+      createdAt: now,
+      updatedAt: now,
+      endOfLifeStatus: 'Active',
+      verificationStatus: 'Not Submitted',
+      isProcessing: true,
+    };
+    batch.set(docRef, newProduct);
+  });
+
+  await batch.commit();
+  await logAuditEvent('product.bulk_import', user.companyId, { count: products.length }, userId);
+
+  return { createdCount: products.length };
+}
+
+
+export async function createProductFromImage(
+  imageDataUri: string,
+  userId: string,
+): Promise<any> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+  
+  return await createProductFromImageFlow({ imageDataUri });
+}
