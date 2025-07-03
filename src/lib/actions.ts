@@ -68,6 +68,13 @@ import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { adminDb } from './firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
+// MOCK DATA IMPORTS
+import { products as mockProducts } from './data';
+import { apiKeys as mockApiKeys } from './api-key-data';
+import { webhooks as mockWebhooks } from './webhook-data';
+import { serviceTickets as mockServiceTickets } from './service-ticket-data';
+import { productionLines as mockProductionLines } from './manufacturing-data';
+
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
   `${prefix}-${Math.random().toString(36).substring(2, 9)}`;
@@ -89,6 +96,85 @@ export async function getWebhooks(userId: string): Promise<Webhook[]> {
   }
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }) as Webhook);
 }
+
+export async function getWebhookById(
+  id: string,
+  userId: string,
+): Promise<Webhook | undefined> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) return undefined;
+
+  const docSnap = await adminDb
+    .collection(Collections.WEBHOOKS)
+    .doc(id)
+    .get();
+
+  if (!docSnap.exists || docSnap.data()?.userId !== userId) {
+    return undefined;
+  }
+
+  return { id: docSnap.id, ...docSnap.data() } as Webhook;
+}
+
+export async function saveWebhook(
+  values: WebhookFormValues,
+  userId: string,
+  webhookId?: string,
+): Promise<Webhook> {
+  const validatedData = webhookFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('Permission denied.');
+  }
+
+  const now = new Date().toISOString();
+  let savedWebhook: Webhook;
+  const docRef = webhookId
+    ? adminDb.collection(Collections.WEBHOOKS).doc(webhookId)
+    : adminDb.collection(Collections.WEBHOOKS).doc();
+
+  if (webhookId) {
+    // Ensure user owns the webhook they are trying to edit
+    const existing = await getWebhookById(webhookId, userId);
+    if (!existing) throw new PermissionError('Webhook not found.');
+
+    const updateData = {
+      ...validatedData,
+      updatedAt: now,
+    };
+    await docRef.update(updateData);
+    savedWebhook = { ...existing, ...updateData };
+    await logAuditEvent('webhook.updated', webhookId, { changes: Object.keys(values) }, userId);
+  } else {
+    savedWebhook = {
+      id: docRef.id,
+      ...validatedData,
+      userId,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await docRef.set(savedWebhook);
+    await logAuditEvent('webhook.created', savedWebhook.id, { url: savedWebhook.url }, userId);
+  }
+  return savedWebhook;
+}
+
+export async function deleteWebhook(
+  webhookId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+    throw new PermissionError('Permission denied.');
+  }
+  
+  const existing = await getWebhookById(webhookId, userId);
+  if (!existing) throw new PermissionError('Webhook not found.');
+
+  await adminDb.collection(Collections.WEBHOOKS).doc(webhookId).delete();
+  await logAuditEvent('webhook.deleted', webhookId, {}, userId);
+}
+
 
 // --- PRODUCT ACTIONS ---
 
@@ -151,6 +237,39 @@ export async function getProducts(
 
   return results;
 }
+
+export async function globalSearch(
+  searchQuery: string,
+  userId: string,
+): Promise<{
+  products: Product[];
+  users: User[];
+  compliancePaths: CompliancePath[];
+}> {
+  if (!searchQuery) {
+    return { products: [], users: [], compliancePaths: [] };
+  }
+  const term = searchQuery.toLowerCase();
+
+  // For a real app, this should use a proper search service like Elasticsearch or Algolia.
+  // For this demo, we'll fetch all and filter, which is inefficient but functional.
+  const [allProducts, allUsers, allCompliancePaths] = await Promise.all([
+    getProducts(userId),
+    getUsers(),
+    getCompliancePaths(),
+  ]);
+
+  const products = allProducts.filter(p =>
+    p.productName.toLowerCase().includes(term),
+  );
+  const users = allUsers.filter(u => u.fullName.toLowerCase().includes(term));
+  const compliancePaths = allCompliancePaths.filter(p =>
+    p.name.toLowerCase().includes(term),
+  );
+
+  return { products, users, compliancePaths };
+}
+
 
 export async function getProductById(
   id: string,
@@ -491,6 +610,27 @@ export async function suggestImprovements(input: {
 }) {
   return await suggestImprovementsFlow({ product: { ...input } as any });
 }
+
+export async function generateAndSaveConformityDeclaration(
+  productId: string,
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:edit');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found.');
+
+  const declarationText = await generateConformityDeclarationText(
+    productId,
+    userId,
+  );
+
+  const docRef = adminDb.collection(Collections.PRODUCTS).doc(productId);
+  await docRef.update({ declarationOfConformity: declarationText });
+}
+
 
 export async function generateConformityDeclarationText(
   productId: string,
@@ -1017,6 +1157,7 @@ export async function saveApiSettings(
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
   return validatedData;
 }
+
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
   const user = await getUserById(userId);
