@@ -13,15 +13,6 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -61,7 +52,7 @@ import {
 
 import type { Webhook, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteWebhook } from '@/lib/actions';
+import { deleteWebhook, getWebhooks } from '@/lib/actions';
 import WebhookForm from './webhook-form';
 
 interface WebhookManagementClientProps {
@@ -80,33 +71,16 @@ export default function WebhookManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.WEBHOOKS),
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const webhooksData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Webhook,
-        );
-        setWebhooks(webhooksData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching webhooks:', error);
+    getWebhooks(user.id)
+      .then(setWebhooks)
+      .catch(() =>
         toast({
           title: 'Error',
-          description: 'Failed to load webhooks in real-time.',
+          description: 'Could not load webhooks.',
           variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+        }),
+      )
+      .finally(() => setIsLoading(false));
   }, [user.id, toast]);
 
   const handleCreateNew = () => {
@@ -123,6 +97,7 @@ export default function WebhookManagementClient({
     startTransition(async () => {
       try {
         await deleteWebhook(webhookId, user.id);
+        setWebhooks(prev => prev.filter(wh => wh.id !== webhookId));
         toast({
           title: 'Webhook Deleted',
           description: 'The webhook has been successfully deleted.',
@@ -137,8 +112,14 @@ export default function WebhookManagementClient({
     });
   };
 
-  const handleSave = () => {
-    // The real-time listener will handle updates automatically
+  const handleSave = (savedWebhook: Webhook) => {
+    setWebhooks(prev => {
+      const exists = prev.some(wh => wh.id === savedWebhook.id);
+      if (exists) {
+        return prev.map(wh => (wh.id === savedWebhook.id ? savedWebhook : wh));
+      }
+      return [savedWebhook, ...prev];
+    });
     setIsFormOpen(false);
   };
 

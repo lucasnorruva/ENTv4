@@ -29,22 +29,13 @@ import {
 } from 'lucide-react';
 import type { Webhook, AuditLog, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { replayWebhook } from '@/lib/actions';
+import { replayWebhook, getAuditLogsForEntity } from '@/lib/actions';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 interface WebhookDeliveriesClientProps {
   webhook: Webhook;
@@ -63,38 +54,22 @@ export default function WebhookDeliveriesClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.AUDIT_LOGS),
-      where('entityId', '==', webhook.id),
-      where('action', 'in', [
-        'webhook.delivery.success',
-        'webhook.delivery.failure',
-        'webhook.replay.initiated',
-      ]),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const logsData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as AuditLog,
+    getAuditLogsForEntity(webhook.id)
+      .then(logsData => {
+        const deliveryLogs = logsData.filter(log =>
+          log.action.startsWith('webhook.delivery'),
         );
-        setLogs(logsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error listening to delivery logs:', error);
+        setLogs(deliveryLogs);
+      })
+      .catch(err => {
+        console.error('Error fetching delivery logs:', err);
         toast({
-          title: 'Real-time Error',
-          description: 'Could not listen for new webhook deliveries.',
+          title: 'Error',
+          description: 'Could not load webhook delivery history.',
           variant: 'destructive',
         });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+      })
+      .finally(() => setIsLoading(false));
   }, [webhook.id, toast]);
 
   const handleReplay = (log: AuditLog) => {
