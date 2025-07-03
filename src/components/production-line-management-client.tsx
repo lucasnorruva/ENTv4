@@ -55,9 +55,9 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-import type { ProductionLine, User } from '@/types';
+import type { ProductionLine, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteProductionLine } from '@/lib/actions';
+import { deleteProductionLine, getProducts } from '@/lib/actions';
 import ProductionLineForm from './production-line-form';
 
 interface ProductionLineManagementClientProps {
@@ -68,6 +68,7 @@ export default function ProductionLineManagementClient({
   user,
 }: ProductionLineManagementClientProps) {
   const [lines, setLines] = useState<ProductionLine[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedLine, setSelectedLine] = useState<ProductionLine | null>(
@@ -78,6 +79,17 @@ export default function ProductionLineManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
+    // Fetch products once for the form dropdown
+    getProducts(user.id)
+      .then(setProducts)
+      .catch(err => {
+        toast({
+          title: 'Error',
+          description: 'Could not load products for selection.',
+          variant: 'destructive',
+        });
+      });
+      
     const q = query(
       collection(db, Collections.PRODUCTION_LINES),
       orderBy('createdAt', 'desc'),
@@ -104,7 +116,7 @@ export default function ProductionLineManagementClient({
     );
 
     return () => unsubscribe();
-  }, [toast]);
+  }, [toast, user.id]);
 
   const handleCreateNew = () => {
     setSelectedLine(null);
@@ -282,6 +294,7 @@ export default function ProductionLineManagementClient({
         line={selectedLine}
         user={user}
         onSave={handleSave}
+        products={products}
       />
     </>
   );

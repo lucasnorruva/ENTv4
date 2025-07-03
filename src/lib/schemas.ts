@@ -166,7 +166,7 @@ export const productionLineFormSchema = z.object({
     .number()
     .int()
     .min(0, 'Output must be a positive number.'),
-  currentProduct: z.string().min(1, 'Current product is required.'),
+  productId: z.string().optional(),
 });
 export type ProductionLineFormValues = z.infer<
   typeof productionLineFormSchema

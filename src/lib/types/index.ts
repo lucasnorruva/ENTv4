@@ -226,6 +226,7 @@ export interface ProductionLine extends BaseEntity {
   location: string;
   status: 'Active' | 'Idle' | 'Maintenance';
   outputPerHour: number;
+  productId?: string;
   currentProduct: string;
   lastMaintenance: string;
 }

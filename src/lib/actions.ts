@@ -1,4 +1,3 @@
-
 // src/lib/actions.ts
 'use server';
 
@@ -1709,9 +1708,17 @@ export async function saveProductionLine(
   const now = new Date().toISOString();
   let savedLine: ProductionLine;
 
+  const product = validatedData.productId
+    ? await getProductById(validatedData.productId, user.id)
+    : null;
+
   const lineData = {
-    ...validatedData,
+    name: validatedData.name,
+    location: validatedData.location,
+    status: validatedData.status,
     outputPerHour: Number(validatedData.outputPerHour),
+    productId: validatedData.productId,
+    currentProduct: product ? product.productName : 'None',
     updatedAt: now,
   };
 

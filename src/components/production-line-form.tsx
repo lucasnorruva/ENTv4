@@ -37,7 +37,7 @@ import {
   productionLineFormSchema,
   type ProductionLineFormValues,
 } from '@/lib/schemas';
-import type { ProductionLine, User } from '@/types';
+import type { ProductionLine, User, Product } from '@/types';
 
 interface ProductionLineFormProps {
   isOpen: boolean;
@@ -45,6 +45,7 @@ interface ProductionLineFormProps {
   line: ProductionLine | null;
   onSave: () => void;
   user: User;
+  products: Product[];
 }
 
 export default function ProductionLineForm({
@@ -53,6 +54,7 @@ export default function ProductionLineForm({
   line,
   onSave,
   user,
+  products,
 }: ProductionLineFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
@@ -64,21 +66,24 @@ export default function ProductionLineForm({
       location: '',
       status: 'Idle',
       outputPerHour: 0,
-      currentProduct: '',
+      productId: '',
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       if (line) {
-        form.reset(line);
+        form.reset({
+          ...line,
+          productId: line.productId || '',
+        });
       } else {
         form.reset({
           name: '',
           location: '',
           status: 'Idle',
           outputPerHour: 0,
-          currentProduct: '',
+          productId: '',
         });
       }
     }
@@ -150,13 +155,28 @@ export default function ProductionLineForm({
             />
             <FormField
               control={form.control}
-              name="currentProduct"
+              name="productId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Current Product</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Smart Watch Series 5" {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a product to manufacture" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {products.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.productName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
