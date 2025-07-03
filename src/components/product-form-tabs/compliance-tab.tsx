@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
-import { Leaf } from 'lucide-react';
+import { Leaf, Recycle } from 'lucide-react';
 
 import {
   Accordion,
@@ -157,7 +157,12 @@ export default function ComplianceTab({
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="weee" className="border p-4 rounded-lg">
-          <AccordionTrigger>WEEE</AccordionTrigger>
+          <AccordionTrigger>
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Recycle className="h-4 w-4" />
+              WEEE
+            </h3>
+          </AccordionTrigger>
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
