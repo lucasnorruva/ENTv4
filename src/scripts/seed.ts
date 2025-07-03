@@ -10,8 +10,6 @@ import { compliancePaths as mockCompliancePaths } from '../lib/compliance-data';
 import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
-import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
-import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
 import { webhooks as mockWebhooks } from '../lib/webhook-data';
 import { Collections } from '../lib/constants';
 
@@ -160,7 +158,16 @@ async function seedDatabase() {
   // Seeding a single document for settings
   console.log('Seeding API settings...');
   try {
-    await adminDb.collection('settings').doc('api').set(mockApiSettings);
+    const apiSettingsData = {
+      isPublicApiEnabled: true,
+      rateLimits: {
+        free: 100,
+        pro: 1000,
+        enterprise: 10000,
+      },
+      isWebhookSigningEnabled: true,
+    };
+    await adminDb.collection('settings').doc('api').set(apiSettingsData);
     console.log('✅ Successfully seeded API settings.');
   } catch (error) {
     console.error('❌ Error seeding API settings:', error);

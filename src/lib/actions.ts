@@ -143,15 +143,15 @@ export async function globalSearch(
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   const collectionRef = adminDb.collection(Collections.WEBHOOKS);
-  let snapshot;
+  let query: FirebaseFirestore.Query = collectionRef;
+
   if (userId) {
     const user = await getUserById(userId);
     if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
-    snapshot = await collectionRef.where('userId', '==', userId).get();
-  } else {
-    // This case should be admin-only, but for now we'll allow it.
-    snapshot = await collectionRef.get();
+    query = query.where('userId', '==', userId);
   }
+
+  const snapshot = await query.orderBy('createdAt', 'desc').get();
   return snapshot.docs.map(doc => docToType<Webhook>(doc));
 }
 
@@ -899,7 +899,10 @@ export async function deleteUser(
 }
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  const snapshot = await adminDb.collection(Collections.COMPLIANCE_PATHS).orderBy("name", "asc").get();
+  const snapshot = await adminDb
+    .collection(Collections.COMPLIANCE_PATHS)
+    .orderBy('name', 'asc')
+    .get();
   return snapshot.docs.map(doc => docToType<CompliancePath>(doc));
 }
 
@@ -1033,6 +1036,7 @@ export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   const snapshot = await adminDb
     .collection(Collections.API_KEYS)
     .where('userId', '==', userId)
+    .orderBy('createdAt', 'desc')
     .get();
   return snapshot.docs.map(doc => docToType<ApiKey>(doc));
 }
@@ -1067,7 +1071,9 @@ export async function saveApiKey(
       createdAt: now,
       updatedAt: now,
     };
-    const docRef = await adminDb.collection(Collections.API_KEYS).add(newKeyData);
+    const docRef = await adminDb
+      .collection(Collections.API_KEYS)
+      .add(newKeyData);
     await logAuditEvent('api_key.created', docRef.id, {}, userId);
     const newDoc = await docRef.get();
     return { key: docToType<ApiKey>(newDoc), rawToken };
@@ -1115,13 +1121,15 @@ export async function deleteApiKey(
 
 export async function getApiSettings(): Promise<ApiSettings> {
   const doc = await adminDb.collection('settings').doc('api').get();
-  return doc.exists
-    ? (doc.data() as ApiSettings)
-    : {
-        isPublicApiEnabled: true,
-        rateLimits: { free: 100, pro: 1000, enterprise: 10000 },
-        isWebhookSigningEnabled: true,
-      };
+  if (doc.exists) {
+    return doc.data() as ApiSettings;
+  }
+  // Return default settings if the document doesn't exist
+  return {
+    isPublicApiEnabled: true,
+    rateLimits: { free: 100, pro: 1000, enterprise: 10000 },
+    isWebhookSigningEnabled: true,
+  };
 }
 
 export async function saveApiSettings(
@@ -1331,7 +1339,10 @@ export async function updateServiceTicketStatus(
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  const snapshot = await adminDb.collection(Collections.PRODUCTION_LINES).get();
+  const snapshot = await adminDb
+    .collection(Collections.PRODUCTION_LINES)
+    .orderBy('createdAt', 'desc')
+    .get();
   return snapshot.docs.map(doc => docToType<ProductionLine>(doc));
 }
 
