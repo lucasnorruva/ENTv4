@@ -51,6 +51,7 @@ import { generateConformityDeclaration as generateConformityDeclarationFlow } fr
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
+import { validateProductData } from '@/ai/flows/validate-product-data';
 import { Collections, UserRoles, type Role } from './constants';
 import {
   getUserById,
@@ -641,6 +642,60 @@ export async function runComplianceCheck(
   );
 
   const updatedDoc = await docRef.get();
+  return docToType<Product>(updatedDoc);
+}
+
+export async function runDataValidationCheck(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found or permission denied.');
+  checkPermission(user, 'product:validate_data', product);
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const validationResult = await validateProductData({
+    product: aiProductInput,
+  });
+
+  await adminDb
+    .collection(Collections.PRODUCTS)
+    .doc(productId)
+    .update({
+      dataQualityWarnings: validationResult.warnings,
+      lastUpdated: FieldValue.serverTimestamp(),
+    });
+
+  await logAuditEvent(
+    'data_quality.check.manual',
+    productId,
+    { warningsCount: validationResult.warnings.length },
+    userId,
+  );
+
+  const updatedDoc = await adminDb
+    .collection(Collections.PRODUCTS)
+    .doc(productId)
+    .get();
   return docToType<Product>(updatedDoc);
 }
 

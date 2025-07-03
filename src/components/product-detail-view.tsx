@@ -68,12 +68,12 @@ import { AuditLogTimeline } from './audit-log-timeline';
 import AiSuggestionsWidget from './ai-suggestions-widget';
 import DocGenerationWidget from './doc-generation-widget';
 import ComplianceAnalysisWidget from './compliance-analysis-widget';
+import DataQualityWidget from './data-quality-widget';
 import { generateAndSaveProductImage } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from './ui/label';
 import { Input } from './ui/input';
-import { hasRole } from '@/lib/auth-utils';
-import { UserRoles } from '@/lib/constants';
+import { can } from '@/lib/permissions';
 
 function InfoRow({
   icon: Icon,
@@ -163,10 +163,8 @@ export default function ProductDetailView({
   const { sustainability } = product;
   const esg = sustainability;
   const aiLifecycle = sustainability?.lifecycleAnalysis;
-  const canRunComplianceCheck =
-    hasRole(user, UserRoles.ADMIN) ||
-    hasRole(user, UserRoles.AUDITOR) ||
-    hasRole(user, UserRoles.COMPLIANCE_MANAGER);
+  const canRunComplianceCheck = can(user, 'product:run_compliance');
+  const canValidateData = can(user, 'product:validate_data', product);
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -758,6 +756,9 @@ export default function ProductDetailView({
           <DppQrCodeWidget productId={product.id} />
           {canRunComplianceCheck && (
             <ComplianceAnalysisWidget product={product} user={user} />
+          )}
+          {canValidateData && (
+             <DataQualityWidget product={product} user={user} />
           )}
           <AiSuggestionsWidget product={product} />
           <DocGenerationWidget product={product} user={user} />
