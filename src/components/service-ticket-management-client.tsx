@@ -1,8 +1,30 @@
 // src/components/service-ticket-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
-import { MoreHorizontal, Plus, Loader2, Edit, Ticket } from 'lucide-react';
+import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
+import {
+  MoreHorizontal,
+  Plus,
+  Loader2,
+  Edit,
+  Ticket,
+  ArrowUpDown,
+  ChevronDown,
+  Check,
+  RotateCcw,
+} from 'lucide-react';
+import {
+    ColumnDef,
+    SortingState,
+    ColumnFiltersState,
+    VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
+  } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 import {
@@ -27,8 +49,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 
 import type { ServiceTicket, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
@@ -58,30 +82,40 @@ export default function ServiceTicketManagementClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    {},
+  );
+
   const canManage =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SERVICE_PROVIDER);
 
+    const fetchInitialData = useCallback(async () => {
+        setIsLoading(true);
+        try {
+          const [initialTickets, initialProducts] = await Promise.all([
+            getServiceTickets(user.id),
+            getProducts(user.id),
+          ]);
+          setTickets(initialTickets);
+          setProducts(initialProducts);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to load initial data.',
+            variant: 'destructive',
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }, [toast, user.id]);
+
   useEffect(() => {
-    async function fetchInitialData() {
-      try {
-        const [initialTickets, initialProducts] = await Promise.all([
-          getServiceTickets(user.id),
-          getProducts(user.id),
-        ]);
-        setTickets(initialTickets);
-        setProducts(initialProducts);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load initial data.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }
     fetchInitialData();
-  }, [toast, user.id]);
+  }, [fetchInitialData]);
 
   const handleCreateNew = () => {
     setSelectedTicket(null);
@@ -128,7 +162,7 @@ export default function ServiceTicketManagementClient({
     setIsFormOpen(false);
   };
 
-  const productMap = new Map(products.map(p => [p.id, p.productName]));
+  const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -142,13 +176,98 @@ export default function ServiceTicketManagementClient({
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  const columns: ColumnDef<ServiceTicket>[] = useMemo(
+    () => [
+      { accessorKey: "id", header: "Ticket ID", cell: ({row}) => <div className="font-mono text-xs">{row.getValue("id")}</div> },
+      { accessorKey: "customerName", header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Customer <ArrowUpDown className="ml-2 h-4 w-4" /></Button> },
+      {
+        accessorKey: 'productId',
+        header: 'Product',
+        cell: ({ row }) =>
+          productMap.get(row.getValue('productId')) || 'Unknown Product',
+      },
+      { accessorKey: "issue", header: "Issue", cell: ({row}) => <div className="truncate max-w-xs">{row.getValue("issue")}</div> },
+      { accessorKey: "status", header: "Status", cell: ({row}) => <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge> },
+      {
+        accessorKey: 'createdAt',
+        header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Created At <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+        cell: ({ row }) => format(new Date(row.getValue('createdAt')), 'PPP'),
+      },
+      ...(canManage
+        ? [
+            {
+              id: 'actions',
+              cell: ({ row }: { row: { original: ServiceTicket } }) => {
+                const ticket = row.original;
+                return (
+                  <div className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={isPending}
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleEdit(ticket)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          View/Edit Details
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleStatusUpdate(ticket.id, 'Open')}
+                          disabled={ticket.status === 'Open'}
+                        >
+                           <RotateCcw className="mr-2 h-4 w-4" />
+                          Mark as Open
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            handleStatusUpdate(ticket.id, 'In Progress')
+                          }
+                          disabled={ticket.status === 'In Progress'}
+                        >
+                          <Loader2 className="mr-2 h-4 w-4" />
+                          Mark as In Progress
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
+                          disabled={ticket.status === 'Closed'}
+                        >
+                          <Check className="mr-2 h-4 w-4" /> Mark as Closed
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isPending, productMap, canManage],
+  );
+
+  const table = useReactTable({
+    data: tickets,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+    },
+  });
 
   return (
     <>
@@ -170,112 +289,130 @@ export default function ServiceTicketManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ticket ID</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Issue</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tickets.map(ticket => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-mono text-xs">
-                    {ticket.id}
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {productMap.get(ticket.productId) || 'Unknown Product'}
-                  </TableCell>
-                  <TableCell>{ticket.customerName}</TableCell>
-                  <TableCell className="max-w-[300px] truncate">
-                    {ticket.issue}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(ticket.status)}>
-                      {ticket.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {format(new Date(ticket.createdAt), 'PPP')}
-                  </TableCell>
-                  {canManage && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            disabled={isPending}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => handleEdit(ticket)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            View/Edit Details
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(ticket.id, 'Open')
-                            }
-                            disabled={ticket.status === 'Open'}
-                          >
-                            Mark as Open
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(ticket.id, 'In Progress')
-                            }
-                            disabled={ticket.status === 'In Progress'}
-                          >
-                            Mark as In Progress
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleStatusUpdate(ticket.id, 'Closed')
-                            }
-                            disabled={ticket.status === 'Closed'}
-                          >
-                            Mark as Closed
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+          <div className="flex items-center py-4">
+            <Input
+              placeholder="Filter by customer or issue..."
+              value={
+                (table.getColumn('customerName')?.getFilterValue() as string) ?? ''
+              }
+              onChange={event => {
+                table.getColumn('customerName')?.setFilterValue(event.target.value);
+                table.getColumn('issue')?.setFilterValue(event.target.value);
+              }}
+              className="max-w-sm"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter(column => column.getCanHide())
+                  .map(column => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={value =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-48">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map(row => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map(cell => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-48 text-center"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-4">
+                          <Ticket className="h-12 w-12 text-muted-foreground" />
+                          <h3 className="text-xl font-semibold">
+                            No Service Tickets
+                          </h3>
+                          <p className="text-muted-foreground">
+                            Create the first service ticket to get started.
+                          </p>
+                          {canManage && (
+                            <Button onClick={handleCreateNew}>
+                              Create Ticket
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )}
-                </TableRow>
-              ))}
-              {tickets.length === 0 && (
-                <TableRow>
-                  <TableCell
-                    colSpan={canManage ? 7 : 6}
-                    className="h-48 text-center"
-                  >
-                    <div className="flex flex-col items-center justify-center gap-4">
-                      <Ticket className="h-12 w-12 text-muted-foreground" />
-                      <h3 className="text-xl font-semibold">
-                        No Service Tickets
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Create the first service ticket to get started.
-                      </p>
-                      {canManage && (
-                        <Button onClick={handleCreateNew}>
-                          Create Ticket
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableBody>
+              </Table>
+            </div>
+          )}
+           <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                >
+                Previous
+                </Button>
+                <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                >
+                Next
+                </Button>
+            </div>
         </CardContent>
       </Card>
       {canManage && (
