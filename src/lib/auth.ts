@@ -3,7 +3,6 @@ import { Collections, UserRoles, type Role } from './constants';
 import type { User, Company } from '@/types';
 import { adminDb } from './firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
-import { users as mockUsers } from './user-data'; // Only for initial role lookup
 
 /**
  * Helper to convert a Firestore document snapshot into our typed object.
@@ -12,6 +11,7 @@ import { users as mockUsers } from './user-data'; // Only for initial role looku
  */
 function docToType<T>(doc: FirebaseFirestore.DocumentSnapshot): T {
   const data = doc.data() as any;
+  if (!data) return { id: doc.id } as T; // Handle case where doc exists but data is empty
   // Convert Firestore Timestamps to ISO strings for server actions
   Object.keys(data).forEach(key => {
     if (data[key] instanceof Timestamp) {
@@ -45,7 +45,10 @@ export async function getCompanies(): Promise<Company[]> {
  * @returns A promise that resolves to an array of users in that company.
  */
 export async function getUsersByCompanyId(companyId: string): Promise<User[]> {
-  const snapshot = await adminDb.collection(Collections.USERS).where('companyId', '==', companyId).get();
+  const snapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('companyId', '==', companyId)
+    .get();
   return snapshot.docs.map(doc => docToType<User>(doc));
 }
 
@@ -65,7 +68,11 @@ export async function getUserById(id: string): Promise<User | undefined> {
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const snapshot = await adminDb.collection(Collections.USERS).where('email', '==', email).limit(1).get();
+  const snapshot = await adminDb
+    .collection(Collections.USERS)
+    .where('email', '==', email)
+    .limit(1)
+    .get();
   if (snapshot.empty) {
     return undefined;
   }
@@ -84,48 +91,32 @@ export async function getCompanyById(id: string): Promise<Company | undefined> {
 
 /**
  * Simulates fetching the current user based on a role.
- * This now fetches from Firestore but uses the mock data to find an ID for the role.
- * In a real app, this would be derived from the authenticated session.
+ * This function fetches from Firestore. In a real app, this would be
+ * derived from the authenticated session. It now robustly handles an
+ * empty database or missing roles.
  * @param role The role to simulate being logged in as.
  * @returns A user object.
  */
 export async function getCurrentUser(role?: Role): Promise<User> {
-  if (!role) {
-    // If no role is provided, attempt to get the admin user by default,
-    // as it has the broadest permissions, making it a safe default for server-side operations.
-    role = UserRoles.ADMIN;
-  }
+  const targetRole = role || UserRoles.ADMIN;
 
-  // Find a mock user with the desired role to get their ID
-  const mockUser = mockUsers.find(u => u.roles.includes(role!));
-  
-  // Try to find the user in the database first
-  if (mockUser) {
-    const user = await getUserById(mockUser.id);
-    if (user) {
-      return user;
-    }
-  }
-
-  // If the specific user isn't found (e.g., DB not seeded), try to find ANY user with that role.
   const allUsers = await getUsers();
-  if (allUsers.length > 0) {
-    const userInDbWithRole = allUsers.find(u => u.roles.includes(role!));
-    if (userInDbWithRole) {
-      return userInDbWithRole;
-    }
-    // As a last resort, return the first user to prevent crashes.
-    return allUsers[0];
-  }
-  
-  // This block is the final fallback for a completely empty environment.
-  if (mockUser) {
-    console.warn(
-      `DATABASE EMPTY and no users found. Returning mock user object for role ${role}. Run 'npm run seed' to populate the database.`,
+
+  if (allUsers.length === 0) {
+    throw new Error(
+      `No users found in the database. Please run 'npm run seed' to populate it.`,
     );
-    return mockUser;
   }
-  
-  // This should theoretically never be reached if mock data is correct.
-  throw new Error(`No users found in the database and no mock user for role: ${role}`);
+
+  // Find a user with the desired role.
+  const userWithRole = allUsers.find(u => u.roles.includes(targetRole));
+  if (userWithRole) {
+    return userWithRole;
+  }
+
+  // As a fallback for the demo, return the first user.
+  console.warn(
+    `No user found with role '${targetRole}'. Returning the first available user as a fallback.`,
+  );
+  return allUsers[0];
 }
