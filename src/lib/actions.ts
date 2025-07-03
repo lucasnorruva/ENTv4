@@ -71,6 +71,7 @@ import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
 import { compliancePaths as mockCompliancePaths } from './compliance-data';
 import { serviceTickets as mockServiceTickets } from './service-ticket-data';
+import { supportTickets as mockSupportTickets } from './support-ticket-data';
 import { productionLines as mockProductionLines } from './manufacturing-data';
 import { apiKeys as mockApiKeys } from './api-key-data';
 import { apiSettings as mockApiSettings } from './api-settings-data';
@@ -1635,6 +1636,30 @@ export async function getServiceTickets(): Promise<ServiceTicket[]> {
   return Promise.resolve(mockServiceTickets);
 }
 
+export async function getSupportTickets(): Promise<SupportTicket[]> {
+  return Promise.resolve(mockSupportTickets);
+}
+
+export async function updateSupportTicketStatus(
+  ticketId: string,
+  status: 'Open' | 'Closed',
+  userId: string,
+): Promise<SupportTicket> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'support:manage');
+
+  const ticketIndex = mockSupportTickets.findIndex(t => t.id === ticketId);
+  if (ticketIndex === -1) throw new Error('Support ticket not found.');
+
+  mockSupportTickets[ticketIndex].status = status;
+  mockSupportTickets[ticketIndex].updatedAt = new Date().toISOString();
+
+  await logAuditEvent('support_ticket.status_updated', ticketId, { status }, userId);
+  return Promise.resolve(mockSupportTickets[ticketIndex]);
+}
+
+
 export async function saveSupportTicket(
   values: SupportTicketFormValues,
   userId?: string,
@@ -1648,8 +1673,7 @@ export async function saveSupportTicket(
     createdAt: now,
     updatedAt: now,
   };
-  // In a real app, this would be saved to a database.
-  console.log('New support ticket created (mock):', newTicket);
+  mockSupportTickets.unshift(newTicket);
   await logAuditEvent('support_ticket.created', newTicket.id, {}, userId || 'guest');
   return newTicket;
 }

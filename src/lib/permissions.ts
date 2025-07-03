@@ -38,6 +38,7 @@ export type Action =
   | 'admin:manage_settings'
   | 'ticket:create'
   | 'ticket:update'
+  | 'support:manage'
   | 'manufacturer:manage_lines';
 
 /**
@@ -122,7 +123,10 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'ticket:create':
     case 'ticket:update':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
-      
+    
+    case 'support:manage':
+      return false; // Only admins can manage for now (handled by global check)
+
     case 'manufacturer:manage_lines':
       return hasRole(user, UserRoles.MANUFACTURER);
 

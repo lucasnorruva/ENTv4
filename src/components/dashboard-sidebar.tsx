@@ -79,6 +79,7 @@ const navConfig: Record<Role, NavConfig> = {
           href: 'compliance',
         },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
