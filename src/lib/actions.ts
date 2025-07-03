@@ -57,6 +57,7 @@ import {
   getUsersByCompanyId,
   getUserByEmail as authGetUserByEmail,
   getCompanies,
+  getUsers,
 } from './auth';
 import { hasRole } from './auth-utils';
 import { sendWebhook } from '@/services/webhooks';

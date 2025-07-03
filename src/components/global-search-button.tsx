@@ -1,3 +1,4 @@
+
 // src/components/global-search-button.tsx
 'use client';
 
@@ -20,8 +21,8 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
-import { globalSearch } from '@/lib/actions';
-import type { Product, User, CompliancePath, Role } from '@/lib/types';
+import { getProducts, getUsers, getCompliancePaths, globalSearch } from '@/lib/actions';
+import type { Product, User, CompliancePath, Role } from '@/types';
 import { cn } from '@/lib/utils';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
