@@ -14,7 +14,6 @@ import type {
   ProductionLine,
   Webhook,
   SupportTicket,
-  ServiceRecord,
 } from './types';
 import {
   productFormSchema,
@@ -881,51 +880,8 @@ export async function exportComplianceReport(format: 'csv'): Promise<string> {
   return csvRows.join('\n');
 }
 
-export async function addServiceRecord(
-  productId: string,
-  notes: string,
-  userId: string,
-): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-
-  const product = await getProductById(productId, userId);
-  if (!product) throw new Error('Product not found');
-
-  checkPermission(user, 'product:add_service_record');
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
-
-  const newRecord: ServiceRecord = {
-    id: newId('serv'),
-    providerName: user.fullName,
-    notes,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-
-  if (!mockProducts[productIndex].serviceHistory) {
-    mockProducts[productIndex].serviceHistory = [];
-  }
-  mockProducts[productIndex].serviceHistory!.push(newRecord);
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent('product.serviced', productId, { notes }, userId);
-
-  return Promise.resolve(mockProducts[productIndex]);
-}
-
-// --- ADMIN & GENERAL ACTIONS ---
-
-export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  return Promise.resolve(mockCompliancePaths);
-}
-
-export async function getCompliancePathById(
-  id: string,
-): Promise<CompliancePath | undefined> {
-  return Promise.resolve(mockCompliancePaths.find(p => p.id === id));
+export async function getCompanies(): Promise<Company[]> {
+  return Promise.resolve(mockCompanies);
 }
 
 export async function saveCompany(
@@ -1558,53 +1514,4 @@ export async function getUserByEmail(
   email: string,
 ): Promise<User | undefined> {
   return authGetUserByEmail(email);
-}
-
-export async function globalSearch(
-  searchQuery: string,
-  userId: string,
-): Promise<{
-  products: Product[];
-  users: User[];
-  compliancePaths: CompliancePath[];
-}> {
-  if (!searchQuery) {
-    return { products: [], users: [], compliancePaths: [] };
-  }
-  const query = searchQuery.toLowerCase();
-
-  const user = await getUserById(userId);
-  if (!user) {
-    const publicProducts = mockProducts.filter(p => p.status === 'Published');
-    const filteredProducts = publicProducts.filter(p =>
-      p.productName.toLowerCase().includes(query),
-    );
-    return { products: filteredProducts, users: [], compliancePaths: [] };
-  }
-
-  const isAdmin = hasRole(user, UserRoles.ADMIN);
-
-  const productResults = mockProducts.filter(
-    p =>
-      p.productName.toLowerCase().includes(query) ||
-      p.gtin?.toLowerCase().includes(query),
-  );
-
-  const userResults = isAdmin
-    ? mockUsers.filter(
-        u =>
-          u.fullName.toLowerCase().includes(query) ||
-          u.email.toLowerCase().includes(query),
-      )
-    : [];
-
-  const compliancePathResults = isAdmin
-    ? mockCompliancePaths.filter(p => p.name.toLowerCase().includes(query))
-    : [];
-
-  return {
-    products: productResults,
-    users: userResults,
-    compliancePaths: compliancePathResults,
-  };
 }
