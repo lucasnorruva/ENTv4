@@ -10,7 +10,7 @@ import {
 import { Button } from '../ui/button';
 import type { User } from '@/types';
 import { getProducts, getServiceTickets } from '@/lib/actions';
-import { ArrowRight, Wrench, Ticket } from 'lucide-react';
+import { ArrowRight, Wrench, Ticket, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
@@ -50,7 +50,7 @@ export default async function ServiceProviderDashboard({
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -88,6 +88,24 @@ export default async function ServiceProviderDashboard({
             <Button asChild variant="outline" size="sm" className="w-full">
               <Link href="/dashboard/service-provider/tickets">
                 Manage All Tickets <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              View reports on your service history and performance metrics.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link href="/dashboard/service-provider/analytics">
+                View Analytics <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>

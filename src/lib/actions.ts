@@ -78,7 +78,6 @@ import { apiSettings as mockApiSettings } from './api-settings-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { webhooks as mockWebhooks } from './webhook-data';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { runDataValidationCheck as processProductAi } from '@/triggers/on-product-change';
 import { validateProductData } from '@/ai/flows/validate-product-data';
 
 // Helper for mock data manipulation
@@ -379,7 +378,8 @@ export async function saveProduct(
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
 
-  // Simulate AI processing delay
+  // This would be a Cloud Function in a real app.
+  // We simulate it here with a timeout for local dev.
   setTimeout(async () => {
     const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
     if (productIndex !== -1) {
@@ -894,10 +894,10 @@ export async function generateAndSaveConformityDeclaration(
 ): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  checkPermission(user, 'product:edit', product);
-
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:edit', product);
 
   const company = await getCompanyById(product.companyId);
   if (!company) throw new Error('Company not found');
@@ -1841,5 +1841,65 @@ export async function globalSearch(
     products: products.slice(0, 5),
     users: users.slice(0, 5),
     compliancePaths: compliancePaths.slice(0, 5),
+  };
+}
+
+async function processProductAi(product: Product): Promise<{
+  sustainability: SustainabilityData;
+  qrLabelText: string;
+  dataQualityWarnings: DataQualityWarning[];
+}> {
+  console.log(`Processing AI flows for product: ${product.id}`);
+  const company = await getCompanyById(product.companyId);
+  if (!company) {
+    throw new Error(`Company not found for product ${product.id}`);
+  }
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const [
+    esgResult,
+    qrLabelResult,
+    classificationResult,
+    lifecycleAnalysisResult,
+    validationResult,
+  ] = await Promise.all([
+    calculateSustainability({ product: aiProductInput }),
+    generateQRLabelText({ product: aiProductInput }),
+    classifyProduct({ product: aiProductInput }),
+    analyzeProductLifecycle({ product: aiProductInput }),
+    validateProductData({ product: aiProductInput }),
+  ]);
+
+  const sustainability: SustainabilityData = {
+    ...esgResult,
+    classification: classificationResult,
+    lifecycleAnalysis: lifecycleAnalysisResult,
+    isCompliant: product.sustainability?.isCompliant || false,
+    complianceSummary:
+      product.sustainability?.complianceSummary ||
+      'Awaiting compliance analysis.',
+    gaps: product.sustainability?.gaps,
+  };
+
+  return {
+    sustainability,
+    qrLabelText: qrLabelResult.qrLabelText,
+    dataQualityWarnings: validationResult.warnings,
   };
 }
