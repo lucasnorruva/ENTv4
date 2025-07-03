@@ -28,6 +28,7 @@ export type Action =
   | 'product:resolve'
   | 'product:add_service_record'
   | 'product:validate_data'
+  | 'product:run_compliance'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -82,6 +83,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:submit':
     case 'product:recalculate':
     case 'product:validate_data':
+    case 'product:run_compliance':
       return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
 
     case 'product:approve':
