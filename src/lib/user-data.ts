@@ -10,7 +10,7 @@ export let users: User[] = [
     fullName: 'Admin User',
     email: 'admin@norruva.com',
     companyId: 'comp-norruva',
-    roles: [UserRoles.ADMIN],
+    roles: Object.values(UserRoles), // <-- This user now has all roles
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
