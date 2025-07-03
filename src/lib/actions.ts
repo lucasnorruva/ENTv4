@@ -871,7 +871,7 @@ export async function markAsRecycled(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
-  const product = await getProductById(productId, userId);
+  const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recycle', product);
@@ -1709,23 +1709,21 @@ export async function saveNotificationPreferences(
   return Promise.resolve();
 }
 
-export async function getServiceTickets(userId: string): Promise<ServiceTicket[]> {
-    const user = await getUserById(userId);
-    if (!user) throw new PermissionError('User not found.');
+export async function getServiceTickets(userId?: string): Promise<ServiceTicket[]> {
+  // If no userId is provided, or if the user is an admin, return all tickets.
+  if (!userId) return Promise.resolve(mockServiceTickets);
+  
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
 
-    if(hasRole(user, UserRoles.ADMIN)) {
-        return Promise.resolve(mockServiceTickets);
-    }
-    
-    // For now, service providers can also see all tickets.
-    // A future implementation might filter by assignment.
-    if(hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-        return Promise.resolve(mockServiceTickets);
-    }
-
-    // Other roles cannot view service tickets.
-    return Promise.resolve([]);
+  if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    return Promise.resolve(mockServiceTickets);
+  }
+  
+  // Other roles do not have access to service tickets.
+  return Promise.resolve([]);
 }
+
 
 export async function getSupportTickets(): Promise<SupportTicket[]> {
   return Promise.resolve(mockSupportTickets);
