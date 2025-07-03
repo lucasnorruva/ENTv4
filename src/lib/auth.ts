@@ -1,5 +1,6 @@
 // src/lib/auth.ts
-import { users, companies } from './user-data';
+import { users } from './user-data';
+import { companies } from './company-data';
 import { UserRoles, type Role } from './constants';
 import type { User, Company } from '@/types';
 
