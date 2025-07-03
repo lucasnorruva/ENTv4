@@ -1064,7 +1064,8 @@ export async function saveCompliancePath(
     regulations: validatedData.regulations.map(r => r.value),
     rules: {
       minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords?.map(k => k.value) || [],
+      requiredKeywords:
+        validatedData.requiredKeywords?.map(k => k.value) || [],
       bannedKeywords: validatedData.bannedKeywords?.map(k => k.value) || [],
     },
     updatedAt: now,
