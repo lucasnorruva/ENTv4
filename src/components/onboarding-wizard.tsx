@@ -35,7 +35,7 @@ import {
 import { Input } from '@/components/ui/input';
 
 interface OnboardingWizardProps {
-  user: User;
+  user: User | null;
 }
 
 export default function OnboardingWizard({ user }: OnboardingWizardProps) {
@@ -47,10 +47,19 @@ export default function OnboardingWizard({ user }: OnboardingWizardProps) {
   const form = useForm<OnboardingFormValues>({
     resolver: zodResolver(onboardingFormSchema),
     defaultValues: {
-      companyName: `${user.fullName}'s Company`,
+      companyName: user?.fullName ? `${user.fullName}'s Company` : '',
       industry: '',
     },
   });
+
+  if (!user) {
+    // Handle the case where user is null, perhaps show a loading or error state
+    return (
+      <div className="flex justify-center items-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const onSubmit = (values: OnboardingFormValues) => {
     startTransition(async () => {

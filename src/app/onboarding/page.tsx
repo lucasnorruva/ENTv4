@@ -6,7 +6,7 @@ import { UserRoles } from '@/lib/constants';
 export default async function OnboardingPage() {
   // We need the user to pass to the client component.
   // Using a default role that a new user would have.
-  const user = await getCurrentUser(UserRoles.SUPPLIER);
+  const user = await getCurrentUser(UserRoles.SUPPLIER).catch(() => null);
 
   return (
     <AuthLayout

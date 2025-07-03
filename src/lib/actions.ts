@@ -267,7 +267,6 @@ async function processProductAi(product: Product): Promise<{
   };
 }
 
-
 // --- PRODUCT ACTIONS ---
 
 export async function getProducts(
@@ -615,8 +614,8 @@ export async function runDataValidationCheck(
           lifecycle: product.lifecycle,
           battery: product.battery,
           compliance: product.compliance,
-          verificationStatus: "Not Submitted",
-          complianceSummary: "",
+          verificationStatus: 'Not Submitted',
+          complianceSummary: '',
         };
 
         const result = await validateProductData({ product: aiProductInput });
@@ -698,8 +697,8 @@ export async function runComplianceCheck(
         lifecycle: product.lifecycle,
         battery: product.battery,
         compliance: product.compliance,
-        verificationStatus: "Not Submitted",
-        complianceSummary: "",
+        verificationStatus: 'Not Submitted',
+        complianceSummary: '',
       };
 
       const complianceResult = await summarizeComplianceGaps({
@@ -1124,14 +1123,14 @@ export async function exportProducts(
   dateRange?: { from: Date; to: Date },
 ): Promise<string> {
   let products = await getProducts();
-  
+
   if (dateRange?.from && dateRange?.to) {
     products = products.filter(p => {
       const productDate = new Date(p.updatedAt);
       return productDate >= dateRange.from! && productDate <= dateRange.to!;
     });
   }
-  
+
   if (format === 'json') {
     return JSON.stringify(products, null, 2);
   }
@@ -1187,8 +1186,8 @@ export async function exportComplianceReport(
 
   if (dateRange?.from && dateRange?.to) {
     products = products.filter(p => {
-        const productDate = new Date(p.updatedAt);
-        return productDate >= dateRange.from! && productDate <= dateRange.to!;
+      const productDate = new Date(p.updatedAt);
+      return productDate >= dateRange.from! && productDate <= dateRange.to!;
     });
   }
 
@@ -1227,16 +1226,17 @@ export async function exportComplianceReport(
   return csvRows.join('\n');
 }
 
-export async function exportFullAuditTrail(
-    dateRange?: { from: Date; to: Date }
-): Promise<string> {
+export async function exportFullAuditTrail(dateRange?: {
+  from: Date;
+  to: Date;
+}): Promise<string> {
   let logs = await getAuditLogs();
-  
+
   if (dateRange?.from && dateRange?.to) {
-      logs = logs.filter(log => {
-          const logDate = new Date(log.createdAt);
-          return logDate >= dateRange.from! && logDate <= dateRange.to!;
-      });
+    logs = logs.filter(log => {
+      const logDate = new Date(log.createdAt);
+      return logDate >= dateRange.from! && logDate <= dateRange.to!;
+    });
   }
 
   if (logs.length === 0) {
@@ -1277,7 +1277,6 @@ export async function exportFullAuditTrail(
   }
   return csvRows.join('\n');
 }
-
 
 export async function saveCompany(
   values: CompanyFormValues,
@@ -1726,7 +1725,6 @@ export async function completeOnboarding(
   return Promise.resolve();
 }
 
-
 export async function updateUserProfile(
   userId: string,
   fullName: string,
@@ -1786,18 +1784,20 @@ export async function saveNotificationPreferences(
 export async function getServiceTickets(userId?: string): Promise<ServiceTicket[]> {
   // If no userId is provided, or if the user is an admin, return all tickets.
   if (!userId) return Promise.resolve(mockServiceTickets);
-  
+
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
-  if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+  if (
+    hasRole(user, UserRoles.ADMIN) ||
+    hasRole(user, UserRoles.SERVICE_PROVIDER)
+  ) {
     return Promise.resolve(mockServiceTickets);
   }
-  
+
   // Other roles do not have access to service tickets.
   return Promise.resolve([]);
 }
-
 
 export async function getSupportTickets(): Promise<SupportTicket[]> {
   return Promise.resolve(mockSupportTickets);
@@ -1858,7 +1858,7 @@ export async function saveServiceTicket(
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
   checkPermission(user, 'ticket:manage');
-  
+
   const validatedData = serviceTicketFormSchema.parse(values);
   const now = new Date().toISOString();
   let savedTicket: ServiceTicket;
@@ -1892,9 +1892,9 @@ export async function updateServiceTicketStatus(
   status: 'Open' | 'In Progress' | 'Closed',
   userId: string,
 ): Promise<ServiceTicket> {
-    const user = await getUserById(userId);
-    if (!user) throw new PermissionError('User not found.');
-    checkPermission(user, 'ticket:manage');
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'ticket:manage');
 
   const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
   if (ticketIndex === -1) throw new Error('Ticket not found');
