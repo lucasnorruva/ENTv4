@@ -3,8 +3,6 @@ import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top
 
 import admin, { adminDb } from '../lib/firebase-admin';
-import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
-import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { Collections, UserRoles } from '../lib/constants';
 import type {
   Company,
@@ -14,17 +12,29 @@ import type {
   AuditLog,
   Webhook,
   ApiKey,
+  ServiceTicket,
 } from '@/types';
 
 // --- MOCK DATA DEFINITIONS (MOVED FROM DEPRECATED FILES) ---
 const mockCompanies: Omit<Company, 'createdAt' | 'updatedAt'>[] = [
-  { id: 'comp-eco', name: 'Eco Innovate Ltd.', ownerId: 'user-supplier' },
+  {
+    id: 'comp-eco',
+    name: 'Eco Innovate Ltd.',
+    ownerId: 'user-supplier',
+    industry: 'Electronics',
+  },
   {
     id: 'comp-thread',
     name: 'Sustainable Threads Inc.',
-    ownerId: 'user-supplier',
+    ownerId: 'user-supplier', // Example, can be a different user
+    industry: 'Fashion',
   },
-  { id: 'comp-norruva', name: 'Norruva Corp', ownerId: 'user-admin' },
+  {
+    id: 'comp-norruva',
+    name: 'Norruva Corp',
+    ownerId: 'user-admin',
+    industry: 'Technology',
+  },
 ];
 
 const mockUsers: Omit<
@@ -46,7 +56,7 @@ const mockUsers: Omit<
     email: 'supplier@norruva.com',
     companyId: 'comp-eco',
     roles: [UserRoles.SUPPLIER],
-    onboardingComplete: true,
+    onboardingComplete: false,
     isMfaEnabled: false,
   },
   {
@@ -330,6 +340,19 @@ const mockWebhooks: Omit<Webhook, 'createdAt' | 'updatedAt'>[] = [
     userId: 'user-developer',
   },
 ];
+
+const mockServiceTickets: Omit<ServiceTicket, 'createdAt' | 'updatedAt'>[] = [
+  {
+    id: 'tkt-001',
+    productId: 'pp-001',
+    userId: 'user-service',
+    customerName: 'John Customer',
+    issue:
+      'The watch screen is flickering after the latest update. Resetting did not solve the issue.',
+    status: 'Open',
+    imageUrl: 'https://placehold.co/600x400.png',
+  },
+];
 // --- END MOCK DATA ---
 
 async function testFirestoreConnection() {
@@ -476,10 +499,14 @@ async function seedDatabase() {
   await seedCollection(Collections.PRODUCTS, mockProducts);
   await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
-  await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
-  await seedCollection(Collections.PRODUCTION_LINES, mockProductionLines);
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
+  await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
+
+  // Clear collections that should be empty on start
+  await clearCollection(Collections.PRODUCTION_LINES);
+  await clearCollection(Collections.SUPPORT_TICKETS);
+  await clearCollection(Collections.API_RATE_LIMITS);
 
   // Seed API Settings
   await adminDb.collection('settings').doc('api').set({
@@ -492,9 +519,6 @@ async function seedDatabase() {
     isWebhookSigningEnabled: true,
   });
   console.log(`✅ Successfully seeded API settings.`);
-
-  // Clear the dynamic rate limit collection
-  await clearCollection(Collections.API_RATE_LIMITS);
 
   console.log('Database seeding completed successfully.');
 }
