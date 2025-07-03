@@ -1119,8 +1119,19 @@ const flattenObject = (
   return res;
 };
 
-export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
-  const products = await getProducts();
+export async function exportProducts(
+  format: 'csv' | 'json',
+  dateRange?: { from: Date; to: Date },
+): Promise<string> {
+  let products = await getProducts();
+  
+  if (dateRange?.from && dateRange?.to) {
+    products = products.filter(p => {
+      const productDate = new Date(p.updatedAt);
+      return productDate >= dateRange.from! && productDate <= dateRange.to!;
+    });
+  }
+  
   if (format === 'json') {
     return JSON.stringify(products, null, 2);
   }
@@ -1165,10 +1176,20 @@ export async function exportProducts(format: 'csv' | 'json'): Promise<string> {
   return csvRows.join('\n');
 }
 
-export async function exportComplianceReport(format: 'csv'): Promise<string> {
-  const products = await getProducts();
+export async function exportComplianceReport(
+  format: 'csv',
+  dateRange?: { from: Date; to: Date },
+): Promise<string> {
+  let products = await getProducts();
   if (format !== 'csv') {
     throw new Error('Unsupported format for compliance report.');
+  }
+
+  if (dateRange?.from && dateRange?.to) {
+    products = products.filter(p => {
+        const productDate = new Date(p.updatedAt);
+        return productDate >= dateRange.from! && productDate <= dateRange.to!;
+    });
   }
 
   if (products.length === 0) {
@@ -1183,6 +1204,7 @@ export async function exportComplianceReport(format: 'csv'): Promise<string> {
     isCompliant: p.sustainability?.isCompliant,
     complianceSummary: p.sustainability?.complianceSummary,
     gaps: p.sustainability?.gaps ? JSON.stringify(p.sustainability.gaps) : '[]',
+    lastUpdated: p.updatedAt,
   }));
 
   const headers = Object.keys(complianceData[0]).join(',');
@@ -1204,6 +1226,58 @@ export async function exportComplianceReport(format: 'csv'): Promise<string> {
 
   return csvRows.join('\n');
 }
+
+export async function exportFullAuditTrail(
+    dateRange?: { from: Date; to: Date }
+): Promise<string> {
+  let logs = await getAuditLogs();
+  
+  if (dateRange?.from && dateRange?.to) {
+      logs = logs.filter(log => {
+          const logDate = new Date(log.createdAt);
+          return logDate >= dateRange.from! && logDate <= dateRange.to!;
+      });
+  }
+
+  if (logs.length === 0) {
+    return '';
+  }
+
+  const allUsers = await getUsers();
+  const allProducts = await getProducts();
+  const userMap = new Map(allUsers.map(u => [u.id, u.email]));
+  const productMap = new Map(allProducts.map(p => [p.id, p.productName]));
+
+  const auditData = logs.map(log => ({
+    logId: log.id,
+    timestamp: log.createdAt,
+    action: log.action,
+    userEmail: userMap.get(log.userId) || log.userId,
+    entityType: log.entityId.split('-')[0] || 'System',
+    entityId: log.entityId,
+    entityName: productMap.get(log.entityId) || 'N/A',
+    details: JSON.stringify(log.details),
+  }));
+
+  const headers = Object.keys(auditData[0]).join(',');
+  const csvRows = [headers];
+
+  for (const item of auditData) {
+    const values = Object.values(item).map(value => {
+      if (value === undefined || value === null) {
+        return '';
+      }
+      let stringValue = String(value);
+      if (/[",\n]/.test(stringValue)) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    });
+    csvRows.push(values.join(','));
+  }
+  return csvRows.join('\n');
+}
+
 
 export async function saveCompany(
   values: CompanyFormValues,

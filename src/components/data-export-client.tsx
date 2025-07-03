@@ -2,6 +2,10 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Calendar as CalendarIcon, FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import type { DateRange } from 'react-day-picker';
+
 import {
   Card,
   CardContent,
@@ -13,12 +17,23 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+
 import { useToast } from '@/hooks/use-toast';
 import { exportProducts, exportComplianceReport } from '@/lib/actions';
+import { cn } from '@/lib/utils';
 
 export default function DataExportClient() {
-  const [productFormat, setProductFormat] = useState('csv');
+  const [productFormat, setProductFormat] = useState<'csv' | 'json'>('csv');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
   const [isGenerating, startTransition] = useTransition();
   const [generatingType, setGeneratingType] = useState<string | null>(null);
 
@@ -40,20 +55,28 @@ export default function DataExportClient() {
     document.body.removeChild(link);
   };
 
-  const handleGenerateExport = (exportType: string, format: string) => {
+  const handleGenerateExport = (exportType: 'Product' | 'Compliance') => {
+    if (!dateRange?.from || !dateRange?.to) {
+        toast({ title: "Date Range Required", description: "Please select a valid date range.", variant: "destructive" });
+        return;
+    }
+
     setGeneratingType(exportType);
     startTransition(async () => {
       try {
         if (exportType === 'Product') {
           toast({
             title: 'Generating Product Report...',
-            description: `Your product data is being prepared as a .${format} file.`,
+            description: `Your product data is being prepared as a .${productFormat} file.`,
           });
-          const fileContent = await exportProducts(format as 'csv' | 'json');
-          const mimeType = format === 'csv' ? 'text/csv' : 'application/json';
-          const fileName = `norruva-products-${
-            new Date().toISOString().split('T')[0]
-          }.${format}`;
+          const fileContent = await exportProducts(productFormat, dateRange);
+          if(!fileContent) {
+            toast({ title: 'No Data Found', description: 'There are no products for the selected period.'});
+            setGeneratingType(null);
+            return;
+          }
+          const mimeType = productFormat === 'csv' ? 'text/csv' : 'application/json';
+          const fileName = `norruva-products-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.${productFormat}`;
           handleDownload(fileContent, fileName, mimeType);
           toast({
             title: 'Product Report Downloaded!',
@@ -64,11 +87,14 @@ export default function DataExportClient() {
             title: 'Generating Compliance Report...',
             description: `Your compliance data is being prepared as a .csv file.`,
           });
-          const fileContent = await exportComplianceReport('csv');
+          const fileContent = await exportComplianceReport('csv', dateRange);
+          if(!fileContent) {
+            toast({ title: 'No Data Found', description: 'There is no compliance data for the selected period.'});
+            setGeneratingType(null);
+            return;
+          }
           const mimeType = 'text/csv';
-          const fileName = `norruva-compliance-report-${
-            new Date().toISOString().split('T')[0]
-          }.csv`;
+          const fileName = `norruva-compliance-report-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.csv`;
           handleDownload(fileContent, fileName, mimeType);
           toast({
             title: 'Compliance Report Downloaded!',
@@ -93,9 +119,54 @@ export default function DataExportClient() {
         <h1 className="text-2xl font-bold tracking-tight">Data Export</h1>
         <p className="text-muted-foreground">
           Generate and download reports for your products, compliance, and
-          sustainability data.
+          sustainability data for a specific period.
         </p>
       </div>
+
+       <Card>
+          <CardHeader>
+            <CardTitle>Select Date Range</CardTitle>
+            <CardDescription>All reports will be generated for the selected date range based on when products were last updated.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant={'outline'}
+                    className={cn(
+                      'w-full justify-start text-left font-normal md:w-[300px]',
+                      !dateRange && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, 'LLL dd, y')} -{' '}
+                          {format(dateRange.to, 'LLL dd, y')}
+                        </>
+                      ) : (
+                        format(dateRange.from, 'LLL dd, y')
+                      )
+                    ) : (
+                      <span>Pick a date range</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+          </CardContent>
+        </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
@@ -105,15 +176,14 @@ export default function DataExportClient() {
               Product Data Export
             </CardTitle>
             <CardDescription>
-              Export a complete dataset of all products currently in the
-              system.
+              Export a complete dataset of all products updated in the selected period.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup
               defaultValue="csv"
               className="space-y-2"
-              onValueChange={setProductFormat}
+              onValueChange={(value) => setProductFormat(value as 'csv' | 'json')}
               value={productFormat}
             >
               <Label>File Format</Label>
@@ -129,7 +199,7 @@ export default function DataExportClient() {
           </CardContent>
           <CardFooter>
             <Button
-              onClick={() => handleGenerateExport('Product', productFormat)}
+              onClick={() => handleGenerateExport('Product')}
               disabled={isGenerating}
             >
               {isGenerating && generatingType === 'Product' && (
@@ -147,19 +217,18 @@ export default function DataExportClient() {
               Compliance Report Export
             </CardTitle>
             <CardDescription>
-              A detailed report of compliance status and identified gaps for
-              all products.
+              A detailed report of compliance status for products updated in the selected period.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1">
             <p className="text-sm text-muted-foreground">
               This will generate a CSV file with the compliance status for all
-              products.
+              products in the selected date range.
             </p>
           </CardContent>
           <CardFooter>
             <Button
-              onClick={() => handleGenerateExport('Compliance', 'csv')}
+              onClick={() => handleGenerateExport('Compliance')}
               disabled={isGenerating}
             >
               {isGenerating && generatingType === 'Compliance' && (
