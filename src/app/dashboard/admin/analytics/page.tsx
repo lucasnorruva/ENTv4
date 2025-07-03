@@ -26,6 +26,7 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Wrench,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -44,6 +45,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.approved': CheckCircle,
   'passport.rejected': FileX,
   'compliance.resolved': ShieldX,
+  'product.serviced': Wrench,
   default: Clock,
 };
 

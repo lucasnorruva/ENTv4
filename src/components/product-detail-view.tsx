@@ -42,7 +42,7 @@ import {
   Loader2,
 } from 'lucide-react';
 
-import type { Product, User, CompliancePath, AuditLog } from '@/types';
+import type { Product, User, CompliancePath, AuditLog, ServiceRecord } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -759,11 +759,11 @@ export default function ProductDetailView({
                           <div className="space-y-4 mt-2">
                             {product.serviceHistory
                               .sort(
-                                (a, b) =>
+                                (a: ServiceRecord, b: ServiceRecord) =>
                                   new Date(b.createdAt).getTime() -
                                   new Date(a.createdAt).getTime(),
                               )
-                              .map(record => (
+                              .map((record: ServiceRecord) => (
                                 <div
                                   key={record.id}
                                   className="text-sm border-l-2 pl-3"
