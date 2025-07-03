@@ -4,19 +4,19 @@
 import type { ApiKey, ApiSettings, Webhook } from '@/types';
 import {
   apiSettingsSchema,
-  ApiSettingsFormValues,
+  type ApiSettingsFormValues,
   webhookFormSchema,
-  WebhookFormValues,
+  type WebhookFormValues,
   apiKeyFormSchema,
-  ApiKeyFormValues,
-} from '../schemas';
-import { getUserById } from '@/auth';
-import { hasRole } from '@/auth-utils';
-import { UserRoles } from '@/constants';
-import { checkPermission, PermissionError } from '@/permissions';
-import { apiKeys as mockApiKeys } from '@/api-key-data';
-import { apiSettings as mockApiSettings } from '@/api-settings-data';
-import { webhooks as mockWebhooks } from '@/webhook-data';
+  type ApiKeyFormValues,
+} from '@/lib/schemas';
+import { getUserById } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
+import { checkPermission, PermissionError } from '@/lib/permissions';
+import { apiKeys as mockApiKeys } from '@/lib/api-key-data';
+import { apiSettings as mockApiSettings } from '@/lib/api-settings-data';
+import { webhooks as mockWebhooks } from '@/lib/webhook-data';
 import { getAuditLogById, logAuditEvent } from './audit-actions';
 import { getProductById } from './product-actions';
 import { sendWebhook } from '@/services/webhooks';

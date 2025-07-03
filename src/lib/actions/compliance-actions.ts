@@ -5,10 +5,10 @@ import type { CompliancePath } from '@/types';
 import {
   compliancePathFormSchema,
   type CompliancePathFormValues,
-} from '../schemas';
-import { compliancePaths as mockCompliancePaths } from '@/compliance-data';
-import { getUserById } from '@/auth';
-import { checkPermission, PermissionError } from '@/permissions';
+} from '@/lib/schemas';
+import { compliancePaths as mockCompliancePaths } from '@/lib/compliance-data';
+import { getUserById } from '@/lib/auth';
+import { checkPermission, PermissionError } from '@/lib/permissions';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { generateComplianceRules as generateComplianceRulesFlow } from '@/ai/flows/generate-compliance-rules';

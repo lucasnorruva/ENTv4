@@ -2,19 +2,19 @@
 'use server';
 
 import type { Company, User } from '@/types';
-import { UserRoles, type Role } from '@/constants';
+import { UserRoles, type Role } from '@/lib/constants';
 import {
   userFormSchema,
-  UserFormValues,
+  type UserFormValues,
   companyFormSchema,
-  CompanyFormValues,
+  type CompanyFormValues,
   onboardingFormSchema,
-  OnboardingFormValues,
-} from '../schemas';
-import { getUserById, getCompanyById } from '@/auth';
-import { checkPermission, PermissionError } from '@/permissions';
-import { users as mockUsers } from '@/user-data';
-import { companies as mockCompanies } from '@/company-data';
+  type OnboardingFormValues,
+} from '@/lib/schemas';
+import { getUserById, getCompanyById } from '@/lib/auth';
+import { checkPermission } from '@/lib/permissions';
+import { users as mockUsers } from '@/lib/user-data';
+import { companies as mockCompanies } from '@/lib/company-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 
@@ -259,7 +259,7 @@ export async function saveNotificationPreferences(
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
     const user = mockUsers.find(u => u.id === userId);
     if (!user) throw new Error('User not found');
-    const { auditLogs: mockAuditLogs } = await import('@/audit-log-data');
+    const { auditLogs: mockAuditLogs } = await import('@/lib/audit-log-data');
     user.readNotificationIds = mockAuditLogs.map(log => log.id);
     return Promise.resolve();
   }

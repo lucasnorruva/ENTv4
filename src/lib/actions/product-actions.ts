@@ -7,7 +7,7 @@ import type {
   ServiceRecord,
   SustainabilityData,
 } from '@/types';
-import { productFormSchema, type ProductFormValues, bulkProductImportSchema } from '../schemas';
+import { productFormSchema, type ProductFormValues, bulkProductImportSchema } from '@/lib/schemas';
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -17,14 +17,14 @@ import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhan
 import { generateProductImage } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
-import { getUserById, getCompanyById } from '@/auth';
+import { getUserById, getCompanyById } from '@/lib/auth';
 import { sendWebhook } from '@/services/webhooks';
 import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
-import { checkPermission, PermissionError } from '@/permissions';
+import { checkPermission, PermissionError } from '@/lib/permissions';
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 
-import { products as mockProducts } from '@/data';
-import { getWebhooks, getCompliancePathById } from '@/actions/index';
+import { products as mockProducts } from '@/lib/data';
+import { getWebhooks, getCompliancePathById } from '@/lib/actions/index';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { classifyProduct } from '@/ai/flows/classify-product';
 import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
@@ -98,7 +98,7 @@ export async function getProducts(
   userId?: string,
   filters?: { searchQuery?: string },
 ): Promise<Product[]> {
-  const { getProducts: originalGetProducts } = await import('@/data-actions');
+  const { getProducts: originalGetProducts } = await import('@/lib/data-actions');
   return originalGetProducts(userId, filters);
 }
 
@@ -106,7 +106,7 @@ export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const { getProductById: originalGetProductById } = await import('@/data-actions');
+  const { getProductById: originalGetProductById } = await import('@/lib/data-actions');
   return originalGetProductById(id, userId);
 }
 
@@ -630,7 +630,6 @@ export async function resolveComplianceIssue(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-
   checkPermission(user, 'product:resolve');
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);

@@ -4,16 +4,16 @@
 import type { ServiceTicket, SupportTicket } from '@/types';
 import {
   serviceTicketFormSchema,
-  ServiceTicketFormValues,
+  type ServiceTicketFormValues,
   supportTicketFormSchema,
-  SupportTicketFormValues,
-} from '../schemas';
-import { getUserById } from '@/auth';
-import { hasRole } from '@/auth-utils';
-import { checkPermission, PermissionError } from '@/permissions';
-import { UserRoles } from '@/constants';
-import { serviceTickets as mockServiceTickets } from '@/service-ticket-data';
-import { supportTickets as mockSupportTickets } from '@/support-ticket-data';
+  type SupportTicketFormValues,
+} from '@/lib/schemas';
+import { getUserById } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
+import { checkPermission, PermissionError } from '@/lib/permissions';
+import { UserRoles } from '@/lib/constants';
+import { serviceTickets as mockServiceTickets } from '@/lib/service-ticket-data';
+import { supportTickets as mockSupportTickets } from '@/lib/support-ticket-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 

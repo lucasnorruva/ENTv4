@@ -2,9 +2,9 @@
 'use server';
 
 import type { Product, User, CompliancePath } from '@/types';
-import { getUserById, getUsers } from '@/auth';
-import { hasRole } from '@/auth-utils';
-import { UserRoles } from '@/constants';
+import { getUserById, getUsers } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
 import { getProducts } from './product-actions';
 import { getCompliancePaths } from './compliance-actions';
 

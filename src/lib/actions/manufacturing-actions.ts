@@ -4,11 +4,11 @@
 import type { ProductionLine } from '@/types';
 import {
   productionLineFormSchema,
-  ProductionLineFormValues,
-} from '../schemas';
-import { productionLines as mockProductionLines } from '@/manufacturing-data';
-import { getUserById } from '@/auth';
-import { checkPermission } from '@/permissions';
+  type ProductionLineFormValues,
+} from '@/lib/schemas';
+import { productionLines as mockProductionLines } from '@/lib/manufacturing-data';
+import { getUserById } from '@/lib/auth';
+import { checkPermission } from '@/lib/permissions';
 import { logAuditEvent } from './audit-actions';
 import { getProductById } from './product-actions';
 import { newId } from './utils';

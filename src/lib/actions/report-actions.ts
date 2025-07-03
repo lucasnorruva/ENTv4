@@ -3,7 +3,7 @@
 
 import { getProducts } from './product-actions';
 import { getAuditLogs } from './audit-actions';
-import { getUsers } from '@/auth';
+import { getUsers } from '@/lib/auth';
 
 const flattenObject = (
     obj: any,
