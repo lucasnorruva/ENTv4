@@ -1,3 +1,4 @@
+// src/components/onboarding-wizard.tsx
 'use client';
 
 import React, { useState, useTransition } from 'react';
