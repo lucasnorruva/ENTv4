@@ -29,4 +29,33 @@ export let auditLogs: AuditLog[] = [
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
   },
+   {
+    id: 'log-004',
+    userId: 'user-developer',
+    action: 'webhook.delivery.success',
+    entityId: 'wh-001',
+    details: {
+      event: 'product.published',
+      statusCode: 200,
+      productId: 'pp-001',
+      url: 'https://api.example.com/v1/norruva-hooks',
+    },
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 5000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 5000).toISOString(),
+  },
+  {
+    id: 'log-005',
+    userId: 'user-developer',
+    action: 'webhook.delivery.failure',
+    entityId: 'wh-002',
+    details: {
+      event: 'compliance.failed',
+      statusCode: 503,
+      error: 'Service Unavailable',
+      productId: 'pp-004',
+      url: 'https://alerts.example.com/dpp-compliance-failures',
+    },
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  },
 ];
