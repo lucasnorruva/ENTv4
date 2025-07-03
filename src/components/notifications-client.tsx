@@ -42,7 +42,8 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import type { User, AuditLog } from '@/types';
-import { markAllNotificationsAsRead, getUsers } from '@/lib/actions';
+import { markAllNotificationsAsRead } from '@/lib/actions';
+import { getUsers } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 import { onCurrentUserUpdate } from '@/lib/auth-client';
 
