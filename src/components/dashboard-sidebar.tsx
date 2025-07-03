@@ -25,6 +25,7 @@ import {
   FileCode,
   Cog,
   Building2,
+  ListChecks,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -104,6 +105,11 @@ const navConfig: Record<Role, NavConfig> = {
           title: 'Compliance Status',
           icon: ShieldCheck,
           href: 'compliance',
+        },
+        {
+          title: 'Data Quality',
+          icon: ListChecks,
+          href: 'data-quality',
         },
       ],
     },

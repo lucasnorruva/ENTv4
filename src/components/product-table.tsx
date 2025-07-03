@@ -323,6 +323,7 @@ export default function ProductTable({
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit, roleSlug],
   );
 

@@ -69,6 +69,9 @@ export let products: Product[] = [
     lastUpdated: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     verificationStatus: 'Not Submitted',
     endOfLifeStatus: 'Active',
+    dataQualityWarnings: [
+        { field: 'manufacturing.country', warning: 'Country of manufacture is not specified.'}
+    ],
     isProcessing: false,
   },
   {
