@@ -64,7 +64,8 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompany, getCompanies } from '@/lib/actions';
+import { deleteCompany } from '@/lib/actions';
+import { getCompanies } from '@/lib/auth';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
