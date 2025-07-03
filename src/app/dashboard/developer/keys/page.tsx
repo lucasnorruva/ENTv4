@@ -21,7 +21,7 @@ export default async function ApiKeysPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Initial API keys are now fetched on the client side with a real-time listener.
+  // Initial API keys are now fetched on the client side.
   return (
     <Card>
       <CardHeader>

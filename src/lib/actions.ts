@@ -1191,8 +1191,8 @@ export async function saveApiKey(
 ): Promise<{ key: ApiKey; rawToken?: string }> {
   const validatedData = apiKeyFormSchema.parse(values);
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new PermissionError('Permission denied.');
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const now = new Date().toISOString();
   let savedKey: ApiKey;
@@ -1251,9 +1251,8 @@ export async function revokeApiKey(
   userId: string,
 ): Promise<ApiKey> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
-    throw new PermissionError('You do not have permission to revoke API keys.');
-  }
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const keyIndex = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
@@ -1271,9 +1270,8 @@ export async function deleteApiKey(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
-    throw new PermissionError('You do not have permission to delete API keys.');
-  }
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const index = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,

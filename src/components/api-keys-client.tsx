@@ -13,19 +13,9 @@ import {
   MoreHorizontal,
   Edit,
 } from 'lucide-react';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
-
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { revokeApiKey, deleteApiKey } from '@/lib/actions';
+import { getApiKeys, revokeApiKey, deleteApiKey } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,59 +73,45 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const [hasCopied, setHasCopied] = useState(false);
 
   useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.API_KEYS),
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const keysData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as ApiKey,
-        );
-        setApiKeys(keysData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching API keys:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load API keys in real-time.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+    getApiKeys(user.id)
+      .then(setApiKeys)
+      .catch(() =>
+        toast({ title: 'Error loading keys', variant: 'destructive' }),
+      )
+      .finally(() => setIsLoading(false));
   }, [user.id, toast]);
 
   const handleCreateNew = () => {
     setSelectedApiKey(null);
     setIsFormOpen(true);
   };
-  
+
   const handleEdit = (key: ApiKey) => {
     setSelectedApiKey(key);
     setIsFormOpen(true);
   };
 
   const handleSave = (result: { key: ApiKey; rawToken?: string }) => {
+    setApiKeys(prev => {
+      const exists = prev.some(k => k.id === result.key.id);
+      if (exists) {
+        return prev.map(k => (k.id === result.key.id ? result.key : k));
+      }
+      return [result.key, ...prev];
+    });
+
     if (result.rawToken) {
       setNewlyCreatedKey(result.rawToken);
       setIsViewKeyDialogOpen(true);
     }
-    // Real-time listener will update the table
     setIsFormOpen(false);
   };
 
   const handleRevokeKey = (id: string) => {
     startTransition(async () => {
       try {
-        await revokeApiKey(id, user.id);
+        const revokedKey = await revokeApiKey(id, user.id);
+        setApiKeys(prev => prev.map(k => (k.id === id ? revokedKey : k)));
         toast({ title: 'API Key Revoked' });
       } catch (error) {
         toast({
@@ -151,6 +127,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
     startTransition(async () => {
       try {
         await deleteApiKey(id, user.id);
+        setApiKeys(prev => prev.filter(k => k.id !== id));
         toast({ title: 'API Key Deleted' });
       } catch (error) {
         toast({
