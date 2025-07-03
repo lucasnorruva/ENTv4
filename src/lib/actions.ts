@@ -1,4 +1,3 @@
-
 // src/lib/actions.ts
 'use server';
 
@@ -38,6 +37,8 @@ import {
   type BulkProductImportValues,
   onboardingFormSchema,
   type OnboardingFormValues,
+  supportTicketFormSchema,
+  type SupportTicketFormValues,
 } from './schemas';
 import {
   anchorToPolygon,
@@ -1592,4 +1593,25 @@ export async function signInWithMockUser(
     console.error('Error during mock sign in flow:', error);
     return { success: false, error: 'Server error during sign in.' };
   }
+}
+
+export async function saveSupportTicket(
+  values: SupportTicketFormValues,
+  userId?: string,
+): Promise<{ success: boolean }> {
+  const validatedData = supportTicketFormSchema.parse(values);
+
+  const docRef = await adminDb.collection(Collections.SUPPORT_TICKETS).add({
+    ...validatedData,
+    userId: userId || null,
+    status: 'Open',
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  if (userId) {
+    await logAuditEvent('support.ticket.created', docRef.id, { subject: values.subject }, userId);
+  }
+
+  return { success: true };
 }

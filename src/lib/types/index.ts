@@ -194,6 +194,19 @@ export interface ServiceTicket extends BaseEntity {
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
+  imageUrl?: string;
+}
+
+/**
+ * Represents a platform support ticket submitted by a user.
+ */
+export interface SupportTicket extends BaseEntity {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'Open' | 'Closed';
+  userId?: string; // Optional, for logged-in users
 }
 
 /**

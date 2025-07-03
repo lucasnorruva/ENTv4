@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -14,13 +13,19 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { BookOpen, LifeBuoy } from 'lucide-react';
 import Link from 'next/link';
+import SupportForm from '../support-form';
+import { getCurrentUser } from '@/lib/auth';
+import { UserRoles } from '@/lib/constants';
 
-export default function SharedSupportPage() {
+export default async function SharedSupportPage() {
+  // We need to know which user is logged in to pre-fill the form.
+  // This will return null if not logged in, but the support page is only
+  // shown in authenticated layouts. We'll use a role with broad access
+  // as a default for the server-side fetch.
+  const user = await getCurrentUser(UserRoles.SUPPLIER).catch(() => null);
+
   return (
     <div className="space-y-6">
       <div>
@@ -34,52 +39,8 @@ export default function SharedSupportPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Contact Form */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Contact Support</CardTitle>
-            <CardDescription>
-              Fill out the form below and our team will get back to you as soon
-              as possible.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Your Name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Your Email Address"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
-              <Input
-                id="subject"
-                placeholder="e.g., Issue with product verification"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="message">Message</Label>
-              <Textarea
-                id="message"
-                placeholder="Please describe your issue in detail..."
-                className="min-h-[150px]"
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button>Submit Ticket</Button>
-          </CardFooter>
-        </Card>
+        <SupportForm user={user || undefined} />
 
-        {/* FAQ Section */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -139,7 +100,9 @@ export default function SharedSupportPage() {
                 references.
               </p>
               <Button variant="outline" className="w-full" asChild>
-                <Link href="/docs/api">View Docs</Link>
+                <Link href="/docs/api" target="_blank">
+                  View Docs
+                </Link>
               </Button>
             </CardContent>
           </Card>

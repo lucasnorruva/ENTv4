@@ -152,8 +152,21 @@ export const serviceTicketFormSchema = z.object({
     .string()
     .min(10, 'Issue description must be at least 10 characters.'),
   status: z.enum(['Open', 'In Progress', 'Closed']),
+  imageUrl: z.string().url().optional(),
 });
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
+
+export const supportTicketFormSchema = z.object({
+  name: z.string().min(2, { message: 'Please enter your name.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  subject: z
+    .string()
+    .min(5, { message: 'Subject must be at least 5 characters.' }),
+  message: z
+    .string()
+    .min(20, { message: 'Message must be at least 20 characters.' }),
+});
+export type SupportTicketFormValues = z.infer<typeof supportTicketFormSchema>;
 
 export const productionLineFormSchema = z.object({
   name: z.string().min(3, 'Line name must be at least 3 characters.'),
