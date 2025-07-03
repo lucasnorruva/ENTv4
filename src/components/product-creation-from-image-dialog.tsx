@@ -1,3 +1,4 @@
+// src/components/product-creation-from-image-dialog.tsx
 'use client';
 
 import React, { useState, useTransition } from 'react';
@@ -77,6 +78,14 @@ export default function ProductCreationFromImageDialog({
             variant: 'destructive',
           });
         }
+      };
+      reader.onerror = error => {
+        console.error('File reading error:', error);
+        toast({
+          title: 'File Error',
+          description: 'Could not read the selected file.',
+          variant: 'destructive',
+        });
       };
     });
   };

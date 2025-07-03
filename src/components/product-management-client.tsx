@@ -1,19 +1,10 @@
 // src/components/product-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition } from 'react';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
-import {
-  collection,
-  onSnapshot,
-  query,
-  where,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-
 import type { Product, User, CompliancePath } from '@/types';
-import { Collections, UserRoles } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
 
 import {
@@ -37,18 +28,20 @@ import ProductImportDialog from './product-import-dialog';
 import ProductCreationFromImageDialog from './product-creation-from-image-dialog';
 
 interface ProductManagementClientProps {
+  initialProducts: Product[];
   user: User;
   compliancePaths: CompliancePath[];
   initialFilter?: string;
 }
 
 export default function ProductManagementClient({
+  initialProducts,
   user,
   compliancePaths,
   initialFilter,
 }: ProductManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [isLoading, setIsLoading] = useState(false); // In a real app with Firestore listeners, this would be true initially
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
@@ -58,43 +51,6 @@ export default function ProductManagementClient({
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
-
-  useEffect(() => {
-    setIsLoading(true);
-
-    const q = hasRole(user, UserRoles.ADMIN)
-      ? query(
-          collection(db, Collections.PRODUCTS),
-          orderBy('lastUpdated', 'desc'),
-        )
-      : query(
-          collection(db, Collections.PRODUCTS),
-          where('companyId', '==', user.companyId),
-          orderBy('lastUpdated', 'desc'),
-        );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const productData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Product,
-        );
-        setProducts(productData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching products:', error);
-        toast({
-          title: 'Error Fetching Data',
-          description: 'Could not load product data. Please try again later.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user.id, user.companyId, toast]);
 
   const handleCreateNew = () => {
     setSelectedProduct(null);
@@ -127,6 +83,7 @@ export default function ProductManagementClient({
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
+      setProducts(prev => prev.filter(p => p.id !== id));
       await deleteProduct(id, user.id);
       toast({
         title: 'Product Deleted',
@@ -139,6 +96,9 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
+        setProducts(prev =>
+          prev.map(p => (p.id === id ? reviewedProduct : p)),
+        );
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -157,6 +117,11 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await recalculateScore(id, user.id);
+        setProducts(prev =>
+          prev.map(p =>
+            p.id === id ? { ...p, isProcessing: true } : p,
+          ),
+        );
         toast({
           title: 'AI Recalculation Started',
           description: `AI data for "${productName}" is being updated. The table will refresh automatically.`,
@@ -171,13 +136,21 @@ export default function ProductManagementClient({
     });
   };
 
-  const handleSave = () => {
-    // The real-time listener will automatically update the table.
+  const handleSave = (savedProduct: Product) => {
+    setProducts(prev => {
+      const exists = prev.some(p => p.id === savedProduct.id);
+      if (exists) {
+        return prev.map(p => (p.id === savedProduct.id ? savedProduct : p));
+      }
+      return [savedProduct, ...prev];
+    });
     setIsSheetOpen(false);
   };
 
   const handleImportSave = () => {
-    // The real-time listener will automatically update the table.
+    // This is a placeholder; a real implementation would refetch or update the product list
+    setIsLoading(true);
+    setTimeout(() => setIsLoading(false), 2000); // Simulate refetch
     setIsImportOpen(false);
   };
 
