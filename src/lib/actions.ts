@@ -1,3 +1,4 @@
+
 // src/lib/actions.ts
 'use server';
 
@@ -78,6 +79,7 @@ import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { webhooks as mockWebhooks } from './webhook-data';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { runDataValidationCheck as processProductAi } from '@/triggers/on-product-change';
+import { validateProductData } from '@/ai/flows/validate-product-data';
 
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
@@ -507,6 +509,85 @@ export async function recalculateScore(
   return Promise.resolve();
 }
 
+export async function runDataValidationCheck(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:validate_data', product);
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].isProcessing = true;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.validation.started',
+    productId,
+    {},
+    userId,
+  );
+
+  setTimeout(async () => {
+    try {
+      const productToProcess = mockProducts[productIndex];
+      if (productToProcess) {
+        const company = await getCompanyById(productToProcess.companyId);
+        if (!company) throw new Error('Company not found');
+
+        const aiProductInput: AiProduct = {
+          productName: product.productName,
+          productDescription: product.productDescription,
+          category: product.category,
+          supplier: company.name,
+          materials: product.materials,
+          gtin: product.gtin,
+          manufacturing: product.manufacturing,
+          certifications: product.certifications,
+          packaging: product.packaging,
+          lifecycle: product.lifecycle,
+          battery: product.battery,
+          compliance: product.compliance,
+        };
+
+        const result = await validateProductData({ product: aiProductInput });
+
+        const currentIndex = mockProducts.findIndex(p => p.id === productId);
+        if (currentIndex !== -1) {
+          mockProducts[currentIndex].dataQualityWarnings = result.warnings;
+          mockProducts[currentIndex].isProcessing = false;
+          mockProducts[currentIndex].lastUpdated = new Date().toISOString();
+          await logAuditEvent(
+            'product.validation.success',
+            productId,
+            { warningCount: result.warnings.length },
+            userId,
+          );
+        }
+      }
+    } catch (error) {
+       const currentIndex = mockProducts.findIndex(p => p.id === productId);
+      if (currentIndex !== -1) {
+        mockProducts[currentIndex].isProcessing = false;
+      }
+      await logAuditEvent(
+        'product.validation.failed',
+        productId,
+        { error: (error as Error).message },
+        userId,
+      );
+    }
+  }, 3000);
+
+  return Promise.resolve();
+}
+
 export async function runComplianceCheck(
   productId: string,
   userId: string,
@@ -531,52 +612,69 @@ export async function runComplianceCheck(
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found in mock data');
 
-  const company = await getCompanyById(product.companyId);
-  if (!company) throw new Error('Company not found');
+  mockProducts[productIndex].isProcessing = true;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  const aiProductInput: AiProduct = {
-    productName: product.productName,
-    productDescription: product.productDescription,
-    category: product.category,
-    supplier: company.name,
-    materials: product.materials,
-    gtin: product.gtin,
-    manufacturing: product.manufacturing,
-    certifications: product.certifications,
-    packaging: product.packaging,
-    lifecycle: product.lifecycle,
-    battery: product.battery,
-    compliance: product.compliance,
-    verificationStatus: product.verificationStatus ?? 'Not Submitted',
-    complianceSummary: product.sustainability?.complianceSummary,
-  };
+  await logAuditEvent('product.compliance.started', productId, {}, userId);
 
-  const complianceResult = await summarizeComplianceGaps({
-    product: aiProductInput,
-    compliancePath: compliancePath,
-  });
+  setTimeout(async () => {
+    try {
+      const company = await getCompanyById(product.companyId);
+      if (!company) throw new Error('Company not found');
 
-  const currentSustainability = mockProducts[productIndex].sustainability;
+      const aiProductInput: AiProduct = {
+        productName: product.productName,
+        productDescription: product.productDescription,
+        category: product.category,
+        supplier: company.name,
+        materials: product.materials,
+        gtin: product.gtin,
+        manufacturing: product.manufacturing,
+        certifications: product.certifications,
+        packaging: product.packaging,
+        lifecycle: product.lifecycle,
+        battery: product.battery,
+        compliance: product.compliance,
+      };
 
-  const updatedProduct = {
-    ...mockProducts[productIndex],
-    sustainability: {
-      ...currentSustainability!,
-      isCompliant: complianceResult.isCompliant,
-      complianceSummary: complianceResult.complianceSummary,
-      gaps: complianceResult.gaps,
-    },
-    lastUpdated: new Date().toISOString(),
-  };
+      const complianceResult = await summarizeComplianceGaps({
+        product: aiProductInput,
+        compliancePath: compliancePath,
+      });
 
-  mockProducts[productIndex] = updatedProduct;
+      const currentIndex = mockProducts.findIndex(p => p.id === productId);
+      if (currentIndex !== -1) {
+        const currentSustainability = mockProducts[currentIndex].sustainability;
+        mockProducts[currentIndex].sustainability = {
+          ...currentSustainability!,
+          isCompliant: complianceResult.isCompliant,
+          complianceSummary: complianceResult.complianceSummary,
+          gaps: complianceResult.gaps,
+        };
+        mockProducts[currentIndex].isProcessing = false;
+        mockProducts[currentIndex].lastUpdated = new Date().toISOString();
+        await logAuditEvent(
+          'product.compliance.checked',
+          productId,
+          { result: complianceResult },
+          userId,
+        );
+      }
+    } catch (error) {
+      const currentIndex = mockProducts.findIndex(p => p.id === productId);
+      if (currentIndex !== -1) {
+        mockProducts[currentIndex].isProcessing = false;
+      }
+       await logAuditEvent(
+        'product.compliance.failed',
+        productId,
+        { error: (error as Error).message },
+        userId,
+      );
+    }
+  }, 3000);
 
-  await logAuditEvent(
-    'product.compliance.checked',
-    productId,
-    { result: complianceResult },
-    userId,
-  );
+  return Promise.resolve();
 }
 
 export async function generateAndSaveProductImage(
@@ -796,7 +894,7 @@ export async function addServiceRecord(
 export async function generateAndSaveConformityDeclaration(
   productId: string,
   userId: string,
-) {
+): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'product:edit');
@@ -807,13 +905,16 @@ export async function generateAndSaveConformityDeclaration(
   const company = await getCompanyById(product.companyId);
   if (!company) throw new Error('Company not found');
 
-  const declaration = await generateConformityDeclarationText(productId, userId);
+  const declarationText = await generateConformityDeclarationText(productId, userId);
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
-  mockProducts[productIndex].declarationOfConformity = declaration;
+  mockProducts[productIndex].declarationOfConformity = declarationText;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  return;
+  await logAuditEvent('doc.generated', productId, { type: 'DoC' }, userId);
+
+  return Promise.resolve();
 }
 
 export async function generateConformityDeclarationText(
@@ -853,7 +954,6 @@ export async function generateConformityDeclarationText(
     companyName: company.name,
   });
 
-  await logAuditEvent('doc.generated', productId, {}, userId);
   return declarationText;
 }
 
