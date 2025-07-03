@@ -114,6 +114,14 @@ export default function ProductManagementClient({
     setIsImportOpen(true);
   };
 
+  const handleImportSave = () => {
+    toast({
+      title: 'Import in Progress',
+      description: 'New products will appear in the table shortly.',
+    });
+    setIsImportOpen(false);
+  };
+
   const handleCreateFromImage = () => {
     setIsCreateFromImageOpen(true);
   };
@@ -186,14 +194,6 @@ export default function ProductManagementClient({
 
   const handleSave = (savedProduct: Product) => {
     setIsSheetOpen(false);
-  };
-
-  const handleImportSave = () => {
-    toast({
-      title: 'Import in Progress',
-      description: 'New products will appear in the table shortly.',
-    });
-    setIsImportOpen(false);
   };
 
   return (
