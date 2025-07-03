@@ -42,7 +42,7 @@ function InfoRow({
         <Icon className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
         <div className="flex-1">
           <p className="font-semibold">{label}</p>
-          {value && <p className="text-muted-foreground">{value}</p>}
+          {value && <div className="text-muted-foreground text-sm">{value}</div>}
           {children}
         </div>
       </div>
@@ -143,7 +143,7 @@ export default function ComplianceTab({ product, compliancePath }: ComplianceTab
                 <AccordionTrigger>Declarations</AccordionTrigger>
                 <AccordionContent>
                     <InfoRow icon={ShieldCheck} label="RoHS Compliant">
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
                         {product.compliance?.rohsExemption && (
                         <span className="ml-2 text-xs">
@@ -151,15 +151,15 @@ export default function ComplianceTab({ product, compliancePath }: ComplianceTab
                             {product.compliance.rohsExemption})
                         </span>
                         )}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow icon={Copyright} label="CE Marked">
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         {product.compliance?.ceMarked ? 'Yes' : 'No'}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow icon={Utensils} label="Food Contact Safe">
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         {product.compliance?.foodContactSafe
                         ? 'Yes'
                         : 'No'}
@@ -174,20 +174,20 @@ export default function ComplianceTab({ product, compliancePath }: ComplianceTab
                             )
                         </span>
                         )}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow
                     icon={AlertTriangle}
                     label="Prop 65 Warning"
                     >
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         {product.compliance?.prop65WarningRequired
                         ? 'Required'
                         : 'Not Required'}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow icon={Recycle} label="WEEE Compliance">
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         Registered:{' '}
                         {product.compliance?.weeeRegistered
                         ? 'Yes'
@@ -203,10 +203,10 @@ export default function ComplianceTab({ product, compliancePath }: ComplianceTab
                             )
                         </span>
                         )}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow icon={Leaf} label="EUDR Compliant">
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-sm text-muted-foreground">
                         {product.compliance?.eudrCompliant
                         ? 'Yes'
                         : 'No'}
@@ -216,13 +216,13 @@ export default function ComplianceTab({ product, compliancePath }: ComplianceTab
                             {product.compliance.eudrDiligenceId})
                         </span>
                         )}
-                    </p>
+                    </div>
                     </InfoRow>
                     <InfoRow icon={FileText} label="SCIP Reference">
-                    <p className="font-mono text-xs text-muted-foreground">
+                    <div className="font-mono text-xs text-muted-foreground">
                         {product.compliance?.scipReference ||
                         'Not Provided'}
-                    </p>
+                    </div>
                     </InfoRow>
                 </AccordionContent>
                 </AccordionItem>

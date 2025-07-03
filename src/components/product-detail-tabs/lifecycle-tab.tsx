@@ -38,7 +38,7 @@ function InfoRow({
         <Icon className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
         <div className="flex-1">
           <p className="font-semibold">{label}</p>
-          {value && <p className="text-muted-foreground">{value}</p>}
+          {value && <div className="text-muted-foreground text-sm">{value}</div>}
           {children}
         </div>
       </div>
