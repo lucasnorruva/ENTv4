@@ -96,7 +96,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
-      
+
     case 'product:add_service_record':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
 
@@ -123,7 +123,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'ticket:create':
     case 'ticket:update':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
-    
+
     case 'support:manage':
       return false; // Only admins can manage for now (handled by global check)
 

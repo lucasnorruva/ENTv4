@@ -42,7 +42,13 @@ import {
   Loader2,
 } from 'lucide-react';
 
-import type { Product, User, CompliancePath, AuditLog, ServiceRecord } from '@/types';
+import type {
+  Product,
+  User,
+  CompliancePath,
+  AuditLog,
+  ServiceRecord,
+} from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -168,6 +174,7 @@ export default function ProductDetailView({
   const canRunComplianceCheck = can(user, 'product:run_compliance');
   const canValidateData = can(user, 'product:validate_data', product);
   const canAddServiceRecord = can(user, 'product:add_service_record');
+  const canGenerateDoc = can(user, 'product:edit', product);
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
@@ -231,6 +238,23 @@ export default function ProductDetailView({
             </Button>
           </div>
         </header>
+
+        {product.dataQualityWarnings &&
+          product.dataQualityWarnings.length > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Data Quality Warnings</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc list-inside mt-2 text-xs">
+                  {product.dataQualityWarnings.map((warning, index) => (
+                    <li key={index}>
+                      <strong>{warning.field}:</strong> {warning.warning}
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -850,7 +874,9 @@ export default function ProductDetailView({
               <DataQualityWidget product={product} user={user} />
             )}
             <AiSuggestionsWidget product={product} />
-            <DocGenerationWidget product={product} user={user} />
+            {canGenerateDoc && (
+              <DocGenerationWidget product={product} user={user} />
+            )}
           </div>
         </div>
       </div>

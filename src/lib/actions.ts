@@ -527,12 +527,7 @@ export async function runDataValidationCheck(
   mockProducts[productIndex].isProcessing = true;
   mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  await logAuditEvent(
-    'product.validation.started',
-    productId,
-    {},
-    userId,
-  );
+  await logAuditEvent('product.validation.started', productId, {}, userId);
 
   setTimeout(async () => {
     try {
@@ -644,7 +639,8 @@ export async function runComplianceCheck(
 
       const currentIndex = mockProducts.findIndex(p => p.id === productId);
       if (currentIndex !== -1) {
-        const currentSustainability = mockProducts[currentIndex].sustainability;
+        const currentSustainability =
+          mockProducts[currentIndex].sustainability;
         mockProducts[currentIndex].sustainability = {
           ...currentSustainability!,
           isCompliant: complianceResult.isCompliant,
@@ -898,7 +894,7 @@ export async function generateAndSaveConformityDeclaration(
 ): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  checkPermission(user, 'product:edit');
+  checkPermission(user, 'product:edit', product);
 
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
@@ -1656,10 +1652,14 @@ export async function updateSupportTicketStatus(
   mockSupportTickets[ticketIndex].status = status;
   mockSupportTickets[ticketIndex].updatedAt = new Date().toISOString();
 
-  await logAuditEvent('support_ticket.status_updated', ticketId, { status }, userId);
+  await logAuditEvent(
+    'support_ticket.status_updated',
+    ticketId,
+    { status },
+    userId,
+  );
   return Promise.resolve(mockSupportTickets[ticketIndex]);
 }
-
 
 export async function saveSupportTicket(
   values: SupportTicketFormValues,
@@ -1675,7 +1675,12 @@ export async function saveSupportTicket(
     updatedAt: now,
   };
   mockSupportTickets.unshift(newTicket);
-  await logAuditEvent('support_ticket.created', newTicket.id, {}, userId || 'guest');
+  await logAuditEvent(
+    'support_ticket.created',
+    newTicket.id,
+    {},
+    userId || 'guest',
+  );
   return newTicket;
 }
 
