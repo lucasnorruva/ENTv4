@@ -1,7 +1,7 @@
 // src/components/user-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -12,14 +12,6 @@ import {
   ArrowUpDown,
   ChevronDown,
 } from 'lucide-react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 import {
   ColumnDef,
   SortingState,
@@ -74,7 +66,7 @@ import {
 
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUser } from '@/lib/actions';
+import { deleteUser, getUsers } from '@/lib/actions';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
@@ -100,36 +92,24 @@ export default function UserManagementClient({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  
+  const fetchUsers = useCallback(() => {
+      setIsLoading(true);
+      getUsers()
+        .then(setUsers)
+        .catch(() => {
+          toast({
+            title: 'Error',
+            description: 'Failed to load users.',
+            variant: 'destructive',
+          });
+        })
+        .finally(() => setIsLoading(false));
+  }, [toast]);
 
   useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.USERS),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const usersData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as User,
-        );
-        setUsers(usersData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching users:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load users in real-time.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleCreateNew = () => {
     setSelectedUser(null);
@@ -141,13 +121,14 @@ export default function UserManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleDelete = (userId: string) => {
+  const handleDelete = (userToDelete: User) => {
     startTransition(async () => {
       try {
-        await deleteUser(userId, adminUser.id);
+        await deleteUser(userToDelete.id, adminUser.id);
+        setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
         toast({
           title: 'User Deleted',
-          description: 'The user has been successfully deleted.',
+          description: `User "${userToDelete.fullName}" has been successfully deleted.`,
         });
       } catch (error) {
         toast({
@@ -160,7 +141,13 @@ export default function UserManagementClient({
   };
 
   const handleSave = (savedUser: User) => {
-    // The real-time listener will handle updates automatically
+    setUsers(prev => {
+        const exists = prev.some(u => u.id === savedUser.id);
+        if (exists) {
+            return prev.map(u => u.id === savedUser.id ? savedUser : u);
+        }
+        return [savedUser, ...prev];
+    });
     setIsFormOpen(false);
   };
 
@@ -258,7 +245,7 @@ export default function UserManagementClient({
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(user.id)}
+                          onClick={() => handleDelete(user)}
                           disabled={isPending}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
@@ -274,8 +261,7 @@ export default function UserManagementClient({
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending],
+    [isPending, adminUser.id],
   );
 
   const table = useReactTable({

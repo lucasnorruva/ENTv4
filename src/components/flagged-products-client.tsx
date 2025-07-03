@@ -1,19 +1,10 @@
 // src/components/flagged-products-client.tsx
 'use client';
 
-import React, { useTransition, useState, useEffect } from 'react';
+import React, { useTransition, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, ShieldCheck } from 'lucide-react';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Table,
@@ -25,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveComplianceIssue } from '@/lib/actions';
+import { resolveComplianceIssue, getProducts } from '@/lib/actions';
 import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {
@@ -40,44 +31,38 @@ export default function FlaggedProductsClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
+  const fetchFlaggedProducts = useCallback(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Failed'),
-      orderBy('lastVerificationDate', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const flaggedProducts = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Product,
-        );
-        setProducts(flaggedProducts);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching flagged products:', error);
+    getProducts(user.id)
+      .then(allProducts => {
+        const flagged = allProducts.filter(p => p.verificationStatus === 'Failed');
+        setProducts(flagged);
+      })
+      .catch(() => {
         toast({
           title: 'Error',
           description: 'Could not load flagged products.',
           variant: 'destructive',
         });
+      })
+      .finally(() => {
         setIsLoading(false);
-      },
-    );
+      });
+  }, [user.id, toast]);
 
-    return () => unsubscribe();
-  }, [toast]);
+  useEffect(() => {
+    fetchFlaggedProducts();
+  }, [fetchFlaggedProducts]);
 
-  const handleResolve = (productId: string) => {
+
+  const handleResolve = (product: Product) => {
     startTransition(async () => {
       try {
-        const updatedProduct = await resolveComplianceIssue(productId, user.id);
+        await resolveComplianceIssue(product.id, user.id);
+        setProducts(prev => prev.filter(p => p.id !== product.id));
         toast({
           title: 'Issue Resolved',
-          description: `Product "${updatedProduct.productName}" has been sent back to the supplier for revision.`,
+          description: `Product "${product.productName}" has been sent back to the supplier for revision.`,
         });
       } catch (error) {
         toast({
@@ -139,7 +124,7 @@ export default function FlaggedProductsClient({
                 <Button
                   variant="secondary"
                   size="sm"
-                  onClick={() => handleResolve(product.id)}
+                  onClick={() => handleResolve(product)}
                   disabled={isPending}
                 >
                   {isPending && (

@@ -1,7 +1,7 @@
 // src/components/settings-client.tsx
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import {
   updateUserProfile,
   updateUserPassword,
@@ -24,7 +24,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Shield } from 'lucide-react';
 import type { User } from '@/types';
 import { auth } from '@/lib/firebase';
-import { onCurrentUserUpdate } from '@/lib/auth-client';
 import TwoFactorSetupDialog from './two-factor-setup-dialog';
 import { multiFactor } from 'firebase/auth';
 
@@ -37,20 +36,11 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
   const { toast } = useToast();
   const [is2faDialogOpen, setIs2faDialogOpen] = useState(false);
 
-  useEffect(() => {
-    const unsubscribe = onCurrentUserUpdate(updatedUser => {
-      if (updatedUser) {
-        setUser(updatedUser);
-        setFullName(updatedUser.fullName);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
   const handleProfileSave = () => {
     startTransition(async () => {
       try {
         await updateUserProfile(user.id, fullName, user.id);
+        setUser(prev => ({...prev, fullName}));
         toast({
           title: 'Profile Updated',
           description: 'Your full name has been successfully updated.',
@@ -120,12 +110,17 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         const mfaUser = multiFactor(auth.currentUser);
         // Assuming only one factor (TOTP) is enrolled.
         // A real app might let the user choose which factor to unenroll.
-        await mfaUser.unenroll(mfaUser.enrolledFactors[0]);
-        await setMfaStatus(user.id, false, user.id);
-        toast({
-          title: '2FA Disabled',
-          description: 'Two-factor authentication has been disabled.',
-        });
+        if (mfaUser.enrolledFactors && mfaUser.enrolledFactors.length > 0) {
+            await mfaUser.unenroll(mfaUser.enrolledFactors[0]);
+            await setMfaStatus(user.id, false, user.id);
+            setUser(prev => ({...prev, isMfaEnabled: false}));
+            toast({
+              title: '2FA Disabled',
+              description: 'Two-factor authentication has been disabled.',
+            });
+        } else {
+            throw new Error("No 2FA methods are currently enrolled.");
+        }
       } catch (error: any) {
         console.error('2FA Disable Error:', error);
         toast({
@@ -139,6 +134,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
 
   const on2faSuccess = () => {
     setIs2faDialogOpen(false);
+    setUser(prev => ({...prev, isMfaEnabled: true}));
   };
 
   return (

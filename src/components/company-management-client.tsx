@@ -1,7 +1,7 @@
 // src/components/company-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useMemo } from 'react';
+import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -25,14 +25,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -72,7 +64,7 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompany } from '@/lib/actions';
+import { deleteCompany, getCompanies } from '@/lib/actions';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
@@ -98,34 +90,24 @@ export default function CompanyManagementClient({
   );
   const [globalFilter, setGlobalFilter] = useState('');
 
-  useEffect(() => {
+  const fetchCompanies = useCallback(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.COMPANIES),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const companiesData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Company,
-        );
-        setCompanies(companiesData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching companies:', error);
+    getCompanies()
+      .then(setCompanies)
+      .catch(() => {
         toast({
           title: 'Error loading companies',
           variant: 'destructive',
         });
+      })
+      .finally(() => {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+      });
   }, [toast]);
+
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
 
   const handleCreateNew = () => {
     setSelectedCompany(null);
@@ -137,13 +119,14 @@ export default function CompanyManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleDelete = (companyId: string) => {
+  const handleDelete = (company: Company) => {
     startTransition(async () => {
       try {
-        await deleteCompany(companyId, adminUser.id);
+        await deleteCompany(company.id, adminUser.id);
+        setCompanies(prev => prev.filter(c => c.id !== company.id));
         toast({
           title: 'Company Deleted',
-          description: 'The company has been successfully deleted.',
+          description: `Company "${company.name}" has been successfully deleted.`,
         });
       } catch (error) {
         toast({
@@ -156,7 +139,13 @@ export default function CompanyManagementClient({
   };
 
   const handleSave = (savedCompany: Company) => {
-    // The real-time listener will handle the update
+    setCompanies(prev => {
+        const exists = prev.some(c => c.id === savedCompany.id);
+        if (exists) {
+            return prev.map(c => c.id === savedCompany.id ? savedCompany : c);
+        }
+        return [savedCompany, ...prev];
+    });
     setIsFormOpen(false);
   };
 
@@ -239,7 +228,7 @@ export default function CompanyManagementClient({
                       <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDelete(company.id)}
+                          onClick={() => handleDelete(company)}
                           disabled={isPending}
                           className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
@@ -255,8 +244,7 @@ export default function CompanyManagementClient({
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending],
+    [isPending, adminUser.id],
   );
 
   const table = useReactTable({

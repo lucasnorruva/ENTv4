@@ -1,7 +1,7 @@
 // src/components/compliance-path-management.tsx
 'use client';
 
-import React, { useState, useEffect, useTransition, useMemo } from 'react';
+import React, { useState, useEffect, useTransition, useMemo, useCallback } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -11,19 +11,11 @@ import {
   ListTree,
   Search,
 } from 'lucide-react';
-import {
-  collection,
-  query,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import type { CompliancePath, User } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompliancePath } from '@/lib/actions';
+import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions';
 import { hasRole } from '@/lib/auth-utils';
 
 import {
@@ -72,35 +64,23 @@ export default function CompliancePathManagement({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
+  const fetchPaths = useCallback(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.COMPLIANCE_PATHS),
-      orderBy('name', 'asc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const pathsData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as CompliancePath,
-        );
-        setPaths(pathsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching compliance paths:', error);
+    getCompliancePaths()
+      .then(setPaths)
+      .catch(() => {
         toast({
           title: 'Error',
-          description: 'Failed to load compliance paths in real-time.',
+          description: 'Failed to load compliance paths.',
           variant: 'destructive',
         });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
+      })
+      .finally(() => setIsLoading(false));
   }, [toast]);
+
+  useEffect(() => {
+    fetchPaths();
+  }, [fetchPaths]);
 
   const filteredPaths = useMemo(() => {
     if (!searchTerm) return paths;
@@ -124,11 +104,12 @@ export default function CompliancePathManagement({
     setIsFormOpen(true);
   };
 
-  const handleDelete = (pathId: string) => {
+  const handleDelete = (path: CompliancePath) => {
     startTransition(async () => {
       try {
-        await deleteCompliancePath(pathId, user.id);
-        toast({ title: 'Compliance Path Deleted' });
+        await deleteCompliancePath(path.id, user.id);
+        setPaths(prev => prev.filter(p => p.id !== path.id));
+        toast({ title: `Compliance Path "${path.name}" Deleted` });
       } catch (error: any) {
         toast({
           title: 'Error',
@@ -140,6 +121,13 @@ export default function CompliancePathManagement({
   };
 
   const handleSave = (savedPath: CompliancePath) => {
+    setPaths(prev => {
+        const exists = prev.some(p => p.id === savedPath.id);
+        if (exists) {
+            return prev.map(p => p.id === savedPath.id ? savedPath : p);
+        }
+        return [savedPath, ...prev];
+    })
     setIsFormOpen(false);
   };
 
@@ -232,7 +220,7 @@ export default function CompliancePathManagement({
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDelete(path.id)}
+                                    onClick={() => handleDelete(path)}
                                     disabled={isPending}
                                     className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                   >

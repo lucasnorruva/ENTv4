@@ -1,12 +1,11 @@
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ColumnDef,
   SortingState,
   ColumnFiltersState,
-
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -19,15 +18,6 @@ import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +38,7 @@ import {
 import type { Product, User } from '@/types';
 import { AuditReviewDialog } from '@/components/audit-review-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { getProducts } from '@/lib/actions';
 
 interface AuditQueueClientProps {
   user: User;
@@ -70,41 +61,31 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Pending'),
-      orderBy('updatedAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const pendingProducts = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Product,
+    getProducts(user.id)
+      .then(allProducts => {
+        const pendingProducts = allProducts.filter(
+          p => p.verificationStatus === 'Pending',
         );
         setProducts(pendingProducts);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching audit queue:', error);
+      })
+      .catch(() => {
         toast({
           title: 'Error',
           description: 'Failed to load audit queue.',
           variant: 'destructive',
         });
+      })
+      .finally(() => {
         setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
+      });
+  }, [user.id, toast]);
 
   const handleReviewClick = (product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
   };
 
-  const columns: ColumnDef<Product>[] = React.useMemo(
+  const columns: ColumnDef<Product>[] = useMemo(
     () => [
       {
         accessorKey: 'productName',

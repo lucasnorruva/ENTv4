@@ -1,17 +1,8 @@
 // src/components/product-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -31,6 +22,7 @@ import {
   deleteProduct,
   submitForReview,
   recalculateScore,
+  getProducts,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
@@ -57,50 +49,23 @@ export default function ProductManagementClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
+  const fetchProducts = useCallback(() => {
     setIsLoading(true);
-
-    const canViewAll =
-      hasRole(user, UserRoles.ADMIN) ||
-      hasRole(user, UserRoles.AUDITOR) ||
-      hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-
-    let q;
-    if (canViewAll) {
-      q = query(
-        collection(db, Collections.PRODUCTS),
-        orderBy('lastUpdated', 'desc'),
-      );
-    } else {
-      q = query(
-        collection(db, Collections.PRODUCTS),
-        where('companyId', '==', user.companyId),
-        orderBy('lastUpdated', 'desc'),
-      );
-    }
-
-    const unsubscribe = onSnapshot(
-      q,
-      snapshot => {
-        const productsData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Product,
-        );
-        setProducts(productsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching products:', error);
+    getProducts(user.id)
+      .then(setProducts)
+      .catch(() => {
         toast({
           title: 'Error',
-          description: 'Failed to load products in real-time.',
+          description: 'Failed to load products.',
           variant: 'destructive',
         });
-        setIsLoading(false);
-      },
-    );
+      })
+      .finally(() => setIsLoading(false));
+  }, [user.id, toast]);
 
-    return () => unsubscribe();
-  }, [user.id, user.companyId, user.roles, toast]);
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
@@ -120,6 +85,7 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
+    fetchProducts();
   };
 
   const handleCreateFromImage = () => {
@@ -146,6 +112,7 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await deleteProduct(id, user.id);
+        setProducts(prev => prev.filter(p => p.id !== id));
         toast({
           title: 'Product Deleted',
           description: 'The product passport has been successfully deleted.',
@@ -160,6 +127,7 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
+        setProducts(prev => prev.map(p => p.id === id ? reviewedProduct : p));
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -182,6 +150,8 @@ export default function ProductManagementClient({
           title: 'AI Recalculation Started',
           description: `AI data for "${productName}" is being updated. This may take a moment.`,
         });
+        // Optimistically set processing state
+        setProducts(prev => prev.map(p => p.id === id ? {...p, isProcessing: true} : p));
       } catch (error) {
         toast({
           title: 'Recalculation Failed',
@@ -194,6 +164,17 @@ export default function ProductManagementClient({
 
   const handleSave = (savedProduct: Product) => {
     setIsSheetOpen(false);
+    // Optimistically update the list
+    setProducts(prev => {
+        const exists = prev.some(p => p.id === savedProduct.id);
+        if (exists) {
+            return prev.map(p => p.id === savedProduct.id ? savedProduct : p);
+        }
+        return [savedProduct, ...prev];
+    });
+    // The background processing will eventually update the final state.
+    // A full refetch might be good here too.
+    setTimeout(fetchProducts, 4000); // Re-sync after AI processing delay
   };
 
   return (

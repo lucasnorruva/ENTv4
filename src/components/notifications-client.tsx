@@ -1,7 +1,7 @@
 // src/components/notifications-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   Bell,
@@ -20,16 +20,6 @@ import {
   Wrench,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  limit,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   DropdownMenu,
@@ -42,10 +32,9 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import type { User, AuditLog } from '@/types';
-import { markAllNotificationsAsRead } from '@/lib/actions';
+import { markAllNotificationsAsRead, getAuditLogs } from '@/lib/actions';
 import { getUsers } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { onCurrentUserUpdate } from '@/lib/auth-client';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -81,7 +70,9 @@ interface NotificationsClientProps {
   user: User;
 }
 
-export default function NotificationsClient({ user: initialUser }: NotificationsClientProps) {
+export default function NotificationsClient({
+  user: initialUser,
+}: NotificationsClientProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState<ProcessedNotification[]>(
@@ -90,90 +81,51 @@ export default function NotificationsClient({ user: initialUser }: Notifications
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(initialUser);
 
-  useEffect(() => {
-    const unsubscribeUser = onCurrentUserUpdate(updatedUser => {
-      if (updatedUser) {
-        setCurrentUser(updatedUser);
-      }
-    });
-
-    return () => unsubscribeUser();
-  }, []);
-
-  useEffect(() => {
+  const fetchNotifications = useCallback(async () => {
     setIsLoading(true);
-    let isMounted = true;
+    try {
+      const [allLogs, allUsers] = await Promise.all([
+        getAuditLogs({ companyId: currentUser.companyId }),
+        getUsers(),
+      ]);
 
-    async function fetchNotifications() {
-      // Need a map of users in the company for descriptions
-      const allUsers = await getUsers();
       const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
 
-      const q = query(
-        collection(db, Collections.AUDIT_LOGS),
-        where('entityId', 'in', ['global', currentUser.companyId]), // Simplified for demo
-        orderBy('createdAt', 'desc'),
-        limit(20)
-      );
+      const processedNotifications: ProcessedNotification[] = allLogs
+        .slice(0, 5)
+        .map(log => {
+          const logUser = userMap.get(log.userId) || 'System';
+          const title = getActionLabel(log.action);
+          let description = `By ${logUser}`;
 
-      const unsubscribeLogs = onSnapshot(
-        q,
-        snapshot => {
-          if (!isMounted) return;
+          const isRead =
+            currentUser.readNotificationIds?.includes(log.id) ?? false;
 
-          const recentLogs = snapshot.docs.map(
-            doc => ({ id: doc.id, ...doc.data() }) as AuditLog,
-          );
-
-          const processedNotifications: ProcessedNotification[] = recentLogs
-            .slice(0, 5)
-            .map(log => {
-              const logUser = userMap.get(log.userId) || 'System';
-              const title = getActionLabel(log.action);
-              let description = `By ${logUser}`;
-
-              const isRead =
-                currentUser.readNotificationIds?.includes(log.id) ?? false;
-
-              return {
-                id: log.id,
-                action: log.action,
-                title,
-                description,
-                createdAt: log.createdAt,
-                isRead,
-              };
-            });
-
-          setNotifications(processedNotifications);
-          setIsLoading(false);
-        },
-        error => {
-          console.error("Error fetching notifications:", error);
-          if (isMounted) {
-            toast({
-              title: 'Error',
-              description: 'Failed to load notifications.',
-              variant: 'destructive',
-            });
-            setIsLoading(false);
-          }
-        },
-      );
-
-      return () => {
-        isMounted = false;
-        unsubscribeLogs();
-      };
+          return {
+            id: log.id,
+            action: log.action,
+            title,
+            description,
+            createdAt: log.createdAt,
+            isRead,
+          };
+        });
+      setNotifications(processedNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load notifications.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    fetchNotifications();
-
-    return () => {
-      isMounted = false;
-    };
   }, [currentUser.companyId, currentUser.readNotificationIds, toast]);
 
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -182,7 +134,15 @@ export default function NotificationsClient({ user: initialUser }: Notifications
       startTransition(async () => {
         try {
           await markAllNotificationsAsRead(currentUser.id);
-          // Real-time listener on user doc will handle the optimistic update
+          // Optimistically mark all as read
+          setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+          setCurrentUser(prev => ({
+            ...prev,
+            readNotificationIds: [
+              ...(prev.readNotificationIds || []),
+              ...notifications.map(n => n.id),
+            ],
+          }));
         } catch (error) {
           toast({
             title: 'Error',
