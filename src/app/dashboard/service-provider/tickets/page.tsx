@@ -3,6 +3,14 @@
 
 import React, { useState, useTransition, useEffect } from 'react';
 import { MoreHorizontal, Plus, Loader2, Edit, Ticket } from 'lucide-react';
+import {
+  collection,
+  query,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -34,7 +42,6 @@ import { useToast } from '@/hooks/use-toast';
 import {
   updateServiceTicketStatus,
   getProducts,
-  getServiceTickets,
 } from '@/lib/actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { format } from 'date-fns';
@@ -53,37 +60,55 @@ export default function ServiceTicketsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    async function fetchInitialData() {
-      setIsLoading(true);
+    async function fetchUserAndProducts() {
       try {
         const currentUser = await getCurrentUser();
         if (!currentUser) throw new Error('User not found');
         setUser(currentUser);
-        const [fetchedProducts, fetchedTickets] = await Promise.all([
-          getProducts(currentUser.id),
-          getServiceTickets(),
-        ]);
-
+        const fetchedProducts = await getProducts(currentUser.id);
         setProducts(fetchedProducts);
-        setTickets(
-          fetchedTickets.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() -
-              new Date(a.createdAt).getTime(),
-          ),
-        );
       } catch (error) {
         toast({
           title: 'Error',
-          description: 'Failed to load initial data.',
+          description: 'Failed to load user and product data.',
           variant: 'destructive',
         });
-      } finally {
-        setIsLoading(false);
       }
     }
-    fetchInitialData();
-  }, [toast, isPending]); // Re-fetch on actions
+    fetchUserAndProducts();
+  }, [toast]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.SERVICE_TICKETS),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const ticketsData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as ServiceTicket,
+        );
+        setTickets(ticketsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching service tickets:', error);
+        toast({
+          title: 'Real-time Error',
+          description: 'Failed to listen for service ticket updates.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user, toast]);
 
   const handleCreateNew = () => {
     setSelectedTicket(null);
@@ -118,6 +143,7 @@ export default function ServiceTicketsPage() {
   };
 
   const handleSave = () => {
+    // Real-time listener handles the update, just close the form
     setIsFormOpen(false);
   };
 
@@ -135,7 +161,7 @@ export default function ServiceTicketsPage() {
     }
   };
 
-  if (!user) {
+  if (!user || (isLoading && tickets.length === 0)) {
     return (
       <div className="flex justify-center items-center h-full">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -161,7 +187,7 @@ export default function ServiceTicketsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoading && tickets.length === 0 ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
