@@ -5,8 +5,10 @@ import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
+  let user;
+  const endpoint = '/api/v1/products';
   try {
-    const user = await authenticateApiRequest();
+    user = await authenticateApiRequest();
     const products = await getProducts(user.id);
     const productsWithLinks = products.map(product => ({
       ...product,
@@ -14,52 +16,94 @@ export async function GET(request: NextRequest) {
         self: { href: `/api/v1/products/${product.id}` },
       },
     }));
+    await logAuditEvent(
+      'api.get',
+      'all_products',
+      { endpoint, status: 200, method: 'GET' },
+      user.id,
+    );
     return NextResponse.json(productsWithLinks);
   } catch (error: any) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    // Don't log if user context is missing
+    if (user) {
+      await logAuditEvent(
+        'api.get',
+        'all_products',
+        { endpoint, status: 500, error: error.message, method: 'GET' },
+        user.id,
+      );
+    }
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   let user;
+  const endpoint = '/api/v1/products';
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
-     if (error instanceof PermissionError) {
+    if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 
-  const endpoint = '/api/v1/products';
   const body = await request.json();
 
   try {
     const newProduct = await saveProduct(body, user.id);
-    await logAuditEvent('api.post', newProduct.id, { endpoint, status: 201, method: 'POST' }, user.id);
+    await logAuditEvent(
+      'api.post',
+      newProduct.id,
+      { endpoint, status: 201, method: 'POST' },
+      user.id,
+    );
     const productWithLinks = {
-        ...newProduct,
-        _links: {
-          self: { href: `/api/v1/products/${newProduct.id}` },
-        },
+      ...newProduct,
+      _links: {
+        self: { href: `/api/v1/products/${newProduct.id}` },
+      },
     };
     return NextResponse.json(productWithLinks, { status: 201 });
   } catch (error: any) {
     if (error instanceof PermissionError) {
+      await logAuditEvent(
+        'api.post',
+        'N/A',
+        { endpoint, status: 403, error: error.message, method: 'POST' },
+        user.id,
+      );
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     if (error.name === 'ZodError') {
-      await logAuditEvent('api.post', 'N/A', { endpoint, status: 400, error: 'Invalid data', method: 'POST' }, user.id);
+      await logAuditEvent(
+        'api.post',
+        'N/A',
+        { endpoint, status: 400, error: 'Invalid data', method: 'POST' },
+        user.id,
+      );
       return NextResponse.json(
         { message: 'Invalid data provided', details: error.errors },
         { status: 400 },
       );
     }
     console.error('API Product Creation Error:', error);
-    await logAuditEvent('api.post', 'N/A', { endpoint, status: 500, error: 'Internal Server Error', method: 'POST' }, user.id);
+    await logAuditEvent(
+      'api.post',
+      'N/A',
+      { endpoint, status: 500, error: 'Internal Server Error', method: 'POST' },
+      user.id,
+    );
     return NextResponse.json(
       { message: 'Internal Server Error', error: error.message },
       { status: 500 },

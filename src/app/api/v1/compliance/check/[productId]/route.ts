@@ -2,93 +2,97 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import {
   getProductById,
-  getCompliancePathById,
+  runComplianceCheck,
   logAuditEvent,
 } from '@/lib/actions';
-import type { User } from '@/types';
-import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import type { AiProduct } from '@/ai/schemas';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
-
 
 export async function POST(
   request: NextRequest,
   { params }: { params: { productId: string } },
 ) {
   let user;
+  const endpoint = `/api/v1/compliance/check/${params.productId}`;
+
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
     if (error instanceof PermissionError) {
+      // Assuming no user context if auth fails, logging as 'system' or not at all.
+      // For this case, let's skip logging as we don't have a user context.
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
-
-  const endpoint = `/api/v1/compliance/check/${params.productId}`;
 
   try {
     const product = await getProductById(params.productId, user.id);
     if (!product) {
+      await logAuditEvent(
+        'api.compliance.check',
+        params.productId,
+        { error: 'Product not found', endpoint, method: 'POST', status: 404 },
+        user.id,
+      );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     if (!product.compliancePathId) {
+      await logAuditEvent(
+        'api.compliance.check',
+        params.productId,
+        {
+          error: 'Product has no compliance path assigned',
+          endpoint,
+          method: 'POST',
+          status: 400,
+        },
+        user.id,
+      );
       return NextResponse.json(
         { error: 'Product has no compliance path assigned' },
         { status: 400 },
       );
     }
 
-    const compliancePath = await getCompliancePathById(product.compliancePathId);
-    if (!compliancePath) {
-      return NextResponse.json(
-        { error: `Compliance path ${product.compliancePathId} not found` },
-        { status: 400 },
-      );
-    }
+    // Trigger the background check. This is an async process.
+    await runComplianceCheck(product.id, user.id);
 
-    const aiProductInput: AiProduct = {
-      productName: product.productName,
-      productDescription: product.productDescription,
-      category: product.category,
-      supplier: product.supplier,
-      materials: product.materials,
-      gtin: product.gtin,
-      manufacturing: product.manufacturing,
-      certifications: product.certifications,
-      packaging: product.packaging,
-      lifecycle: product.lifecycle,
-      battery: product.battery,
-      compliance: product.compliance,
-      verificationStatus: product.verificationStatus ?? 'Not Submitted',
-      complianceSummary: product.sustainability?.complianceSummary,
+    // The API returns immediately to not block the client.
+    const response = {
+      productId: product.id,
+      status: 'In Progress',
+      summary:
+        'Compliance check has been initiated. The results will be available shortly.',
     };
-
-    const result = await summarizeComplianceGaps({
-      product: aiProductInput,
-      compliancePath: compliancePath,
-    });
 
     await logAuditEvent(
       'api.compliance.check',
       product.id,
-      { result, endpoint, method: 'POST', status: 200 },
+      {
+        result: 'initiated',
+        endpoint,
+        method: 'POST',
+        status: 202,
+      },
       user.id,
     );
 
-    return NextResponse.json({
-      productId: product.id,
-      status: result.isCompliant ? 'Verified' : 'Failed',
-      summary: result.complianceSummary,
-      gaps: result.gaps,
-    });
+    return NextResponse.json(response, { status: 202 });
   } catch (error: any) {
     console.error('API Compliance Check Error:', error);
     await logAuditEvent(
       'api.compliance.check',
       params.productId,
-      { error: 'Internal Server Error', endpoint, method: 'POST', status: 500 },
+      {
+        error: 'Internal Server Error',
+        endpoint,
+        method: 'POST',
+        status: 500,
+      },
       user.id,
     );
     return NextResponse.json(

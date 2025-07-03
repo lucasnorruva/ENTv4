@@ -35,7 +35,8 @@ export default async function ApiLogsPage() {
   const getStatusVariant = (status: number) => {
     if (status >= 500) return 'destructive';
     if (status >= 400) return 'secondary';
-    return 'default';
+    if (status >= 200 && status < 300) return 'default';
+    return 'outline';
   };
 
   return (

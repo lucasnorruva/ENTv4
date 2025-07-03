@@ -106,17 +106,17 @@ Deletes a product passport.
 
 #### `POST /api/v1/compliance/check/{productId}`
 
-Triggers an on-demand compliance check for a specific product.
+Triggers an on-demand, asynchronous compliance check for a specific product.
 
 -   **Method**: `POST`
 -   **URL Parameters**:
     -   `productId`: The ID of the product to check.
--   **Success Response**: `200 OK`
+-   **Success Response**: `202 Accepted`
     ```json
     {
       "productId": "pp-001",
-      "status": "Verified",
-      "summary": "Product is compliant with all known rules for its category."
+      "status": "In Progress",
+      "summary": "Compliance check has been initiated. The results will be available shortly."
     }
     ```
 
@@ -163,7 +163,7 @@ Deletes a webhook endpoint.
 
 ## GraphQL API
 
-In addition to our REST API, we offer a GraphQL endpoint for more flexible data queries.
+In addition to our REST API, we offer a GraphQL endpoint for more flexible data queries. This is ideal for complex data retrieval, such as fetching a product along with its full compliance history and nested materials in a single request.
 
 - **Endpoint**: `/api/graphql`
 - **Method**: `POST`
@@ -173,11 +173,15 @@ You can use a GraphQL client to interact with this endpoint. It supports introsp
 ### Example Query
 
 ```graphql
-query GetProducts {
+query GetProductsAndCompliance {
   products {
     id
     productName
     status
+    sustainability {
+      isCompliant
+      complianceSummary
+    }
   }
 }
 ```

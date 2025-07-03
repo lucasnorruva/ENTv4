@@ -17,6 +17,7 @@ export const typeDefs = gql`
   input ProductInput {
     productName: String!
     productDescription: String!
+    productImage: String
     category: String!
     status: String!
     gtin: String
