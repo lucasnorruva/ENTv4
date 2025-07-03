@@ -805,7 +805,7 @@ export async function markAsRecycled(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
-  const product = await getProductById(productId, user.id);
+  const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recycle', product);
