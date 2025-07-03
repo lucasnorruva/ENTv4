@@ -151,7 +151,7 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                         <p className="font-semibold text-foreground">
                             {record.notes}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
                             Serviced by {record.providerName} on{' '}
                             {format(
                             new Date(record.createdAt),

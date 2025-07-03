@@ -1,13 +1,8 @@
 // src/triggers/scheduled-syncs.ts
 "use server";
 
-import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/lib/actions";
+import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/actions/index";
 
-/**
- * Runs a daily job to sync reference data, like new compliance rules.
- * This function is designed to be triggered by a scheduled cron job.
- * It simulates fetching updates by modifying the in-memory mock data.
- */
 export async function runDailyReferenceDataSync(): Promise<{
   syncedItems: number;
   updatedRegulations: string[];
@@ -21,12 +16,9 @@ export async function runDailyReferenceDataSync(): Promise<{
     return { syncedItems: 0, updatedRegulations: [], details: "No paths found." };
   }
 
-  // Simulate updating one of the compliance paths.
-  // In a real scenario, this would fetch from an external source.
   const pathIndexToUpdate = Math.floor(Math.random() * compliancePaths.length);
   const pathToUpdate = compliancePaths[pathIndexToUpdate];
   
-  // Let's tighten the ESG score requirement
   const oldScore = pathToUpdate.rules.minSustainabilityScore || 0;
   const newScore = Math.min(100, oldScore + 1);
   
@@ -34,10 +26,10 @@ export async function runDailyReferenceDataSync(): Promise<{
       name: pathToUpdate.name,
       description: pathToUpdate.description,
       category: pathToUpdate.category,
-      regulations: pathToUpdate.regulations.join(', '),
+      regulations: pathToUpdate.regulations.map(r => ({value: r})),
       minSustainabilityScore: newScore,
-      requiredKeywords: pathToUpdate.rules.requiredKeywords?.join(', '),
-      bannedKeywords: pathToUpdate.rules.bannedKeywords?.join(', ')
+      requiredKeywords: pathToUpdate.rules.requiredKeywords?.map(r => ({value: r})),
+      bannedKeywords: pathToUpdate.rules.bannedKeywords?.map(r => ({value: r})),
   }
 
   await saveCompliancePath(updatedValues, "system", pathToUpdate.id);

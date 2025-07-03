@@ -7,15 +7,9 @@ import {
   rejectPassport,
   logAuditEvent,
   getCompliancePaths,
-} from '@/lib/actions';
+} from '@/actions/index';
 import { verifyProductAgainstPath } from '@/services/compliance';
 
-/**
- * Runs a daily compliance check on all products.
- * This function is designed to be triggered by a scheduled cron job.
- * It processes pending products and also re-scans verified products
- * to ensure ongoing compliance.
- */
 export async function runDailyComplianceCheck(): Promise<{
   processed: number;
   passed: number;

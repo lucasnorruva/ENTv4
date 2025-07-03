@@ -2,19 +2,13 @@
 'use server';
 
 import type { Product, Webhook } from '@/types';
-import { getApiSettings, logAuditEvent } from '@/lib/actions';
+import { getApiSettings } from '@/actions/index';
+import { logAuditEvent } from '@/actions/index';
 import { createHmac } from 'crypto';
 
-// In a real app, this would be a securely stored secret from a secret manager.
 const WEBHOOK_SECRET =
   process.env.WEBHOOK_SECRET || 'mock-secret-for-development';
 
-/**
- * Sends a webhook notification to a specified URL.
- * @param webhook The webhook configuration object.
- * @param event The name of the event being triggered.
- * @param payload The data payload to send with the webhook.
- */
 export async function sendWebhook(
   webhook: Webhook,
   event: string,
@@ -76,7 +70,7 @@ export async function sendWebhook(
       webhook.id,
       {
         event,
-        statusCode: 500, // Generic server error for network failure
+        statusCode: 500,
         error: (error as Error).message,
         productId: payload.id,
         url,
