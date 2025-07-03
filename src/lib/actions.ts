@@ -77,7 +77,7 @@ import { apiSettings as mockApiSettings } from './api-settings-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { webhooks as mockWebhooks } from './webhook-data';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { runDataValidationCheck } from '@/triggers/on-product-change';
+import { runDataValidationCheck as processProductAi } from '@/triggers/on-product-change';
 
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
@@ -382,7 +382,7 @@ export async function saveProduct(
     const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
     if (productIndex !== -1) {
       const { sustainability, qrLabelText, dataQualityWarnings } =
-        await runDataValidationCheck(savedProduct);
+        await processProductAi(savedProduct);
       mockProducts[productIndex].sustainability = sustainability;
       mockProducts[productIndex].qrLabelText = qrLabelText;
       mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
@@ -448,30 +448,69 @@ export async function recalculateScore(
   checkPermission(user, 'product:recalculate', product);
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
+  if (productIndex === -1) throw new Error('Product not found in mock data');
 
+  // Set processing to true immediately for optimistic UI update
   mockProducts[productIndex].isProcessing = true;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  // Simulate AI processing delay
-  setTimeout(async () => {
-    const productToProcess = mockProducts[productIndex];
-    if (productToProcess) {
-      const { sustainability, qrLabelText, dataQualityWarnings } =
-        await runDataValidationCheck(productToProcess);
-      mockProducts[productIndex].sustainability = sustainability;
-      mockProducts[productIndex].qrLabelText = qrLabelText;
-      mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
-      mockProducts[productIndex].isProcessing = false;
-      console.log(`Recalculation finished for ${product.id}`);
-    }
-  }, 3000);
-
-  await logAuditEvent('product.recalculate_score', productId, {}, userId);
+  await logAuditEvent(
+    'product.recalculate_score.started',
+    productId,
+    {},
+    userId,
+  );
   console.log(`Product ${productId} marked for score recalculation.`);
+
+  // Simulate AI processing in the background
+  setTimeout(async () => {
+    try {
+      const productToProcess = mockProducts[productIndex];
+      if (productToProcess) {
+        console.log(`AI processing started for ${product.id}`);
+        const { sustainability, qrLabelText, dataQualityWarnings } =
+          await processProductAi(productToProcess);
+
+        // Find the index again in case the array has changed
+        const currentIndex = mockProducts.findIndex(p => p.id === productId);
+        if (currentIndex !== -1) {
+          mockProducts[currentIndex].sustainability = sustainability;
+          mockProducts[currentIndex].qrLabelText = qrLabelText;
+          mockProducts[currentIndex].dataQualityWarnings = dataQualityWarnings;
+          mockProducts[currentIndex].isProcessing = false;
+          mockProducts[currentIndex].lastUpdated = new Date().toISOString();
+          await logAuditEvent(
+            'product.recalculate_score.success',
+            productId,
+            {},
+            userId,
+          );
+          console.log(`AI processing finished for ${product.id}`);
+        }
+      }
+    } catch (error) {
+      console.error(`AI processing failed for ${product.id}:`, error);
+      const currentIndex = mockProducts.findIndex(p => p.id === productId);
+      if (currentIndex !== -1) {
+        mockProducts[currentIndex].isProcessing = false;
+        mockProducts[currentIndex].lastUpdated = new Date().toISOString();
+      }
+      await logAuditEvent(
+        'product.recalculate_score.failed',
+        productId,
+        { error: (error as Error).message },
+        userId,
+      );
+    }
+  }, 3000); // 3 second delay to simulate processing
+
   return Promise.resolve();
 }
 
-export async function runComplianceCheck(productId: string, userId: string) {
+export async function runComplianceCheck(
+  productId: string,
+  userId: string,
+): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
   const product = await getProductById(productId, user.id);
@@ -527,7 +566,6 @@ export async function runComplianceCheck(productId: string, userId: string) {
       complianceSummary: complianceResult.complianceSummary,
       gaps: complianceResult.gaps,
     },
-    isProcessing: false,
     lastUpdated: new Date().toISOString(),
   };
 

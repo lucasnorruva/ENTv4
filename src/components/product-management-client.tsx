@@ -3,6 +3,16 @@
 
 import React, { useState, useTransition, useEffect } from 'react';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
@@ -29,18 +39,17 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
-  initialProducts: Product[];
   compliancePaths: CompliancePath[];
   initialFilter?: string;
 }
 
 export default function ProductManagementClient({
   user,
-  initialProducts,
   compliancePaths,
   initialFilter,
 }: ProductManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
@@ -49,8 +58,49 @@ export default function ProductManagementClient({
   const { toast } = useToast();
 
   useEffect(() => {
-    setProducts(initialProducts);
-  }, [initialProducts]);
+    setIsLoading(true);
+
+    const canViewAll =
+      hasRole(user, UserRoles.ADMIN) ||
+      hasRole(user, UserRoles.AUDITOR) ||
+      hasRole(user, UserRoles.COMPLIANCE_MANAGER);
+
+    let q;
+    if (canViewAll) {
+      q = query(
+        collection(db, Collections.PRODUCTS),
+        orderBy('lastUpdated', 'desc'),
+      );
+    } else {
+      q = query(
+        collection(db, Collections.PRODUCTS),
+        where('companyId', '==', user.companyId),
+        orderBy('lastUpdated', 'desc'),
+      );
+    }
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const productsData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Product,
+        );
+        setProducts(productsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching products:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load products in real-time.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user.id, user.companyId, user.roles, toast]);
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
@@ -88,8 +138,6 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await deleteProduct(id, user.id);
-        const updatedProducts = products.filter(p => p.id !== id);
-        setProducts(updatedProducts);
         toast({
           title: 'Product Deleted',
           description: 'The product passport has been successfully deleted.',
@@ -104,10 +152,6 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
-        const updatedProducts = products.map(p =>
-          p.id === id ? reviewedProduct : p,
-        );
-        setProducts(updatedProducts);
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -126,13 +170,9 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await recalculateScore(id, user.id);
-        const updatedProducts = products.map(p =>
-          p.id === id ? { ...p, isProcessing: true } : p,
-        );
-        setProducts(updatedProducts);
         toast({
           title: 'AI Recalculation Started',
-          description: `AI data for "${productName}" is being updated. This is a mock process.`,
+          description: `AI data for "${productName}" is being updated. This may take a moment.`,
         });
       } catch (error) {
         toast({
@@ -145,22 +185,10 @@ export default function ProductManagementClient({
   };
 
   const handleSave = (savedProduct: Product) => {
-    setProducts(prevProducts => {
-      const exists = prevProducts.some(p => p.id === savedProduct.id);
-      if (exists) {
-        return prevProducts.map(p =>
-          p.id === savedProduct.id ? savedProduct : p,
-        );
-      }
-      return [savedProduct, ...prevProducts];
-    });
     setIsSheetOpen(false);
   };
 
   const handleImportSave = () => {
-    // In a real app with a database, we'd refetch or get the new products.
-    // For this mock, we'll just close and let the user see the new products on next load/sort.
-    // A better implementation would involve returning the created products from the action.
     toast({
       title: 'Import in Progress',
       description: 'New products will appear in the table shortly.',
@@ -198,6 +226,7 @@ export default function ProductManagementClient({
           <ProductTable
             products={products}
             user={user}
+            isLoading={isLoading}
             onEdit={handleEdit}
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}

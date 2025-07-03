@@ -73,6 +73,7 @@ import { UserRoles } from "@/lib/constants";
 interface ProductTableProps {
   products: Product[];
   user: User;
+  isLoading: boolean;
   onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
@@ -83,6 +84,7 @@ interface ProductTableProps {
 export default function ProductTable({
   products,
   user,
+  isLoading,
   onEdit,
   onDelete,
   onSubmitForReview,
@@ -260,9 +262,12 @@ export default function ProductTable({
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link href={`/products/${product.id}`} target="_blank">
+                  <Link
+                    href={`/dashboard/${roleSlug}/products/${product.id}`}
+                    target="_blank"
+                  >
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    View Public Passport
+                    View Details Page
                   </Link>
                 </DropdownMenuItem>
                 {canEdit && (
@@ -414,7 +419,16 @@ export default function ProductTable({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-48 text-center"
+                >
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
