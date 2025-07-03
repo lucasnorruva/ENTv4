@@ -25,9 +25,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Bot, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveCompliancePath } from '@/lib/actions';
+import { saveCompliancePath, generateCompliancePathRules } from '@/lib/actions';
 import {
   compliancePathFormSchema,
   type CompliancePathFormValues,
@@ -106,6 +106,7 @@ export default function CompliancePathForm({
   user,
 }: CompliancePathFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
+  const [isGenerating, startGenerationTransition] = useTransition();
   const { toast } = useToast();
 
   const form = useForm<CompliancePathFormValues>({
@@ -163,6 +164,56 @@ export default function CompliancePathForm({
         toast({
           title: 'Error',
           description: 'Failed to save the compliance path.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
+  const handleGenerateRules = () => {
+    const { name, regulations } = form.getValues();
+    if (!name || regulations.length === 0 || !regulations[0].value) {
+      toast({
+        title: 'Input Required',
+        description:
+          'Please provide a path name and at least one regulation before generating rules.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    startGenerationTransition(async () => {
+      try {
+        const result = await generateCompliancePathRules(
+          name,
+          regulations.map(r => r.value).filter(Boolean),
+          user.id,
+        );
+        if (result.minSustainabilityScore) {
+          form.setValue(
+            'minSustainabilityScore',
+            result.minSustainabilityScore,
+          );
+        }
+        if (result.requiredKeywords) {
+          form.setValue(
+            'requiredKeywords',
+            result.requiredKeywords.map(v => ({ value: v })),
+          );
+        }
+        if (result.bannedKeywords) {
+          form.setValue(
+            'bannedKeywords',
+            result.bannedKeywords.map(v => ({ value: v })),
+          );
+        }
+        toast({
+          title: 'Rules Generated',
+          description: 'AI-suggested rules have been populated in the form.',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to generate rules.',
           variant: 'destructive',
         });
       }
@@ -230,7 +281,23 @@ export default function CompliancePathForm({
               )}
             />
             <Separator />
-            <h4 className="text-md font-semibold pt-2">Rules</h4>
+            <div className="flex justify-between items-center pt-2">
+              <h4 className="text-md font-semibold">Rules</h4>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleGenerateRules}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Bot className="mr-2 h-4 w-4" />
+                )}
+                Generate with AI
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FieldArrayInput
                 form={form}

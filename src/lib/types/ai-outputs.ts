@@ -5,7 +5,6 @@
  * particularly in the main `types/index.ts` file.
  */
 
-import type { z } from "zod";
 import type {
   CalculateSustainabilityInput,
   EsgScoreOutput,
@@ -47,6 +46,10 @@ import type {
   CreateProductFromImageInput,
   CreateProductFromImageOutput,
 } from "@/ai/flows/create-product-from-image";
+import type {
+  GenerateComplianceRulesInput,
+  GenerateComplianceRulesOutput,
+} from "@/ai/flows/generate-compliance-rules";
 
 // Export Input types
 export type {
@@ -60,6 +63,7 @@ export type {
   AnalyzeBomInput,
   GenerateProductImageInput,
   CreateProductFromImageInput,
+  GenerateComplianceRulesInput,
 };
 
 // Export Output types
@@ -75,4 +79,5 @@ export type {
   AnalyzeBomOutput,
   GenerateProductImageOutput,
   CreateProductFromImageOutput,
+  GenerateComplianceRulesOutput,
 };

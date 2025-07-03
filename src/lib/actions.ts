@@ -84,6 +84,7 @@ import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { validateProductData } from '@/ai/flows/validate-product-data';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
+import { generateComplianceRules as generateComplianceRulesFlow } from '@/ai/flows/generate-compliance-rules';
 
 // Helper for mock data manipulation
 const newId = (prefix: string) =>
@@ -1470,6 +1471,22 @@ export async function deleteCompliancePath(
     await logAuditEvent('compliance_path.deleted', pathId, {}, userId);
   }
   return Promise.resolve();
+}
+
+export async function generateCompliancePathRules(
+  name: string,
+  regulations: string[],
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'compliance:manage');
+
+  if (!name || regulations.length === 0) {
+    throw new Error('Path name and at least one regulation are required.');
+  }
+
+  return await generateComplianceRulesFlow({ name, regulations });
 }
 
 export async function getAuditLogs(filters?: {
