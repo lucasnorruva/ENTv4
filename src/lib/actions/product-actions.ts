@@ -7,7 +7,7 @@ import type {
   ServiceRecord,
   SustainabilityData,
 } from '@/types';
-import { productFormSchema, type ProductFormValues, bulkProductImportSchema } from '@/schemas';
+import { productFormSchema, type ProductFormValues, bulkProductImportSchema } from '../schemas';
 import {
   anchorToPolygon,
   generateEbsiCredential,

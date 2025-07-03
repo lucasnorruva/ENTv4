@@ -10,7 +10,7 @@ import {
   CompanyFormValues,
   onboardingFormSchema,
   OnboardingFormValues,
-} from '@/schemas';
+} from '../schemas';
 import { getUserById, getCompanyById } from '@/auth';
 import { checkPermission, PermissionError } from '@/permissions';
 import { users as mockUsers } from '@/user-data';

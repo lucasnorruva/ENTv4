@@ -7,7 +7,7 @@ import {
   ServiceTicketFormValues,
   supportTicketFormSchema,
   SupportTicketFormValues,
-} from '@/schemas';
+} from '../schemas';
 import { getUserById } from '@/auth';
 import { hasRole } from '@/auth-utils';
 import { checkPermission, PermissionError } from '@/permissions';

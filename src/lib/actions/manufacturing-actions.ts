@@ -5,7 +5,7 @@ import type { ProductionLine } from '@/types';
 import {
   productionLineFormSchema,
   ProductionLineFormValues,
-} from '@/schemas';
+} from '../schemas';
 import { productionLines as mockProductionLines } from '@/manufacturing-data';
 import { getUserById } from '@/auth';
 import { checkPermission } from '@/permissions';

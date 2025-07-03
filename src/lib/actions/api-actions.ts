@@ -9,7 +9,7 @@ import {
   WebhookFormValues,
   apiKeyFormSchema,
   ApiKeyFormValues,
-} from '@/schemas';
+} from '../schemas';
 import { getUserById } from '@/auth';
 import { hasRole } from '@/auth-utils';
 import { UserRoles } from '@/constants';

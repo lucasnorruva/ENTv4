@@ -5,7 +5,7 @@ import type { CompliancePath } from '@/types';
 import {
   compliancePathFormSchema,
   type CompliancePathFormValues,
-} from '@/schemas';
+} from '../schemas';
 import { compliancePaths as mockCompliancePaths } from '@/compliance-data';
 import { getUserById } from '@/auth';
 import { checkPermission, PermissionError } from '@/permissions';
