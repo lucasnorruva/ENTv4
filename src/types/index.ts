@@ -25,6 +25,8 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: Role[];
+  onboardingComplete: boolean;
+  isMfaEnabled: boolean;
   readNotificationIds?: string[];
 }
 
@@ -34,6 +36,7 @@ export interface User extends BaseEntity {
 export interface Company extends BaseEntity {
   name: string;
   ownerId: string; // ID of the user who created the company
+  industry?: string;
 }
 
 // --- PRODUCT DATA STRUCTURES ---
@@ -127,7 +130,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
-  conformityDocUrl?: string;
+  declarationOfConformity?: string;
 
   // Structured Data Fields
   materials: Material[];
@@ -191,6 +194,19 @@ export interface ServiceTicket extends BaseEntity {
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
+  imageUrl?: string;
+}
+
+/**
+ * Represents a platform support ticket submitted by a user.
+ */
+export interface SupportTicket extends BaseEntity {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: 'Open' | 'Closed';
+  userId?: string; // Optional, for logged-in users
 }
 
 /**
