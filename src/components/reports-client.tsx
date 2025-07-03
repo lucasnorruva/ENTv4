@@ -1,7 +1,7 @@
 // src/components/reports-client.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { Calendar as CalendarIcon, Download, Loader2 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
@@ -26,18 +26,24 @@ import {
 } from '@/components/ui/card';
 
 export default function ReportsClient() {
-  const [complianceDate, setComplianceDate] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 29),
-    to: new Date(),
-  });
-  const [auditDate, setAuditDate] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 29),
-    to: new Date(),
-  });
+  const [complianceDate, setComplianceDate] = useState<DateRange | undefined>();
+  const [auditDate, setAuditDate] = useState<DateRange | undefined>();
 
   const [isGenerating, startTransition] = useTransition();
   const [generatingType, setGeneratingType] = useState<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const today = new Date();
+    setComplianceDate({
+      from: subDays(today, 29),
+      to: today,
+    });
+    setAuditDate({
+      from: subDays(today, 29),
+      to: today,
+    });
+  }, []);
 
   const handleDownload = (content: string, fileName: string) => {
     const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
