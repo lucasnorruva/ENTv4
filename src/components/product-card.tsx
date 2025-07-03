@@ -44,7 +44,7 @@ export default function ProductCard({ product, roleSlug }: ProductCardProps) {
             data-ai-hint="product photo"
           />
         </div>
-        <CardTitle className="text-lg line-clamp-2">
+        <CardTitle className="text-base font-semibold leading-snug line-clamp-2 h-10">
           {product.productName}
         </CardTitle>
         <p className="text-sm text-muted-foreground">by {product.supplier}</p>

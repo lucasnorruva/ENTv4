@@ -6,9 +6,17 @@ import type { Product, User } from '@/types';
 import { getProducts } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Loader2, Search, ShoppingBag } from 'lucide-react';
+import { Loader2, Search, ShoppingBag, Sparkles } from 'lucide-react';
 import ProductCard from './product-card';
 import { useSearchParams } from 'next/navigation';
+import { Separator } from './ui/separator';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 // Debounce hook to delay fetching data while user is typing
 function useDebounce<T>(value: T, delay: number): T {
@@ -52,8 +60,6 @@ export default function ProductCatalogClient({
     setIsLoading(true);
     getProducts(user.id, { searchQuery: debouncedSearchTerm })
       .then(data => {
-        // The filtering to 'Published' is now handled by the server action for public queries,
-        // but we keep it here as a safeguard for authenticated roles like retailer.
         setProducts(data.filter(p => p.status === 'Published'));
       })
       .catch(() => {
@@ -68,8 +74,17 @@ export default function ProductCatalogClient({
       });
   }, [user.id, debouncedSearchTerm, toast]);
 
+  const recentProducts = [...products]
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
+    .slice(0, 10);
+
+  const otherProducts = products.slice(10);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -88,14 +103,56 @@ export default function ProductCatalogClient({
           <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
         </div>
       ) : products.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map(product => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              roleSlug={roleSlug}
-            />
-          ))}
+        <div className="space-y-8">
+          {recentProducts.length > 0 && debouncedSearchTerm.length === 0 && (
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Recently Added
+              </h2>
+              <Carousel
+                opts={{
+                  align: 'start',
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {recentProducts.map(product => (
+                    <CarouselItem
+                      key={product.id}
+                      className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                    >
+                      <div className="p-1">
+                        <ProductCard product={product} roleSlug={roleSlug} />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious />
+                <CarouselNext />
+              </Carousel>
+              <Separator className="my-8" />
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {debouncedSearchTerm.length > 0
+              ? products.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    roleSlug={roleSlug}
+                  />
+                ))
+              : otherProducts.map(product => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    roleSlug={roleSlug}
+                  />
+                ))}
+          </div>
         </div>
       ) : (
         <div className="text-center py-16 text-muted-foreground bg-muted rounded-lg">
