@@ -6,6 +6,16 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -15,7 +25,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveComplianceIssue, getProducts } from '@/lib/actions';
+import { resolveComplianceIssue } from '@/lib/actions';
 import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {
@@ -32,22 +42,34 @@ export default function FlaggedProductsClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const fetchFlaggedProducts = async () => {
-      try {
-        const allProducts = await getProducts();
-        setProducts(allProducts.filter(p => p.verificationStatus === 'Failed'));
-      } catch (error) {
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Failed'),
+      orderBy('lastVerificationDate', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const flaggedProducts = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Product,
+        );
+        setProducts(flaggedProducts);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching flagged products:', error);
         toast({
           title: 'Error',
           description: 'Could not load flagged products.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
-    fetchFlaggedProducts();
-  }, [toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleResolve = (productId: string) => {
     startTransition(async () => {
@@ -107,7 +129,10 @@ export default function FlaggedProductsClient({
               </TableCell>
               <TableCell className="text-right">
                 <Button asChild variant="outline" size="sm" className="mr-2">
-                  <Link href={`/dashboard/compliance-manager/products/${product.id}`} target="_blank">
+                  <Link
+                    href={`/dashboard/compliance-manager/products/${product.id}`}
+                    target="_blank"
+                  >
                     View Details
                   </Link>
                 </Button>

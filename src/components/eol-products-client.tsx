@@ -3,6 +3,15 @@
 
 import React, { useState, useTransition, useEffect } from 'react';
 import {
+  collection,
+  query,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
+import {
   Card,
   CardContent,
   CardDescription,
@@ -20,7 +29,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import type { Product, User } from '@/types';
-import { markAsRecycled, getProducts } from '@/lib/actions';
+import { markAsRecycled } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Recycle } from 'lucide-react';
 
@@ -37,23 +46,33 @@ export default function EolProductsClient({ user }: EolProductsClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const fetchProducts = async () => {
-      try {
-        const data = await getProducts(user.id);
-        setProducts(data);
-      } catch (error) {
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      orderBy('lastUpdated', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const productsData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Product,
+        );
+        setProducts(productsData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching EOL products:', error);
         toast({
           title: 'Error',
           description: 'Failed to load product data.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
+      },
+    );
 
-    fetchProducts();
-  }, [user.id, toast, isPending]);
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleMarkAsRecycled = (productId: string) => {
     if (!user) return;
@@ -86,75 +105,74 @@ export default function EolProductsClient({ user }: EolProductsClientProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Current EOL Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-48">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={4}
-                  className="h-48 text-center"
-                >
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-                </TableCell>
+                <TableHead>Product</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Current EOL Status</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
-            ) : products.length > 0 ? (
-              products.map(product => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">
-                    {product.productName}
-                  </TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        product.endOfLifeStatus === 'Recycled'
-                          ? 'default'
-                          : 'secondary'
-                      }
-                    >
-                      {product.endOfLifeStatus ?? 'Active'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleMarkAsRecycled(product.id)}
-                      disabled={
-                        isPending || product.endOfLifeStatus === 'Recycled'
-                      }
-                    >
-                      {isPending && processingId === product.id && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Mark as Recycled
-                    </Button>
+            </TableHeader>
+            <TableBody>
+              {products.length > 0 ? (
+                products.map(product => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">
+                      {product.productName}
+                    </TableCell>
+                    <TableCell>{product.category}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          product.endOfLifeStatus === 'Recycled'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                      >
+                        {product.endOfLifeStatus ?? 'Active'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleMarkAsRecycled(product.id)}
+                        disabled={
+                          isPending || product.endOfLifeStatus === 'Recycled'
+                        }
+                      >
+                        {isPending && processingId === product.id && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        Mark as Recycled
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-48 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <Recycle className="h-12 w-12 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold">
+                        No Products Found
+                      </h3>
+                      <p className="text-muted-foreground">
+                        There are no products available to process.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="h-48 text-center">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <Recycle className="h-12 w-12 text-muted-foreground" />
-                    <h3 className="text-xl font-semibold">No Products Found</h3>
-                    <p className="text-muted-foreground">
-                      There are no products available to process.
-                    </p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

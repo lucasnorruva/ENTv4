@@ -6,6 +6,7 @@ import {
   ColumnDef,
   SortingState,
   ColumnFiltersState,
+
   VisibilityState,
   flexRender,
   getCoreRowModel,
@@ -18,6 +19,15 @@ import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +48,6 @@ import {
 import type { Product, User } from '@/types';
 import { AuditReviewDialog } from '@/components/audit-review-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { getProducts } from '@/lib/actions';
 
 interface AuditQueueClientProps {
   user: User;
@@ -61,31 +70,34 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const fetchPendingProducts = async () => {
-      try {
-        const allProducts = await getProducts();
-        const pendingProducts = allProducts.filter(
-          p => p.verificationStatus === 'Pending',
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Pending'),
+      orderBy('updatedAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const pendingProducts = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Product,
         );
-        setProducts(
-          pendingProducts.sort(
-            (a, b) =>
-              new Date(b.updatedAt).getTime() -
-              new Date(a.updatedAt).getTime(),
-          ),
-        );
-      } catch (error) {
+        setProducts(pendingProducts);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching audit queue:', error);
         toast({
           title: 'Error',
           description: 'Failed to load audit queue.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    };
-    fetchPendingProducts();
-  }, [toast, isDialogOpen]); // Re-fetch when dialog closes after an action
+      },
+    );
+
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleReviewClick = (product: Product) => {
     setSelectedProduct(product);
@@ -116,7 +128,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
               data-ai-hint="product photo"
             />
             <Link
-              href={`/products/${row.original.id}`}
+              href={`/dashboard/auditor/products/${row.original.id}`}
               className="font-medium hover:underline"
               target="_blank"
             >
