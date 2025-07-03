@@ -307,7 +307,7 @@ export async function getProducts(
         p.productName.toLowerCase().includes(lowerCaseQuery) ||
         p.supplier.toLowerCase().includes(lowerCaseQuery) ||
         p.category.toLowerCase().includes(lowerCaseQuery) ||
-        p.gtin?.toLowerCase().includes(lowerCaseQuery),
+        p.gtin?.includes(lowerCaseQuery),
     );
   }
 
