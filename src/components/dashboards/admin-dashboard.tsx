@@ -12,6 +12,7 @@ import {
   getCompliancePaths,
   getProducts,
   getAuditLogs,
+  getSupportTickets,
 } from '@/lib/actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
@@ -34,6 +35,7 @@ import {
   Building2,
   Hourglass,
   Cog,
+  Ticket,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
@@ -59,14 +61,21 @@ const getActionLabel = (action: string): string => {
 };
 
 export default async function AdminDashboard({ user }: { user: User }) {
-  const [allUsers, allCompliancePaths, allProducts, auditLogs, allCompanies] =
-    await Promise.all([
-      getUsers(),
-      getCompliancePaths(),
-      getProducts(),
-      getAuditLogs(),
-      getCompanies(),
-    ]);
+  const [
+    allUsers,
+    allCompliancePaths,
+    allProducts,
+    auditLogs,
+    allCompanies,
+    supportTickets,
+  ] = await Promise.all([
+    getUsers(),
+    getCompliancePaths(),
+    getProducts(),
+    getAuditLogs(),
+    getCompanies(),
+    getSupportTickets(),
+  ]);
 
   const stats = {
     totalCompanies: allCompanies.length,
@@ -80,6 +89,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
     failedVerifications: allProducts.filter(
       p => p.verificationStatus === 'Failed',
     ).length,
+    openSupportTickets: supportTickets.filter(t => t.status === 'Open').length,
   };
 
   const complianceChartData = {
@@ -102,7 +112,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -176,6 +186,22 @@ export default async function AdminDashboard({ user }: { user: User }) {
             </div>
             <p className="text-xs text-muted-foreground">
               Require compliance action
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Open Support Tickets
+            </CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.openSupportTickets}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Awaiting response
             </p>
           </CardContent>
         </Card>

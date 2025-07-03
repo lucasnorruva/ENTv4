@@ -60,7 +60,12 @@ export default function SupportForm({ user }: SupportFormProps) {
           description:
             "We've received your request and will get back to you shortly.",
         });
-        form.reset({ name: '', email: '', subject: '', message: '' });
+        form.reset({
+          name: user?.fullName || '',
+          email: user?.email || '',
+          subject: '',
+          message: ''
+        });
       } catch (error) {
         toast({
           title: 'Submission Failed',
