@@ -22,7 +22,7 @@ import {
   companyFormSchema,
   CompanyFormValues,
   compliancePathFormSchema,
-  CompliancePathFormValues,
+  type CompliancePathFormValues,
   apiSettingsSchema,
   ApiSettingsFormValues,
   serviceTicketFormSchema,

@@ -79,19 +79,21 @@ export function onCurrentUserUpdate(callback: (user: User | null) => void): () =
     return onAuthStateChanged(auth, (firebaseUser) => {
         if(firebaseUser) {
             const userDocRef = doc(db, Collections.USERS, firebaseUser.uid);
-            return onSnapshot(userDocRef, (doc) => {
+            const unsubscribe = onSnapshot(userDocRef, (doc) => {
                 if (doc.exists()) {
                     const userData = { id: doc.id, ...doc.data() } as User;
-                    userCache = userData;
+                    userCache = userData; // Keep cache in sync
                     callback(userData);
                 } else {
                     userCache = null;
                     callback(null);
                 }
             });
+            return unsubscribe;
         } else {
             userCache = null;
             callback(null);
+            return () => {}; // Return an empty unsubscribe function
         }
     });
 }
