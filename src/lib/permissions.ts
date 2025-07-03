@@ -37,7 +37,8 @@ export type Action =
   | 'developer:manage_api'
   | 'admin:manage_settings'
   | 'ticket:create'
-  | 'ticket:update'
+  | 'ticket:manage'
+  | 'ticket:view_all'
   | 'support:manage'
   | 'manufacturer:manage_lines';
 
@@ -121,8 +122,14 @@ export function can(user: User, action: Action, resource?: any): boolean {
       return hasRole(user, UserRoles.DEVELOPER);
 
     case 'ticket:create':
-    case 'ticket:update':
-      return hasRole(user, UserRoles.SERVICE_PROVIDER);
+    case 'ticket:manage':
+      return (
+        hasRole(user, UserRoles.SERVICE_PROVIDER) ||
+        hasRole(user, UserRoles.ADMIN)
+      );
+
+    case 'ticket:view_all':
+      return hasRole(user, UserRoles.ADMIN);
 
     case 'support:manage':
       return false; // Only admins can manage for now (handled by global check)

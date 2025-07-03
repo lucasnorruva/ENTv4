@@ -1629,8 +1629,22 @@ export async function saveNotificationPreferences(
   return Promise.resolve();
 }
 
-export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  return Promise.resolve(mockServiceTickets);
+export async function getServiceTickets(userId: string): Promise<ServiceTicket[]> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+
+    if(hasRole(user, UserRoles.ADMIN)) {
+        return Promise.resolve(mockServiceTickets);
+    }
+    
+    // For now, service providers can also see all tickets.
+    // A future implementation might filter by assignment.
+    if(hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+        return Promise.resolve(mockServiceTickets);
+    }
+
+    // Other roles cannot view service tickets.
+    return Promise.resolve([]);
 }
 
 export async function getSupportTickets(): Promise<SupportTicket[]> {
@@ -1689,6 +1703,10 @@ export async function saveServiceTicket(
   userId: string,
   ticketId?: string,
 ): Promise<ServiceTicket> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'ticket:manage');
+  
   const validatedData = serviceTicketFormSchema.parse(values);
   const now = new Date().toISOString();
   let savedTicket: ServiceTicket;
@@ -1722,6 +1740,10 @@ export async function updateServiceTicketStatus(
   status: 'Open' | 'In Progress' | 'Closed',
   userId: string,
 ): Promise<ServiceTicket> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+    checkPermission(user, 'ticket:manage');
+
   const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
   if (ticketIndex === -1) throw new Error('Ticket not found');
   mockServiceTickets[ticketIndex].status = status;
