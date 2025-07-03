@@ -3,15 +3,201 @@ import * as dotenv from 'dotenv';
 dotenv.config(); // Explicitly load .env file at the top
 
 import admin, { adminDb } from '../lib/firebase-admin';
-import { products as mockProducts } from '../lib/data';
-import { users as mockUsers } from '../lib/user-data';
-import { companies as mockCompanies } from '../lib/company-data';
 import { compliancePaths as mockCompliancePaths } from '../lib/compliance-data';
 import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data';
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { webhooks as mockWebhooks } from '../lib/webhook-data';
-import { Collections } from '../lib/constants';
+import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
+import { Collections, UserRoles } from '../lib/constants';
+import type { Company, Product, User } from '@/types';
+
+// --- MOCK DATA DEFINITIONS (MOVED FROM DEPRECATED FILES) ---
+const mockCompanies: Omit<Company, 'createdAt' | 'updatedAt'>[] = [
+  { id: 'comp-eco', name: 'Eco Innovate Ltd.', ownerId: 'user-supplier' },
+  {
+    id: 'comp-thread',
+    name: 'Sustainable Threads Inc.',
+    ownerId: 'user-supplier',
+  },
+  { id: 'comp-norruva', name: 'Norruva Corp', ownerId: 'user-admin' },
+];
+
+const mockUsers: Omit<
+  User,
+  'createdAt' | 'updatedAt' | 'readNotificationIds'
+>[] = [
+  {
+    id: 'user-admin',
+    fullName: 'Admin User',
+    email: 'admin@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.ADMIN],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-supplier',
+    fullName: 'Supplier User',
+    email: 'supplier@norruva.com',
+    companyId: 'comp-eco',
+    roles: [UserRoles.SUPPLIER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-auditor',
+    fullName: 'Auditor User',
+    email: 'auditor@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.AUDITOR],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-compliance',
+    fullName: 'Compliance Manager',
+    email: 'compliance@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.COMPLIANCE_MANAGER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-manufacturer',
+    fullName: 'Manufacturer User',
+    email: 'manufacturer@norruva.com',
+    companyId: 'comp-eco',
+    roles: [UserRoles.MANUFACTURER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-service',
+    fullName: 'Service Provider',
+    email: 'service@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.SERVICE_PROVIDER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-recycler',
+    fullName: 'Recycler User',
+    email: 'recycler@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.RECYCLER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-retailer',
+    fullName: 'Retailer User',
+    email: 'retailer@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.RETAILER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-developer',
+    fullName: 'Developer User',
+    email: 'developer@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.DEVELOPER],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+  {
+    id: 'user-analyst',
+    fullName: 'Business Analyst',
+    email: 'analyst@norruva.com',
+    companyId: 'comp-norruva',
+    roles: [UserRoles.BUSINESS_ANALYST],
+    onboardingComplete: true,
+    isMfaEnabled: false,
+  },
+];
+
+const now = new Date();
+const mockProducts: Omit<Product, 'createdAt' | 'updatedAt' | 'lastUpdated'>[] =
+  [
+    {
+      id: 'pp-001',
+      companyId: 'comp-eco',
+      gtin: '09501101530003',
+      productName: 'Eco-Friendly Smart Watch Series 5',
+      productDescription:
+        'A state-of-the-art smart watch made from 100% recycled aluminum and ethically sourced components. Features advanced health tracking and a 3-day battery life.',
+      productImage: 'https://placehold.co/600x400.png',
+      category: 'Electronics',
+      supplier: 'Eco Innovate Ltd.',
+      status: 'Published',
+      compliancePathId: 'cp-electronics-01',
+      manualUrl: 'https://example.com/manuals/smart-watch-s5.pdf',
+      materials: [
+        {
+          name: 'Recycled Aluminum',
+          percentage: 60,
+          recycledContent: 100,
+          origin: 'Germany',
+        },
+        {
+          name: 'Gorilla Glass',
+          percentage: 15,
+          recycledContent: 0,
+          origin: 'USA',
+        },
+        {
+          name: 'Silicone',
+          percentage: 25,
+          recycledContent: 50,
+          origin: 'South Korea',
+        },
+      ],
+      manufacturing: {
+        facility: 'Eco-Factory 1',
+        country: 'Germany',
+        emissionsKgCo2e: 15.5,
+      },
+      certifications: [
+        { name: 'CE', issuer: 'TÜV SÜD' },
+        { name: 'FCC', issuer: 'FCC' },
+        { name: 'ISO 14001', issuer: 'BSI' },
+      ],
+      packaging: { type: 'Recycled Cardboard', recyclable: true },
+      lifecycle: {
+        carbonFootprint: 25.5,
+        repairabilityScore: 8,
+        expectedLifespan: 5,
+        energyEfficiencyClass: 'A',
+      },
+      battery: {
+        type: 'Lithium-ion',
+        capacityMah: 3110,
+        voltage: 3.83,
+        isRemovable: false,
+      },
+      compliance: { rohsCompliant: true, ceMarked: true },
+      sustainability: {
+        score: 85,
+        environmental: 90,
+        social: 80,
+        governance: 85,
+        summary:
+          'Excellent use of recycled materials and strong compliance record. Repairability score is high, contributing positively.',
+        isCompliant: true,
+      },
+      verificationStatus: 'Verified',
+      lastVerificationDate: new Date(
+        new Date(now).setDate(now.getDate() - 1),
+      ).toISOString(),
+      endOfLifeStatus: 'Active',
+      isProcessing: false,
+    },
+  ];
+
+// --- END MOCK DATA ---
 
 async function testFirestoreConnection() {
   console.log('Testing Firestore connection...');
@@ -22,7 +208,9 @@ async function testFirestoreConnection() {
     console.log('✅ Firestore connection successful.');
     return true;
   } catch (error) {
-    console.error('❌ Firestore connection failed. Please check your service account key and emulator status.');
+    console.error(
+      '❌ Firestore connection failed. Please check your service account key and emulator status.',
+    );
     console.error('Error details:', error);
     return false;
   }
@@ -30,32 +218,39 @@ async function testFirestoreConnection() {
 
 async function seedAuth() {
   console.log('Seeding Firebase Authentication with mock users...');
-  
+
   const userCreationPromises = mockUsers.map(user => {
-    return admin.auth().createUser({
-      uid: user.id,
-      email: user.email,
-      password: 'password123', // Standard password for all mock users
-      displayName: user.fullName,
-      emailVerified: true,
-      disabled: false,
-    }).catch(error => {
-      if (error.code === 'auth/uid-already-exists' || error.code === 'auth/email-already-exists') {
-        // This is not an error, just a sign that seeding has run before.
-        // console.log(`User with ID/Email ${user.id}/${user.email} already exists. Skipping.`);
-        return null; 
-      }
-      // For other errors, re-throw to fail the seeding process
-      console.error(`Error creating user ${user.id}:`, error);
-      throw error;
-    });
+    return admin
+      .auth()
+      .createUser({
+        uid: user.id,
+        email: user.email,
+        password: 'password123', // Standard password for all mock users
+        displayName: user.fullName,
+        emailVerified: true,
+        disabled: false,
+      })
+      .catch(error => {
+        if (
+          error.code === 'auth/uid-already-exists' ||
+          error.code === 'auth/email-already-exists'
+        ) {
+          return null;
+        }
+        console.error(`Error creating user ${user.id}:`, error);
+        throw error;
+      });
   });
 
   try {
     await Promise.all(userCreationPromises);
-    console.log(`✅ Auth seeding complete. ${mockUsers.length} users processed.`);
+    console.log(
+      `✅ Auth seeding complete. ${mockUsers.length} users processed.`,
+    );
   } catch (error) {
-    console.error('❌ A critical error occurred during Auth seeding. The script will terminate.');
+    console.error(
+      '❌ A critical error occurred during Auth seeding. The script will terminate.',
+    );
     throw error;
   }
 }
@@ -75,7 +270,6 @@ async function clearCollection(collectionName: string) {
   await batch.commit();
   console.log(`✅ Cleared ${snapshot.size} documents from '${collectionName}'.`);
 }
-
 
 async function seedCollection(
   collectionName: string,
@@ -114,6 +308,8 @@ async function seedCollection(
       dataToSeed.createdAt = admin.firestore.Timestamp.now();
     if (!dataToSeed.updatedAt)
       dataToSeed.updatedAt = admin.firestore.Timestamp.now();
+    if (!dataToSeed.lastUpdated)
+      dataToSeed.lastUpdated = admin.firestore.Timestamp.now();
 
     batch.set(docRef, dataToSeed);
   }
@@ -131,7 +327,7 @@ async function seedCollection(
 
 async function seedDatabase() {
   console.log('Starting comprehensive database seeding...');
-  
+
   const isConnected = await testFirestoreConnection();
   if (!isConnected) {
     console.log('Halting seed script due to connection failure.');
