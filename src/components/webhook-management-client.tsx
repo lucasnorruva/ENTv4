@@ -13,6 +13,15 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -52,7 +61,7 @@ import {
 
 import type { Webhook, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getWebhooks, deleteWebhook } from '@/lib/actions';
+import { deleteWebhook } from '@/lib/actions';
 import WebhookForm from './webhook-form';
 
 interface WebhookManagementClientProps {
@@ -71,28 +80,34 @@ export default function WebhookManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    async function fetchWebhooks() {
-      try {
-        const data = await getWebhooks(user.id);
-        setWebhooks(
-          data.sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() -
-              new Date(a.createdAt).getTime(),
-          ),
+    const q = query(
+      collection(db, Collections.WEBHOOKS),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      snapshot => {
+        const webhooksData = snapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() }) as Webhook,
         );
-      } catch (e) {
+        setWebhooks(webhooksData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching webhooks:', error);
         toast({
           title: 'Error',
-          description: 'Failed to load webhooks.',
+          description: 'Failed to load webhooks in real-time.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
-      }
-    }
-    fetchWebhooks();
-  }, [user.id, toast, isPending]);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user.id, toast]);
 
   const handleCreateNew = () => {
     setSelectedWebhook(null);
@@ -123,6 +138,7 @@ export default function WebhookManagementClient({
   };
 
   const handleSave = () => {
+    // The real-time listener will handle updates automatically
     setIsFormOpen(false);
   };
 

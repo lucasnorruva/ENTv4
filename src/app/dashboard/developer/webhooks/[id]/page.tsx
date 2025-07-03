@@ -1,5 +1,5 @@
 // src/app/dashboard/developer/webhooks/[id]/page.tsx
-import { getWebhookById, getAuditLogsForEntity } from '@/lib/actions';
+import { getWebhookById } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import WebhookDeliveriesClient from '@/components/webhook-deliveries-client';
@@ -22,10 +22,6 @@ export default async function WebhookDetailPage({
     notFound();
   }
 
-  const deliveryLogs = (await getAuditLogsForEntity(webhook.id)).filter(log =>
-    log.action.startsWith('webhook.delivery'),
-  );
-
   return (
     <div className="space-y-4">
       <Button asChild variant="outline" size="sm">
@@ -34,11 +30,7 @@ export default async function WebhookDetailPage({
           Back to Webhooks
         </Link>
       </Button>
-      <WebhookDeliveriesClient
-        webhook={webhook}
-        initialLogs={deliveryLogs}
-        user={user}
-      />
+      <WebhookDeliveriesClient webhook={webhook} user={user} />
     </div>
   );
 }

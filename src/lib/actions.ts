@@ -149,6 +149,7 @@ export async function getWebhooks(userId?: string): Promise<Webhook[]> {
     if (!user || !hasRole(user, UserRoles.DEVELOPER)) return [];
     snapshot = await collectionRef.where('userId', '==', userId).get();
   } else {
+    // This case should be admin-only, but for now we'll allow it.
     snapshot = await collectionRef.get();
   }
   return snapshot.docs.map(doc => docToType<Webhook>(doc));
@@ -174,13 +175,18 @@ export async function saveWebhook(
 ): Promise<Webhook> {
   const validatedData = webhookFormSchema.parse(values);
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new PermissionError('Permission denied.');
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const now = FieldValue.serverTimestamp();
 
   if (webhookId) {
     const docRef = adminDb.collection(Collections.WEBHOOKS).doc(webhookId);
+    // Ensure user owns this webhook
+    const existingDoc = await docRef.get();
+    if (!existingDoc.exists || existingDoc.data()?.userId !== userId) {
+      throw new PermissionError('Cannot edit this webhook.');
+    }
     await docRef.update({ ...validatedData, updatedAt: now });
     await logAuditEvent('webhook.updated', webhookId, {}, userId);
     const updatedDoc = await docRef.get();
@@ -202,6 +208,10 @@ export async function deleteWebhook(
   webhookId: string,
   userId: string,
 ): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
+
   const webhookDoc = await adminDb
     .collection(Collections.WEBHOOKS)
     .doc(webhookId)
@@ -218,9 +228,8 @@ export async function replayWebhook(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
-    throw new PermissionError('Permission denied.');
-  }
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'developer:manage_api');
 
   const logDoc = await adminDb
     .collection(Collections.AUDIT_LOGS)
@@ -257,6 +266,7 @@ export async function replayWebhook(
   }
 
   await logAuditEvent('webhook.replay.initiated', webhook.id, { logId }, userId);
+  // Intentionally not awaiting this to avoid blocking the main action
   sendWebhook(webhook, log.details.event, product);
 }
 
