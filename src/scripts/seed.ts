@@ -62,6 +62,23 @@ async function seedAuth() {
   }
 }
 
+async function clearCollection(collectionName: string) {
+  console.log(`Clearing '${collectionName}' collection...`);
+  const collectionRef = adminDb.collection(collectionName);
+  const snapshot = await collectionRef.get();
+  if (snapshot.empty) {
+    console.log(`Collection '${collectionName}' is already empty.`);
+    return;
+  }
+  const batch = adminDb.batch();
+  snapshot.docs.forEach(doc => {
+    batch.delete(doc.ref);
+  });
+  await batch.commit();
+  console.log(`✅ Cleared ${snapshot.size} documents from '${collectionName}'.`);
+}
+
+
 async function seedCollection(
   collectionName: string,
   data: any[],
@@ -136,6 +153,9 @@ async function seedDatabase() {
   await seedCollection(Collections.API_KEYS, mockApiKeys);
   await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
+
+  // Clear the dynamic rate limit collection
+  await clearCollection(Collections.API_RATE_LIMITS);
 
   // Seeding a single document for settings
   console.log('Seeding API settings...');
