@@ -78,15 +78,19 @@ Follow these instructions to get the project running on your local machine for d
 
 ### Running the Application
 
-For local development, the application now runs entirely on mock data, so you no longer need to run the `seed` script.
+For local development, the application now runs entirely on mock data, so you no longer need to run the `seed` script or Firebase emulators.
 
-To run the full application, including the Next.js frontend and the Genkit AI server, use a single command:
+To run the full application, including the Next.js frontend and the Genkit AI server, use a single command in your terminal:
 
 ```bash
 npm run dev
 ```
 
-This command starts all necessary services concurrently. The application will be available at `http://localhost:9002`. The Genkit developer UI will be available at `http://localhost:4000`.
+This command concurrently starts two processes:
+-   **Genkit Server**: Runs the AI flows and makes them available. The Genkit Developer UI can be accessed at `http://localhost:4000`.
+-   **Next.js Frontend**: Runs the main web application. The dashboard can be accessed at `http://localhost:9002`.
+
+Both services will run in the same terminal, and you will see logs from both.
 
 ## Testing
 
