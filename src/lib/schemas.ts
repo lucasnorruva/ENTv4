@@ -105,11 +105,12 @@ export const companyFormSchema = z.object({
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
-const keywordSchema = z.object({
-  value: z.string().min(1, 'Keyword cannot be empty.'),
-});
 const regulationSchema = z.object({
   value: z.string().min(1, 'Regulation cannot be empty.'),
+});
+
+const keywordSchema = z.object({
+  value: z.string().min(1, 'Keyword cannot be empty.'),
 });
 
 export const compliancePathFormSchema = z.object({
@@ -126,17 +127,6 @@ export const compliancePathFormSchema = z.object({
 export type CompliancePathFormValues = z.infer<
   typeof compliancePathFormSchema
 >;
-
-export const apiSettingsSchema = z.object({
-  isPublicApiEnabled: z.boolean(),
-  rateLimits: z.object({
-    free: z.coerce.number().int().min(0),
-    pro: z.coerce.number().int().min(0),
-    enterprise: z.coerce.number().int().min(0),
-  }),
-  isWebhookSigningEnabled: z.boolean(),
-});
-export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
 
 export const webhookFormSchema = z.object({
   url: z.string().url({ message: 'Please enter a valid URL.' }),

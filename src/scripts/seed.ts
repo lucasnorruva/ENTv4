@@ -153,25 +153,7 @@ async function seedDatabase() {
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
 
   // Clear the dynamic rate limit collection
-  await clearCollection(Collections.API_RATE_LIMITS);
-
-  // Seeding a single document for settings
-  console.log('Seeding API settings...');
-  try {
-    const apiSettingsData = {
-      isPublicApiEnabled: true,
-      rateLimits: {
-        free: 100,
-        pro: 1000,
-        enterprise: 10000,
-      },
-      isWebhookSigningEnabled: true,
-    };
-    await adminDb.collection('settings').doc('api').set(apiSettingsData);
-    console.log('✅ Successfully seeded API settings.');
-  } catch (error) {
-    console.error('❌ Error seeding API settings:', error);
-  }
+  await clearCollection('apiRateLimits');
 
   console.log('Database seeding completed successfully.');
 }

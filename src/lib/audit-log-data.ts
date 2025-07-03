@@ -5,6 +5,24 @@ const now = new Date();
 
 export let auditLogs: AuditLog[] = [
   {
+    id: "log-key-001",
+    userId: "user-developer",
+    action: "api_key.created",
+    entityId: "key-001",
+    details: { label: "My Production Server" },
+    createdAt: new Date(new Date(now).setMinutes(now.getMinutes() - 2)).toISOString(),
+    updatedAt: new Date(new Date(now).setMinutes(now.getMinutes() - 2)).toISOString(),
+  },
+  {
+    id: "log-key-002",
+    userId: "user-developer",
+    action: "api_key.revoked",
+    entityId: "key-002",
+    details: { },
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 30)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 30)).toISOString(),
+  },
+  {
     id: "log-wh-001",
     userId: "user-developer",
     action: "webhook.delivery.success",
