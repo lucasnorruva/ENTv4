@@ -10,17 +10,19 @@ import {
 import type { User } from '@/types';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { KeyRound, ArrowRight, Activity } from 'lucide-react';
-import { getApiKeys, getAuditLogs } from '@/lib/actions';
+import { KeyRound, ArrowRight, Activity, Cog } from 'lucide-react';
+import { getApiKeys, getAuditLogs, getWebhooks } from '@/lib/actions';
 import { Badge } from '../ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 export default async function DeveloperDashboard({ user }: { user: User }) {
-  const [apiKeys, auditLogs] = await Promise.all([
+  const [apiKeys, auditLogs, webhooks] = await Promise.all([
     getApiKeys(user.id),
     getAuditLogs(),
+    getWebhooks(user.id),
   ]);
   const activeKeys = apiKeys.filter(k => k.status === 'Active').length;
+  const activeWebhooks = webhooks.filter(wh => wh.status === 'active').length;
   const recentApiActivity = auditLogs
     .filter(log => log.action.startsWith('api.'))
     .slice(0, 5);
@@ -60,6 +62,25 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
             <Button asChild className="w-full">
               <Link href="/dashboard/developer/keys">
                 Manage Keys <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cog className="h-5 w-5 text-muted-foreground" />
+              Webhook Management
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-4xl font-bold">{activeWebhooks}</p>
+            <p className="text-xs text-muted-foreground">Active Webhooks</p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/dashboard/developer/webhooks">
+                Manage Webhooks <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardFooter>

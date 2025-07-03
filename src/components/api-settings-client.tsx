@@ -31,8 +31,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
-import { hasRole } from '@/lib/auth-utils';
-import { UserRoles } from '@/lib/constants';
+import { can } from '@/lib/permissions';
 
 interface ApiSettingsClientProps {
   initialSettings: ApiSettings;
@@ -45,7 +44,7 @@ export default function ApiSettingsClient({
 }: ApiSettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const canEdit = hasRole(user, UserRoles.ADMIN);
+  const canEdit = can(user, 'admin:manage_settings');
 
   const form = useForm<ApiSettingsFormValues>({
     resolver: zodResolver(apiSettingsSchema),
