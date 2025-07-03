@@ -880,10 +880,6 @@ export async function exportComplianceReport(format: 'csv'): Promise<string> {
   return csvRows.join('\n');
 }
 
-export async function getCompanies(): Promise<Company[]> {
-  return Promise.resolve(mockCompanies);
-}
-
 export async function saveCompany(
   values: CompanyFormValues,
   userId: string,
@@ -999,6 +995,16 @@ export async function deleteUser(
     await logAuditEvent('user.deleted', userId, {}, adminId);
   }
   return Promise.resolve();
+}
+
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  return Promise.resolve(mockCompliancePaths);
+}
+
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
+  return Promise.resolve(mockCompliancePaths.find(p => p.id === id));
 }
 
 export async function saveCompliancePath(
@@ -1514,4 +1520,43 @@ export async function getUserByEmail(
   email: string,
 ): Promise<User | undefined> {
   return authGetUserByEmail(email);
+}
+
+export async function globalSearch(
+  query: string,
+  userId: string,
+): Promise<{
+  products: Product[];
+  users: User[];
+  compliancePaths: CompliancePath[];
+}> {
+  const user = await getUserById(userId);
+  if (!user) return { products: [], users: [], compliancePaths: [] };
+
+  const lowerCaseQuery = query.toLowerCase();
+
+  const products = await getProducts(userId, { searchQuery: query });
+
+  let users: User[] = [];
+  let compliancePaths: CompliancePath[] = [];
+
+  if (hasRole(user, UserRoles.ADMIN)) {
+    const allUsers = await getUsers();
+    users = allUsers.filter(
+      u =>
+        u.fullName.toLowerCase().includes(lowerCaseQuery) ||
+        u.email.toLowerCase().includes(lowerCaseQuery),
+    );
+
+    const allPaths = await getCompliancePaths();
+    compliancePaths = allPaths.filter(p =>
+      p.name.toLowerCase().includes(lowerCaseQuery),
+    );
+  }
+
+  return {
+    products: products.slice(0, 5),
+    users: users.slice(0, 5),
+    compliancePaths: compliancePaths.slice(0, 5),
+  };
 }
