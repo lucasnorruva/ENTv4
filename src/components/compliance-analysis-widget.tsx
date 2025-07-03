@@ -60,7 +60,7 @@ export default function ComplianceAnalysisWidget({
       </CardHeader>
       <CardContent>
         {product.lastVerificationDate && (
-          <p className="text-xs text-muted-foreground mb-4">
+          <p className="text-xs text-muted-foreground mb-4" suppressHydrationWarning>
             Last checked: {format(new Date(product.lastVerificationDate), 'PPpp')}
           </p>
         )}
