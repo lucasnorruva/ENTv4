@@ -807,7 +807,7 @@ export async function markAsRecycled(
   checkPermission(user, 'product:recycle', product);
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found');
+  if (productIndex === -1) throw new Error('Product not found in mock data');
 
   mockProducts[productIndex].endOfLifeStatus = 'Recycled';
   mockProducts[productIndex].lastUpdated = new Date().toISOString();
