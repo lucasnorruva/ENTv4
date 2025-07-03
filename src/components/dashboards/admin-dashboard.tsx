@@ -12,9 +12,8 @@ import {
   getCompliancePaths,
   getProducts,
   getAuditLogs,
-  getCompanies,
 } from '@/lib/actions';
-import { getUsers } from '@/lib/auth';
+import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
 import {
   FileQuestion,
