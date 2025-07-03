@@ -26,4 +26,14 @@ export let serviceTickets: ServiceTicket[] = [
     createdAt: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
   },
+  {
+    id: 'tkt-003',
+    productionLineId: 'line-002',
+    userId: 'user-admin',
+    customerName: 'Factory Floor Manager',
+    issue: 'The conveyor belt on Assembly Line Delta is making a loud grinding noise and needs immediate inspection.',
+    status: 'Open',
+    createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+  }
 ];

@@ -12,6 +12,8 @@ import {
   ChevronDown,
   Check,
   RotateCcw,
+  Factory,
+  Box,
 } from 'lucide-react';
 import {
     ColumnDef,
@@ -54,12 +56,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 
-import type { ServiceTicket, User, Product } from '@/types';
+import type { ServiceTicket, User, Product, ProductionLine } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import {
   getServiceTickets,
   updateServiceTicketStatus,
   getProducts,
+  getProductionLines
 } from '@/lib/actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { hasRole } from '@/lib/auth-utils';
@@ -74,6 +77,7 @@ export default function ServiceTicketManagementClient({
 }: ServiceTicketManagementClientProps) {
   const [tickets, setTickets] = useState<ServiceTicket[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | null>(
@@ -96,12 +100,14 @@ export default function ServiceTicketManagementClient({
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
         try {
-          const [initialTickets, initialProducts] = await Promise.all([
+          const [initialTickets, initialProducts, initialLines] = await Promise.all([
             getServiceTickets(user.id),
             getProducts(user.id),
+            getProductionLines(),
           ]);
           setTickets(initialTickets);
           setProducts(initialProducts);
+          setProductionLines(initialLines);
         } catch (error) {
           toast({
             title: 'Error',
@@ -163,6 +169,8 @@ export default function ServiceTicketManagementClient({
   };
 
   const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]);
+  const lineMap = useMemo(() => new Map(productionLines.map(l => [l.id, l.name])), [productionLines]);
+
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -179,12 +187,20 @@ export default function ServiceTicketManagementClient({
   const columns: ColumnDef<ServiceTicket>[] = useMemo(
     () => [
       { accessorKey: "id", header: "Ticket ID", cell: ({row}) => <div className="font-mono text-xs">{row.getValue("id")}</div> },
-      { accessorKey: "customerName", header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Customer <ArrowUpDown className="ml-2 h-4 w-4" /></Button> },
+      { accessorKey: "customerName", header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Requester <ArrowUpDown className="ml-2 h-4 w-4" /></Button> },
       {
-        accessorKey: 'productId',
-        header: 'Product',
-        cell: ({ row }) =>
-          productMap.get(row.getValue('productId')) || 'Unknown Product',
+        id: 'entity',
+        header: 'Entity',
+        cell: ({ row }) => {
+            const ticket = row.original;
+            if (ticket.productionLineId) {
+                return <div className="flex items-center gap-2"><Factory className="h-4 w-4 text-muted-foreground" /> {lineMap.get(ticket.productionLineId) || 'Unknown Line'}</div>
+            }
+            if (ticket.productId) {
+                return <div className="flex items-center gap-2"><Box className="h-4 w-4 text-muted-foreground" /> {productMap.get(ticket.productId) || 'Unknown Product'}</div>
+            }
+            return 'N/A';
+        },
       },
       { accessorKey: "issue", header: "Issue", cell: ({row}) => <div className="truncate max-w-xs">{row.getValue("issue")}</div> },
       { accessorKey: "status", header: "Status", cell: ({row}) => <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge> },
@@ -249,7 +265,7 @@ export default function ServiceTicketManagementClient({
         : []),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending, productMap, canManage],
+    [isPending, productMap, lineMap, canManage],
   );
 
   const table = useReactTable({
@@ -423,6 +439,7 @@ export default function ServiceTicketManagementClient({
           onSave={handleSave}
           user={user!}
           products={products}
+          productionLines={productionLines}
         />
       )}
     </>

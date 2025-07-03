@@ -1,7 +1,7 @@
 // src/components/service-ticket-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -31,7 +31,7 @@ import {
   serviceTicketFormSchema,
   type ServiceTicketFormValues,
 } from '@/lib/schemas';
-import type { ServiceTicket, User, Product } from '@/types';
+import type { ServiceTicket, User, Product, ProductionLine } from '@/types';
 import {
   Select,
   SelectContent,
@@ -39,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 interface ServiceTicketFormProps {
   isOpen: boolean;
@@ -47,7 +48,10 @@ interface ServiceTicketFormProps {
   onSave: () => void;
   user: User;
   products: Product[];
+  productionLines: ProductionLine[];
 }
+
+type TicketType = 'product' | 'line';
 
 export default function ServiceTicketForm({
   isOpen,
@@ -56,14 +60,17 @@ export default function ServiceTicketForm({
   onSave,
   user,
   products,
+  productionLines,
 }: ServiceTicketFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
+  const [ticketType, setTicketType] = useState<TicketType>('product');
   const { toast } = useToast();
 
   const form = useForm<ServiceTicketFormValues>({
     resolver: zodResolver(serviceTicketFormSchema),
     defaultValues: {
       productId: '',
+      productionLineId: '',
       customerName: '',
       issue: '',
       status: 'Open',
@@ -73,15 +80,19 @@ export default function ServiceTicketForm({
   useEffect(() => {
     if (isOpen) {
       if (ticket) {
+        setTicketType(ticket.productionLineId ? 'line' : 'product');
         form.reset({
-          productId: ticket.productId,
+          productId: ticket.productId || '',
+          productionLineId: ticket.productionLineId || '',
           customerName: ticket.customerName,
           issue: ticket.issue,
           status: ticket.status,
         });
       } else {
+        setTicketType('product');
         form.reset({
           productId: '',
+          productionLineId: '',
           customerName: '',
           issue: '',
           status: 'Open',
@@ -93,7 +104,13 @@ export default function ServiceTicketForm({
   const onSubmit = (values: ServiceTicketFormValues) => {
     startSavingTransition(async () => {
       try {
-        const saved = await saveServiceTicket(values, user.id, ticket?.id);
+        const payload = {
+          ...values,
+          productId: ticketType === 'product' ? values.productId : undefined,
+          productionLineId:
+            ticketType === 'line' ? values.productionLineId : undefined,
+        };
+        const saved = await saveServiceTicket(payload, user.id, ticket?.id);
         toast({
           title: 'Success!',
           description: `Service ticket ${ticket ? 'updated' : 'created'}.`,
@@ -120,44 +137,97 @@ export default function ServiceTicketForm({
           <DialogDescription>
             {ticket
               ? 'Update the details for this service request.'
-              : 'Log a new service request for a customer.'}
+              : 'Log a new service request for a customer or production line.'}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="productId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a product" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {products.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.productName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
+            <FormItem>
+              <FormLabel>Ticket Type</FormLabel>
+              <RadioGroup
+                value={ticketType}
+                onValueChange={(value: TicketType) => setTicketType(value)}
+                className="flex gap-4"
+              >
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="product" id="r1" />
+                  </FormControl>
+                  <FormLabel htmlFor="r1">Product</FormLabel>
                 </FormItem>
-              )}
-            />
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <RadioGroupItem value="line" id="r2" />
+                  </FormControl>
+                  <FormLabel htmlFor="r2">Production Line</FormLabel>
+                </FormItem>
+              </RadioGroup>
+            </FormItem>
+
+            {ticketType === 'product' ? (
+              <FormField
+                control={form.control}
+                name="productId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a product" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {products.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.productName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <FormField
+                control={form.control}
+                name="productionLineId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Production Line</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a production line" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {productionLines.map(l => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
               name="customerName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Name</FormLabel>
+                  <FormLabel>Requester / Customer Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., John Doe" {...field} />
                   </FormControl>

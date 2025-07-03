@@ -46,12 +46,22 @@ export async function saveServiceTicket(
     const now = new Date().toISOString();
     let savedTicket: ServiceTicket;
   
+    const ticketData = {
+      productId: validatedData.productId,
+      productionLineId: validatedData.productionLineId,
+      customerName: validatedData.customerName,
+      issue: validatedData.issue,
+      status: validatedData.status,
+      imageUrl: validatedData.imageUrl,
+      userId,
+    };
+    
     if (ticketId) {
       const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
       if (ticketIndex === -1) throw new Error('Ticket not found');
       savedTicket = {
         ...mockServiceTickets[ticketIndex],
-        ...validatedData,
+        ...ticketData,
         updatedAt: now,
       };
       mockServiceTickets[ticketIndex] = savedTicket;
@@ -59,8 +69,7 @@ export async function saveServiceTicket(
     } else {
       savedTicket = {
         id: newId('tkt'),
-        ...validatedData,
-        userId,
+        ...ticketData,
         createdAt: now,
         updatedAt: now,
       };
