@@ -1,6 +1,8 @@
 // src/triggers/on-product-change.ts
-import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { Collections } from '../lib/constants';
+// THIS FILE IS A MOCK FOR LOCAL DEVELOPMENT.
+// In a real Firebase project, this would be a Cloud Function.
+'use server';
+
 import type {
   Product,
   SustainabilityData,
@@ -80,110 +82,63 @@ const calculateCompleteness = (product: Product): number => {
   return Math.round((completedFields / fieldsToTrack.length) * 100);
 };
 
-export const onProductChange = onDocumentWritten(
-  `${Collections.PRODUCTS}/{productId}`,
-  async event => {
-    const snapshot = event.data;
-    if (!snapshot) {
-      console.log('No data associated with the event');
-      return;
-    }
+export async function runDataValidationCheck(product: Product): Promise<{
+  sustainability: SustainabilityData;
+  qrLabelText: string;
+  dataQualityWarnings: DataQualityWarning[];
+}> {
+  console.log(
+    `Processing change for product: ${product.id} - ${product.productName}`,
+  );
 
-    const beforeData = snapshot.before.data() as Product | undefined;
-    const afterData = snapshot.after.data() as Product | undefined;
-
-    // Exit if the document was deleted.
-    if (!afterData) {
-      console.log(
-        `Product ${event.params.productId} deleted. No action taken.`,
-      );
-      return;
-    }
-
-    // Key fields to check for changes to decide if we re-run AI flows
-    const relevantFieldsChanged =
-      !beforeData ||
-      beforeData.productName !== afterData.productName ||
-      beforeData.productDescription !== afterData.productDescription ||
-      beforeData.category !== afterData.category ||
-      JSON.stringify(beforeData.materials) !==
-        JSON.stringify(afterData.materials) ||
-      beforeData.compliancePathId !== afterData.compliancePathId;
-
-    // Exit if this change was just an AI update itself, or if key fields haven't changed.
-    // The score of -1 is a sentinel value from the client to force a recalculation.
-    if (
-      afterData.sustainability?.score !== -1 &&
-      beforeData?.sustainability?.score === afterData.sustainability?.score &&
-      !relevantFieldsChanged
-    ) {
-      console.log(
-        `Product ${event.params.productId} change was not relevant for AI processing. Skipping.`,
-      );
-      return;
-    }
-
-    console.log(
-      `Processing change for product: ${event.params.productId} - ${afterData.productName}`,
+  const company = await getCompanyById(product.companyId);
+  if (!company) {
+    throw new Error(
+      `Company with ID ${product.companyId} not found for product ${product.id}`,
     );
+  }
 
-    const company = await getCompanyById(afterData.companyId);
-    if (!company) {
-      console.error(
-        `Company with ID ${afterData.companyId} not found for product ${event.params.productId}`,
-      );
-      return;
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const { sustainability, qrLabelText, dataQualityWarnings } =
+    await runAllAiFlows(aiProductInput);
+
+  // Run compliance check if a path is assigned
+  if (product.compliancePathId) {
+    const path = await getCompliancePathById(product.compliancePathId);
+    if (path) {
+      console.log(`Running compliance gap analysis against path: ${path.name}`);
+      const complianceResult = await summarizeComplianceGaps({
+        product: aiProductInput,
+        compliancePath: path,
+      });
+      sustainability.isCompliant = complianceResult.isCompliant;
+      sustainability.complianceSummary = complianceResult.complianceSummary;
+      sustainability.gaps = complianceResult.gaps;
     }
+  }
 
-    const aiProductInput: AiProduct = {
-      productName: afterData.productName,
-      productDescription: afterData.productDescription,
-      category: afterData.category,
-      supplier: company.name,
-      materials: afterData.materials,
-      manufacturing: afterData.manufacturing,
-      certifications: afterData.certifications,
-      packaging: afterData.packaging,
-      lifecycle: afterData.lifecycle,
-      battery: afterData.battery,
-      compliance: afterData.compliance,
-      verificationStatus: afterData.verificationStatus ?? 'Not Submitted',
-      complianceSummary: afterData.sustainability?.complianceSummary,
-    };
+  // Calculate completeness score based on the newly generated data
+  const completenessScore = calculateCompleteness({
+    ...product,
+    sustainability,
+  });
 
-    const { sustainability, qrLabelText, dataQualityWarnings } =
-      await runAllAiFlows(aiProductInput);
+  sustainability.completenessScore = completenessScore;
 
-    // Run compliance check if a path is assigned
-    if (afterData.compliancePathId) {
-      const path = await getCompliancePathById(afterData.compliancePathId);
-      if (path) {
-        console.log(
-          `Running compliance gap analysis against path: ${path.name}`,
-        );
-        const complianceResult = await summarizeComplianceGaps({
-          product: aiProductInput,
-          compliancePath: path,
-        });
-        sustainability.isCompliant = complianceResult.isCompliant;
-        sustainability.complianceSummary = complianceResult.complianceSummary;
-        sustainability.gaps = complianceResult.gaps;
-      }
-    }
-
-    // Calculate completeness score based on the newly generated data
-    const completenessScore = calculateCompleteness({
-      ...afterData,
-      sustainability,
-    });
-
-    console.log(`Updating Firestore for product: ${event.params.productId}`);
-    return snapshot.after.ref.update({
-      sustainability,
-      qrLabelText,
-      dataQualityWarnings,
-      completenessScore,
-      isProcessing: false,
-    });
-  },
-);
+  return { sustainability, qrLabelText, dataQualityWarnings };
+}

@@ -1,129 +1,78 @@
 // src/lib/auth.ts
-import { adminDb } from './firebase-admin';
-import { Collections, UserRoles, type Role } from './constants';
+import { users, companies } from './user-data';
+import { UserRoles, type Role } from './constants';
 import type { User, Company } from '@/types';
-import { Timestamp } from 'firebase-admin/firestore';
-
-function docToUser(doc: admin.firestore.DocumentSnapshot): User {
-  const data = doc.data()!;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: (data.createdAt as Timestamp)?.toDate().toISOString(),
-    updatedAt: (data.updatedAt as Timestamp)?.toDate().toISOString(),
-  } as User;
-}
-
-function docToCompany(doc: admin.firestore.DocumentSnapshot): Company {
-  const data = doc.data()!;
-  return {
-    id: doc.id,
-    ...data,
-    createdAt: (data.createdAt as Timestamp)?.toDate().toISOString(),
-    updatedAt: (data.updatedAt as Timestamp)?.toDate().toISOString(),
-  } as Company;
-}
 
 /**
- * Fetches all users from the database.
+ * Fetches all users from the mock database.
  * @returns A promise that resolves to an array of all users.
  */
 export async function getUsers(): Promise<User[]> {
-  const snapshot = await adminDb.collection(Collections.USERS).get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToUser);
+  return Promise.resolve(users);
 }
 
 /**
- * Fetches all companies from the database.
+ * Fetches all companies from the mock database.
  * @returns A promise that resolves to an array of all companies.
  */
 export async function getCompanies(): Promise<Company[]> {
-  const snapshot = await adminDb.collection(Collections.COMPANIES).get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToCompany);
+  return Promise.resolve(companies);
 }
 
 /**
- * Fetches users by their company ID from the database.
+ * Fetches users by their company ID from the mock database.
  * @param companyId The ID of the company.
  * @returns A promise that resolves to an array of users in that company.
  */
 export async function getUsersByCompanyId(companyId: string): Promise<User[]> {
-  const snapshot = await adminDb
-    .collection(Collections.USERS)
-    .where('companyId', '==', companyId)
-    .get();
-  if (snapshot.empty) return [];
-  return snapshot.docs.map(docToUser);
+  return Promise.resolve(users.filter(u => u.companyId === companyId));
 }
 
 /**
- * Fetches a user by their ID from the database.
+ * Fetches a user by their ID from the mock database.
  * @param id The ID of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserById(id: string): Promise<User | undefined> {
-  const doc = await adminDb.collection(Collections.USERS).doc(id).get();
-  if (!doc.exists) return undefined;
-  return docToUser(doc);
+  return Promise.resolve(users.find(user => user.id === id));
 }
 
 /**
- * Fetches a user by their email address from the database.
+ * Fetches a user by their email address from the mock database.
  * @param email The email of the user to fetch.
  * @returns A promise that resolves to the user or undefined if not found.
  */
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const snapshot = await adminDb
-    .collection(Collections.USERS)
-    .where('email', '==', email)
-    .limit(1)
-    .get();
-  if (snapshot.empty) return undefined;
-  return docToUser(snapshot.docs[0]);
+  return Promise.resolve(users.find(user => user.email === email));
 }
 
+
 /**
- * Fetches a company by its ID from the database.
+ * Fetches a company by its ID from the mock database.
  * @param id The ID of the company to fetch.
  * @returns A promise that resolves to the company or undefined if not found.
  */
 export async function getCompanyById(id: string): Promise<Company | undefined> {
-  const doc = await adminDb.collection(Collections.COMPANIES).doc(id).get();
-  if (!doc.exists) return undefined;
-  return docToCompany(doc);
+  return Promise.resolve(companies.find(c => c.id === id));
 }
+
 
 /**
  * Simulates fetching the current user based on a role.
- * This function fetches from the database. In a real app, this would be
- * derived from the authenticated session. It now robustly handles an
- * empty database or missing roles.
+ * This is a mock function for demonstration purposes. In a real app, this would be
+ * derived from the authenticated session.
  * @param role The role to simulate being logged in as.
  * @returns A user object.
  */
 export async function getCurrentUser(role?: Role): Promise<User> {
   const targetRole = role || UserRoles.ADMIN;
+  
+  const user = users.find(u => u.roles.includes(targetRole));
 
-  const usersSnapshot = await adminDb.collection(Collections.USERS).get();
-  if (usersSnapshot.empty) {
-    throw new Error(
-      `No users found in the database. Please run 'npm run seed' to populate it.`,
-    );
+  if (!user) {
+    console.warn(`No mock user found with role '${targetRole}'. Defaulting to first user.`);
+    return users[0];
   }
 
-  const allUsers = usersSnapshot.docs.map(docToUser);
-
-  // Find a user with the desired role.
-  const userWithRole = allUsers.find(u => u.roles.includes(targetRole));
-  if (userWithRole) {
-    return userWithRole;
-  }
-
-  // As a fallback for the demo, return the first user.
-  console.warn(
-    `No user found with role '${targetRole}'. Returning the first available user as a fallback.`,
-  );
-  return allUsers[0];
+  return user;
 }

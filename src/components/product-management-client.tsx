@@ -6,15 +6,6 @@ import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
-import {
-  collection,
-  query,
-  onSnapshot,
-  orderBy,
-  where,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -38,17 +29,18 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
+  initialProducts: Product[];
   compliancePaths: CompliancePath[];
   initialFilter?: string;
 }
 
 export default function ProductManagementClient({
   user,
+  initialProducts,
   compliancePaths,
   initialFilter,
 }: ProductManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
@@ -57,52 +49,8 @@ export default function ProductManagementClient({
   const { toast } = useToast();
 
   useEffect(() => {
-    setIsLoading(true);
-    let productsQuery = query(
-      collection(db, Collections.PRODUCTS),
-      orderBy('lastUpdated', 'desc'),
-    );
-
-    const globalReadRoles = [
-      UserRoles.ADMIN,
-      UserRoles.AUDITOR,
-      UserRoles.COMPLIANCE_MANAGER,
-      UserRoles.DEVELOPER,
-      UserRoles.BUSINESS_ANALYST,
-      UserRoles.RETAILER,
-      UserRoles.RECYCLER,
-      UserRoles.SERVICE_PROVIDER,
-    ];
-
-    if (!globalReadRoles.some(role => hasRole(user, role))) {
-      productsQuery = query(
-        productsQuery,
-        where('companyId', '==', user.companyId),
-      );
-    }
-
-    const unsubscribe = onSnapshot(
-      productsQuery,
-      snapshot => {
-        const productsData = snapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() }) as Product,
-        );
-        setProducts(productsData);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching products:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load product data in real-time.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [user, toast]);
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
@@ -140,6 +88,8 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await deleteProduct(id, user.id);
+        const updatedProducts = products.filter(p => p.id !== id);
+        setProducts(updatedProducts);
         toast({
           title: 'Product Deleted',
           description: 'The product passport has been successfully deleted.',
@@ -154,6 +104,10 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
+        const updatedProducts = products.map(p =>
+          p.id === id ? reviewedProduct : p,
+        );
+        setProducts(updatedProducts);
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -172,9 +126,13 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         await recalculateScore(id, user.id);
+        const updatedProducts = products.map(p =>
+          p.id === id ? { ...p, isProcessing: true } : p,
+        );
+        setProducts(updatedProducts);
         toast({
           title: 'AI Recalculation Started',
-          description: `AI data for "${productName}" is being updated. The table will refresh automatically.`,
+          description: `AI data for "${productName}" is being updated. This is a mock process.`,
         });
       } catch (error) {
         toast({
@@ -187,12 +145,20 @@ export default function ProductManagementClient({
   };
 
   const handleSave = (savedProduct: Product) => {
-    // Real-time listener handles the update, just close the sheet
+    setProducts(prevProducts => {
+      const exists = prevProducts.some(p => p.id === savedProduct.id);
+      if (exists) {
+        return prevProducts.map(p =>
+          p.id === savedProduct.id ? savedProduct : p,
+        );
+      }
+      return [savedProduct, ...prevProducts];
+    });
     setIsSheetOpen(false);
   };
 
-  const handleImportSave = () => {
-    // Real-time listener will update the table.
+  const handleImportSave = (newProducts: Product[]) => {
+    setProducts(prev => [...newProducts, ...prev]);
     setIsImportOpen(false);
   };
 
@@ -223,21 +189,15 @@ export default function ProductManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <ProductTable
-              products={products}
-              user={user}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onSubmitForReview={handleSubmitForReview}
-              onRecalculateScore={handleRecalculateScore}
-              initialFilter={initialFilter}
-            />
-          )}
+          <ProductTable
+            products={products}
+            user={user}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onSubmitForReview={handleSubmitForReview}
+            onRecalculateScore={handleRecalculateScore}
+            initialFilter={initialFilter}
+          />
         </CardContent>
       </Card>
       {canCreate && (
@@ -254,7 +214,7 @@ export default function ProductManagementClient({
         <ProductImportDialog
           isOpen={isImportOpen}
           onOpenChange={setIsImportOpen}
-          onSave={handleImportSave}
+          onSave={() => {}} // Will be re-implemented
           user={user}
         />
       )}
