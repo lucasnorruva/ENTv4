@@ -11,7 +11,6 @@ import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { webhooks as mockWebhooks } from '../lib/webhook-data';
-import { apiSettings as mockApiSettings } from '../lib/api-settings-data';
 import { Collections } from '../lib/constants';
 
 async function testFirestoreConnection() {
@@ -154,7 +153,15 @@ async function seedDatabase() {
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
 
   // Seed API Settings
-  await adminDb.collection('settings').doc('api').set(mockApiSettings);
+  await adminDb.collection('settings').doc('api').set({
+    isPublicApiEnabled: true,
+    rateLimits: {
+      free: 100,
+      pro: 1000,
+      enterprise: 10000,
+    },
+    isWebhookSigningEnabled: true,
+  });
   console.log(`✅ Successfully seeded API settings.`);
 
   // Clear the dynamic rate limit collection
