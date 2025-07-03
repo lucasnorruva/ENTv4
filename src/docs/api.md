@@ -42,14 +42,17 @@ Retrieves a list of all product passports for your organization.
 Creates a new product passport.
 
 -   **Method**: `POST`
--   **Body**: A valid `Product` object.
+-   **Body**: A valid `Product` object. See the schema for required fields.
 -   **Success Response**: `201 Created`
     ```json
     {
       "id": "pp-new-123",
       "productName": "New Product",
       "status": "Draft",
-      "..."
+      "...",
+       "_links": {
+          "self": { "href": "/api/v1/products/pp-new-123" }
+        }
     }
     ```
 
@@ -83,7 +86,10 @@ Updates an existing product passport. The provided body should contain only the 
     {
       "id": "pp-001",
       "productName": "Updated Smart Watch Name",
-      "..."
+      "...",
+      "_links": {
+        "self": { "href": "/api/v1/products/pp-001" }
+      }
     }
     ```
 -   **Error Response**: `400 Bad Request` if data is invalid, `404 Not Found` if product doesn't exist.
@@ -113,6 +119,45 @@ Triggers an on-demand compliance check for a specific product.
       "summary": "Product is compliant with all known rules for its category."
     }
     ```
+
+### Webhooks
+
+#### `GET /api/v1/webhooks`
+
+Retrieves a list of all webhook endpoints for your organization.
+
+- **Method**: `GET`
+- **Success Response**: `200 OK`
+
+#### `POST /api/v1/webhooks`
+
+Creates a new webhook endpoint.
+
+- **Method**: `POST`
+- **Body**: A valid `Webhook` object with `url` and `events` properties.
+- **Success Response**: `201 Created`
+
+#### `GET /api/v1/webhooks/{id}`
+
+Retrieves a single webhook by its ID.
+
+- **Method**: `GET`
+- **Success Response**: `200 OK`
+
+#### `PUT /api/v1/webhooks/{id}`
+
+Updates an existing webhook endpoint.
+
+- **Method**: `PUT`
+- **Body**: A `Webhook` object with fields to update (`url`, `events`, `status`).
+- **Success Response**: `200 OK`
+
+#### `DELETE /api/v1/webhooks/{id}`
+
+Deletes a webhook endpoint.
+
+- **Method**: `DELETE`
+- **Success Response**: `204 No Content`
 
 ---
 

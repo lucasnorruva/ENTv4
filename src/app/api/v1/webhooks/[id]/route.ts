@@ -1,9 +1,9 @@
-// src/app/api/v1/products/[id]/route.ts
+// src/app/api/v1/webhooks/[id]/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
 import {
-  getProductById,
-  saveProduct,
-  deleteProduct,
+  getWebhookById,
+  saveWebhook,
+  deleteWebhook,
   logAuditEvent,
 } from '@/lib/actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
@@ -15,23 +15,22 @@ export async function GET(
 ) {
   try {
     const user = await authenticateApiRequest();
-    const product = await getProductById(params.id, user.id);
+    const webhook = await getWebhookById(params.id, user.id);
 
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+    if (!webhook) {
+      return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
     }
 
-    const productWithLinks = {
-      ...product,
+    const webhookWithLinks = {
+      ...webhook,
       _links: {
-        self: { href: `/api/v1/products/${product.id}` },
-        complianceCheck: { href: `/api/v1/compliance/check/${product.id}` },
+        self: { href: `/api/v1/webhooks/${webhook.id}` },
       },
     };
 
-    return NextResponse.json(productWithLinks);
+    return NextResponse.json(webhookWithLinks);
   } catch (error: any) {
-    if (error instanceof PermissionError) {
+     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -43,11 +42,11 @@ export async function PUT(
   { params }: { params: { id: string } },
 ) {
   let user;
-  const endpoint = `/api/v1/products/${params.id}`;
+  const endpoint = `/api/v1/webhooks/${params.id}`;
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
-    if (error instanceof PermissionError) {
+     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -56,48 +55,30 @@ export async function PUT(
   const body = await request.json();
 
   try {
-    const updatedProduct = await saveProduct(body, user.id, params.id);
+    const updatedWebhook = await saveWebhook(body, user.id, params.id);
     await logAuditEvent(
-      'api.put',
+      'api.webhook.put',
       params.id,
       { endpoint, status: 200, method: 'PUT' },
       user.id,
     );
-    const productWithLinks = {
-      ...updatedProduct,
+    const webhookWithLinks = {
+      ...updatedWebhook,
       _links: {
-        self: { href: `/api/v1/products/${updatedProduct.id}` },
+        self: { href: `/api/v1/webhooks/${updatedWebhook.id}` },
       },
     };
-    return NextResponse.json(productWithLinks);
+    return NextResponse.json(webhookWithLinks);
   } catch (error: any) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
     if (error.name === 'ZodError') {
-      await logAuditEvent(
-        'api.put',
-        params.id,
-        { endpoint, status: 400, error: 'Invalid data', method: 'PUT' },
-        user.id,
-      );
       return NextResponse.json(
         { message: 'Invalid data provided', details: error.errors },
         { status: 400 },
       );
     }
-    console.error(`API Product Update Error (ID: ${params.id}):`, error);
-    await logAuditEvent(
-      'api.put',
-      params.id,
-      {
-        endpoint,
-        status: 500,
-        error: 'Internal Server Error',
-        method: 'PUT',
-      },
-      user.id,
-    );
     return NextResponse.json(
       { message: 'Internal Server Error', error: error.message },
       { status: 500 },
@@ -110,52 +91,22 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   let user;
-  const endpoint = `/api/v1/products/${params.id}`;
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
-    if (error instanceof PermissionError) {
+     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
   try {
-    const product = await getProductById(params.id, user.id);
-    if (!product) {
-      await logAuditEvent(
-        'api.delete',
-        params.id,
-        { endpoint, status: 404, error: 'Not Found', method: 'DELETE' },
-        user.id,
-      );
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
-    await deleteProduct(params.id, user.id);
-    await logAuditEvent(
-      'api.delete',
-      params.id,
-      { endpoint, status: 204, method: 'DELETE' },
-      user.id,
-    );
+    await deleteWebhook(params.id, user.id);
     return new NextResponse(null, { status: 204 });
   } catch (error: any) {
-    if (error instanceof PermissionError) {
+     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 403 });
     }
-    console.error(`API Product Deletion Error (ID: ${params.id}):`, error);
-    await logAuditEvent(
-      'api.delete',
-      params.id,
-      {
-        endpoint,
-        status: 500,
-        error: 'Internal Server Error',
-        method: 'DELETE',
-      },
-      user.id,
-    );
     return NextResponse.json(
       { message: 'Internal Server Error', error: error.message },
       { status: 500 },

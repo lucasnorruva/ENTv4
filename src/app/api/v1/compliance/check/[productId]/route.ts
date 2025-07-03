@@ -5,15 +5,12 @@ import {
   getCompliancePathById,
   logAuditEvent,
 } from '@/lib/actions';
-import { getCurrentUser } from '@/lib/auth';
 import type { User } from '@/types';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import type { AiProduct } from '@/ai/schemas';
+import { authenticateApiRequest } from '@/lib/api-auth';
+import { PermissionError } from '@/lib/permissions';
 
-async function getApiUser(request: NextRequest): Promise<User> {
-  // Mock user for API access
-  return getCurrentUser('Developer');
-}
 
 export async function POST(
   request: NextRequest,
@@ -21,9 +18,12 @@ export async function POST(
 ) {
   let user;
   try {
-    user = await getApiUser(request);
+    user = await authenticateApiRequest();
   } catch (error: any) {
-    return NextResponse.json({ error: 'Authentication failed' }, { status: 401 });
+    if (error instanceof PermissionError) {
+      return NextResponse.json({ error: error.message }, { status: 401 });
+    }
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 
   const endpoint = `/api/v1/compliance/check/${params.productId}`;
