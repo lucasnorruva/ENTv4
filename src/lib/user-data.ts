@@ -24,7 +24,7 @@ export let users: User[] = [
     roles: [UserRoles.SUPPLIER],
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
-    onboardingComplete: true,
+    onboardingComplete: false,
     isMfaEnabled: false,
   },
   {
