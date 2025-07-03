@@ -1,3 +1,4 @@
+// src/components/bom-analysis-widget.tsx
 'use client';
 
 import React, { useState, useTransition } from 'react';
