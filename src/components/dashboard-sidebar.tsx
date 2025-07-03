@@ -223,6 +223,7 @@ const navConfig: Record<Role, NavConfig> = {
       items: [
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
         { title: 'Webhooks', icon: Cog, href: 'webhooks' },
+        { title: 'API Settings', icon: Settings, href: 'api-settings' },
       ],
     },
     {
