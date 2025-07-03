@@ -21,7 +21,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
-import { getProducts, getUsers, getCompliancePaths, globalSearch } from '@/lib/actions';
+import { globalSearch } from '@/lib/actions';
 import type { Product, User, CompliancePath, Role } from '@/types';
 import { cn } from '@/lib/utils';
 import { UserRoles } from '@/lib/constants';

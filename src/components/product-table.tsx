@@ -1,3 +1,4 @@
+
 // src/components/product-table.tsx
 "use client";
 
