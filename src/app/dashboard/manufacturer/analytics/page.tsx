@@ -26,6 +26,7 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Hourglass,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -121,6 +122,8 @@ export default async function AnalyticsPage() {
 
   const complianceRateData = generateComplianceRateData(products);
   const productsInDraft = products.filter(p => p.status === 'Draft').length;
+  const productsPendingReview = products.filter(p => p.verificationStatus === 'Pending').length;
+
 
   const recentActivity = auditLogs.slice(0, 5);
   const productMap = new Map(products.map(p => [p.id, p.productName]));
@@ -136,7 +139,7 @@ export default async function AnalyticsPage() {
           An overview of your company's product activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -155,6 +158,16 @@ export default async function AnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{productsInDraft}</div>
             <p className="text-xs text-muted-foreground">Awaiting completion</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{productsPendingReview}</div>
+            <p className="text-xs text-muted-foreground">Awaiting auditor approval</p>
           </CardContent>
         </Card>
         <Card>

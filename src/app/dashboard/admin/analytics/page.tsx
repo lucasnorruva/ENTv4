@@ -1,6 +1,6 @@
 // src/app/dashboard/admin/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers } from '@/lib/auth';
+import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getAuditLogs } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
@@ -27,6 +27,8 @@ import {
   Recycle,
   ShieldX,
   Wrench,
+  Building2,
+  Hourglass,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -90,10 +92,11 @@ export default async function AnalyticsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, users, auditLogs] = await Promise.all([
+  const [products, users, auditLogs, companies] = await Promise.all([
     getProducts(user.id),
     getUsers(),
     getAuditLogs(),
+    getCompanies(),
   ]);
 
   const complianceData = {
@@ -141,7 +144,7 @@ export default async function AnalyticsPage() {
           An overview of platform activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -167,6 +170,18 @@ export default async function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
+              Total Suppliers
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{companies.length}</div>
+            <p className="text-xs text-muted-foreground">Active tenants</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
               Verified Passports
             </CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
@@ -174,7 +189,7 @@ export default async function AnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{complianceData.verified}</div>
             <p className="text-xs text-muted-foreground">
-              Successfully anchored on-chain
+              Successfully anchored
             </p>
           </CardContent>
         </Card>
