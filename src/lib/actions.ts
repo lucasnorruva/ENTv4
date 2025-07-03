@@ -935,17 +935,53 @@ export async function saveUser(
   if (userId) {
     const docRef = adminDb.collection(Collections.USERS).doc(userId);
     await docRef.update(userData);
+    await adminAuth.updateUser(userId, {
+      email: userData.email,
+      displayName: userData.fullName,
+    });
     await logAuditEvent('user.updated', userId, {}, adminId);
     const updatedDoc = await docRef.get();
     return docToType<User>(updatedDoc);
   } else {
-    // Note: Creating a user document without creating an Auth user is not ideal.
-    // This is simplified for the mock. A real app would use a Cloud Function
-    // triggered by Auth user creation.
-    const docRef = await adminDb
-      .collection(Collections.USERS)
-      .add({ ...userData, createdAt: now });
-    await logAuditEvent('user.created', docRef.id, {}, adminId);
+    // Admin is creating a new user
+    try {
+      await adminAuth.getUserByEmail(validatedData.email);
+      throw new Error('A user with this email already exists.');
+    } catch (error: any) {
+      if (error.code !== 'auth/user-not-found') {
+        throw error;
+      }
+    }
+
+    const newUserRecord = await adminAuth.createUser({
+      email: validatedData.email,
+      displayName: validatedData.fullName,
+      password: `temp-pw-${Math.random().toString(36).substring(2)}`,
+      disabled: false,
+    });
+
+    const newUserData = {
+      fullName: validatedData.fullName,
+      email: validatedData.email,
+      companyId: validatedData.companyId,
+      roles: [validatedData.role as Role],
+      readNotificationIds: [],
+      onboardingComplete: true, // Admin-created users are onboarded by default
+      isMfaEnabled: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const docRef = adminDb.collection(Collections.USERS).doc(newUserRecord.uid);
+    await docRef.set(newUserData);
+
+    await logAuditEvent(
+      'user.created',
+      newUserRecord.uid,
+      { byAdmin: adminId },
+      adminId,
+    );
+
     const newDoc = await docRef.get();
     return docToType<User>(newDoc);
   }
@@ -1297,17 +1333,25 @@ export async function completeOnboarding(
     throw new PermissionError('User not found.');
   }
 
+  // A user can only complete their own onboarding.
+  checkPermission(user, 'user:edit', user);
+
   const userRef = adminDb.collection(Collections.USERS).doc(userId);
   const companyRef = adminDb
     .collection(Collections.COMPANIES)
     .doc(user.companyId);
 
   const batch = adminDb.batch();
+  const now = FieldValue.serverTimestamp();
 
-  batch.update(userRef, { onboardingComplete: true });
+  batch.update(userRef, {
+    onboardingComplete: true,
+    updatedAt: now,
+  });
   batch.update(companyRef, {
     name: validatedData.companyName,
     industry: validatedData.industry,
+    updatedAt: now,
   });
 
   await batch.commit();

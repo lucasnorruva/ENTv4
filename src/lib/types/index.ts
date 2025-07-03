@@ -25,9 +25,9 @@ export interface User extends BaseEntity {
   fullName: string;
   companyId: string;
   roles: Role[];
-  readNotificationIds?: string[];
-  onboardingComplete?: boolean;
-  isMfaEnabled?: boolean;
+  readNotificationIds: string[];
+  onboardingComplete: boolean;
+  isMfaEnabled: boolean;
 }
 
 /**
@@ -130,6 +130,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
+  declarationOfConformity?: string;
 
   // Structured Data Fields
   materials: Material[];
@@ -145,7 +146,6 @@ export interface Product extends BaseEntity {
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
   completenessScore?: number;
-  declarationOfConformity?: string;
   isProcessing?: boolean;
 
   // Lifecycle & Verification
