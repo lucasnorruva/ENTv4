@@ -20,6 +20,16 @@ import {
   Wrench,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  limit,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   DropdownMenu,
@@ -31,14 +41,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import type { User, AuditLog, Product } from '@/types';
-import {
-  markAllNotificationsAsRead,
-  getAuditLogs,
-  getProducts,
-  getUsers,
-} from '@/lib/actions';
+import type { User, AuditLog } from '@/types';
+import { markAllNotificationsAsRead, getUsers } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { onCurrentUserUpdate } from '@/lib/auth-client';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -74,84 +80,114 @@ interface NotificationsClientProps {
   user: User;
 }
 
-export default function NotificationsClient({ user }: NotificationsClientProps) {
+export default function NotificationsClient({ user: initialUser }: NotificationsClientProps) {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState<ProcessedNotification[]>(
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(initialUser);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setIsLoading(true);
-      try {
-        const [logs, products, allUsers] = await Promise.all([
-          getAuditLogs({ companyId: user.companyId }),
-          getProducts(user.id),
-          getUsers(),
-        ]);
-
-        const productMap = new Map(products.map(p => [p.id, p.productName]));
-        const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
-
-        // Limit to recent logs
-        const recentLogs = logs.slice(0, 5);
-
-        const processedNotifications: ProcessedNotification[] = recentLogs.map(
-          log => {
-            const logUser = userMap.get(log.userId) || 'System';
-            const product = productMap.get(log.entityId);
-            const title = getActionLabel(log.action);
-            let description = `By ${logUser}`;
-            if (product) {
-              description += ` on "${product}"`;
-            }
-
-            const isRead = user.readNotificationIds?.includes(log.id) ?? false;
-
-            return {
-              id: log.id,
-              action: log.action,
-              title,
-              description,
-              createdAt: log.createdAt,
-              isRead,
-            };
-          },
-        );
-        setNotifications(processedNotifications);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load notifications.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
+    const unsubscribeUser = onCurrentUserUpdate(updatedUser => {
+      if (updatedUser) {
+        setCurrentUser(updatedUser);
       }
-    };
+    });
+
+    return () => unsubscribeUser();
+  }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
+    let isMounted = true;
+
+    async function fetchNotifications() {
+      // Need a map of users in the company for descriptions
+      const allUsers = await getUsers();
+      const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
+
+      const q = query(
+        collection(db, Collections.AUDIT_LOGS),
+        where('entityId', 'in', ['global', currentUser.companyId]), // Simplified for demo
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
+
+      const unsubscribeLogs = onSnapshot(
+        q,
+        snapshot => {
+          if (!isMounted) return;
+
+          const recentLogs = snapshot.docs.map(
+            doc => ({ id: doc.id, ...doc.data() }) as AuditLog,
+          );
+
+          const processedNotifications: ProcessedNotification[] = recentLogs
+            .slice(0, 5)
+            .map(log => {
+              const logUser = userMap.get(log.userId) || 'System';
+              const title = getActionLabel(log.action);
+              let description = `By ${logUser}`;
+
+              const isRead =
+                currentUser.readNotificationIds?.includes(log.id) ?? false;
+
+              return {
+                id: log.id,
+                action: log.action,
+                title,
+                description,
+                createdAt: log.createdAt,
+                isRead,
+              };
+            });
+
+          setNotifications(processedNotifications);
+          setIsLoading(false);
+        },
+        error => {
+          console.error("Error fetching notifications:", error);
+          if (isMounted) {
+            toast({
+              title: 'Error',
+              description: 'Failed to load notifications.',
+              variant: 'destructive',
+            });
+            setIsLoading(false);
+          }
+        },
+      );
+
+      return () => {
+        isMounted = false;
+        unsubscribeLogs();
+      };
+    }
+
     fetchNotifications();
-  }, [user.id, user.companyId, user.readNotificationIds, toast]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser.companyId, currentUser.readNotificationIds, toast]);
+
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleOpenChange = (open: boolean) => {
     if (open && unreadCount > 0) {
       startTransition(async () => {
-        const previousNotifications = notifications;
-        // Optimistic update
-        setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         try {
-          await markAllNotificationsAsRead(user.id);
+          await markAllNotificationsAsRead(currentUser.id);
+          // Real-time listener on user doc will handle the optimistic update
         } catch (error) {
           toast({
             title: 'Error',
             description: 'Could not mark notifications as read.',
             variant: 'destructive',
           });
-          // Rollback on error
-          setNotifications(previousNotifications);
         }
       });
     }
