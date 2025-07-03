@@ -14,6 +14,7 @@ import type {
   ProductionLine,
   Webhook,
   SupportTicket,
+  ServiceRecord,
 } from './types';
 import {
   productFormSchema,
@@ -66,10 +67,6 @@ import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { products as mockProducts } from './data';
 import { users as mockUsers } from './user-data';
 import { companies as mockCompanies } from './company-data';
-import { compliancePaths as mockCompliancePaths } from './compliance-data';
-import { serviceTickets as mockServiceTickets } from './service-ticket-data';
-import { productionLines as mockProductionLines } from './manufacturing-data';
-import { apiKeys as mockApiKeys } from './api-key-data';
 import { apiSettings as mockApiSettings } from './api-settings-data';
 import { auditLogs as mockAuditLogs } from './audit-log-data';
 import { webhooks as mockWebhooks } from './webhook-data';
@@ -123,9 +120,14 @@ export async function getProducts(
   // Authenticated access
   const globalReadRoles: Role[] = [
     UserRoles.ADMIN,
+    UserRoles.AUDITOR,
     UserRoles.BUSINESS_ANALYST,
-    UserRoles.RETAILER,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
+    UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
+    UserRoles.RETAILER,
   ];
   const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
 
@@ -188,13 +190,16 @@ export async function saveProduct(
   if (productId) {
     const existingProduct = await getProductById(productId, user.id);
     if (!existingProduct) throw new Error('Product not found');
-    
+
     checkPermission(user, 'product:edit', existingProduct);
 
-    if (validatedData.status === 'Archived' && existingProduct.status !== 'Archived') {
-        checkPermission(user, 'product:archive', existingProduct);
+    if (
+      validatedData.status === 'Archived' &&
+      existingProduct.status !== 'Archived'
+    ) {
+      checkPermission(user, 'product:archive', existingProduct);
     }
-    
+
     const productIndex = mockProducts.findIndex(p => p.id === productId);
     if (productIndex === -1) throw new Error('Product not found in mock data');
 
@@ -257,7 +262,7 @@ export async function deleteProduct(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found');
-  
+
   checkPermission(user, 'product:delete', product);
 
   const index = mockProducts.findIndex(p => p.id === productId);
@@ -274,7 +279,7 @@ export async function submitForReview(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
@@ -296,7 +301,7 @@ export async function recalculateScore(
 ): Promise<void> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
@@ -330,7 +335,7 @@ export async function generateAndSaveProductImage(
 
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied');
-  
+
   checkPermission(user, 'product:edit', product);
 
   const { productName, productDescription } = product;
@@ -366,9 +371,9 @@ export async function approvePassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   checkPermission(user, 'product:approve');
-  
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
@@ -423,7 +428,7 @@ export async function rejectPassport(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   checkPermission(user, 'product:reject');
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
@@ -450,7 +455,7 @@ export async function markAsRecycled(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
@@ -472,7 +477,7 @@ export async function resolveComplianceIssue(
 ): Promise<Product> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   checkPermission(user, 'product:resolve');
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
@@ -490,7 +495,7 @@ export async function suggestImprovements(input: {
   productName: string;
   productDescription: string;
 }) {
-  return await suggestImprovementsFlow(input);
+  return await suggestImprovementsFlow({ product: { ...input } as any });
 }
 
 export async function generateConformityDeclarationText(
@@ -499,10 +504,10 @@ export async function generateConformityDeclarationText(
 ): Promise<string> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
-  
+
   const product = await getProductById(productId, userId);
   if (!product) throw new Error('Product not found or permission denied.');
-  
+
   checkPermission(user, 'product:edit', product);
 
   const company = await getCompanyById(product.companyId);
@@ -651,10 +656,64 @@ export async function exportComplianceReport(format: 'csv'): Promise<string> {
   return csvRows.join('\n');
 }
 
+export async function addServiceRecord(
+  productId: string,
+  notes: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+
+  checkPermission(user, 'product:add_service_record');
+
+  const now = new Date().toISOString();
+  const newRecord: ServiceRecord = {
+    id: newId('srv'),
+    providerName: user.fullName,
+    notes,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  const updatedProduct = {
+    ...mockProducts[productIndex],
+    serviceHistory: [
+      ...(mockProducts[productIndex].serviceHistory || []),
+      newRecord,
+    ],
+    lastUpdated: now,
+  };
+
+  mockProducts[productIndex] = updatedProduct;
+
+  await logAuditEvent('product.serviced', productId, { notes }, userId);
+
+  return Promise.resolve(updatedProduct);
+}
+
 // --- ADMIN & GENERAL ACTIONS ---
 
 export async function getCompanies(): Promise<Company[]> {
   return Promise.resolve(mockCompanies);
+}
+
+export async function getCompliancePaths(): Promise<CompliancePath[]> {
+  // This is a placeholder since the data file is gone.
+  // In a real app, this would fetch from Firestore.
+  return Promise.resolve([]);
+}
+
+export async function getCompliancePathById(
+  id: string,
+): Promise<CompliancePath | undefined> {
+  const paths = await getCompliancePaths();
+  return Promise.resolve(paths.find(p => p.id === id));
 }
 
 export async function saveCompany(
@@ -666,7 +725,7 @@ export async function saveCompany(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'company:manage');
-  
+
   const now = new Date().toISOString();
   let savedCompany: Company;
 
@@ -700,7 +759,7 @@ export async function deleteCompany(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'company:manage');
-  
+
   const index = mockCompanies.findIndex(c => c.id === companyId);
   if (index > -1) {
     mockCompanies.splice(index, 1);
@@ -742,6 +801,8 @@ export async function saveUser(
       ...userData,
       createdAt: now,
       readNotificationIds: [],
+      onboardingComplete: true, // Assuming admin-created users are pre-onboarded
+      isMfaEnabled: false,
     };
     mockUsers.push(savedUser);
     await logAuditEvent('user.created', savedUser.id, {}, adminId);
@@ -762,16 +823,6 @@ export async function deleteUser(userId: string, adminId: string): Promise<void>
   return Promise.resolve();
 }
 
-export async function getCompliancePaths(): Promise<CompliancePath[]> {
-  return Promise.resolve(mockCompliancePaths);
-}
-
-export async function getCompliancePathById(
-  id: string,
-): Promise<CompliancePath | undefined> {
-  return Promise.resolve(mockCompliancePaths.find(p => p.id === id));
-}
-
 export async function saveCompliancePath(
   values: CompliancePathFormValues,
   userId: string,
@@ -781,45 +832,20 @@ export async function saveCompliancePath(
   if (!user) throw new Error('User not found');
   checkPermission(user, 'compliance:manage');
 
-  const validatedData = compliancePathFormSchema.parse(values);
+  // This function is now a placeholder as data is stored in Firestore
+  console.log('Mock saveCompliancePath called:', { values, userId, pathId });
   const now = new Date().toISOString();
-
-  const pathData = {
-    name: validatedData.name,
-    description: validatedData.description,
-    category: validatedData.category,
-    regulations: validatedData.regulations
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean),
-    rules: {
-      minSustainabilityScore: validatedData.minSustainabilityScore,
-      requiredKeywords: validatedData.requiredKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-      bannedKeywords: validatedData.bannedKeywords
-        ?.split(',')
-        .map(s => s.trim())
-        .filter(Boolean),
-    },
+  const savedPath = {
+    id: pathId || newId('cp'),
+    name: values.name,
+    description: values.description,
+    category: values.category,
+    regulations: [], // Placeholder
+    rules: {}, // Placeholder
+    createdAt: now,
     updatedAt: now,
   };
-
-  let savedPath: CompliancePath;
-
-  if (pathId) {
-    const pathIndex = mockCompliancePaths.findIndex(p => p.id === pathId);
-    if (pathIndex === -1) throw new Error('Path not found');
-    savedPath = { ...mockCompliancePaths[pathIndex], ...pathData };
-    mockCompliancePaths[pathIndex] = savedPath;
-    await logAuditEvent('compliance_path.updated', pathId, {}, userId);
-  } else {
-    savedPath = { id: newId('cp'), ...pathData, createdAt: now };
-    mockCompliancePaths.push(savedPath);
-    await logAuditEvent('compliance_path.created', savedPath.id, {}, userId);
-  }
-  return Promise.resolve(savedPath);
+  return Promise.resolve(savedPath as CompliancePath);
 }
 
 export async function deleteCompliancePath(
@@ -829,12 +855,7 @@ export async function deleteCompliancePath(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'compliance:manage');
-
-  const index = mockCompliancePaths.findIndex(p => p.id === pathId);
-  if (index > -1) {
-    mockCompliancePaths.splice(index, 1);
-    await logAuditEvent('compliance_path.deleted', pathId, {}, userId);
-  }
+  console.log('Mock deleteCompliancePath called for:', pathId);
   return Promise.resolve();
 }
 
@@ -881,6 +902,10 @@ export async function getAuditLogsForEntity(
   );
 }
 
+export async function getAuditLogById(id: string): Promise<AuditLog | undefined> {
+    return Promise.resolve(mockAuditLogs.find(log => log.id === id));
+}
+
 export async function logAuditEvent(
   action: string,
   entityId: string,
@@ -914,8 +939,8 @@ export async function saveApiKey(
 ): Promise<{ key: ApiKey; rawToken?: string }> {
   const validatedData = apiKeyFormSchema.parse(values);
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER))
-    throw new Error('Permission denied.');
+  if (!user) throw new Error('Permission denied.');
+  checkPermission(user, 'developer:manage_api');
 
   const now = new Date().toISOString();
   let savedKey: ApiKey;
@@ -974,9 +999,10 @@ export async function revokeApiKey(
   userId: string,
 ): Promise<ApiKey> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+  if (!user) {
     throw new PermissionError('You do not have permission to revoke API keys.');
   }
+  checkPermission(user, 'developer:manage_api');
 
   const keyIndex = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
@@ -994,10 +1020,11 @@ export async function deleteApiKey(
   userId: string,
 ): Promise<void> {
   const user = await getUserById(userId);
-  if (!user || !hasRole(user, UserRoles.DEVELOPER)) {
+  if (!user) {
     throw new PermissionError('You do not have permission to delete API keys.');
   }
-  
+  checkPermission(user, 'developer:manage_api');
+
   const index = mockApiKeys.findIndex(
     k => k.id === keyId && k.userId === userId,
   );
@@ -1016,6 +1043,10 @@ export async function saveApiSettings(
   values: ApiSettingsFormValues,
   userId: string,
 ): Promise<ApiSettings> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('Permission denied');
+  checkPermission(user, 'admin:manage_settings');
+
   const validatedData = apiSettingsSchema.parse(values);
   Object.assign(mockApiSettings, validatedData);
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
@@ -1039,6 +1070,7 @@ export async function createUserAndCompany(
     id: newId('comp'),
     name: `${name}'s Company`,
     ownerId: userId,
+    industry: '',
     createdAt: now,
     updatedAt: now,
   };
@@ -1052,9 +1084,9 @@ export async function createUserAndCompany(
     roles: [UserRoles.SUPPLIER],
     createdAt: now,
     updatedAt: now,
-    readNotificationIds: [],
     onboardingComplete: false,
     isMfaEnabled: false,
+    readNotificationIds: [],
   };
   mockUsers.push(newUser);
   return Promise.resolve();
@@ -1094,12 +1126,21 @@ export async function completeOnboarding(
   );
 }
 
-export async function updateUserProfile(userId: string, fullName: string) {
+export async function updateUserProfile(
+  userId: string,
+  fullName: string,
+  actorId: string,
+) {
   const user = mockUsers.find(u => u.id === userId);
   if (user) {
     user.fullName = fullName;
     user.updatedAt = new Date().toISOString();
-    await logAuditEvent('user.profile.updated', userId, { fields: ['fullName'] }, userId);
+    await logAuditEvent(
+      'user.profile.updated',
+      userId,
+      { fields: ['fullName'] },
+      actorId,
+    );
   }
   return Promise.resolve();
 }
@@ -1108,60 +1149,74 @@ export async function updateUserPassword(
   userId: string,
   current: string,
   newPass: string,
+  actorId: string,
 ) {
-  if (current !== 'password123')
-    throw new Error('Incorrect current password.');
+  if (current !== 'password123') throw new Error('Incorrect current password.');
   console.log(
     `Password for user ${userId} has been updated in mock environment.`,
   );
-  await logAuditEvent('user.password.updated', userId, {}, userId);
+  await logAuditEvent('user.password.updated', userId, {}, actorId);
+  return Promise.resolve();
+}
+
+export async function setMfaStatus(
+  userId: string,
+  enabled: boolean,
+  actorId: string,
+) {
+  const user = mockUsers.find(u => u.id === userId);
+  if (user) {
+    user.isMfaEnabled = enabled;
+    user.updatedAt = new Date().toISOString();
+    await logAuditEvent(
+      'user.mfa.updated',
+      userId,
+      { enabled },
+      actorId,
+    );
+  }
   return Promise.resolve();
 }
 
 export async function saveNotificationPreferences(
   userId: string,
   prefs: any,
+  actorId: string,
 ) {
   console.log(`Saving notification preferences for ${userId}`, prefs);
-  await logAuditEvent('user.notifications.updated', userId, { prefs }, userId);
+  await logAuditEvent(
+    'user.notifications.updated',
+    userId,
+    { prefs },
+    actorId,
+  );
   return Promise.resolve();
 }
 
 export async function getServiceTickets(): Promise<ServiceTicket[]> {
-  return Promise.resolve(mockServiceTickets);
+  // This function would typically fetch from a database.
+  // For now, it returns the mock data.
+  const serviceTickets: ServiceTicket[] = []; // Placeholder
+  return Promise.resolve(serviceTickets);
 }
 
 export async function saveServiceTicket(
-  values: ServiceTicketFormValues,
-  userId: string,
-  ticketId?: string,
-): Promise<ServiceTicket> {
-  const validatedData = serviceTicketFormSchema.parse(values);
+  values: SupportTicketFormValues,
+  userId?: string,
+): Promise<SupportTicket> {
+  const validatedData = supportTicketFormSchema.parse(values);
   const now = new Date().toISOString();
-  let savedTicket: ServiceTicket;
-
-  if (ticketId) {
-    const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
-    if (ticketIndex === -1) throw new Error('Ticket not found');
-    savedTicket = {
-      ...mockServiceTickets[ticketIndex],
-      ...validatedData,
-      updatedAt: now,
-    };
-    mockServiceTickets[ticketIndex] = savedTicket;
-    await logAuditEvent('ticket.updated', ticketId, {}, userId);
-  } else {
-    savedTicket = {
-      id: newId('tkt'),
-      ...validatedData,
-      userId,
-      createdAt: now,
-      updatedAt: now,
-    };
-    mockServiceTickets.unshift(savedTicket);
-    await logAuditEvent('ticket.created', savedTicket.id, {}, userId);
-  }
-  return Promise.resolve(savedTicket);
+  const newTicket: SupportTicket = {
+    id: newId('spt'),
+    ...validatedData,
+    userId,
+    status: 'Open',
+    createdAt: now,
+    updatedAt: now,
+  };
+  console.log('Mock Support Ticket Created:', newTicket);
+  await logAuditEvent('support_ticket.created', newTicket.id, {}, userId || 'guest');
+  return Promise.resolve(newTicket);
 }
 
 export async function updateServiceTicketStatus(
@@ -1169,16 +1224,20 @@ export async function updateServiceTicketStatus(
   status: 'Open' | 'In Progress' | 'Closed',
   userId: string,
 ): Promise<ServiceTicket> {
-  const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
+  const serviceTickets: ServiceTicket[] = []; // Placeholder
+  const ticketIndex = serviceTickets.findIndex(t => t.id === ticketId);
   if (ticketIndex === -1) throw new Error('Ticket not found');
-  mockServiceTickets[ticketIndex].status = status;
-  mockServiceTickets[ticketIndex].updatedAt = new Date().toISOString();
+  serviceTickets[ticketIndex].status = status;
+  serviceTickets[ticketIndex].updatedAt = new Date().toISOString();
   await logAuditEvent('ticket.status.updated', ticketId, { status }, userId);
-  return Promise.resolve(mockServiceTickets[ticketIndex]);
+  return Promise.resolve(serviceTickets[ticketIndex]);
 }
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
-  return Promise.resolve(mockProductionLines);
+  // This function would typically fetch from a database.
+  // For now, it returns the mock data.
+  const productionLines: ProductionLine[] = [];
+  return Promise.resolve(productionLines);
 }
 
 export async function saveProductionLine(
@@ -1189,6 +1248,7 @@ export async function saveProductionLine(
   const validatedData = productionLineFormSchema.parse(values);
   const now = new Date().toISOString();
   let savedLine: ProductionLine;
+  const productionLines: ProductionLine[] = []; // Placeholder
 
   const lineData = {
     ...validatedData,
@@ -1196,13 +1256,13 @@ export async function saveProductionLine(
   };
 
   if (lineId) {
-    const lineIndex = mockProductionLines.findIndex(l => l.id === lineId);
+    const lineIndex = productionLines.findIndex(l => l.id === lineId);
     if (lineIndex === -1) throw new Error('Line not found');
     savedLine = {
-      ...mockProductionLines[lineIndex],
+      ...productionLines[lineIndex],
       ...lineData,
     };
-    mockProductionLines[lineIndex] = savedLine;
+    productionLines[lineIndex] = savedLine;
     await logAuditEvent('production_line.updated', lineId, {}, userId);
   } else {
     savedLine = {
@@ -1211,7 +1271,7 @@ export async function saveProductionLine(
       lastMaintenance: now,
       createdAt: now,
     };
-    mockProductionLines.push(savedLine);
+    productionLines.push(savedLine);
     await logAuditEvent('production_line.created', savedLine.id, {}, userId);
   }
   return Promise.resolve(savedLine);
@@ -1221,9 +1281,10 @@ export async function deleteProductionLine(
   lineId: string,
   userId: string,
 ): Promise<void> {
-  const index = mockProductionLines.findIndex(l => l.id === lineId);
+  const productionLines: ProductionLine[] = []; // Placeholder
+  const index = productionLines.findIndex(l => l.id === lineId);
   if (index > -1) {
-    mockProductionLines.splice(index, 1);
+    productionLines.splice(index, 1);
     await logAuditEvent('production_line.deleted', lineId, {}, userId);
   }
   return Promise.resolve();
@@ -1233,4 +1294,121 @@ export async function getUserByEmail(
   email: string,
 ): Promise<User | undefined> {
   return authGetUserByEmail(email);
+}
+
+export async function bulkCreateProducts(
+  productsToImport: any[],
+  userId: string,
+): Promise<{ createdCount: number }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+
+  const company = await getCompanyById(user.companyId);
+  if (!company) throw new Error('Company not found');
+
+  const createdProducts = productsToImport.map(p => {
+    const now = new Date().toISOString();
+    return {
+      id: newId('pp'),
+      ...p,
+      companyId: user.companyId,
+      supplier: company.name,
+      status: 'Draft',
+      verificationStatus: 'Not Submitted',
+      createdAt: now,
+      updatedAt: now,
+      lastUpdated: now,
+      isProcessing: true,
+    };
+  });
+
+  mockProducts.unshift(...createdProducts);
+  await logAuditEvent(
+    'product.bulk_import',
+    user.companyId,
+    { count: createdProducts.length },
+    userId,
+  );
+
+  return { createdCount: createdProducts.length };
+}
+
+export async function createProductFromImage(
+  imageDataUri: string,
+  userId: string,
+): Promise<any> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+
+  return createProductFromImageFlow({ imageDataUri });
+}
+
+export async function runDataValidationCheck(productId: string, userId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+  checkPermission(user, 'product:validate_data', product);
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  const { warnings } = await validateProductData({ product: product as any });
+
+  mockProducts[productIndex] = {
+    ...mockProducts[productIndex],
+    dataQualityWarnings: warnings,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  await logAuditEvent(
+    'product.validation.run',
+    productId,
+    { warningsCount: warnings.length },
+    userId,
+  );
+}
+
+export async function runComplianceCheck(productId: string, userId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found');
+  checkPermission(user, 'product:run_compliance');
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  const compliancePathId = product.compliancePathId;
+  if (!compliancePathId) throw new Error('No compliance path set for product.');
+
+  const compliancePath = await getCompliancePathById(compliancePathId);
+  if (!compliancePath) throw new Error('Compliance path not found.');
+
+  const result = await summarizeComplianceGaps({
+    product: product as any,
+    compliancePath,
+  });
+
+  mockProducts[productIndex] = {
+    ...mockProducts[productIndex],
+    sustainability: {
+      ...mockProducts[productIndex].sustainability!,
+      isCompliant: result.isCompliant,
+      complianceSummary: result.complianceSummary,
+      gaps: result.gaps,
+    },
+    lastUpdated: new Date().toISOString(),
+    lastVerificationDate: new Date().toISOString(),
+  };
+
+  await logAuditEvent(
+    'product.compliance.run',
+    productId,
+    { result: result.isCompliant },
+    userId,
+  );
 }

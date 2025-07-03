@@ -105,6 +105,14 @@ export interface ComplianceGap {
 }
 
 /**
+ * Represents a single service or repair record.
+ */
+export interface ServiceRecord extends BaseEntity {
+  providerName: string;
+  notes: string;
+}
+
+/**
  * Groups all AI-generated and compliance-related data.
  */
 export interface SustainabilityData extends EsgScoreOutput {
@@ -140,6 +148,7 @@ export interface Product extends BaseEntity {
   lifecycle?: Lifecycle;
   battery?: Battery;
   compliance?: Compliance;
+  serviceHistory?: ServiceRecord[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

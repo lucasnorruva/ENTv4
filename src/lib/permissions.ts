@@ -28,6 +28,7 @@ export type Action =
   | 'product:resolve'
   | 'product:run_compliance'
   | 'product:validate_data'
+  | 'product:add_service_record'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -105,6 +106,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
+      
+    case 'product:add_service_record':
+      return hasRole(user, UserRoles.SERVICE_PROVIDER);
 
     case 'compliance:manage':
       return (
