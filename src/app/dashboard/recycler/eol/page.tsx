@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import EolProductsClient from '@/components/eol-products-client';
 import { UserRoles } from '@/lib/constants';
+import ProductScanner from '@/components/product-scanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,6 +14,17 @@ export default async function EolPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Data is now fetched client-side
-  return <EolProductsClient user={user} />;
+  return (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">
+          End-of-Life Processing
+        </h1>
+        <p className="text-muted-foreground">
+          Scan or enter product IDs to process items for recycling.
+        </p>
+      </div>
+      <ProductScanner user={user} />
+    </div>
+  );
 }
