@@ -24,7 +24,7 @@ export default async function ApiSettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">API Settings</h1>
         <p className="text-muted-foreground">
-          Configure global settings for the Norruva API and integrations.
+          View global settings for the Norruva API and integrations.
         </p>
       </div>
       <ApiSettingsClient initialSettings={settings} user={user} />

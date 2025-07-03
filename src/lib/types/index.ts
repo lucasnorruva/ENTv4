@@ -229,3 +229,16 @@ export interface Webhook extends BaseEntity {
   status: 'active' | 'inactive';
   userId: string;
 }
+
+/**
+ * Represents the global settings for the Norruva API.
+ */
+export interface ApiSettings {
+  isPublicApiEnabled: boolean;
+  rateLimits: {
+    free: number;
+    pro: number;
+    enterprise: number;
+  };
+  isWebhookSigningEnabled: boolean;
+}

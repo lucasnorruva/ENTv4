@@ -1,3 +1,4 @@
+// src/components/api-settings-client.tsx
 'use client';
 
 import { useTransition } from 'react';
@@ -30,6 +31,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Loader2 } from 'lucide-react';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
 
 interface ApiSettingsClientProps {
   initialSettings: ApiSettings;
@@ -42,6 +45,7 @@ export default function ApiSettingsClient({
 }: ApiSettingsClientProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const canEdit = hasRole(user, UserRoles.ADMIN);
 
   const form = useForm<ApiSettingsFormValues>({
     resolver: zodResolver(apiSettingsSchema),
@@ -68,7 +72,10 @@ export default function ApiSettingsClient({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6"
+      >
         <Card>
           <CardHeader>
             <CardTitle>General API Availability</CardTitle>
@@ -93,6 +100,7 @@ export default function ApiSettingsClient({
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled={!canEdit || isPending}
                     />
                   </FormControl>
                 </FormItem>
@@ -124,6 +132,7 @@ export default function ApiSettingsClient({
                         onChange={event =>
                           field.onChange(+event.target.value)
                         }
+                        disabled={!canEdit || isPending}
                       />
                     </FormControl>
                   </FormItem>
@@ -142,6 +151,7 @@ export default function ApiSettingsClient({
                         onChange={event =>
                           field.onChange(+event.target.value)
                         }
+                        disabled={!canEdit || isPending}
                       />
                     </FormControl>
                   </FormItem>
@@ -160,6 +170,7 @@ export default function ApiSettingsClient({
                         onChange={event =>
                           field.onChange(+event.target.value)
                         }
+                        disabled={!canEdit || isPending}
                       />
                     </FormControl>
                   </FormItem>
@@ -193,6 +204,7 @@ export default function ApiSettingsClient({
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled={!canEdit || isPending}
                     />
                   </FormControl>
                 </FormItem>
@@ -201,12 +213,14 @@ export default function ApiSettingsClient({
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save All Settings
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isPending}>
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save All Settings
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

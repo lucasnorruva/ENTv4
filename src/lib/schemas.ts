@@ -211,3 +211,14 @@ export const onboardingFormSchema = z.object({
   industry: z.string().optional(),
 });
 export type OnboardingFormValues = z.infer<typeof onboardingFormSchema>;
+
+export const apiSettingsSchema = z.object({
+  isPublicApiEnabled: z.boolean(),
+  rateLimits: z.object({
+    free: z.coerce.number().int().min(0),
+    pro: z.coerce.number().int().min(0),
+    enterprise: z.coerce.number().int().min(0),
+  }),
+  isWebhookSigningEnabled: z.boolean(),
+});
+export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
