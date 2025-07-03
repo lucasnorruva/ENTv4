@@ -61,6 +61,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "./ui/input";
@@ -368,13 +375,52 @@ export default function ProductTable({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
+      <div className="flex flex-wrap items-center py-4 gap-2">
         <Input
           placeholder="Filter by name, GTIN, or supplier..."
           value={globalFilter ?? ''}
           onChange={event => setGlobalFilter(event.target.value)}
           className="max-w-sm"
         />
+        <Select
+          value={(table.getColumn('status')?.getFilterValue() as string) ?? 'all'}
+          onValueChange={value =>
+            table.getColumn('status')?.setFilterValue(value === 'all' ? '' : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by status..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="Published">Published</SelectItem>
+            <SelectItem value="Draft">Draft</SelectItem>
+            <SelectItem value="Archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={
+            (table.getColumn('verificationStatus')?.getFilterValue() as string) ??
+            'all'
+          }
+          onValueChange={value =>
+            table
+              .getColumn('verificationStatus')
+              ?.setFilterValue(value === 'all' ? '' : value)
+          }
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by verification..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Verification</SelectItem>
+            <SelectItem value="Verified">Verified</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Failed">Failed</SelectItem>
+            <SelectItem value="Not Submitted">Not Submitted</SelectItem>
+          </SelectContent>
+        </Select>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
