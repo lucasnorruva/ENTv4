@@ -15,5 +15,5 @@ export default async function UsersPage() {
   }
 
   // Initial users are now fetched on the client side with a real-time listener.
-  return <UserManagementClient adminUser={user} />;
+  return <UserManagementClient user={user} />;
 }
