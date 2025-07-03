@@ -1,4 +1,3 @@
-
 // src/components/dashboard-shell.tsx
 import React from 'react';
 import type { User } from '@/types';
@@ -37,7 +36,7 @@ export default function DashboardShell({
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/95 px-4 shadow-sm backdrop-blur-sm sm:h-16 sm:px-6">
           <SidebarTrigger className="sm:hidden" />
           <div className="flex-1">
-            <GlobalSearchButton userId={user.id} />
+            <GlobalSearchButton user={user} role={role} />
           </div>
           <div className="flex items-center gap-2">
             <RoleSwitcher roles={user.roles} currentRole={role} />

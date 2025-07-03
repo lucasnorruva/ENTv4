@@ -1,4 +1,3 @@
-
 // src/components/global-search-button.tsx
 'use client';
 
@@ -22,11 +21,10 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 import { globalSearch } from '@/lib/actions';
-import type { Product, User, CompliancePath } from '@/lib/types';
+import type { Product, User, CompliancePath, Role } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
-import { getCurrentUser } from '@/lib/auth-client';
 
 interface GlobalSearchResult {
   products: Product[];
@@ -35,27 +33,22 @@ interface GlobalSearchResult {
 }
 
 interface GlobalSearchButtonProps {
-  userId: string;
+  user: User;
+  role: Role;
   className?: string;
 }
 
 export default function GlobalSearchButton({
-  userId,
+  user,
+  role,
   className,
 }: GlobalSearchButtonProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [user, setUser] = useState<User | null>(null);
   const [debouncedQuery] = useDebounce(query, 300);
   const [data, setData] = useState<GlobalSearchResult | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    // This is a simplified way to get the current user on the client.
-    // In a real app, you might use a more robust state management solution.
-    getCurrentUser().then(setUser);
-  }, []);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -72,13 +65,13 @@ export default function GlobalSearchButton({
   useEffect(() => {
     if (debouncedQuery.length > 1) {
       startTransition(async () => {
-        const result = await globalSearch(debouncedQuery, userId);
+        const result = await globalSearch(debouncedQuery, user.id);
         setData(result);
       });
     } else {
       setData(null);
     }
-  }, [debouncedQuery, userId]);
+  }, [debouncedQuery, user.id]);
 
   const handleSelect = useCallback(
     (path: string) => {
@@ -90,7 +83,8 @@ export default function GlobalSearchButton({
   );
 
   const isAdmin = user && hasRole(user, UserRoles.ADMIN);
-  
+  const roleSlug = role.toLowerCase().replace(/ /g, '-');
+
   return (
     <>
       <Button
@@ -120,16 +114,22 @@ export default function GlobalSearchButton({
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           )}
-          {!isPending && query.length > 1 && !data?.products.length && !data?.users.length && !data?.compliancePaths.length && (
-            <CommandEmpty>No results found for "{query}".</CommandEmpty>
-        )}
+          {!isPending &&
+            query.length > 1 &&
+            !data?.products.length &&
+            !data?.users.length &&
+            !data?.compliancePaths.length && (
+              <CommandEmpty>No results found for "{query}".</CommandEmpty>
+            )}
 
           {data?.products && data.products.length > 0 && (
             <CommandGroup heading="Products">
               {data.products.map(product => (
                 <CommandItem
                   key={product.id}
-                  onSelect={() => handleSelect(`/dashboard/${isAdmin ? 'admin' : 'supplier'}/products/${product.id}`)}
+                  onSelect={() =>
+                    handleSelect(`/dashboard/${roleSlug}/products/${product.id}`)
+                  }
                   value={`product-${product.id}`}
                 >
                   <BookCopy className="mr-2 h-4 w-4" />
@@ -141,14 +141,14 @@ export default function GlobalSearchButton({
 
           {isAdmin && data?.users && data.users.length > 0 && (
             <CommandGroup heading="Users">
-              {data.users.map(user => (
+              {data.users.map(u => (
                 <CommandItem
-                  key={user.id}
+                  key={u.id}
                   onSelect={() => handleSelect('/dashboard/admin/users')}
-                  value={`user-${user.id}`}
+                  value={`user-${u.id}`}
                 >
                   <Users className="mr-2 h-4 w-4" />
-                  <span>{user.fullName}</span>
+                  <span>{u.fullName}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -168,7 +168,6 @@ export default function GlobalSearchButton({
               ))}
             </CommandGroup>
           )}
-          
         </CommandList>
       </CommandDialog>
     </>
