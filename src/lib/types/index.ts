@@ -121,6 +121,7 @@ export interface SustainabilityData extends EsgScoreOutput {
   isCompliant: boolean;
   complianceSummary: string;
   gaps?: ComplianceGap[];
+  completenessScore?: number;
 }
 
 /**
@@ -154,7 +155,6 @@ export interface Product extends BaseEntity {
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
-  completenessScore?: number;
   isProcessing?: boolean;
 
   // Lifecycle & Verification

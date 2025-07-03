@@ -1291,6 +1291,10 @@ export async function saveApiSettings(
   values: ApiSettingsFormValues,
   userId: string,
 ): Promise<ApiSettings> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'admin:manage_settings');
+  
   const validatedData = apiSettingsSchema.parse(values);
   Object.assign(mockApiSettings, validatedData);
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
