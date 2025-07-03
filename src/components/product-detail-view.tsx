@@ -753,36 +753,40 @@ export default function ProductDetailView({
                       }
                     />
 
-                    {product.serviceHistory &&
-                      product.serviceHistory.length > 0 && (
-                        <InfoRow icon={Wrench} label="Service History">
-                          <div className="space-y-4 mt-2">
-                            {product.serviceHistory
-                              .sort(
-                                (a: ServiceRecord, b: ServiceRecord) =>
-                                  new Date(b.createdAt).getTime() -
-                                  new Date(a.createdAt).getTime(),
-                              )
-                              .map((record: ServiceRecord) => (
-                                <div
-                                  key={record.id}
-                                  className="text-sm border-l-2 pl-3"
-                                >
-                                  <p className="font-semibold text-foreground">
-                                    {record.notes}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    Serviced by {record.providerName} on{' '}
-                                    {format(
-                                      new Date(record.createdAt),
-                                      'PPP',
-                                    )}
-                                  </p>
-                                </div>
-                              ))}
-                          </div>
-                        </InfoRow>
+                    <InfoRow icon={Wrench} label="Service History">
+                      {product.serviceHistory &&
+                      product.serviceHistory.length > 0 ? (
+                        <div className="space-y-4 mt-2">
+                          {product.serviceHistory
+                            .sort(
+                              (a: ServiceRecord, b: ServiceRecord) =>
+                                new Date(b.createdAt).getTime() -
+                                new Date(a.createdAt).getTime(),
+                            )
+                            .map((record: ServiceRecord) => (
+                              <div
+                                key={record.id}
+                                className="text-sm border-l-2 pl-3"
+                              >
+                                <p className="font-semibold text-foreground">
+                                  {record.notes}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Serviced by {record.providerName} on{' '}
+                                  {format(
+                                    new Date(record.createdAt),
+                                    'PPP',
+                                  )}
+                                </p>
+                              </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          No service history recorded.
+                        </p>
                       )}
+                    </InfoRow>
 
                     {aiLifecycle && (
                       <Accordion

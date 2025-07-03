@@ -108,6 +108,7 @@ export interface ComplianceGap {
  * Represents a single service or repair record.
  */
 export interface ServiceRecord extends BaseEntity {
+  providerId: string;
   providerName: string;
   notes: string;
 }
@@ -226,9 +227,9 @@ export interface ProductionLine extends BaseEntity {
   location: string;
   status: 'Active' | 'Idle' | 'Maintenance';
   outputPerHour: number;
-  productId?: string;
   currentProduct: string;
   lastMaintenance: string;
+  productId?: string;
 }
 
 /**

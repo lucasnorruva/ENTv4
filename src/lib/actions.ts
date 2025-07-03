@@ -872,6 +872,7 @@ export async function addServiceRecord(
   const now = new Date().toISOString();
   const newRecord: ServiceRecord = {
     id: newId('serv'),
+    providerId: user.id,
     providerName: user.fullName,
     notes,
     createdAt: now,
