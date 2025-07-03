@@ -7,9 +7,8 @@ import { serviceTickets as mockServiceTickets } from '../lib/service-ticket-data
 import { productionLines as mockProductionLines } from '../lib/manufacturing-data';
 import { apiKeys as mockApiKeys } from '../lib/api-key-data';
 import { webhooks as mockWebhooks } from '../lib/webhook-data';
-import { auditLogs as mockAuditLogs } from '../lib/audit-log-data';
 import { Collections, UserRoles } from '../lib/constants';
-import type { Company, Product, User, CompliancePath } from '@/types';
+import type { Company, Product, User, CompliancePath, AuditLog } from '@/types';
 
 // --- MOCK DATA DEFINITIONS (MOVED FROM DEPRECATED FILES) ---
 const mockCompanies: Omit<Company, 'createdAt' | 'updatedAt'>[] = [
@@ -196,53 +195,95 @@ const mockProducts: Omit<Product, 'createdAt' | 'updatedAt' | 'lastUpdated'>[] =
     },
   ];
 
-const mockCompliancePaths: Omit<CompliancePath, 'createdAt' | 'updatedAt'>[] = [
+const mockCompliancePaths: Omit<CompliancePath, 'createdAt' | 'updatedAt'>[] =
+  [
+    {
+      id: 'cp-electronics-01',
+      name: 'EU Electronics Sustainability Standard (ESPR, RoHS)',
+      description:
+        'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions.',
+      regulations: ['ESPR', 'RoHS'],
+      category: 'Electronics',
+      rules: {
+        minSustainabilityScore: 60,
+        bannedKeywords: ['Lead', 'Mercury', 'Cadmium', 'Hexavalent Chromium'],
+      },
+    },
+    {
+      id: 'cp-fashion-01',
+      name: 'Global Organic Textile Standard',
+      description:
+        'Ensures organic status of textiles, from harvesting of raw materials, through environmentally and socially responsible manufacturing.',
+      regulations: ['GOTS'],
+      category: 'Fashion',
+      rules: {
+        minSustainabilityScore: 75,
+        requiredKeywords: ['Organic Cotton'],
+        bannedKeywords: ['Polyester'],
+      },
+    },
+    {
+      id: 'cp-fashion-02',
+      name: 'EU Leather Goods Standard (EUDR, REACH)',
+      description:
+        'Requires leather goods to comply with EU Deforestation-Free Regulation and REACH substance safety.',
+      regulations: ['EUDR', 'REACH'],
+      category: 'Fashion',
+      rules: {
+        minSustainabilityScore: 50,
+        requiredKeywords: ['Leather'],
+      },
+    },
+    {
+      id: 'cp-homegoods-01',
+      name: 'General Product Safety Regulation',
+      description:
+        'Baseline safety requirements for all consumer goods sold in the EU.',
+      regulations: ['GPSR'],
+      category: 'Home Goods',
+      rules: {
+        minSustainabilityScore: 40,
+      },
+    },
+  ];
+
+const mockAuditLogs: Omit<AuditLog, 'createdAt' | 'updatedAt'>[] = [
   {
-    id: 'cp-electronics-01',
-    name: 'EU Electronics Sustainability Standard (ESPR, RoHS)',
-    description:
-      'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions.',
-    regulations: ['ESPR', 'RoHS'],
-    category: 'Electronics',
-    rules: {
-      minSustainabilityScore: 60,
-      bannedKeywords: ['Lead', 'Mercury', 'Cadmium', 'Hexavalent Chromium'],
+    id: 'log-key-001',
+    userId: 'user-developer',
+    action: 'api_key.created',
+    entityId: 'key-001',
+    details: { label: 'My Production Server' },
+  },
+  {
+    id: 'log-key-002',
+    userId: 'user-developer',
+    action: 'api_key.revoked',
+    entityId: 'key-002',
+    details: {},
+  },
+  {
+    id: 'log-wh-001',
+    userId: 'user-developer',
+    action: 'webhook.delivery.success',
+    entityId: 'wh-001',
+    details: {
+      event: 'product.published',
+      statusCode: 200,
+      productId: 'pp-001',
+      url: 'https://api.example.com/v1/norruva-hooks',
     },
   },
   {
-    id: 'cp-fashion-01',
-    name: 'Global Organic Textile Standard',
-    description:
-      'Ensures organic status of textiles, from harvesting of raw materials, through environmentally and socially responsible manufacturing.',
-    regulations: ['GOTS'],
-    category: 'Fashion',
-    rules: {
-      minSustainabilityScore: 75,
-      requiredKeywords: ['Organic Cotton'],
-      bannedKeywords: ['Polyester'],
-    },
-  },
-  {
-    id: 'cp-fashion-02',
-    name: 'EU Leather Goods Standard (EUDR, REACH)',
-    description:
-      'Requires leather goods to comply with EU Deforestation-Free Regulation and REACH substance safety.',
-    regulations: ['EUDR', 'REACH'],
-    category: 'Fashion',
-    rules: {
-      minSustainabilityScore: 50,
-      requiredKeywords: ['Leather'],
-    },
-  },
-  {
-    id: 'cp-homegoods-01',
-    name: 'General Product Safety Regulation',
-    description:
-      'Baseline safety requirements for all consumer goods sold in the EU.',
-    regulations: ['GPSR'],
-    category: 'Home Goods',
-    rules: {
-      minSustainabilityScore: 40,
+    id: 'log-wh-002',
+    userId: 'user-developer',
+    action: 'webhook.delivery.failure',
+    entityId: 'wh-001',
+    details: {
+      event: 'product.updated',
+      statusCode: 503,
+      productId: 'pp-002',
+      url: 'https://api.example.com/v1/norruva-hooks',
     },
   },
 ];
@@ -391,10 +432,10 @@ async function seedDatabase() {
   await seedCollection(Collections.USERS, mockUsers);
   await seedCollection(Collections.PRODUCTS, mockProducts);
   await seedCollection(Collections.COMPLIANCE_PATHS, mockCompliancePaths);
+  await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
   await seedCollection(Collections.SERVICE_TICKETS, mockServiceTickets);
   await seedCollection(Collections.PRODUCTION_LINES, mockProductionLines);
   await seedCollection(Collections.API_KEYS, mockApiKeys);
-  await seedCollection(Collections.AUDIT_LOGS, mockAuditLogs);
   await seedCollection(Collections.WEBHOOKS, mockWebhooks);
 
   // Seed API Settings
