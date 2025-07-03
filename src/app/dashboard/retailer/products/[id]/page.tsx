@@ -2,12 +2,14 @@
 import {
   getProductById,
   getCompliancePathById,
-  getAuditLogsForEntity,
 } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
-import ProductDetailView from '@/components/product-detail-view';
+import PublicPassportView from '@/components/public-passport-view';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,19 +25,19 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const [compliancePath, auditLogs] = await Promise.all([
-    product.compliancePathId
-      ? getCompliancePathById(product.compliancePathId)
-      : undefined,
-    getAuditLogsForEntity(product.id),
-  ]);
+  const compliancePath = product.compliancePathId
+    ? await getCompliancePathById(product.compliancePathId)
+    : undefined;
 
   return (
-    <ProductDetailView
-      product={product}
-      user={user}
-      compliancePath={compliancePath}
-      auditLogs={auditLogs}
-    />
+    <div className="space-y-4">
+       <Button asChild variant="outline" size="sm">
+        <Link href="/dashboard/retailer/catalog">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Catalog
+        </Link>
+      </Button>
+      <PublicPassportView product={product} compliancePath={compliancePath} />
+    </div>
   );
 }
