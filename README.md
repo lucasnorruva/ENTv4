@@ -8,16 +8,17 @@ To democratize sustainability and compliance by providing the world's most robus
 ## Key Features
 
 -   **AI-Powered Intelligence**: Leverage Google's Gemini models via Genkit for automated compliance checking against 75+ regulations, dynamic ESG scoring, supply chain risk assessment, and auto-generation of product descriptions and compliance summaries.
--   **Enterprise Security**: Built on a zero-trust architecture with end-to-end encryption. All data integrity is secured via blockchain anchoring for immutable proof of authenticity.
--   **Role-Based Access Control (RBAC)**: A multi-tenant system with distinct dashboards and granular permissions for various roles like Suppliers, Auditors, Compliance Managers, and more.
--   **Seamless Integration**: A developer-friendly REST API, webhook system for real-time notifications, and connectors for integration with external ERPs, supply chain software, or e-commerce platforms.
+-   **Enterprise-Grade Security**: Built with a focus on security, all data integrity can be secured via blockchain anchoring for immutable proof of authenticity.
+-   **Multi-Persona Dashboards**: A multi-tenant system with distinct, feature-rich dashboards and granular permissions for 10 unique roles, including Suppliers, Auditors, Compliance Managers, Service Providers, and Manufacturers.
+-   **Global Supply Chain Visualization**: An interactive 3D globe tracker to visualize product transit routes and supply chain networks in real-time.
+-   **Seamless Integration**: A developer-friendly GraphQL API, a versioned REST API, and a webhook system for real-time notifications and integration with external ERPs or e-commerce platforms.
 
 ## Tech Stack
 
 -   **Framework**: [Next.js](https://nextjs.org/) (with App Router)
--   **Backend**: Local Mock Data (for development), [Firebase](https://firebase.google.com/) (for production)
--   **AI & Machine Learning**: [Genkit](https://firebase.google.com/docs/genkit) for leveraging Google Gemini models for content analysis and enrichment.
--   **Blockchain & Trust Layer**: [Polygon](https://polygon.technology/) for low-cost, energy-efficient Ethereum Layer 2 anchoring and smart contracts for immutable verification.
+-   **Backend**: [Firebase](https://firebase.google.com/) (Firestore, Auth, Storage)
+-   **AI & Machine Learning**: [Genkit](https://firebase.google.com/docs/genkit) for leveraging Google Gemini models.
+-   **Blockchain & Trust Layer**: [Polygon](https://polygon.technology/) for low-cost, energy-efficient Ethereum Layer 2 anchoring.
 -   **UI**: [React](https://reactjs.org/), [ShadCN UI](https://ui.shadcn.com/), [Tailwind CSS](https://tailwindcss.com/)
 -   **Testing**: [Jest](https://jestjs.io/), [React Testing Library](https://testing-library.com/)
 
@@ -27,7 +28,7 @@ Follow these instructions to get the project running on your local machine for d
 
 ### Prerequisites
 
--   Node.js (v18 or later)
+-   Node.js (v20 or later)
 -   npm or yarn
 -   Firebase CLI (`npm install -g firebase-tools`)
 
@@ -78,19 +79,19 @@ Follow these instructions to get the project running on your local machine for d
 
 ### Running the Application
 
-For local development, the application now runs entirely on mock data, so you no longer need to run the `seed` script or Firebase emulators.
+For local development, the application runs against the Firebase Emulator Suite, providing a local, offline development environment that simulates the live Firebase backend.
 
-To run the full application, including the Next.js frontend and the Genkit AI server, use a single command in your terminal:
+To run the full application, including the Next.js frontend and the emulated backend services, use a single command in your terminal:
 
 ```bash
 npm run dev
 ```
 
 This command concurrently starts two processes:
--   **Genkit Server**: Runs the AI flows and makes them available. The Genkit Developer UI can be accessed at `http://localhost:4000`.
+-   **Genkit Developer UI**: Runs the AI flow debugger, which can be accessed at `http://localhost:4000`.
 -   **Next.js Frontend**: Runs the main web application. The dashboard can be accessed at `http://localhost:9002`.
 
-Both services will run in the same terminal, and you will see logs from both.
+Both services will run in the same terminal, and you will see logs from both. Upon starting, the Firebase Emulators (Firestore, Auth, Storage) will be automatically launched.
 
 ## Testing
 
