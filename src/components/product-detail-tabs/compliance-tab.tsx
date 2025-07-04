@@ -133,26 +133,26 @@ export default function ComplianceTab({
         <CardContent>
           <InfoRow icon={ShieldCheck} label="RoHS Compliant">
             <div className="text-sm text-muted-foreground">
-              {compliance?.rohsCompliant ? 'Yes' : 'No'}
-              {compliance?.rohsExemption && (
+              {compliance?.rohs?.compliant ? 'Yes' : 'No'}
+              {compliance?.rohs?.exemption && (
                 <span className="ml-2 text-xs">
-                  (Exemption: {compliance.rohsExemption})
+                  (Exemption: {compliance.rohs.exemption})
                 </span>
               )}
             </div>
           </InfoRow>
           <InfoRow icon={Stamp} label="CE Marked">
             <div className="text-sm text-muted-foreground">
-              {compliance?.ceMarked ? 'Yes' : 'No'}
+              {compliance?.ce?.marked ? 'Yes' : 'No'}
             </div>
           </InfoRow>
           <InfoRow icon={Fingerprint} label="REACH SVHC & SCIP">
             <div className="text-sm text-muted-foreground">
-              <p>SVHC Declared: {compliance?.reachSVHC ? 'Yes' : 'No'}</p>
+              <p>SVHC Declared: {compliance?.reach?.svhcDeclared ? 'Yes' : 'No'}</p>
               <p>
                 SCIP Ref:{' '}
                 <span className="font-mono text-xs">
-                  {compliance?.scipReference || 'N/A'}
+                  {compliance?.reach?.scipReference || 'N/A'}
                 </span>
               </p>
             </div>
@@ -160,37 +160,37 @@ export default function ComplianceTab({
           <InfoRow icon={Recycle} label="WEEE Compliance">
             <div className="text-sm text-muted-foreground">
               Registered:{' '}
-              {compliance?.weeeRegistered ? 'Yes' : 'No'}
-              {compliance?.weeeRegistrationNumber && (
+              {compliance?.weee?.registered ? 'Yes' : 'No'}
+              {compliance?.weee?.registrationNumber && (
                 <span className="ml-2 font-mono text-xs">
-                  ({compliance.weeeRegistrationNumber})
+                  ({compliance.weee.registrationNumber})
                 </span>
               )}
             </div>
           </InfoRow>
           <InfoRow icon={Leaf} label="EUDR Compliant">
             <div className="text-sm text-muted-foreground">
-              {compliance?.eudrCompliant ? 'Yes' : 'No'}
-              {compliance?.eudrDiligenceId && (
+              {compliance?.eudr?.compliant ? 'Yes' : 'No'}
+              {compliance?.eudr?.diligenceId && (
                 <span className="ml-2 text-xs">
-                  (Diligence ID: {compliance.eudrDiligenceId})
+                  (Diligence ID: {compliance.eudr.diligenceId})
                 </span>
               )}
             </div>
           </InfoRow>
           <InfoRow icon={AlertTriangle} label="California Prop 65">
             <div className="text-sm text-muted-foreground">
-              {compliance?.prop65WarningRequired
+              {compliance?.prop65?.warningRequired
                 ? 'Warning Required'
                 : 'No Warning Required'}
             </div>
           </InfoRow>
           <InfoRow icon={Utensils} label="Food Contact Safe">
             <div className="text-sm text-muted-foreground">
-              {compliance?.foodContactSafe ? 'Yes' : 'No'}
-              {compliance?.foodContactComplianceStandard && (
+              {compliance?.foodContact?.safe ? 'Yes' : 'No'}
+              {compliance?.foodContact?.standard && (
                 <span className="ml-2 text-xs">
-                  (Standard: {compliance.foodContactComplianceStandard})
+                  (Standard: {compliance.foodContact.standard})
                 </span>
               )}
             </div>

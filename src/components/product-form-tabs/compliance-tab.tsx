@@ -82,7 +82,7 @@ export default function ComplianceTab({
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
-              name="compliance.rohsCompliant"
+              name="compliance.rohs.compliant"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -99,7 +99,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.rohsExemption"
+              name="compliance.rohs.exemption"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>RoHS Exemption</FormLabel>
@@ -120,7 +120,7 @@ export default function ComplianceTab({
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
-              name="compliance.reachSVHC"
+              name="compliance.reach.svhcDeclared"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -137,7 +137,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.scipReference"
+              name="compliance.reach.scipReference"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>SCIP Reference</FormLabel>
@@ -166,7 +166,7 @@ export default function ComplianceTab({
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
-              name="compliance.weeeRegistered"
+              name="compliance.weee.registered"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -186,7 +186,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.weeeRegistrationNumber"
+              name="compliance.weee.registrationNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>WEEE Registration Number</FormLabel>
@@ -212,7 +212,7 @@ export default function ComplianceTab({
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
-              name="compliance.eudrCompliant"
+              name="compliance.eudr.compliant"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -232,7 +232,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.eudrDiligenceId"
+              name="compliance.eudr.diligenceId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>EUDR Due Diligence ID</FormLabel>
@@ -253,7 +253,7 @@ export default function ComplianceTab({
           <AccordionContent className="pt-4 space-y-4">
             <FormField
               control={form.control}
-              name="compliance.ceMarked"
+              name="compliance.ce.marked"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -270,7 +270,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.prop65WarningRequired"
+              name="compliance.prop65.warningRequired"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -290,7 +290,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.foodContactSafe"
+              name="compliance.foodContact.safe"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">
@@ -307,7 +307,7 @@ export default function ComplianceTab({
             />
             <FormField
               control={form.control}
-              name="compliance.foodContactComplianceStandard"
+              name="compliance.foodContact.standard"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Food Contact Standard</FormLabel>

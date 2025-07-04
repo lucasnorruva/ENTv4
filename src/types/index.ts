@@ -105,18 +105,32 @@ export interface Battery {
 }
 
 export interface Compliance {
-  rohsCompliant?: boolean;
-  rohsExemption?: string;
-  reachSVHC?: boolean;
-  scipReference?: string;
-  weeeRegistered?: boolean;
-  weeeRegistrationNumber?: string;
-  prop65WarningRequired?: boolean;
-  eudrCompliant?: boolean;
-  eudrDiligenceId?: string;
-  ceMarked?: boolean;
-  foodContactSafe?: boolean;
-  foodContactComplianceStandard?: string;
+  rohs?: {
+    compliant: boolean;
+    exemption?: string;
+  };
+  reach?: {
+    svhcDeclared: boolean;
+    scipReference?: string;
+  };
+  weee?: {
+    registered: boolean;
+    registrationNumber?: string;
+  };
+  eudr?: {
+    compliant: boolean;
+    diligenceId?: string;
+  };
+  ce?: {
+    marked: boolean;
+  };
+  prop65?: {
+    warningRequired: boolean;
+  };
+  foodContact?: {
+    safe: boolean;
+    standard?: string;
+  };
 }
 
 export interface ComplianceGap {

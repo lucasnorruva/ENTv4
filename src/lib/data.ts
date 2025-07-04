@@ -65,10 +65,9 @@ export let products: Product[] = [
       isRemovable: false,
     },
     compliance: {
-      rohsCompliant: true,
-      ceMarked: true,
-      weeeRegistered: true,
-      weeeRegistrationNumber: 'DE 12345678',
+      rohs: { compliant: true },
+      ce: { marked: true },
+      weee: { registered: true, registrationNumber: 'DE 12345678' },
     },
     sustainability: {
       score: 85,
@@ -179,7 +178,7 @@ export let products: Product[] = [
       { name: 'Leather', origin: 'Brazil' },
       { name: 'Lead-based dye' },
     ],
-    compliance: { eudrCompliant: false, reachSVHC: false },
+    compliance: { eudr: { compliant: false }, reach: { svhcDeclared: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 15),
     ).toISOString(),
@@ -246,7 +245,7 @@ export let products: Product[] = [
     status: 'Draft',
     compliancePathId: 'cp-electronics-01',
     materials: [{ name: 'Lithium Battery' }, { name: 'Plastic Casing' }],
-    compliance: { rohsCompliant: false, weeeRegistered: false },
+    compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 1),
     ).toISOString(),

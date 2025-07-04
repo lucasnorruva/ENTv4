@@ -46,18 +46,46 @@ const batterySchema = z.object({
 });
 
 const complianceSchema = z.object({
-  rohsCompliant: z.boolean().optional(),
-  rohsExemption: z.string().optional(),
-  reachSVHC: z.boolean().optional(),
-  scipReference: z.string().optional(),
-  weeeRegistered: z.boolean().optional(),
-  weeeRegistrationNumber: z.string().optional(),
-  prop65WarningRequired: z.boolean().optional(),
-  eudrCompliant: z.boolean().optional(),
-  eudrDiligenceId: z.string().optional(),
-  ceMarked: z.boolean().optional(),
-  foodContactSafe: z.boolean().optional(),
-  foodContactComplianceStandard: z.string().optional(),
+  rohs: z
+    .object({
+      compliant: z.boolean().default(false),
+      exemption: z.string().optional(),
+    })
+    .optional(),
+  reach: z
+    .object({
+      svhcDeclared: z.boolean().default(false),
+      scipReference: z.string().optional(),
+    })
+    .optional(),
+  weee: z
+    .object({
+      registered: z.boolean().default(false),
+      registrationNumber: z.string().optional(),
+    })
+    .optional(),
+  eudr: z
+    .object({
+      compliant: z.boolean().default(false),
+      diligenceId: z.string().optional(),
+    })
+    .optional(),
+  ce: z
+    .object({
+      marked: z.boolean().default(false),
+    })
+    .optional(),
+  prop65: z
+    .object({
+      warningRequired: z.boolean().default(false),
+    })
+    .optional(),
+  foodContact: z
+    .object({
+      safe: z.boolean().default(false),
+      standard: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const productFormSchema = z.object({
