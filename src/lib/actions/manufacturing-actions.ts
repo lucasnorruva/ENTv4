@@ -48,6 +48,7 @@ export async function saveProductionLine(
     productId: validatedData.productId,
     currentProduct: product ? product.productName : 'None',
     updatedAt: now,
+    companyId: user.companyId,
   };
 
   if (lineId) {

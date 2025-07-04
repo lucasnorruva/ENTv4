@@ -173,15 +173,14 @@ export default function ServiceTicketManagementClient({
         header: 'Entity',
         cell: ({ row }) => {
             const ticket = row.original;
-            if (ticket.productionLineId) {
-                const lineName = lineMap.get(ticket.productionLineId) || 'Unknown Line';
-                return <Link href={`/dashboard/${roleSlug}/lines/${ticket.productionLineId}`} className="flex items-center gap-2 hover:underline"><Factory className="h-4 w-4 text-muted-foreground" /> {lineName}</Link>
-            }
-            if (ticket.productId) {
-                const productName = productMap.get(ticket.productId) || 'Unknown Product';
-                return <Link href={`/dashboard/${roleSlug}/products/${ticket.productId}`} className="flex items-center gap-2 hover:underline"><Box className="h-4 w-4 text-muted-foreground" /> {productName}</Link>
-            }
-            return 'N/A';
+            const entityType = ticket.productionLineId ? 'lines' : 'products';
+            const entityId = ticket.productionLineId || ticket.productId;
+            const entityName = ticket.productionLineId ? lineMap.get(ticket.productionLineId) : productMap.get(ticket.productId || '');
+            const Icon = entityType === 'lines' ? Factory : Box;
+
+            if (!entityId) return 'N/A';
+
+            return <Link href={`/dashboard/${roleSlug}/${entityType}/${entityId}`} className="flex items-center gap-2 hover:underline"><Icon className="h-4 w-4 text-muted-foreground" /> {entityName || 'Unknown'}</Link>
         },
       },
       { accessorKey: "issue", header: "Issue", cell: ({row}) => <div className="truncate max-w-xs">{row.getValue("issue")}</div> },

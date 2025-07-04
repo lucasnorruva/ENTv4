@@ -6,6 +6,7 @@ const now = new Date();
 export let productionLines: ProductionLine[] = [
   {
     id: 'line-001',
+    companyId: 'comp-eco',
     name: 'Assembly Line Alpha',
     location: 'Eco-Factory 1, Germany',
     status: 'Active',
@@ -18,6 +19,7 @@ export let productionLines: ProductionLine[] = [
   },
   {
     id: 'line-002',
+    companyId: 'comp-eco',
     name: 'Drone Assembly Delta',
     location: 'Aero Plant 1, USA',
     status: 'Maintenance',
@@ -30,6 +32,7 @@ export let productionLines: ProductionLine[] = [
   },
   {
     id: 'line-003',
+    companyId: 'comp-thread',
     name: 'Textile Line Gamma',
     location: 'Sustainable Threads Mill, India',
     status: 'Idle',

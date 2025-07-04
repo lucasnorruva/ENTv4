@@ -8,7 +8,7 @@ import {
   supportTicketFormSchema,
   type SupportTicketFormValues,
 } from '../schemas';
-import { getUserById } from '../auth';
+import { getUserById, getProducts } from '../auth';
 import { hasRole } from '../auth-utils';
 import { checkPermission, PermissionError } from '../permissions';
 import { UserRoles } from '../constants';
@@ -16,6 +16,7 @@ import { serviceTickets as mockServiceTickets } from '../service-ticket-data';
 import { supportTickets as mockSupportTickets } from '../support-ticket-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
+import { getProductionLines } from './manufacturing-actions';
 
 export async function getServiceTickets(
   userId?: string,
@@ -26,22 +27,28 @@ export async function getServiceTickets(
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
-  const canViewAll =
-    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.MANUFACTURER);
+  const allProducts = await getProducts(user.id);
+  const allLines = await getProductionLines();
 
-  if (canViewAll || hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-    let results = [...mockServiceTickets];
+  const companyProductIds = allProducts
+    .filter(p => p.companyId === user.companyId)
+    .map(p => p.id);
+  const companyLineIds = allLines
+    .filter(l => l.companyId === user.companyId)
+    .map(l => l.id);
 
-    if (!canViewAll && hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-      results = results.filter(t => t.userId === user.id);
-    }
+  const canViewAll = hasRole(user, UserRoles.ADMIN);
 
-    if (filters?.productionLineId) {
-      results = results.filter(
-        t => t.productionLineId === filters.productionLineId,
-      );
-    }
+  let results = [...mockServiceTickets];
 
+  if (filters?.productionLineId) {
+    results = results.filter(
+      t => t.productionLineId === filters.productionLineId,
+    );
+  }
+
+  if (canViewAll) {
+    // Admin sees all
     return Promise.resolve(
       results.sort(
         (a, b) =>
@@ -50,7 +57,27 @@ export async function getServiceTickets(
     );
   }
 
-  return Promise.resolve([]);
+  if (hasRole(user, UserRoles.MANUFACTURER)) {
+    // Manufacturer sees tickets for their products or lines
+    results = results.filter(
+      t =>
+        (t.productId && companyProductIds.includes(t.productId)) ||
+        (t.productionLineId &&
+          companyLineIds.includes(t.productionLineId)),
+    );
+  } else if (hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+    // Service Provider sees tickets they created/are assigned to
+    results = results.filter(t => t.userId === user.id);
+  } else {
+    // Other roles see no tickets by default unless they have global read
+    return Promise.resolve([]);
+  }
+
+  return Promise.resolve(
+    results.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    ),
+  );
 }
 
 export async function saveServiceTicket(
