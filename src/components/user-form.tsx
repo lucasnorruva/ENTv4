@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveUser } from '@/lib/actions';
@@ -64,7 +66,7 @@ export default function UserForm({
       fullName: '',
       email: '',
       companyId: '',
-      role: UserRoles.SUPPLIER,
+      roles: [UserRoles.SUPPLIER],
     },
   });
 
@@ -75,14 +77,14 @@ export default function UserForm({
           fullName: user.fullName,
           email: user.email,
           companyId: user.companyId,
-          role: user.roles[0],
+          roles: user.roles,
         });
       } else {
         form.reset({
           fullName: '',
           email: '',
           companyId: '',
-          role: UserRoles.SUPPLIER,
+          roles: [UserRoles.SUPPLIER],
         });
       }
     }
@@ -110,7 +112,7 @@ export default function UserForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{user ? 'Edit User' : 'Invite User'}</DialogTitle>
           <DialogDescription>
@@ -180,27 +182,51 @@ export default function UserForm({
               />
               <FormField
                 control={form.control}
-                name="role"
-                render={({ field }) => (
+                name="roles"
+                render={() => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {availableRoles.map(role => (
-                          <SelectItem key={role} value={role}>
-                            {role}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Roles</FormLabel>
+                    <FormDescription className="text-xs">
+                      Assign one or more roles to this user.
+                    </FormDescription>
+                    <div className="grid grid-cols-2 gap-2 pt-2 border p-3 rounded-md">
+                      {availableRoles.map(item => (
+                        <FormField
+                          key={item}
+                          control={form.control}
+                          name="roles"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item)}
+                                    onCheckedChange={checked => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...(field.value || []),
+                                            item,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              value => value !== item,
+                                            ),
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal text-sm">
+                                  {item}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

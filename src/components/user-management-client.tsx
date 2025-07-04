@@ -196,9 +196,15 @@ export default function UserManagementClient({
       },
       {
         accessorKey: 'roles',
-        header: 'Role',
+        header: 'Role(s)',
         cell: ({ row }) => (
-          <Badge variant="outline">{row.original.roles[0]}</Badge>
+          <div className="flex flex-wrap gap-1">
+            {row.original.roles.map(role => (
+              <Badge key={role} variant="outline">
+                {role}
+              </Badge>
+            ))}
+          </div>
         ),
       },
       {

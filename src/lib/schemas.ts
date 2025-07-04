@@ -94,7 +94,11 @@ export const userFormSchema = z.object({
   fullName: z.string().min(2, 'Full name is required.'),
   email: z.string().email('Invalid email address.'),
   companyId: z.string().min(1, 'Company ID is required.'),
-  role: z.string().min(1, 'Role is required.'),
+  roles: z
+    .array(z.string())
+    .refine(value => value.some(item => item), {
+      message: 'You have to select at least one role.',
+    }),
 });
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
