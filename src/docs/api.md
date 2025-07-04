@@ -10,6 +10,80 @@ All API requests must be authenticated using an API key. Include your key in the
 
 ---
 
+## GraphQL API (Recommended)
+
+For complex data retrieval, such as fetching a product along with its full compliance history and nested materials in a single request, we recommend our GraphQL API.
+
+- **Endpoint**: `/api/graphql`
+- **Method**: `POST`
+
+You can use a GraphQL client to interact with this endpoint. It supports introspection, so you can explore the full schema using tools like Postman or Apollo Studio.
+
+### Example Query: Fetch Products with Company Info
+
+This query retrieves all products and, for each product, fetches details about its parent company.
+
+```graphql
+query GetProductsWithCompany {
+  products {
+    id
+    productName
+    status
+    company {
+      id
+      name
+      industry
+    }
+  }
+}
+```
+
+### Example Query: Fetch a Company and its Users
+
+This query retrieves a specific company by its ID and lists all users associated with it.
+
+```graphql
+query GetCompanyUsers($companyId: ID!) {
+  company(id: $companyId) {
+    id
+    name
+    users {
+      id
+      fullName
+      email
+      roles
+    }
+  }
+}
+```
+
+### Example Mutation: Create a Product
+
+This mutation creates a new product with basic information.
+
+```graphql
+mutation CreateNewProduct($input: ProductInput!) {
+  createProduct(input: $input) {
+    id
+    productName
+    status
+    createdAt
+  }
+}
+
+# Variables for the mutation:
+# {
+#   "input": {
+#     "productName": "My New GraphQL Product",
+#     "productDescription": "A product created via the GraphQL API.",
+#     "category": "Electronics",
+#     "status": "Draft"
+#   }
+# }
+```
+
+---
+
 ## REST API v2 (Current)
 
 This is the recommended version for all new RESTful integrations. All endpoints are prefixed with `/api/v2`.
@@ -119,33 +193,6 @@ Triggers an on-demand, asynchronous compliance check for a specific product.
 -   **URL Parameters**:
     -   `productId`: The ID of the product to check.
 -   **Success Response**: `202 Accepted`
-
----
-
-## GraphQL API
-
-For complex data retrieval, such as fetching a product along with its full compliance history and nested materials in a single request, we recommend our GraphQL API.
-
-- **Endpoint**: `/api/graphql`
-- **Method**: `POST`
-
-You can use a GraphQL client to interact with this endpoint. It supports introspection, so you can explore the full schema using tools like Postman or Apollo Studio.
-
-### Example Query
-
-```graphql
-query GetProductsAndCompliance {
-  products {
-    id
-    productName
-    status
-    sustainability {
-      isCompliant
-      complianceSummary
-    }
-  }
-}
-```
 
 ---
 _This is a preliminary version of the API documentation. More endpoints will be added._

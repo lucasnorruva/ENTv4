@@ -6,6 +6,11 @@ export const typeDefs = gql`
   type Query {
     products: [Product!]
     product(id: ID!): Product
+    users: [User!]
+    user(id: ID!): User
+    companies: [Company!]
+    company(id: ID!): Company
+    compliancePaths: [CompliancePath!]
   }
 
   # The basic mutation operations
@@ -121,6 +126,8 @@ export const typeDefs = gql`
     sustainability: SustainabilityData
     blockchainProof: BlockchainProof
     ebsiVcId: String
+    compliancePath: CompliancePath
+    company: Company
   }
 
   type Material {
@@ -201,5 +208,40 @@ export const typeDefs = gql`
     txHash: String!
     explorerUrl: String!
     blockHeight: Int!
+  }
+
+  type User {
+    id: ID!
+    fullName: String!
+    email: String!
+    roles: [String!]!
+    companyId: ID!
+    company: Company
+    createdAt: String!
+    updatedAt: String!
+  }
+
+  type Company {
+    id: ID!
+    name: String!
+    ownerId: ID!
+    industry: String
+    users: [User!]
+    products: [Product!]
+  }
+
+  type CompliancePath {
+    id: ID!
+    name: String!
+    description: String!
+    regulations: [String!]!
+    category: String!
+    rules: ComplianceRules
+  }
+
+  type ComplianceRules {
+    minSustainabilityScore: Int
+    requiredKeywords: [String!]
+    bannedKeywords: [String!]
   }
 `;
