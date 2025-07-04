@@ -47,6 +47,14 @@ import type {
   CreateProductFromImageInput,
   CreateProductFromImageOutput,
 } from "@/ai/flows/create-product-from-image";
+import type {
+  GenerateComplianceRulesInput,
+  GenerateComplianceRulesOutput,
+} from "@/ai/flows/generate-compliance-rules";
+import type {
+  GenerateProductDescriptionInput,
+  GenerateProductDescriptionOutput,
+} from "@/ai/flows/generate-product-description";
 
 // Export Input types
 export type {
@@ -60,6 +68,8 @@ export type {
   AnalyzeBomInput,
   GenerateProductImageInput,
   CreateProductFromImageInput,
+  GenerateComplianceRulesInput,
+  GenerateProductDescriptionInput,
 };
 
 // Export Output types
@@ -75,4 +85,6 @@ export type {
   AnalyzeBomOutput,
   GenerateProductImageOutput,
   CreateProductFromImageOutput,
+  GenerateComplianceRulesOutput,
+  GenerateProductDescriptionOutput,
 };

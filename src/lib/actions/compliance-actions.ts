@@ -90,7 +90,7 @@ export async function deleteCompliancePath(
   return Promise.resolve();
 }
 
-export async function generateComplianceRules(
+export async function generateCompliancePathRules(
   name: string,
   regulations: string[],
   userId: string,
