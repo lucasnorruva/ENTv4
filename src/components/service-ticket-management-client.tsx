@@ -138,9 +138,14 @@ export default function ServiceTicketManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleSave = () => {
-    // Optimistically re-fetch after save
-    getServiceTickets(user.id).then(setTickets);
+  const handleSave = (savedTicket: ServiceTicket) => {
+    setTickets(prev => {
+        const exists = prev.some(t => t.id === savedTicket.id);
+        if (exists) {
+            return prev.map(t => (t.id === savedTicket.id ? savedTicket : t));
+        }
+        return [savedTicket, ...prev];
+    })
     setIsFormOpen(false);
   };
 

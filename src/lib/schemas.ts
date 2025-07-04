@@ -171,7 +171,7 @@ export const serviceTicketFormSchema = z
       .string()
       .min(10, 'Issue description must be at least 10 characters.'),
     status: z.enum(['Open', 'In Progress', 'Closed']),
-    imageUrl: z.string().url().optional(),
+    imageUrl: z.string().url().optional().or(z.literal('')),
   })
   .refine(data => data.productId || data.productionLineId, {
     message: 'Either a Product or a Production Line must be selected.',

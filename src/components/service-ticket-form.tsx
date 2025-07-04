@@ -49,7 +49,7 @@ interface ServiceTicketFormProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   ticket: ServiceTicket | null;
-  onSave: () => void;
+  onSave: (ticket: ServiceTicket) => void;
   user: User;
   products: Product[];
   productionLines: ProductionLine[];
@@ -172,7 +172,8 @@ export default function ServiceTicketForm({
         } catch (error) {
           toast({
             title: 'Image Upload Failed',
-            description: 'There was an error uploading your image. Please try again.',
+            description:
+              'There was an error uploading your image. Please try again.',
             variant: 'destructive',
           });
           return;
@@ -187,12 +188,12 @@ export default function ServiceTicketForm({
           ticketType === 'line' ? values.productionLineId : undefined,
       };
       try {
-        await saveServiceTicket(payload, user.id, ticket?.id);
+        const savedTicket = await saveServiceTicket(payload, user.id, ticket?.id);
         toast({
           title: 'Success!',
           description: `Service ticket ${ticket ? 'updated' : 'created'}.`,
         });
-        onSave();
+        onSave(savedTicket);
         onOpenChange(false);
       } catch (error) {
         toast({
@@ -342,7 +343,7 @@ export default function ServiceTicketForm({
                         width={100}
                         height={100}
                         className="rounded-md object-cover"
-                        data-ai-hint="product photo issue"
+                        data-ai-hint="issue photo"
                       />
                     </div>
                   )}
@@ -398,15 +399,14 @@ export default function ServiceTicketForm({
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={isSaving || isUploading}>
-                {isSaving ||
-                  (isUploading && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ))}
+                {(isSaving || isUploading) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {isUploading
                   ? 'Uploading...'
                   : isSaving
-                  ? 'Saving...'
-                  : 'Save Ticket'}
+                    ? 'Saving...'
+                    : 'Save Ticket'}
               </Button>
             </DialogFooter>
           </form>

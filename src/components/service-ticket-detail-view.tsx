@@ -4,7 +4,15 @@
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { format, formatDistanceToNow } from 'date-fns';
-import { ArrowLeft, Ticket, User, Box, Factory, Calendar, FileText } from 'lucide-react';
+import {
+  ArrowLeft,
+  Ticket,
+  User as UserIcon,
+  Box,
+  Factory,
+  Calendar,
+  FileText,
+} from 'lucide-react';
 import Image from 'next/image';
 
 import type {
@@ -18,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -181,7 +191,8 @@ export default function ServiceTicketDetailView({
                 </Badge>
                 <span className="text-muted-foreground">·</span>
                 <span className="text-muted-foreground" suppressHydrationWarning>
-                  Opened {formatDistanceToNow(new Date(ticket.createdAt), {
+                  Opened{' '}
+                  {formatDistanceToNow(new Date(ticket.createdAt), {
                     addSuffix: true,
                   })}
                 </span>
@@ -191,40 +202,123 @@ export default function ServiceTicketDetailView({
         </header>
 
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Issue Details</CardTitle>
               </CardHeader>
               <CardContent>
-                <InfoRow icon={User} label="Requester" value={ticket.customerName} />
+                <InfoRow
+                  icon={UserIcon}
+                  label="Requester"
+                  value={ticket.customerName}
+                />
                 <InfoRow
                   icon={entityType === 'product' ? Box : Factory}
-                  label={entityType === 'product' ? 'Product' : 'Production Line'}
+                  label={
+                    entityType === 'product' ? 'Product' : 'Production Line'
+                  }
                   value={entityName}
                 />
-                <InfoRow icon={Calendar} label="Created At" value={format(new Date(ticket.createdAt), "PPP p")} />
-                <InfoRow icon={FileText} label="Issue Description" value={ticket.issue} />
+                <InfoRow
+                  icon={Calendar}
+                  label="Created At"
+                  value={format(new Date(ticket.createdAt), 'PPP p')}
+                />
+                <InfoRow
+                  icon={FileText}
+                  label="Issue Description"
+                  value={ticket.issue}
+                />
               </CardContent>
             </Card>
+            {ticket.imageUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Attached Image</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Image
+                    src={ticket.imageUrl}
+                    alt="Issue image"
+                    width={800}
+                    height={600}
+                    className="rounded-md border object-cover w-full"
+                    data-ai-hint="issue photo"
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
           <div className="md:col-span-1">
-             {ticket.imageUrl && (
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Attached Image</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Image
-                            src={ticket.imageUrl}
-                            alt="Issue image"
-                            width={400}
-                            height={300}
-                            className="rounded-md border object-cover w-full"
-                        />
-                    </CardContent>
-                </Card>
-             )}
+            <Card>
+              <CardHeader>
+                <CardTitle>Context</CardTitle>
+                <CardDescription>
+                  Details about the related entity.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {entityType === 'product' && entity && (
+                  <div className="space-y-3">
+                    <Image
+                      src={(entity as Product).productImage}
+                      alt={(entity as Product).productName}
+                      width={400}
+                      height={300}
+                      className="rounded-md object-cover w-full aspect-[4/3]"
+                      data-ai-hint="product photo"
+                    />
+                    <h4 className="font-semibold">
+                      {(entity as Product).productName}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Category: {(entity as Product).category}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Supplier: {(entity as Product).supplier}
+                    </p>
+                    <Button asChild size="sm" className="w-full">
+                      <Link
+                        href={`/dashboard/${roleSlug}/products/${entity.id}`}
+                      >
+                        View Full Passport
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+                {entityType === 'line' && entity && (
+                  <div className="space-y-3">
+                    <Factory className="h-10 w-10 text-muted-foreground mb-2" />
+                    <h4 className="font-semibold">
+                      {(entity as ProductionLine).name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Location: {(entity as ProductionLine).location}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Status:{' '}
+                      <Badge variant="secondary">
+                        {(entity as ProductionLine).status}
+                      </Badge>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Output: {(entity as ProductionLine).outputPerHour} units/hr
+                    </p>
+                    <Button asChild size="sm" className="w-full">
+                      <Link href={`/dashboard/${roleSlug}/lines/${entity.id}`}>
+                        View Line Details
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+                {!entity && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Related entity not found.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
