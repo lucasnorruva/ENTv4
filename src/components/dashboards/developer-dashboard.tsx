@@ -1,4 +1,4 @@
-// src/components/dashboards/developer-dashboard.tsx
+// src/components/developer-portal.tsx
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import { getApiKeys, getAuditLogs, getWebhooks } from '@/lib/actions';
 import { Badge } from '../ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
-export default async function DeveloperDashboard({ user }: { user: User }) {
+export default async function DeveloperPortal({ user }: { user: User }) {
   const [apiKeys, auditLogs, webhooks] = await Promise.all([
     getApiKeys(user.id),
     getAuditLogs(),
@@ -38,11 +38,10 @@ export default async function DeveloperDashboard({ user }: { user: User }) {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
-          Developer Dashboard
+          Developer Portal
         </h1>
         <p className="text-muted-foreground">
-          Welcome, {user.fullName}. Use the sidebar to manage API Keys, view
-          logs, and configure integrations.
+          Welcome, {user.fullName}. Manage API Keys, view logs, and configure integrations from your command center.
         </p>
       </div>
 
