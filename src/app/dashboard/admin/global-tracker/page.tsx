@@ -131,11 +131,6 @@ export default function GlobalTrackerPage() {
     CountryFeature[]
   >([]);
 
-  const [countryProductStats, setCountryProductStats] = useState<
-    Map<string, number>
-  >(new Map());
-  const [maxProducts, setMaxProducts] = useState(1);
-
   const [pointsData, setPointsData] = useState<PointData[]>([]);
 
   const mockCountryCoordinates: { [key: string]: { lat: number; lng: number } } =
@@ -238,23 +233,6 @@ export default function GlobalTrackerPage() {
         );
         setAllProducts(publishedProducts);
         setLandPolygons(geoJsonData.features);
-
-        const stats = new Map<string, number>();
-        let max = 1;
-        productsData.forEach(p => {
-          const country = getCountryFromLocationString(
-            p.manufacturing?.country,
-          );
-          if (country) {
-            const currentCount = (stats.get(country) || 0) + 1;
-            stats.set(country, currentCount);
-            if (currentCount > max) {
-              max = currentCount;
-            }
-          }
-        });
-        setCountryProductStats(stats);
-        setMaxProducts(max);
       })
       .catch(err => {
         console.error('Error fetching initial data:', err);
@@ -262,7 +240,7 @@ export default function GlobalTrackerPage() {
       .finally(() => {
         setDataLoaded(true);
       });
-  }, [getCountryFromLocationString]);
+  }, []);
 
   useEffect(() => {
     setHighlightedCountries([]);
@@ -504,15 +482,7 @@ export default function GlobalTrackerPage() {
     [isEU, highlightedCountries, clickedCountryInfo],
   );
 
-  const getPolygonAltitude = useCallback(
-    (feat: object) => {
-      const p = (feat as CountryFeature).properties;
-      const name = p?.ADMIN || p?.NAME_LONG || '';
-      const productCount = countryProductStats.get(name) || 0;
-      return 0.01 + (productCount / maxProducts) * 0.3;
-    },
-    [countryProductStats, maxProducts],
-  );
+  const getPolygonAltitude = useCallback(() => 0.01, []);
 
   const getPolygonLabel = useCallback(
     (feat: object) => {
@@ -523,7 +493,6 @@ export default function GlobalTrackerPage() {
       const isHighlighted = highlightedCountries.some(hc =>
         name.toLowerCase().includes(hc.toLowerCase()),
       );
-      const productCount = countryProductStats.get(name) || 0;
       let roleInContext = '';
       if (isHighlighted && selectedProduct) {
         if (
@@ -541,17 +510,9 @@ export default function GlobalTrackerPage() {
       }
       return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${
         iso ? ` (${iso})` : ''
-      }<br/>Products Originating: ${productCount}<br/>${
-        isEUCountry ? 'EU Member' : 'Non-EU Member'
-      }<br/>${roleInContext.trim()}</div>`;
+      }<br/>${isEUCountry ? 'EU Member' : 'Non-EU Member'}<br/>${roleInContext.trim()}</div>`;
     },
-    [
-      isEU,
-      highlightedCountries,
-      selectedProduct,
-      countryProductStats,
-      getCountryFromLocationString,
-    ],
+    [isEU, highlightedCountries, selectedProduct, getCountryFromLocationString],
   );
 
   const handleProductSelect = (productId: string | null) => {
@@ -638,7 +599,9 @@ export default function GlobalTrackerPage() {
               }
               polygonSideColor={() => 'rgba(0, 100, 0, 0.15)'}
               polygonStrokeColor={() => '#111'}
-              polygonAltitude={feat => getPolygonAltitude(feat as CountryFeature)}
+              polygonAltitude={feat =>
+                getPolygonAltitude(feat as CountryFeature)
+              }
               onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
               polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
               polygonsTransitionDuration={300}
@@ -684,12 +647,6 @@ export default function GlobalTrackerPage() {
                 {clickedCountryInfo.ADM0_A3 ||
                   clickedCountryInfo.ISO_A3 ||
                   'N/A'}
-              </p>
-              <p>
-                <strong className="text-muted-foreground">
-                  DPPs Originating:
-                </strong>{' '}
-                {countryProductStats.get(clickedCountryInfo.ADMIN) || 0}
               </p>
               <p>
                 <strong className="text-muted-foreground">
