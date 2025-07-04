@@ -83,14 +83,6 @@ interface CountryProperties {
   ISO_A3?: string;
 }
 
-interface PointData {
-  lat: number;
-  lng: number;
-  size: number;
-  color: string;
-  label: string;
-}
-
 interface GlobalTrackerClientProps {
   products: Product[];
   alerts: CustomsAlert[];
@@ -133,8 +125,6 @@ export default function GlobalTrackerClient({
   const [filteredLandPolygons, setFilteredLandPolygons] = useState<
     GeoJsonFeature[]
   >([]);
-
-  const [pointsData, setPointsData] = useState<PointData[]>([]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [globeSize, setGlobeSize] = useState({ width: 0, height: 0 });
@@ -262,7 +252,6 @@ export default function GlobalTrackerClient({
     setArcsData([]);
     setSelectedProductAlerts([]);
     setClickedCountryInfo(null);
-    setPointsData([]);
 
     if (!selectedProduct) {
       if (globeEl.current)
@@ -274,52 +263,7 @@ export default function GlobalTrackerClient({
       a => a.productId === selectedProduct.id,
     );
     setSelectedProductAlerts(alerts);
-
-    const newPointsData: PointData[] = [];
-    const eventLocations = new Set<string>();
-
-    if (selectedProduct.customs?.history) {
-      selectedProduct.customs.history.forEach(event => {
-        const loc = getCountryFromLocationString(event.location);
-        if (loc && !eventLocations.has(loc)) {
-          const coords = mockCountryCoordinates[loc];
-          if (coords) {
-            newPointsData.push({
-              lat: coords.lat,
-              lng: coords.lng,
-              size: 0.2,
-              color:
-                event.status === 'Detained'
-                  ? 'orange'
-                  : event.status === 'Rejected'
-                  ? 'red'
-                  : 'green',
-              label: event.location,
-            });
-            eventLocations.add(loc);
-          }
-        }
-      });
-    }
-
-    alerts.forEach(alert => {
-      const alertCountry = allAlerts.find(a => a.id === alert.id)
-        ?.message.split(' at ')[1]
-        ?.split('.')[0]
-        .split(', ')[0];
-      if (alertCountry && mockCountryCoordinates[alertCountry]) {
-        const coords = mockCountryCoordinates[alertCountry];
-        newPointsData.push({
-          ...coords,
-          size: 0.3,
-          color: alert.severity === 'High' ? 'tomato' : 'orange',
-          label: alert.message,
-        });
-      }
-    });
-
-    setPointsData(newPointsData);
-
+    
     const allArcs: any[] = [];
     const allHighlightedCountries = new Set<string>();
 
@@ -652,22 +596,6 @@ export default function GlobalTrackerClient({
                   arcDashAnimateTime={2000}
                   arcStroke={0.5}
                   arcLabel="label"
-                  pointsData={pointsData}
-                  pointLat="lat"
-                  pointLng="lng"
-                  pointAltitude={0.02}
-                  pointRadius="size"
-                  pointColor="color"
-                  pointLabel="label"
-                  ringsData={pointsData.filter(
-                    p => p.color === 'tomato' || p.color === 'orange',
-                  )}
-                  ringLat="lat"
-                  ringLng="lng"
-                  ringColor="color"
-                  ringMaxRadius={1.5}
-                  ringPropagationSpeed={1.5}
-                  ringRepeatPeriod={800}
                   onGlobeReady={() => setGlobeReady(true)}
                   enablePointerInteraction={true}
                 />

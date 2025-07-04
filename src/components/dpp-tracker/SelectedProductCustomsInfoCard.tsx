@@ -21,11 +21,8 @@ import {
   AlertTriangle,
   CalendarDays,
   ExternalLink,
-  Flag,
-  Check,
-  Hourglass,
 } from 'lucide-react';
-import type { Product, CustomsAlert, CustomsStatus } from '@/types';
+import type { Product, CustomsAlert } from '@/types';
 import { cn } from '@/lib/utils';
 import {
   getStatusIcon,
@@ -33,26 +30,12 @@ import {
   getStatusBadgeClasses,
 } from '@/lib/dppDisplayUtils';
 import { ScrollArea } from '../ui/scroll-area';
-import { format } from 'date-fns';
 
 interface SelectedProductCustomsInfoCardProps {
   product: Product;
   alerts: CustomsAlert[];
   onDismiss: () => void;
 }
-
-const getTimelineIcon = (status: CustomsStatus['status']) => {
-  switch (status) {
-    case 'Cleared':
-      return <Check className="h-4 w-4 text-green-500" />;
-    case 'Detained':
-      return <Hourglass className="h-4 w-4 text-amber-500" />;
-    case 'Rejected':
-      return <X className="h-4 w-4 text-red-500" />;
-    default:
-      return <Flag className="h-4 w-4 text-muted-foreground" />;
-  }
-};
 
 export default function SelectedProductCustomsInfoCard({
   product,
@@ -111,15 +94,6 @@ export default function SelectedProductCustomsInfoCard({
   const formattedDppStatus = (product.verificationStatus || 'Not Submitted')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase());
-  
-  const eventHistory = [...(customs?.history || [])];
-  if (customs) {
-    // Make sure not to add the same event twice
-    if (!customs.history?.find(h => h.date === customs.date && h.status === customs.status)) {
-        eventHistory.push({ ...customs, history: undefined });
-    }
-  }
-  eventHistory.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return (
     <Card className="absolute bottom-4 left-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm flex flex-col max-h-[calc(100vh-8rem)]">
@@ -199,31 +173,6 @@ export default function SelectedProductCustomsInfoCard({
                 {formattedDppStatus}
               </Badge>
             </p>
-          </div>
-
-          <div className="mt-2 pt-2 border-t border-border/50">
-            <h4 className="font-medium text-foreground mb-1">
-              Inspection History & Events:
-            </h4>
-            {eventHistory.length > 0 ? (
-            <div className="relative pl-6">
-                <div className="absolute left-[7px] top-0 h-full w-px bg-border -translate-x-1/2" />
-                {eventHistory.map((event, index) => (
-                    <div key={index} className="relative mb-4 flex items-start pl-4 last:mb-0">
-                        <div className="absolute left-0 top-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-background -translate-x-1/2">
-                           {getTimelineIcon(event!.status)}
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-semibold text-foreground leading-tight">{event!.status} at {event!.location}</p>
-                            <p className="text-xs text-muted-foreground">{format(new Date(event!.date), "PPp")}</p>
-                            {event!.notes && <p className="text-xs text-muted-foreground italic mt-1">"{event!.notes}"</p>}
-                        </div>
-                    </div>
-                ))}
-            </div>
-            ) : (
-                <p className="text-xs text-muted-foreground mt-1">No inspection events recorded.</p>
-            )}
           </div>
 
           {alerts.length > 0 && (
