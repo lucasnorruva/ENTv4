@@ -176,7 +176,7 @@ Deletes a product passport.
 
 ---
 
-## REST API v1 (Legacy)
+## REST API v1 (Legacy & Deprecated)
 
 **This version is deprecated and will be removed in a future release.** Please migrate to the v2 or GraphQL API for new integrations. All endpoints are prefixed with `/api/v1`.
 
