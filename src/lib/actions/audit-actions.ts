@@ -1,9 +1,11 @@
 // src/lib/actions/audit-actions.ts
 'use server';
 
-import type { AuditLog } from '@/types';
+import type { AuditLog, User } from '@/types';
 import { auditLogs as mockAuditLogs } from '@/lib/audit-log-data';
-import { getUserById } from '@/lib/auth';
+import { getUserById, getUsers } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
 import { newId } from './utils';
 
 export async function logAuditEvent(
@@ -38,10 +40,22 @@ export async function logAuditEvent(
 export async function getAuditLogs(filters?: {
   companyId?: string;
 }): Promise<AuditLog[]> {
-  // Mock data doesn't have companyId, so we ignore the filter for now
-  // In a real app, you'd filter by companyId if provided
+  let logs = [...mockAuditLogs];
+
+  if (filters?.companyId) {
+    const allUsers = await getUsers();
+    const companyUserIds = allUsers
+      .filter(u => u.companyId === filters.companyId)
+      .map(u => u.id);
+    
+    // Add system-level logs for company-specific views.
+    companyUserIds.push('system');
+
+    logs = logs.filter(log => companyUserIds.includes(log.userId));
+  }
+
   return Promise.resolve(
-    [...mockAuditLogs].sort(
+    logs.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     ),
   );

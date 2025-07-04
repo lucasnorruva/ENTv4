@@ -89,14 +89,14 @@ export interface Compliance {
   rohsExemption?: string;
   reachSVHC?: boolean;
   scipReference?: string;
+  weeeRegistered?: boolean;
+  weeeRegistrationNumber?: string;
   prop65WarningRequired?: boolean;
+  eudrCompliant?: boolean;
+  eudrDiligenceId?: string;
   ceMarked?: boolean;
   foodContactSafe?: boolean;
   foodContactComplianceStandard?: string;
-  weeeRegistered?: boolean;
-  weeeRegistrationNumber?: string;
-  eudrCompliant?: boolean;
-  eudrDiligenceId?: string;
 }
 
 export interface ComplianceGap {
