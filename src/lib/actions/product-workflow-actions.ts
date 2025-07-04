@@ -215,14 +215,14 @@ export async function performCustomsInspection(
   const product = mockProducts[productIndex];
 
   const now = new Date().toISOString();
-  const newCustomsStatus: CustomsStatus = {
+  const newCustomsStatus: Omit<CustomsStatus, 'history'> = {
     ...validatedData,
     date: now,
   };
 
   const currentHistory = product.customs?.history || [];
   if (product.customs && product.customs.date) {
-      currentHistory.push({ ...product.customs });
+      currentHistory.push({ ...product.customs, history: undefined });
   }
 
   mockProducts[productIndex].customs = { ...newCustomsStatus, history: currentHistory };

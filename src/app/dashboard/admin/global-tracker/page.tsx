@@ -476,8 +476,13 @@ export default function GlobalTrackerPage() {
   );
 
   const getPolygonAltitude = useCallback(
-    () => 0.01,
-    [],
+    (feat: object) => {
+        const p = (feat as CountryFeature).properties;
+        const name = p?.ADMIN || p?.NAME_LONG || '';
+        const count = countryProductStats.get(name) || 0;
+        return Math.max(0.01, Math.min(0.2, count / 50));
+    },
+    [countryProductStats],
   );
 
   const getPolygonLabel = useCallback((feat: object) => {
@@ -561,7 +566,7 @@ export default function GlobalTrackerPage() {
             polygonCapColor={(feat: object) => getPolygonCapColor(feat as CountryFeature)}
             polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
             polygonStrokeColor={() => '#000000'}
-            polygonAltitude={(feat: object) => getPolygonAltitude()}
+            polygonAltitude={getPolygonAltitude}
             onPolygonClick={(feat: object) => handlePolygonClick(feat as CountryFeature)}
             polygonLabel={(feat: object) => getPolygonLabel(feat as CountryFeature)}
             polygonsTransitionDuration={100}

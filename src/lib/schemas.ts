@@ -98,6 +98,7 @@ export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSc
 
 const customsStatusSchema = customsInspectionFormSchema.extend({
   date: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" }),
+  history: z.array(z.lazy(() => customsStatusSchema.omit({ history: true }))).optional(),
 });
 
 export const productFormSchema = z.object({

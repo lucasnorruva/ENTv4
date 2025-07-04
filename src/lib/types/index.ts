@@ -155,7 +155,7 @@ export interface CustomsStatus {
   location: string;
   date: string; // ISO 8601 format
   notes?: string;
-  history?: CustomsStatus[];
+  history?: Omit<CustomsStatus, 'history'>[];
 }
 
 export interface TransitInfo {
