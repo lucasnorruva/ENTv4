@@ -64,13 +64,6 @@ export let products: Product[] = [
       voltage: 3.83,
       isRemovable: false,
     },
-    transit: {
-      stage: 'Inland Transit',
-      eta: '2024-08-02',
-      transport: 'Truck',
-      origin: 'Gdansk, Poland',
-      destination: 'Berlin, Germany',
-    },
     customs: {
       status: 'Cleared',
       authority: 'German Customs (Zoll)',
@@ -123,13 +116,6 @@ export let products: Product[] = [
       { name: 'Steel Screws', percentage: 5, recycledContent: 10, origin: 'Japan' },
     ],
     manufacturing: { facility: 'Shenzhen Plant', country: 'China' },
-    transit: {
-        stage: 'Awaiting Shipment',
-        eta: '2024-09-01',
-        transport: 'Ship',
-        origin: 'Shenzhen, China',
-        destination: 'Los Angeles, USA',
-    },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     lastUpdated: new Date(
@@ -165,13 +151,6 @@ export let products: Product[] = [
       },
     ],
     manufacturing: { facility: 'Mumbai Textiles', country: 'India' },
-    transit: {
-      stage: 'At Customs',
-      eta: '2024-08-05',
-      transport: 'Ship',
-      origin: 'Mumbai, India',
-      destination: 'Rotterdam, Netherlands',
-    },
     certifications: [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade', issuer: 'Fairtrade International' },
@@ -212,13 +191,6 @@ export let products: Product[] = [
       { name: 'Lead-based dye' },
     ],
     manufacturing: { facility: 'Milan Leathers', country: 'Italy' },
-    transit: {
-      stage: 'Airborne - Approaching EU',
-      eta: '2024-08-08',
-      transport: 'Plane',
-      origin: 'Shenzhen, China',
-      destination: 'Frankfurt, Germany',
-    },
     customs: {
       status: 'Rejected',
       authority: 'German Customs (Zoll)',
@@ -271,13 +243,6 @@ export let products: Product[] = [
       { name: 'Lithium Battery', origin: 'China' },
     ],
     manufacturing: { facility: 'Aero Plant 1', country: 'USA' },
-    transit: {
-        stage: 'Awaiting Customs Clearance',
-        eta: '2024-08-01',
-        transport: 'Ship',
-        origin: 'Ho Chi Minh City, Vietnam',
-        destination: 'Antwerp, Belgium',
-    },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
       new Date(now).setHours(now.getHours() - 12),
@@ -302,13 +267,6 @@ export let products: Product[] = [
     compliancePathId: 'cp-electronics-01',
     materials: [{ name: 'Lithium Battery', origin: 'USA' }, { name: 'Plastic Casing', origin: 'USA' }],
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },
-    transit: {
-        stage: 'Pre-Arrival Notification Submitted',
-        eta: '2024-08-15',
-        transport: 'Ship',
-        origin: 'Newark, USA',
-        destination: 'Bremerhaven, Germany',
-    },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 1),
