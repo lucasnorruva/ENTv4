@@ -134,6 +134,7 @@ export default function GlobalTrackerPage() {
   const [countryProductStats, setCountryProductStats] = useState<
     Map<string, number>
   >(new Map());
+  const [maxProducts, setMaxProducts] = useState(1);
 
   const [pointsData, setPointsData] = useState<PointData[]>([]);
 
@@ -188,8 +189,8 @@ export default function GlobalTrackerPage() {
     );
 
   const handlePolygonClick = useCallback(
-    (feat: CountryFeature) => {
-      const props = feat.properties;
+    (feat: GeoJsonFeature) => {
+      const props = feat.properties as CountryProperties;
       setClickedCountryInfo(props);
       const countryName = props.ADMIN || props.NAME_LONG || '';
       const coords = mockCountryCoordinates[countryName];
@@ -228,7 +229,7 @@ export default function GlobalTrackerPage() {
     Promise.all([
       getProducts(),
       fetch(
-        'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson',
+        'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
       ).then(res => res.json()),
     ])
       .then(([productsData, geoJsonData]) => {
@@ -239,15 +240,21 @@ export default function GlobalTrackerPage() {
         setLandPolygons(geoJsonData.features);
 
         const stats = new Map<string, number>();
+        let max = 1;
         productsData.forEach(p => {
           const country = getCountryFromLocationString(
             p.manufacturing?.country,
           );
           if (country) {
-            stats.set(country, (stats.get(country) || 0) + 1);
+            const currentCount = (stats.get(country) || 0) + 1;
+            stats.set(country, currentCount);
+            if (currentCount > max) {
+              max = currentCount;
+            }
           }
         });
         setCountryProductStats(stats);
+        setMaxProducts(max);
       })
       .catch(err => {
         console.error('Error fetching initial data:', err);
@@ -474,8 +481,8 @@ export default function GlobalTrackerPage() {
   }, [globeReady, isAutoRotating, selectedProduct]);
 
   const getPolygonCapColor = useCallback(
-    (feat: CountryFeature) => {
-      const properties = feat.properties;
+    (feat: object) => {
+      const properties = (feat as CountryFeature).properties;
       const iso = properties?.ADM0_A3 || properties?.ISO_A3;
       const name = properties?.ADMIN || properties?.NAME_LONG || '';
 
@@ -495,6 +502,16 @@ export default function GlobalTrackerPage() {
       return isEU(iso) ? '#002D62' : '#CCCCCC';
     },
     [isEU, highlightedCountries, clickedCountryInfo],
+  );
+
+  const getPolygonAltitude = useCallback(
+    (feat: object) => {
+      const p = (feat as CountryFeature).properties;
+      const name = p?.ADMIN || p?.NAME_LONG || '';
+      const productCount = countryProductStats.get(name) || 0;
+      return 0.01 + (productCount / maxProducts) * 0.3;
+    },
+    [countryProductStats, maxProducts],
   );
 
   const getPolygonLabel = useCallback(
@@ -605,9 +622,8 @@ export default function GlobalTrackerPage() {
           {typeof window !== 'undefined' && (
             <Globe
               ref={globeEl}
-              globeImageUrl={null}
-              globeMaterial={globeMaterial}
-              backgroundColor="rgba(255, 255, 255, 0)"
+              globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+              backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
               arcsData={arcsData}
               arcColor={'color'}
               arcDashLength={0.4}
@@ -615,17 +631,17 @@ export default function GlobalTrackerPage() {
               arcDashAnimateTime={2000}
               arcStroke={0.5}
               arcLabel="label"
-              showAtmosphere={false}
+              showAtmosphere={true}
               polygonsData={filteredLandPolygons}
               polygonCapColor={feat =>
                 getPolygonCapColor(feat as CountryFeature)
               }
-              polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
-              polygonStrokeColor={() => '#000000'}
-              polygonAltitude={0.01}
+              polygonSideColor={() => 'rgba(0, 100, 0, 0.15)'}
+              polygonStrokeColor={() => '#111'}
+              polygonAltitude={feat => getPolygonAltitude(feat as CountryFeature)}
               onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
               polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
-              polygonsTransitionDuration={100}
+              polygonsTransitionDuration={300}
               pointsData={pointsData}
               pointLat="lat"
               pointLng="lng"
