@@ -1,4 +1,4 @@
-
+// src/app/products/[id]/page.tsx
 import { getProductById, getCompliancePathById } from "@/lib/actions";
 import PublicPassportView from "@/components/public-passport-view";
 import { notFound } from "next/navigation";
@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/logo";
+import ProductAIChatbot from "@/components/product-ai-chatbot";
 
 export default async function ProductPassportPage({
   params,
@@ -37,7 +38,17 @@ export default async function ProductPassportPage({
         </div>
       </header>
       <main className="container mx-auto p-4 md:p-8">
-        <PublicPassportView product={product} compliancePath={compliancePath} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <PublicPassportView
+              product={product}
+              compliancePath={compliancePath}
+            />
+          </div>
+          <div className="lg:col-span-1">
+            <ProductAIChatbot productId={product.id} />
+          </div>
+        </div>
       </main>
     </div>
   );

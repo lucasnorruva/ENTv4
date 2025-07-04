@@ -1,4 +1,4 @@
-
+// src/components/public-passport-view.tsx
 import type { Product, CompliancePath } from '@/types';
 import Image from 'next/image';
 import {
@@ -9,66 +9,21 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   ShieldCheck,
   ShieldAlert,
-  Leaf,
-  Recycle,
-  Wrench,
   Link as LinkIcon,
-  Factory,
-  Globe,
-  FileText,
-  Scale,
-  AlertTriangle,
   Fingerprint,
   Quote,
-  Thermometer,
-  Lightbulb,
-  Package,
-  Percent,
-  MapPin,
-  FileQuestion,
-  Archive,
-  Sparkles,
-  HeartPulse,
-  BatteryCharging,
-  Plane,
+  Globe,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import Link from 'next/link';
-import ProductAIChatbot from './product-ai-chatbot';
-
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
-  children,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value?: string | React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-4 py-3 border-b last:border-b-0">
-      <Icon className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-      <div className="flex-1">
-        <p className="font-semibold">{label}</p>
-        {value && <p className="text-muted-foreground">{value}</p>}
-        {children}
-      </div>
-    </div>
-  );
-}
+import OverviewTab from './product-detail-tabs/overview-tab';
+import SustainabilityTab from './product-detail-tabs/sustainability-tab';
+import LifecycleTab from './product-detail-tabs/lifecycle-tab';
+import ComplianceTab from './product-detail-tabs/compliance-tab';
 
 export default function PublicPassportView({
   product,
@@ -77,10 +32,6 @@ export default function PublicPassportView({
   product: Product;
   compliancePath?: CompliancePath;
 }) {
-  const { sustainability } = product;
-  const esg = sustainability;
-  const aiLifecycle = sustainability?.lifecycleAnalysis;
-
   const getCustomsStatusVariant = (status: Product['customs']['status']) => {
     switch (status) {
       case 'Cleared':
@@ -95,7 +46,7 @@ export default function PublicPassportView({
   };
 
   return (
-    <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">
+    <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm bg-transparent md:bg-card">
       <CardHeader className="bg-muted/50 p-6 flex flex-col md:flex-row gap-6 items-center">
         <Image
           src={product.productImage}
@@ -132,33 +83,8 @@ export default function PublicPassportView({
           )}
         </div>
       </CardHeader>
-      <CardContent className="p-6">
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card className="p-4 flex flex-col justify-center">
-            <CardTitle as="h2" className="text-lg mb-2">
-              ESG Score
-            </CardTitle>
-            {esg?.score ? (
-              <>
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl font-bold text-primary">
-                    {esg.score}
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">/ 100</p>
-                    <Progress value={esg.score} className="h-2 mt-1" />
-                  </div>
-                </div>
-                {esg.summary && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {esg.summary}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-muted-foreground">Score not available.</p>
-            )}
-          </Card>
+      <CardContent className="p-4 sm:p-6">
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Card className="p-4 flex flex-col justify-center">
             <CardTitle as="h2" className="text-lg mb-2">
               Verification Status
@@ -210,14 +136,22 @@ export default function PublicPassportView({
               <div className="flex items-center gap-3">
                 <Globe className="h-10 w-10 text-primary" />
                 <div>
-                  <Badge variant={getCustomsStatusVariant(product.customs.status)} className="text-sm">
+                  <Badge
+                    variant={getCustomsStatusVariant(product.customs.status)}
+                    className="text-sm"
+                  >
                     {product.customs.status}
                   </Badge>
                   <p className="text-xs text-muted-foreground mt-1">
                     At: {product.customs.location}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
-                    {formatDistanceToNow(new Date(product.customs.date), {addSuffix: true})}
+                  <p
+                    className="text-xs text-muted-foreground mt-1"
+                    suppressHydrationWarning
+                  >
+                    {formatDistanceToNow(new Date(product.customs.date), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
               </div>
@@ -229,260 +163,26 @@ export default function PublicPassportView({
           </Card>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          <div className="lg:col-span-1">
-            <Accordion
-              type="multiple"
-              className="w-full"
-              defaultValue={['item-1', 'item-2', 'item-3', 'item-4']}
-            >
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-xl font-semibold">
-                  Materials & Manufacturing
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <InfoRow icon={Factory} label="Manufacturing">
-                    <p className="text-sm text-muted-foreground">
-                      {product.manufacturing?.facility} in{' '}
-                      {product.manufacturing?.country}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={Scale} label="Material Composition">
-                    {product.materials.length > 0 ? (
-                      <div className="space-y-3 mt-2">
-                        {product.materials.map((mat, index) => (
-                          <div key={index} className="text-sm">
-                            <p className="font-medium text-foreground">
-                              {mat.name}
-                            </p>
-                            <div className="flex gap-4 text-muted-foreground text-xs">
-                              {mat.percentage !== undefined && (
-                                <span className="flex items-center gap-1">
-                                  <Percent className="h-3 w-3" />{' '}
-                                  {mat.percentage}% of total
-                                </span>
-                              )}
-                              {mat.recycledContent !== undefined && (
-                                <span className="flex items-center gap-1">
-                                  <Recycle className="h-3 w-3" />{' '}
-                                  {mat.recycledContent}% recycled
-                                </span>
-                              )}
-                              {mat.origin && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="h-3 w-3" /> Origin:{' '}
-                                  {mat.origin}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        No material data provided.
-                      </p>
-                    )}
-                  </InfoRow>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-xl font-semibold">
-                  Circularity & Lifecycle
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <InfoRow icon={Package} label="Packaging">
-                    <p className="text-sm text-muted-foreground">
-                      {product.packaging?.type}
-                      {product.packaging?.recycledContent !== undefined &&
-                        ` (${product.packaging.recycledContent}% recycled)`}
-                      . Recyclable:{' '}
-                      {product.packaging?.recyclable ? 'Yes' : 'No'}.
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={HeartPulse} label="Expected Lifespan">
-                    <p className="text-sm text-muted-foreground">
-                      {product.lifecycle?.expectedLifespan
-                        ? `${product.lifecycle.expectedLifespan} years`
-                        : 'Not specified'}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={Wrench} label="Repairability">
-                    <p className="text-sm text-muted-foreground">
-                      {product.lifecycle?.repairabilityScore
-                        ? `Score: ${product.lifecycle.repairabilityScore}/10. `
-                        : ''}
-                      Repair manuals and end-of-life instructions are available
-                      to authorized service providers and recyclers.
-                    </p>
-                  </InfoRow>
-                  {product.endOfLifeStatus &&
-                    product.endOfLifeStatus !== 'Active' && (
-                      <InfoRow icon={Archive} label="End-of-Life Status">
-                        <Badge
-                          variant={
-                            product.endOfLifeStatus === 'Recycled'
-                              ? 'default'
-                              : 'secondary'
-                          }
-                        >
-                          {product.endOfLifeStatus}
-                        </Badge>
-                      </InfoRow>
-                    )}
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-xl font-semibold">
-                  Environmental Impact
-                </AccordionTrigger>
-                <AccordionContent className="pt-2">
-                  <InfoRow
-                    icon={Thermometer}
-                    label="Carbon Footprint"
-                    value={
-                      product.lifecycle?.carbonFootprint
-                        ? `${product.lifecycle.carbonFootprint} kg CO2-eq`
-                        : 'Not available'
-                    }
-                  >
-                    {product.lifecycle?.carbonFootprintMethod && (
-                      <p className="text-xs text-muted-foreground">
-                        Method: {product.lifecycle.carbonFootprintMethod}
-                      </p>
-                    )}
-                  </InfoRow>
-                  {product.battery && (
-                    <InfoRow
-                      icon={BatteryCharging}
-                      label="Battery"
-                      value={`${product.battery.type || 'N/A'}${
-                        product.battery.capacityMah
-                          ? `, ${product.battery.capacityMah}mAh`
-                          : ''
-                      }`}
-                    >
-                      <p className="text-xs text-muted-foreground">
-                        Removable:{' '}
-                        {product.battery.isRemovable ? 'Yes' : 'No'}
-                      </p>
-                    </InfoRow>
-                  )}
-                  {aiLifecycle && (
-                    <>
-                      <InfoRow
-                        icon={Lightbulb}
-                        label="AI Lifecycle Stages Analysis"
-                      >
-                        <div className="space-y-2 mt-2 text-sm text-muted-foreground">
-                          <p>
-                            <strong>Manufacturing:</strong>{' '}
-                            {aiLifecycle.lifecycleStages.manufacturing}
-                          </p>
-                          <p>
-                            <strong>Use Phase:</strong>{' '}
-                            {aiLifecycle.lifecycleStages.usePhase}
-                          </p>
-                          <p>
-                            <strong>End-of-Life:</strong>{' '}
-                            {aiLifecycle.lifecycleStages.endOfLife}
-                          </p>
-                        </div>
-                      </InfoRow>
-                      <InfoRow
-                        icon={Sparkles}
-                        label="AI Improvement Opportunities"
-                      >
-                        <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                          {aiLifecycle.improvementOpportunities.map(
-                            (opp, i) => (
-                              <li key={i}>{opp}</li>
-                            ),
-                          )}
-                        </ul>
-                      </InfoRow>
-                    </>
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-xl font-semibold">
-                  Compliance & Certifications
-                </AccordionTrigger>
-                <AccordionContent className="pt-2 space-y-2">
-                  {sustainability?.gaps && sustainability.gaps.length > 0 && (
-                    <Alert variant="destructive">
-                      <AlertTriangle className="h-4 w-4" />
-                      <AlertTitle>Compliance Gaps Identified</AlertTitle>
-                      <AlertDescription>
-                        <ul className="list-disc list-inside text-xs mt-2 space-y-1">
-                          {sustainability.gaps.map((gap, index) => (
-                            <li key={index}>
-                              <strong>{gap.regulation}:</strong> {gap.issue}
-                            </li>
-                          ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <InfoRow icon={FileQuestion} label="Compliance Path">
-                    <p className="font-semibold text-foreground">
-                      {compliancePath?.name ?? 'No path selected.'}
-                    </p>
-                    {compliancePath?.description && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {compliancePath.description}
-                      </p>
-                    )}
-                  </InfoRow>
-                  <InfoRow icon={ShieldCheck} label="RoHS Compliant">
-                    <p className="text-sm text-muted-foreground">
-                      {product.compliance?.rohs?.compliant ? 'Yes' : 'No'}
-                      {product.compliance?.rohs?.exemption && (
-                        <span className="ml-2 text-xs">
-                          (Exemption: {product.compliance.rohs.exemption})
-                        </span>
-                      )}
-                    </p>
-                  </InfoRow>
-                  <InfoRow icon={FileText} label="Certifications">
-                    {product.certifications &&
-                    product.certifications.length > 0 ? (
-                      <ul className="list-disc list-inside text-sm text-muted-foreground">
-                        {product.certifications.map(
-                          (cert: any, index: number) => (
-                            <li key={index}>{cert.name}</li>
-                          ),
-                        )}
-                      </ul>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        No certifications listed.
-                      </p>
-                    )}
-                  </InfoRow>
-                  {product.ebsiVcId && (
-                    <InfoRow
-                      icon={Fingerprint}
-                      label="EBSI Credential ID"
-                      value={
-                        <span className="font-mono text-xs break-all">
-                          {product.ebsiVcId}
-                        </span>
-                      }
-                    />
-                  )}
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-          <div className="lg:col-span-1">
-            <ProductAIChatbot productId={product.id} />
-          </div>
-        </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+            <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="mt-4">
+            <OverviewTab product={product} />
+          </TabsContent>
+          <TabsContent value="sustainability" className="mt-4">
+            <SustainabilityTab product={product} />
+          </TabsContent>
+          <TabsContent value="lifecycle" className="mt-4">
+            <LifecycleTab product={product} />
+          </TabsContent>
+          <TabsContent value="compliance" className="mt-4">
+            <ComplianceTab product={product} compliancePath={compliancePath} />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );

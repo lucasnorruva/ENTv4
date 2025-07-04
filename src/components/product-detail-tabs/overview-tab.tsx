@@ -53,10 +53,10 @@ function InfoRow({
 
 interface OverviewTabProps {
   product: Product;
-  isGeneratingImage: boolean;
-  contextImagePreview: string | null;
-  handleContextImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleGenerateImage: () => void;
+  isGeneratingImage?: boolean;
+  contextImagePreview?: string | null;
+  handleContextImageChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleGenerateImage?: () => void;
 }
 
 export default function OverviewTab({
@@ -82,47 +82,51 @@ export default function OverviewTab({
               className="rounded-lg border object-cover aspect-[3/2]"
               data-ai-hint="product photo"
             />
-            <div className="grid items-center gap-1.5">
-              <Label
-                htmlFor="context-image"
-                className="text-xs text-muted-foreground"
-              >
-                Optional: Provide a reference image (e.g., a sketch)
-              </Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="context-image"
-                  type="file"
-                  accept="image/*"
-                  className="text-xs h-9"
-                  onChange={handleContextImageChange}
-                  disabled={isGeneratingImage}
-                />
-                {contextImagePreview && (
-                  <Image
-                    src={contextImagePreview}
-                    alt="Context image preview"
-                    width={36}
-                    height={36}
-                    className="rounded-md object-cover border"
+            {handleGenerateImage && (
+                <>
+                <div className="grid items-center gap-1.5">
+                <Label
+                  htmlFor="context-image"
+                  className="text-xs text-muted-foreground"
+                >
+                  Optional: Provide a reference image (e.g., a sketch)
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="context-image"
+                    type="file"
+                    accept="image/*"
+                    className="text-xs h-9"
+                    onChange={handleContextImageChange}
+                    disabled={isGeneratingImage}
                   />
-                )}
+                  {contextImagePreview && (
+                    <Image
+                      src={contextImagePreview}
+                      alt="Context image preview"
+                      width={36}
+                      height={36}
+                      className="rounded-md object-cover border"
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={handleGenerateImage}
-              disabled={isGeneratingImage}
-            >
-              {isGeneratingImage ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-4 w-4" />
-              )}
-              {isGeneratingImage ? 'Generating...' : 'Generate New Image'}
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleGenerateImage}
+                disabled={isGeneratingImage}
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {isGeneratingImage ? 'Generating...' : 'Generate New Image'}
+              </Button>
+                </>
+            )}
           </div>
           <div className="md:col-span-2 space-y-3 text-sm">
             <InfoRow

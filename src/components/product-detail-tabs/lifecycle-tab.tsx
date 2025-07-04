@@ -133,9 +133,8 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                 }
             />
 
-            <InfoRow icon={Wrench} label="Service History">
-                {product.serviceHistory &&
-                product.serviceHistory.length > 0 ? (
+            {product.serviceHistory && product.serviceHistory.length > 0 && (
+              <InfoRow icon={Wrench} label="Service History">
                 <div className="space-y-4 mt-2">
                     {product.serviceHistory
                     .sort(
@@ -161,12 +160,8 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                         </div>
                     ))}
                 </div>
-                ) : (
-                <p className="text-sm text-muted-foreground">
-                    No service history recorded.
-                </p>
-                )}
-            </InfoRow>
+              </InfoRow>
+            )}
 
             {aiLifecycle && (
                 <Accordion

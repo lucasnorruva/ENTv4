@@ -4,11 +4,9 @@
 import React, { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { format } from 'date-fns';
 import { Wrench, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog } from '@/types';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
@@ -20,7 +18,13 @@ import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
-import PublicPassportView from './public-passport-view';
+import { generateAndSaveProductImage } from '@/lib/actions';
+
+// Import newly created tab components
+import OverviewTab from './product-detail-tabs/overview-tab';
+import SustainabilityTab from './product-detail-tabs/sustainability-tab';
+import LifecycleTab from './product-detail-tabs/lifecycle-tab';
+import ComplianceTab from './product-detail-tabs/compliance-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -38,7 +42,12 @@ export default function ProductDetailView({
 }) {
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
+  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
+  const [contextImagePreview, setContextImagePreview] = useState<string | null>(
+    null,
+  );
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     setProduct(productProp);
@@ -50,7 +59,45 @@ export default function ProductDetailView({
   const canAddServiceRecord = can(user, 'product:add_service_record');
   const canGenerateDoc = can(user, 'product:edit', product);
 
-  const roleSlug = user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
+  const roleSlug =
+    user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
+
+  const handleContextImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setContextImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleGenerateImage = () => {
+    startImageGenerationTransition(async () => {
+      try {
+        const updatedProduct = await generateAndSaveProductImage(
+          product.id,
+          user.id,
+          contextImagePreview ?? undefined,
+        );
+        setProduct(updatedProduct);
+        toast({
+          title: 'Image Generated!',
+          description: 'A new AI-powered image has been generated and saved.',
+        });
+        router.refresh();
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate product image.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -101,10 +148,35 @@ export default function ProductDetailView({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <PublicPassportView
-            product={product}
-            compliancePath={compliancePath}
-          />
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+              <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+              <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview" className="mt-4">
+              <OverviewTab
+                product={product}
+                isGeneratingImage={isGeneratingImage}
+                contextImagePreview={contextImagePreview}
+                handleContextImageChange={handleContextImageChange}
+                handleGenerateImage={handleGenerateImage}
+              />
+            </TabsContent>
+            <TabsContent value="sustainability" className="mt-4">
+              <SustainabilityTab product={product} />
+            </TabsContent>
+            <TabsContent value="lifecycle" className="mt-4">
+              <LifecycleTab product={product} />
+            </TabsContent>
+            <TabsContent value="compliance" className="mt-4">
+              <ComplianceTab
+                product={product}
+                compliancePath={compliancePath}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
         <div className="space-y-6">
           <DppCompletenessWidget product={product} />
