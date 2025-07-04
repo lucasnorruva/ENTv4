@@ -56,7 +56,7 @@ export default function SupplierDataQualityReport({ products }: SupplierDataQual
                     ))}
                     <div className="pt-2">
                         <Button asChild variant="secondary" size="sm">
-                           <Link href={`/dashboard/supplier/products`}>
+                           <Link href={`/dashboard/supplier/products/${product.id}/edit`}>
                                 Edit Product <ArrowRight className="ml-2 h-4 w-4" />
                            </Link>
                         </Button>

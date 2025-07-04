@@ -294,7 +294,7 @@ export default function ProductTable({
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuItem asChild>
                   <Link
-                    href={`/dashboard/${roleSlug}/products/${product.id}`}
+                    href={`/dashboard/${roleSlug}/products/${product.id}/edit`}
                   >
                     <FilePenLine className="mr-2 h-4 w-4" />
                     View / Edit

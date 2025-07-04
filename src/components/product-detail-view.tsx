@@ -66,7 +66,7 @@ export default function ProductDetailView({
         <div className="flex items-center gap-2">
           {canEditProduct && (
             <Button asChild>
-              <Link href={`/dashboard/${roleSlug}/products/edit/${product.id}`}>
+              <Link href={`/dashboard/${roleSlug}/products/${product.id}/edit`}>
                 Edit Passport
               </Link>
             </Button>
