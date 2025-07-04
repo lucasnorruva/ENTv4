@@ -168,6 +168,8 @@ export default function GlobalTrackerPage() {
         Australia: { lat: -25.2744, lng: 133.7751 },
         'South Korea': { lat: 35.9078, lng: 127.7669 },
         Brazil: { lat: -14.235, lng: -51.9253 },
+        Austria: { lat: 47.5162, lng: 14.5501 },
+        // Cities - Standardized
         Shanghai: { lat: 31.2304, lng: 121.4737 },
         Mumbai: { lat: 19.076, lng: 72.8777 },
         Shenzhen: { lat: 22.5431, lng: 114.0579 },
@@ -178,19 +180,16 @@ export default function GlobalTrackerPage() {
         Zurich: { lat: 47.3769, lng: 8.5417 },
         Prague: { lat: 50.0755, lng: 14.4378 },
         Nairobi: { lat: -1.2921, lng: 36.8219 },
-        Austria: { lat: 47.5162, lng: 14.5501 },
-        'Frankfurt (Oder)': { lat: 52.3444, lng: 14.551 },
         'Port of Gdansk': { lat: 54.401, lng: 18.675 },
-        'Rotterdam': { lat: 51.9225, lng: 4.47917 },
-        'Frankfurt Airport': { lat: 50.0379, lng: 8.5622 },
-        'Antwerp': { lat: 51.2213, lng: 4.4051 },
-        'Bremerhaven': { lat: 53.5425, lng: 8.5819 },
+        Rotterdam: { lat: 51.9225, lng: 4.47917 },
+        Antwerp: { lat: 51.2213, lng: 4.4051 },
+        Bremerhaven: { lat: 53.5425, lng: 8.5819 },
         'Los Angeles': { lat: 34.0522, lng: -118.2437 },
-        'Berlin': { lat: 52.5200, lng: 13.4050 },
-        'Paris': { lat: 48.8566, lng: 2.3522 },
-        'Frankfurt': { lat: 50.1109, lng: 8.6821 },
-        'Lyon': { lat: 45.7640, lng: 4.8357 },
-        'Stuttgart': { lat: 48.7758, lng: 9.1829 },
+        Berlin: { lat: 52.5200, lng: 13.4050 },
+        Paris: { lat: 48.8566, lng: 2.3522 },
+        Frankfurt: { lat: 50.1109, lng: 8.6821 },
+        Lyon: { lat: 45.7640, lng: 4.8357 },
+        Stuttgart: { lat: 48.7758, lng: 9.1829 },
       }),
       [],
     );
@@ -464,11 +463,6 @@ export default function GlobalTrackerPage() {
         (clickedCountryInfo.ADM0_A3 === iso || clickedCountryInfo.ADMIN === name)
       )
         return '#ff4500';
-      if (
-        hoverD &&
-        (hoverD.properties.ADM0_A3 === iso || hoverD.properties.ADMIN === name)
-      )
-        return '#ffa500';
 
       if (
         highlightedCountries.some(hc =>
@@ -479,7 +473,7 @@ export default function GlobalTrackerPage() {
       }
       return isEU(iso) ? '#002D62' : '#CCCCCC';
     },
-    [isEU, highlightedCountries, clickedCountryInfo, hoverD],
+    [isEU, highlightedCountries, clickedCountryInfo],
   );
 
   const getPolygonAltitude = useCallback((feat: object) => {
