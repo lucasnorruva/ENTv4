@@ -5,6 +5,7 @@
  * particularly in the main `types/index.ts` file.
  */
 
+import type { z } from "zod";
 import type {
   CalculateSustainabilityInput,
   EsgScoreOutput,
