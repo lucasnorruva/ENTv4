@@ -150,11 +150,12 @@ export interface ServiceRecord extends BaseEntity {
 }
 
 export interface CustomsStatus {
-  status: 'Cleared' | 'Detained' | 'Rejected';
+  status: 'Cleared' | 'Detained' | 'Rejected' | 'In Transit';
   authority: string;
   location: string;
   date: string; // ISO 8601 format
   notes?: string;
+  history?: CustomsStatus[];
 }
 
 export interface TransitInfo {

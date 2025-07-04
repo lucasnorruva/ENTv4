@@ -40,9 +40,37 @@ export default function SelectedProductCustomsInfoCard({
   alerts,
   onDismiss,
 }: SelectedProductCustomsInfoCardProps) {
-  if (!product.transit) return null;
-
   const { transit } = product;
+
+  if (!transit) {
+    return (
+      <Card className="absolute bottom-4 left-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm">
+        <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4">
+          <div className="flex items-center">
+            <Package className="h-5 w-5 mr-2 text-primary" />
+            <CardTitle className="text-md font-semibold">
+              {product.productName}
+            </CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={onDismiss}
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Dismiss</span>
+          </Button>
+        </CardHeader>
+        <CardContent className="px-4 pb-4 text-xs space-y-2">
+           <p className="text-sm text-muted-foreground">
+            No active transit information available for this product.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
 
   const TransportIcon =
     transit.transport === 'Ship'
