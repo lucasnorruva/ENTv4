@@ -199,6 +199,7 @@ export const navConfig: NavConfig = {
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
         { title: 'Webhooks', icon: Cog, href: 'webhooks' },
         { title: 'API Settings', icon: Cog, href: 'api-settings' },
+        { title: 'Integrations', icon: Wrench, href: 'integrations' },
       ],
     },
     {
