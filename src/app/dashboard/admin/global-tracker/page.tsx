@@ -479,7 +479,7 @@ export default function GlobalTrackerPage() {
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#ffffff';
+      if (!feat.properties) return theme === 'dark' ? '#334155' : '#E5E7EB';
       const iso = feat.properties.ADM0_A3 || feat.properties.ISO_A3;
       const name = feat.properties.ADMIN || feat.properties.NAME_LONG || '';
       const isDark = theme === 'dark';
@@ -502,7 +502,7 @@ export default function GlobalTrackerPage() {
         return isDark ? '#2563eb' : '#002D62';
       }
 
-      return isDark ? '#334155' : '#ffffff'; // slate-700 / white
+      return isDark ? '#334155' : '#E5E7EB'; // slate-700 / gray-200
     },
     [theme, isEU, highlightedCountries, clickedCountryInfo],
   );
