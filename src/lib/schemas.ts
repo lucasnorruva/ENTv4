@@ -50,14 +50,14 @@ const complianceSchema = z.object({
   rohsExemption: z.string().optional(),
   reachSVHC: z.boolean().optional(),
   scipReference: z.string().optional(),
+  weeeRegistered: z.boolean().optional(),
+  weeeRegistrationNumber: z.string().optional(),
   prop65WarningRequired: z.boolean().optional(),
+  eudrCompliant: z.boolean().optional(),
+  eudrDiligenceId: z.string().optional(),
   ceMarked: z.boolean().optional(),
   foodContactSafe: z.boolean().optional(),
   foodContactComplianceStandard: z.string().optional(),
-  weeeRegistered: z.boolean().optional(),
-  weeeRegistrationNumber: z.string().optional(),
-  eudrCompliant: z.boolean().optional(),
-  eudrDiligenceId: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -109,6 +109,22 @@ export const companySettingsSchema = z.object({
   aiEnabled: z.boolean().optional(),
   apiAccess: z.boolean().optional(),
   brandingCustomization: z.boolean().optional(),
+  theme: z
+    .object({
+      light: z
+        .object({
+          primary: z.string().optional(),
+          accent: z.string().optional(),
+        })
+        .optional(),
+      dark: z
+        .object({
+          primary: z.string().optional(),
+          accent: z.string().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 export type CompanySettingsFormValues = z.infer<typeof companySettingsSchema>;
 

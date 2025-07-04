@@ -1,8 +1,8 @@
 // src/components/company-settings-form.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { useTransition, useEffect } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   companySettingsSchema,
@@ -31,6 +31,8 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { Separator } from './ui/separator';
+import { Input } from './ui/input';
 
 interface CompanySettingsFormProps {
   company: Company;
@@ -50,7 +52,16 @@ export default function CompanySettingsForm({
       aiEnabled: company.settings?.aiEnabled ?? false,
       apiAccess: company.settings?.apiAccess ?? false,
       brandingCustomization: company.settings?.brandingCustomization ?? false,
+      theme: company.settings?.theme ?? {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
     },
+  });
+
+  const isBrandingEnabled = useWatch({
+    control: form.control,
+    name: 'brandingCustomization',
   });
 
   useEffect(() => {
@@ -58,6 +69,10 @@ export default function CompanySettingsForm({
       aiEnabled: company.settings?.aiEnabled ?? false,
       apiAccess: company.settings?.apiAccess ?? false,
       brandingCustomization: company.settings?.brandingCustomization ?? false,
+      theme: company.settings?.theme ?? {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
     });
   }, [company, form]);
 
@@ -69,6 +84,8 @@ export default function CompanySettingsForm({
           title: 'Settings Saved',
           description: `Settings for ${company.name} have been updated.`,
         });
+        // A page reload might be needed to see theme changes
+        window.location.reload();
       } catch (error: any) {
         toast({
           title: 'Error Saving Settings',
@@ -157,13 +174,87 @@ export default function CompanySettingsForm({
               )}
             />
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Settings
-            </Button>
-          </CardFooter>
         </Card>
+
+        {isBrandingEnabled && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Theme Customization</CardTitle>
+              <CardDescription>
+                Customize the color scheme. Enter HSL values without the `hsl()`
+                wrapper (e.g., `231 48% 54%`).
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h4 className="font-medium mb-2">Light Theme</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="theme.light.primary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Primary Color</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 231 48% 54%" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="theme.light.accent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Accent Color</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 174 80% 92%" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <h4 className="font-medium mb-2">Dark Theme</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="theme.dark.primary"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Primary Color</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 231 48% 65%" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="theme.dark.accent"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Accent Color</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 174 100% 15%" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isSaving}>
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Save Settings
+          </Button>
+        </div>
       </form>
     </Form>
   );

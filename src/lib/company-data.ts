@@ -14,7 +14,17 @@ export let companies: Company[] = [
     settings: {
       aiEnabled: true,
       apiAccess: true,
-      brandingCustomization: false,
+      brandingCustomization: true,
+      theme: {
+        light: {
+          primary: '25 95% 53%', // Orange
+          accent: '45 93% 91%',
+        },
+        dark: {
+          primary: '25 95% 60%', // Lighter Orange
+          accent: '45 93% 20%',
+        },
+      },
     },
   },
   {
