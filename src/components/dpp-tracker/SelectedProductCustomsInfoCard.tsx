@@ -129,17 +129,11 @@ export default function SelectedProductCustomsInfoCard({
               etaDate.toLocaleDateString()
             )}
           </div>
-          <p className="flex items-center">
-            <strong className="text-muted-foreground mr-1">DPP Status:</strong>
-            <Badge
-              className={cn('text-xs capitalize', dppStatusClasses)}
-              variant={dppStatusBadgeVariant}
-            >
-              {React.cloneElement(DppStatusIcon, {
-                className: 'mr-1 h-3 w-3',
-              })}
-              {formattedDppStatus}
-            </Badge>
+          <p className="flex items-center"><strong className="text-muted-foreground mr-1">DPP Status:</strong> 
+              <Badge className={cn("text-xs capitalize", dppStatusClasses)} variant={dppStatusBadgeVariant}>
+                  {React.cloneElement(DppStatusIcon, {className: "mr-1 h-3 w-3"})}
+                  {formattedDppStatus}
+              </Badge>
           </p>
         </div>
 

@@ -157,6 +157,14 @@ export interface CustomsStatus {
   notes?: string;
 }
 
+export interface TransitInfo {
+    stage: string;
+    eta: string; // ISO date string
+    transport: 'Ship' | 'Truck' | 'Plane';
+    origin: string;
+    destination: string;
+}
+
 /**
  * Groups all AI-generated and compliance-related data.
  */
@@ -196,6 +204,7 @@ export interface Product extends BaseEntity {
   compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
+  transit?: TransitInfo;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
