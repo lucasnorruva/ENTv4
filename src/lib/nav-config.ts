@@ -22,6 +22,7 @@ import {
   History,
   Search as SearchIcon,
   Webhook,
+  ShoppingBag,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -177,7 +178,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Retail Operations',
       items: [
-        { title: 'Product Catalog', icon: SearchIcon, href: 'catalog' },
+        { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
