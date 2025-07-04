@@ -99,13 +99,80 @@ mutation CreateNewProduct($input: ProductInput!) {
 
 ## REST API v2 (Current)
 
-This is the recommended version for all new RESTful integrations. All endpoints are prefixed with `/api/v2`.
+This is the recommended version for all new RESTful integrations. All endpoints are prefixed with `/api/v2`. Responses include HATEOAS `_links` for easier API navigation.
 
 ### Products
 
 #### `GET /api/v2/products`
-Retrieves a list of all product passports for your organization.
-... (rest of the content is similar to existing)
+
+Retrieves a list of all product passports accessible to the authenticated user.
+
+- **Method**: `GET`
+- **Query Parameters**:
+    -   `status`: (Optional) Filter by `Published`, `Draft`, or `Archived`.
+    -   `category`: (Optional) Filter by product category.
+-   **Success Response**: `200 OK`
+    ```json
+    [
+      {
+        "id": "pp-001",
+        "productName": "Eco-Friendly Smart Watch",
+        "status": "Published",
+        "_links": {
+          "self": { "href": "/api/v2/products/pp-001" }
+        },
+        "..."
+      }
+    ]
+    ```
+
+#### `POST /api/v2/products`
+
+Creates a new product passport.
+
+-   **Method**: `POST`
+-   **Body**: A JSON object matching the `ProductInput` schema from GraphQL.
+-   **Success Response**: `201 Created`
+    ```json
+    {
+      "id": "pp-new-123",
+      "productName": "New Product",
+      "status": "Draft",
+      "_links": {
+          "self": { "href": "/api/v2/products/pp-new-123" }
+      },
+      "..."
+    }
+    ```
+
+#### `GET /api/v2/products/{id}`
+
+Retrieves a single product passport by its ID.
+
+-   **Method**: `GET`
+-   **Success Response**: `200 OK`
+    ```json
+    {
+      "id": "pp-001",
+      "productName": "Eco-Friendly Smart Watch",
+      "..."
+    }
+    ```
+
+#### `PUT /api/v2/products/{id}`
+
+Updates an existing product passport.
+
+-   **Method**: `PUT`
+-   **Body**: A JSON object with the fields to update.
+-   **Success Response**: `200 OK`
+
+#### `DELETE /api/v2/products/{id}`
+
+Deletes a product passport.
+
+-   **Method**: `DELETE`
+-   **Success Response**: `204 No Content`
 
 ---
 
