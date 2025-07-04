@@ -158,7 +158,7 @@ export default function ProductCatalogClient({
         <div className="text-center py-16 text-muted-foreground bg-muted rounded-lg">
           <ShoppingBag className="mx-auto h-12 w-12" />
           <h3 className="mt-4 text-lg font-semibold">No Products Found</h3>
-          <p className="mt-2 text-sm">
+          <p className="text-sm">
             No products matched your search term. Try a different search.
           </p>
         </div>
