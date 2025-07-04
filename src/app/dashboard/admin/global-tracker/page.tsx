@@ -86,7 +86,6 @@ interface PointData {
   label: string;
 }
 
-
 export default function GlobalTrackerPage() {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
@@ -194,8 +193,8 @@ export default function GlobalTrackerPage() {
       [],
     );
   
-  const handlePolygonClick = useCallback((feat: object) => {
-    const props = (feat as CountryFeature).properties;
+  const handlePolygonClick = useCallback((feat: CountryFeature) => {
+    const props = feat.properties;
     setClickedCountryInfo(props);
     const countryName = props.ADMIN || props.NAME_LONG || '';
     const coords = mockCountryCoordinates[countryName];
@@ -454,8 +453,8 @@ export default function GlobalTrackerPage() {
   }, [globeReady, isAutoRotating, selectedProduct]);
 
   const getPolygonCapColor = useCallback(
-    (feat: object) => {
-      const properties = (feat as CountryFeature).properties;
+    (feat: CountryFeature) => {
+      const properties = feat.properties;
       const iso = properties?.ADM0_A3 || properties?.ISO_A3;
       const name = properties?.ADMIN || properties?.NAME_LONG || '';
 
@@ -477,13 +476,46 @@ export default function GlobalTrackerPage() {
     [isEU, highlightedCountries, clickedCountryInfo],
   );
 
-  const getPolygonAltitude = useCallback((feat: object) => {
-    const d = feat as CountryFeature;
-    const countryName = d.properties.ADMIN;
+  const getPolygonAltitude = useCallback((feat: CountryFeature) => {
+    const countryName = feat.properties.ADMIN;
     const stat = countryProductStats.get(countryName);
-    const altitude = stat ? Math.max(0.01, Math.sqrt(stat) * 0.04) : 0.01;
-    return altitude;
+    return stat ? Math.max(0.01, Math.sqrt(stat) * 0.04) : 0.01;
   }, [countryProductStats]);
+
+  const getPolygonLabel = useCallback((feat: CountryFeature) => {
+    const p = feat.properties;
+    const iso = p?.ADM0_A3 || p?.ISO_A3;
+    const name = p?.ADMIN || p?.NAME_LONG || 'Country';
+    const isEUCountry = isEU(iso);
+    const isHighlighted = highlightedCountries.some(hc =>
+        name.toLowerCase().includes(hc.toLowerCase()),
+    );
+    const productCount = countryProductStats.get(name) || 0;
+    let roleInContext = '';
+    if (isHighlighted && selectedProduct) {
+        if (
+            selectedProduct.transit?.origin &&
+            getCountryFromLocationString(
+            selectedProduct.transit.origin,
+            ) === name
+        )
+            roleInContext += 'Transit Origin. ';
+        if (
+            selectedProduct.transit?.destination &&
+            getCountryFromLocationString(
+            selectedProduct.transit.destination,
+            ) === name
+        )
+            roleInContext += 'Transit Destination. ';
+        if (!roleInContext) roleInContext = 'Supply Chain Node.';
+    }
+    return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${
+    iso ? ` (${iso})` : ''
+    }<br/>Products Originating: ${productCount}<br/>${
+    isEUCountry ? 'EU Member' : 'Non-EU Member'
+    }<br/>${roleInContext.trim()}</div>`;
+  }, [isEU, highlightedCountries, selectedProduct, countryProductStats, getCountryFromLocationString]);
+
 
   const handleDismissProductInfo = () => {
     setSelectedProductId(null);
@@ -528,47 +560,13 @@ export default function GlobalTrackerPage() {
             arcLabel="label"
             showAtmosphere={false}
             polygonsData={filteredLandPolygons}
-            polygonCapColor={getPolygonCapColor}
+            polygonCapColor={(feat: object) => getPolygonCapColor(feat as CountryFeature)}
             polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
             polygonStrokeColor={() => '#000000'}
-            polygonAltitude={getPolygonAltitude}
-            onPolygonHover={
-                setHoverD as (feature: GeoJsonFeature | null) => void
-            }
-            onPolygonClick={handlePolygonClick}
-            polygonLabel={({ properties }: object) => {
-                const p = properties as CountryProperties;
-                const iso = p?.ADM0_A3 || p?.ISO_A3;
-                const name = p?.ADMIN || p?.NAME_LONG || 'Country';
-                const isEUCountry = isEU(iso);
-                const isHighlighted = highlightedCountries.some(hc =>
-                name.toLowerCase().includes(hc.toLowerCase()),
-                );
-                const productCount = countryProductStats.get(name) || 0;
-                let roleInContext = '';
-                if (isHighlighted && selectedProduct) {
-                if (
-                    selectedProduct.transit?.origin &&
-                    getCountryFromLocationString(
-                    selectedProduct.transit.origin,
-                    ) === name
-                )
-                    roleInContext += 'Transit Origin. ';
-                if (
-                    selectedProduct.transit?.destination &&
-                    getCountryFromLocationString(
-                    selectedProduct.transit.destination,
-                    ) === name
-                )
-                    roleInContext += 'Transit Destination. ';
-                if (!roleInContext) roleInContext = 'Supply Chain Node.';
-                }
-                return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${
-                iso ? ` (${iso})` : ''
-                }<br/>Products Originating: ${productCount}<br/>${
-                isEUCountry ? 'EU Member' : 'Non-EU Member'
-                }<br/>${roleInContext.trim()}</div>`;
-            }}
+            polygonAltitude={(feat: object) => getPolygonAltitude(feat as CountryFeature)}
+            onPolygonHover={(feat: object | null) => setHoverD(feat as CountryFeature | null)}
+            onPolygonClick={(feat: object) => handlePolygonClick(feat as CountryFeature)}
+            polygonLabel={(feat: object) => getPolygonLabel(feat as CountryFeature)}
             polygonsTransitionDuration={100}
             pointsData={pointsData}
             pointLat="lat"
