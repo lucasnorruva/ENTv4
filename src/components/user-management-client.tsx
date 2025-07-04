@@ -94,6 +94,7 @@ export default function UserManagementClient({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const fetchInitialData = useCallback(() => {
     setIsLoading(true);
@@ -157,7 +158,7 @@ export default function UserManagementClient({
     });
     setIsFormOpen(false);
   };
-  
+
   const companyMap = React.useMemo(() => {
     return new Map(companies.map(c => [c.id, c.name]));
   }, [companies]);
@@ -288,11 +289,25 @@ export default function UserManagementClient({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+
+      const user = row.original;
+      const companyName = companyMap.get(user.companyId) || '';
+
+      return (
+        user.fullName.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        companyName.toLowerCase().includes(search)
+      );
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
   });
 
@@ -315,14 +330,9 @@ export default function UserManagementClient({
         <CardContent>
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter users by name or email..."
-              value={
-                (table.getColumn('fullName')?.getFilterValue() as string) ?? ''
-              }
-              onChange={event => {
-                table.getColumn('fullName')?.setFilterValue(event.target.value);
-                table.getColumn('email')?.setFilterValue(event.target.value);
-              }}
+              placeholder="Filter users by name, email, or company..."
+              value={globalFilter}
+              onChange={event => setGlobalFilter(event.target.value)}
               className="max-w-sm"
             />
             <DropdownMenu>
