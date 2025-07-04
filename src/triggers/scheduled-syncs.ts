@@ -1,7 +1,7 @@
 // src/triggers/scheduled-syncs.ts
 "use server";
 
-import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/actions/index";
+import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/lib/actions";
 
 export async function runDailyReferenceDataSync(): Promise<{
   syncedItems: number;
