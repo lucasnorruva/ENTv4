@@ -3,40 +3,54 @@
 // In a real Firebase project, this would be a Cloud Function.
 'use server';
 
-// NOTE: Most of the logic from this file has been centralized into
-// the `processProductAi` function within `src/lib/actions.ts`.
-// This was done to allow manual re-triggering of the same comprehensive
-// AI pipeline that runs on product creation/update.
+import { processProductAi } from '@/lib/actions';
+import { products as mockProducts } from '@/lib/data';
 
-// This file is kept as a placeholder to represent where a real
-// Firestore trigger would live in a production Firebase architecture.
-// A real implementation would look something like this:
-/*
-import { onDocumentWritten } from 'firebase-functions/v2/firestore';
-import { processProductAi } from '@/lib/actions'; // Hypothetical import
+// NOTE: This mock function simulates the behavior of a Firestore trigger.
+// It's called from saveProduct in product-actions.ts for demonstration.
+export async function onProductChange(
+  productId: string,
+  beforeData: any,
+  afterData: any,
+) {
+  console.log(`Trigger fired for product ${productId}.`);
 
-export const onProductChange = onDocumentWritten(
-  "products/{productId}",
-  async (event) => {
-    const product = event.data?.after.data();
-    const beforeProduct = event.data?.before.data();
-    if (!product) {
-      return;
+  // Basic check to avoid infinite loops if the trigger is ever directly called
+  // in a way that would cause a loop.
+  if (
+    afterData.isProcessing ||
+    JSON.stringify(beforeData) === JSON.stringify(afterData)
+  ) {
+    console.log(`Skipping processing for product ${productId}.`);
+    return;
+  }
+
+  // In a real scenario, you'd set the 'isProcessing' flag before starting.
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex !== -1) {
+    mockProducts[productIndex].isProcessing = true;
+  }
+
+  try {
+    const { sustainability, qrLabelText, dataQualityWarnings } =
+      await processProductAi(afterData);
+    
+    // Update the mock data source
+    const finalProductIndex = mockProducts.findIndex(p => p.id === productId);
+    if (finalProductIndex !== -1) {
+        mockProducts[finalProductIndex].sustainability = sustainability;
+        mockProducts[finalProductIndex].qrLabelText = qrLabelText;
+        mockProducts[finalProductIndex].dataQualityWarnings = dataQualityWarnings;
+        mockProducts[finalProductIndex].isProcessing = false;
+        mockProducts[finalProductIndex].lastUpdated = new Date().toISOString();
+        console.log(`AI processing finished for ${productId}`);
     }
-    // Logic to prevent infinite loops and check if processing is needed
-    if (product.isProcessing || hasChanged(beforeProduct, product)) {
-       await processProductAi(product);
+  } catch (error) {
+    console.error(`AI processing failed for ${productId}:`, error);
+    // Reset the processing flag on failure
+    const finalProductIndex = mockProducts.findIndex(p => p.id === productId);
+    if (finalProductIndex !== -1) {
+        mockProducts[finalProductIndex].isProcessing = false;
     }
   }
-);
-*/
-
-export async function runDataValidationCheck(
-  productId: string,
-  userId: string,
-) {
-  console.log(
-    `Mock trigger: Data validation check would run here for product ${productId}. Logic is now in actions.ts.`,
-  );
-  return Promise.resolve();
 }

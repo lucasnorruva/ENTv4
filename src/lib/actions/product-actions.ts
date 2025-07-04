@@ -1,10 +1,8 @@
 // src/lib/actions/product-actions.ts
 'use server';
 
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import type { Product, User } from '@/types';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
-import { adminDb } from '@/lib/firebase-admin';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { UserRoles, type Role } from '@/lib/constants';
@@ -12,8 +10,8 @@ import { hasRole } from '@/lib/auth-utils';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { processProductAi } from './product-ai-actions';
+import { products as mockProducts } from '../data';
 
-const productsCollection = adminDb.collection('products');
 
 // --- Core CRUD Actions ---
 
@@ -31,12 +29,11 @@ export async function getProducts(
     if (!user) return [];
   }
 
-  let query: FirebaseFirestore.Query<Product> =
-    productsCollection as FirebaseFirestore.Query<Product>;
+  let results: Product[] = [...mockProducts];
 
   if (!userId) {
     // Public access: only published products
-    query = query.where('status', '==', 'Published');
+    results = results.filter(p => p.status === 'Published');
   } else {
     const globalReadRoles: Role[] = [
       UserRoles.ADMIN,
@@ -51,12 +48,9 @@ export async function getProducts(
     ];
     const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
     if (!hasGlobalRead) {
-      query = query.where('companyId', '==', user.companyId);
+      results = results.filter(p => p.companyId === user!.companyId);
     }
   }
-
-  const snapshot = await query.orderBy('lastUpdated', 'desc').get();
-  let results = snapshot.docs.map(doc => doc.data());
 
   // In-memory filtering after fetching
   if (filters?.searchQuery) {
@@ -77,18 +71,18 @@ export async function getProducts(
       p => (p.verificationStatus ?? 'Not Submitted') === filters.verificationStatus,
     );
   }
+  
+  results.sort((a,b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 
-  return results;
+  return Promise.resolve(results);
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const doc = await productsCollection.doc(id).get();
-  if (!doc.exists) return undefined;
-
-  const product = doc.data() as Product;
+  const product = mockProducts.find(p => p.id === id);
+  if (!product) return undefined;
 
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
@@ -126,22 +120,14 @@ export async function getProductByGtin(
   const user = await getUserById(userId);
   if (!user) return undefined;
 
-  let query: FirebaseFirestore.Query = productsCollection.where(
-    'gtin',
-    '==',
-    gtin,
-  );
+  let results = mockProducts.filter(p => p.gtin === gtin);
 
   // Admins and developers can search across all companies
   if (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.DEVELOPER)) {
-    query = query.where('companyId', '==', user.companyId);
+    results = results.filter(p => p.companyId === user.companyId);
   }
-
-  const snapshot = await query.limit(1).get();
-  if (snapshot.empty) {
-    return undefined;
-  }
-  return snapshot.docs[0].data() as Product;
+  
+  return Promise.resolve(results[0]);
 }
 
 export async function saveProduct(
@@ -155,13 +141,12 @@ export async function saveProduct(
 
   const now = new Date().toISOString();
   let savedProduct: Product;
-  let productRef;
+  let productRef: string; // Using ID as ref for mock data
 
   if (productId) {
-    productRef = productsCollection.doc(productId);
-    const doc = await productRef.get();
-    const existingProduct = doc.data() as Product | undefined;
-    if (!existingProduct) throw new Error('Product not found');
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if(productIndex === -1) throw new Error('Product not found');
+    const existingProduct = mockProducts[productIndex];
 
     checkPermission(user, 'product:edit', existingProduct);
 
@@ -186,9 +171,11 @@ export async function saveProduct(
           : validatedData.status,
       isProcessing: true,
     };
-
-    await productRef.update(updatedData);
+    
     savedProduct = { ...existingProduct, ...updatedData };
+    mockProducts[productIndex] = savedProduct;
+    productRef = productId;
+
     await logAuditEvent(
       'product.updated',
       productId,
@@ -215,30 +202,36 @@ export async function saveProduct(
       materials: validatedData.materials || [],
       isProcessing: true,
     };
-    productRef = await productsCollection.add(newProductData);
-    savedProduct = { id: productRef.id, ...newProductData };
-    await productRef.update({ id: productRef.id });
+    const newIdVal = newId('pp');
+    savedProduct = { id: newIdVal, ...newProductData };
+    productRef = newIdVal;
+    mockProducts.unshift(savedProduct);
 
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
 
+  // Simulate background AI processing
   setTimeout(async () => {
     try {
       const { sustainability, qrLabelText, dataQualityWarnings } =
         await processProductAi(savedProduct);
-      await productRef!.update({
-        sustainability,
-        qrLabelText,
-        dataQualityWarnings,
-        isProcessing: false,
-        lastUpdated: new Date().toISOString(),
-      });
+      const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
+      if (productIndex !== -1) {
+        mockProducts[productIndex].sustainability = sustainability;
+        mockProducts[productIndex].qrLabelText = qrLabelText;
+        mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
+        mockProducts[productIndex].isProcessing = false;
+        mockProducts[productIndex].lastUpdated = new Date().toISOString();
+      }
     } catch (e) {
       console.error(
         `Background AI processing failed for product ${savedProduct.id}`,
         e,
       );
-      await productRef!.update({ isProcessing: false });
+      const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
+      if (productIndex !== -1) {
+        mockProducts[productIndex].isProcessing = false;
+      }
     }
   }, 3000);
 
@@ -256,7 +249,11 @@ export async function deleteProduct(
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:delete', product);
-
-  await productsCollection.doc(productId).delete();
+  
+  const index = mockProducts.findIndex(p => p.id === productId);
+  if (index > -1) {
+    mockProducts.splice(index, 1);
+  }
+  
   await logAuditEvent('product.deleted', productId, {}, userId);
 }

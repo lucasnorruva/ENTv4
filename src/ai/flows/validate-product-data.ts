@@ -55,9 +55,9 @@ const prompt = ai.definePrompt({
 - Your output must be a JSON object that strictly adheres to the provided schema. If there are no issues, return an empty 'warnings' array.
 
 USER_DATA:
-"""
+\`\`\`json
 {{{json product}}}
-"""
+\`\`\`
 `,
 });
 

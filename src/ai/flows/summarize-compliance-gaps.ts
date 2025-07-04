@@ -1,5 +1,5 @@
 
-'use server';
+"use server";
 
 /**
  * @fileOverview An AI agent for summarizing compliance gaps in product data.
