@@ -223,7 +223,7 @@ export default function GlobalTrackerPage() {
     Promise.all([
       getProducts(),
       fetch(
-        'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_50m_admin_0_countries.geojson',
+        'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
       ).then(res => res.json()),
     ])
       .then(([productsData, geoJsonData]) => {
@@ -285,6 +285,23 @@ export default function GlobalTrackerPage() {
         }
       });
     }
+
+    // Add pulsing rings for active alerts
+    alerts.forEach(alert => {
+      const alertCountry = MOCK_CUSTOMS_ALERTS.find(a => a.id === alert.id)
+        ?.message.split(' at ')[1]
+        ?.split('.')[0]
+        .split(', ')[0];
+      if (alertCountry && mockCountryCoordinates[alertCountry]) {
+        const coords = mockCountryCoordinates[alertCountry];
+        newPointsData.push({
+          ...coords,
+          size: 0.3,
+          color: alert.severity === 'High' ? 'tomato' : 'orange',
+          label: alert.message,
+        });
+      }
+    });
 
     setPointsData(newPointsData);
 
@@ -439,7 +456,7 @@ export default function GlobalTrackerPage() {
 
   const globeMaterial = useMemo(() => {
     return new MeshPhongMaterial({
-      color: theme === 'dark' ? '#0a192f' : '#a9d5e5',
+      color: theme === 'dark' ? '#020617' : '#e0f2fe', // Deep space blue / Light sky blue
       transparent: true,
       opacity: 1,
     });
@@ -462,7 +479,7 @@ export default function GlobalTrackerPage() {
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#4A5568' : '#FFFFFF';
+      if (!feat.properties) return theme === 'dark' ? '#334155' : '#ffffff';
       const iso = feat.properties.ADM0_A3 || feat.properties.ISO_A3;
       const name = feat.properties.ADMIN || feat.properties.NAME_LONG || '';
       const isDark = theme === 'dark';
@@ -482,27 +499,17 @@ export default function GlobalTrackerPage() {
       }
 
       if (isEU(iso)) {
-        return isDark ? '#3B82F6' : '#002D62';
+        return isDark ? '#2563eb' : '#002D62';
       }
 
-      return isDark ? '#4A5568' : '#FFFFFF';
+      return isDark ? '#334155' : '#ffffff'; // slate-700 / white
     },
     [theme, isEU, highlightedCountries, clickedCountryInfo],
   );
 
   const getPolygonStrokeColor = useCallback(
-    (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#A0AEC0' : '#111111';
-      const name = feat.properties.ADMIN || feat.properties.NAME_LONG || '';
-      return highlightedCountries.some(hc =>
-        name.toLowerCase().includes(hc.toLowerCase()),
-      )
-        ? '#FFD700'
-        : theme === 'dark'
-        ? '#A0AEC0'
-        : '#111111';
-    },
-    [theme, highlightedCountries],
+    () => (theme === 'dark' ? '#475569' : '#000000'),
+    [theme],
   );
 
   const getPolygonAltitude = useCallback((feat: GeoJsonFeature) => {
@@ -607,20 +614,12 @@ export default function GlobalTrackerPage() {
             </div>
           </CardHeader>
           <CardContent className="flex-1 p-0 relative">
-            <div className="absolute inset-0 bg-globe-background">
+            <div className="w-full h-full bg-globe-background">
               {typeof window !== 'undefined' && (
                 <Globe
                   ref={globeEl}
                   backgroundColor="rgba(0,0,0,0)"
-                  globeMaterial={globeMaterial}
-                  arcsData={arcsData}
-                  arcColor={'color'}
-                  arcDashLength={0.4}
-                  arcDashGap={0.1}
-                  arcDashAnimateTime={2000}
-                  arcStroke={0.5}
-                  arcLabel="label"
-                  showAtmosphere={true}
+                  globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
                   polygonsData={filteredLandPolygons}
                   polygonCapColor={getPolygonCapColor}
                   polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
@@ -629,6 +628,13 @@ export default function GlobalTrackerPage() {
                   onPolygonClick={handlePolygonClick}
                   polygonLabel={getPolygonLabel}
                   polygonsTransitionDuration={300}
+                  arcsData={arcsData}
+                  arcColor={'color'}
+                  arcDashLength={0.4}
+                  arcDashGap={0.1}
+                  arcDashAnimateTime={2000}
+                  arcStroke={0.5}
+                  arcLabel="label"
                   pointsData={pointsData}
                   pointLat="lat"
                   pointLng="lng"
@@ -637,14 +643,14 @@ export default function GlobalTrackerPage() {
                   pointColor="color"
                   pointLabel="label"
                   ringsData={pointsData.filter(
-                    p => p.color === 'red' || p.color === 'orange',
+                    p => p.color === 'tomato' || p.color === 'orange',
                   )}
                   ringLat="lat"
                   ringLng="lng"
                   ringColor="color"
-                  ringMaxRadius={1}
-                  ringPropagationSpeed={1}
-                  ringRepeatPeriod={1000}
+                  ringMaxRadius={1.5}
+                  ringPropagationSpeed={1.5}
+                  ringRepeatPeriod={800}
                   onGlobeReady={() => setGlobeReady(true)}
                   enablePointerInteraction={true}
                 />
