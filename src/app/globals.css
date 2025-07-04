@@ -54,6 +54,8 @@
     --chart-3: 231 48% 75%; /* Lighter Blue */
     --chart-4: 174 80% 70%; /* Lighter Teal */
     --chart-5: 220 9% 46%; /* Muted Foreground */
+    
+    --globe-background: 220 13% 91%; /* slate-200 */
   }
 
   .dark {
@@ -101,6 +103,8 @@
     --chart-3: 215 20.2% 65.1%;   /* Slate 400 */
     --chart-4: 217.2 32.6% 17.5%; /* Slate 800 */
     --chart-5: 210 40% 98%;   /* Slate 50 */
+
+    --globe-background: 222.2 47.4% 11.2%; /* slate-800 */
   }
 
   /* Global base styles */

@@ -65,6 +65,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        globe: {
+          background: 'hsl(var(--globe-background))',
+        },
       },
       boxShadow: {
         glow: "0 0 20px rgba(139,92,246,0.4)", // violetAccent glow

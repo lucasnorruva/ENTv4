@@ -11,7 +11,6 @@ import React, {
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
-import type { Feature as GeoJsonFeature, GeoJsonProperties } from 'geojson';
 import { MeshPhongMaterial } from 'three';
 import { Loader2, Info, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -78,14 +77,12 @@ const EU_COUNTRY_CODES = new Set([
   'SWE',
 ]);
 
-interface CountryProperties extends GeoJsonProperties {
+interface CountryProperties {
   ADMIN: string;
   ADM0_A3: string;
   NAME_LONG?: string;
   ISO_A3?: string;
 }
-
-type CountryFeature = GeoJsonFeature<any, CountryProperties>;
 
 interface PointData {
   lat: number;
@@ -101,7 +98,7 @@ export default function GlobalTrackerPage() {
   const searchParams = useSearchParams();
   const { theme } = useTheme();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
-  const [landPolygons, setLandPolygons] = useState<CountryFeature[]>([]);
+  const [landPolygons, setLandPolygons] = useState<any[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
@@ -129,9 +126,7 @@ export default function GlobalTrackerPage() {
   >('all');
   const [clickedCountryInfo, setClickedCountryInfo] =
     useState<CountryProperties | null>(null);
-  const [filteredLandPolygons, setFilteredLandPolygons] = useState<
-    CountryFeature[]
-  >([]);
+  const [filteredLandPolygons, setFilteredLandPolygons] = useState<any[]>([]);
 
   const [pointsData, setPointsData] = useState<PointData[]>([]);
 
@@ -185,8 +180,8 @@ export default function GlobalTrackerPage() {
     );
 
   const handlePolygonClick = useCallback(
-    (feat: GeoJsonFeature) => {
-      const props = feat.properties as CountryProperties;
+    (feat: object) => {
+      const props = feat as CountryProperties;
       setClickedCountryInfo(props);
       const countryName = props.ADMIN || props.NAME_LONG || '';
       const coords = mockCountryCoordinates[countryName];
@@ -225,7 +220,7 @@ export default function GlobalTrackerPage() {
     Promise.all([
       getProducts(),
       fetch(
-        'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
+        'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
       ).then(res => res.json()),
     ])
       .then(([productsData, geoJsonData]) => {
@@ -459,7 +454,7 @@ export default function GlobalTrackerPage() {
 
   const getPolygonCapColor = useCallback(
     (feat: object) => {
-      const properties = (feat as CountryFeature).properties;
+      const properties = (feat as { properties: CountryProperties }).properties;
       const iso = properties?.ADM0_A3 || properties?.ISO_A3;
       const name = properties?.ADMIN || properties?.NAME_LONG || '';
       const isDark = theme === 'dark';
@@ -495,7 +490,7 @@ export default function GlobalTrackerPage() {
 
   const getPolygonLabel = useCallback(
     (feat: object) => {
-      const p = (feat as CountryFeature).properties;
+      const p = (feat as { properties: CountryProperties }).properties;
       const iso = p?.ADM0_A3 || p?.ISO_A3;
       const name = p?.ADMIN || p?.NAME_LONG || 'Country';
       const isEUCountry = isEU(iso);
@@ -588,7 +583,7 @@ export default function GlobalTrackerPage() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 relative">
-        <div className="absolute inset-0 bg-muted">
+        <div className="absolute inset-0 bg-globe-background">
           {typeof window !== 'undefined' && (
             <Globe
               ref={globeEl}
@@ -603,16 +598,12 @@ export default function GlobalTrackerPage() {
               arcLabel="label"
               showAtmosphere={true}
               polygonsData={filteredLandPolygons}
-              polygonCapColor={feat =>
-                getPolygonCapColor(feat as CountryFeature)
-              }
+              polygonCapColor={getPolygonCapColor}
               polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
               polygonStrokeColor={getPolygonStrokeColor}
-              polygonAltitude={feat =>
-                getPolygonAltitude()
-              }
-              onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
-              polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
+              polygonAltitude={getPolygonAltitude}
+              onPolygonClick={handlePolygonClick}
+              polygonLabel={getPolygonLabel}
               polygonsTransitionDuration={300}
               pointsData={pointsData}
               pointLat="lat"
