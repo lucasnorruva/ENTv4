@@ -172,7 +172,7 @@ export default function ServiceTicketForm({
         } catch (error) {
           toast({
             title: 'Image Upload Failed',
-            description: 'There was an error uploading your image.',
+            description: 'There was an error uploading your image. Please try again.',
             variant: 'destructive',
           });
           return;

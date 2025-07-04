@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { ArrowLeft, Ticket, User, Box, Factory, Calendar, FileText } from 'lucide-react';
 import Image from 'next/image';
 
@@ -20,7 +20,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { can } from '@/lib/permissions';
 import {
