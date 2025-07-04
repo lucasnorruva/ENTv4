@@ -1,9 +1,9 @@
 // src/app/dashboard/business-analyst/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers } from '@/lib/auth';
+import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getAuditLogs } from '@/lib/actions';
-import { UserRoles, type Role } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -26,6 +26,7 @@ import {
   Calculator,
   Recycle,
   ShieldX,
+  Building2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -73,25 +74,18 @@ const generateComplianceRateData = (products: Product[]) => {
   return data;
 };
 
-export default async function AnalyticsPage() {
+export default async function BusinessAnalystAnalyticsPage() {
   const user = await getCurrentUser(UserRoles.BUSINESS_ANALYST);
 
-  const allowedRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.RECYCLER,
-    UserRoles.SERVICE_PROVIDER,
-    UserRoles.RETAILER,
-  ];
-
-  if (!allowedRoles.some(role => hasRole(user, role))) {
+  if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, users, auditLogs] = await Promise.all([
+  const [products, users, auditLogs, companies] = await Promise.all([
     getProducts(user.id),
     getUsers(),
     getAuditLogs(),
+    getCompanies(),
   ]);
 
   const complianceData = {
@@ -134,15 +128,17 @@ export default async function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">System Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Business Analytics</h1>
         <p className="text-muted-foreground">
-          An overview of platform activity and key metrics.
+          An overview of product and compliance trends across the platform.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Products
+            </CardTitle>
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -154,12 +150,14 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">
+              Total Suppliers
+            </CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{users.length}</div>
-            <p className="text-xs text-muted-foreground">All roles included</p>
+            <div className="text-2xl font-bold">{companies.length}</div>
+            <p className="text-xs text-muted-foreground">On the platform</p>
           </CardContent>
         </Card>
         <Card>
@@ -172,7 +170,7 @@ export default async function AnalyticsPage() {
           <CardContent>
             <div className="text-2xl font-bold">{complianceData.verified}</div>
             <p className="text-xs text-muted-foreground">
-              Successfully anchored on-chain
+              Trusted and anchored products
             </p>
           </CardContent>
         </Card>
@@ -192,7 +190,7 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
+            <CardTitle className="text-sm font-medium">Recent Audits</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

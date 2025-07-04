@@ -177,6 +177,7 @@ export const navConfig: NavConfig = {
       {
         label: 'Analytics',
         items: [
+          { title: 'Analytics', icon: BarChart3, href: 'analytics' },
           {
             title: 'Sustainability Metrics',
             icon: Recycle,
