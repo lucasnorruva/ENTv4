@@ -520,155 +520,109 @@ export default function GlobalTrackerClient({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <Card className="lg:col-span-2 h-[80vh] flex flex-col">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div>
-              <CardTitle>Global Supply Chain Tracker</CardTitle>
-              <CardDescription>
-                Visualize product supply chains, transit routes, and customs
-                events in real-time.
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <ProductTrackerSelector
-                products={allProducts}
-                selectedProductId={selectedProductId}
-                onProductSelect={handleProductSelect}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setIsAutoRotating(!isAutoRotating)}
-              >
-                {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
-              </Button>
-              <Select
-                onValueChange={value =>
-                  setCountryFilter(value as 'all' | 'eu' | 'supplyChain')
-                }
-                value={countryFilter}
-              >
-                <SelectTrigger className="w-full sm:w-[150px]">
-                  <SelectValue placeholder="Filter Countries" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
-                  <SelectItem value="eu">EU Countries</SelectItem>
-                  <SelectItem value="supplyChain" disabled={!selectedProduct}>
-                    Product Focus
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex-1 p-0 relative" ref={containerRef}>
-          {globeSize.width > 0 && typeof window !== 'undefined' ? (
-            <>
-              <Globe
-                ref={globeEl}
-                width={globeSize.width}
-                height={globeSize.height}
-                backgroundColor="rgba(0,0,0,0)"
-                globeMaterial={globeMaterial}
-                polygonsData={filteredLandPolygons}
-                polygonCapColor={getPolygonCapColor}
-                polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
-                polygonStrokeColor={getPolygonStrokeColor}
-                polygonAltitude={getPolygonAltitude}
-                onPolygonClick={handlePolygonClick}
-                polygonLabel={getPolygonLabel}
-                polygonsTransitionDuration={300}
-                arcsData={arcsData}
-                arcColor={'color'}
-                arcDashLength={0.4}
-                arcDashGap={0.1}
-                arcDashAnimateTime={2000}
-                arcStroke={0.5}
-                arcLabel="label"
-                onGlobeReady={() => setGlobeReady(true)}
-                enablePointerInteraction={true}
-              />
-              {selectedProduct && (
-                <SelectedProductCustomsInfoCard
-                  product={selectedProduct}
-                  alerts={selectedProductAlerts}
-                  onDismiss={() => handleProductSelect(null)}
-                />
-              )}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
-                <Info className="inline h-3 w-3 mr-1" />
-                {countryFilter === 'all'
-                  ? 'EU: Dark Blue.'
-                  : countryFilter === 'eu'
-                  ? 'Displaying EU Countries.'
-                  : countryFilter === 'supplyChain' && selectedProduct
-                  ? `Displaying Focus Area for ${selectedProduct.productName}.`
-                  : 'Select a product to view its focus area.'}{' '}
-                {selectedProduct &&
-                  highlightedCountries.length > 0 &&
-                  `Highlighted: Amber/Orange.`}{' '}
-                {arcsData.some(
-                  a =>
-                    a.color.includes('3B82F6') ||
-                    a.color.includes('60A5FA'),
-                ) && `Transit Arc: Blue.`}{' '}
-                {arcsData.some(
-                  a =>
-                    a.color.includes('F59E0B') ||
-                    a.color.includes('FBBF24'),
-                ) && `Supply Arc(s): Orange.`}
-              </div>
-            </>
-          ) : (
-             <div className="w-full h-full flex items-center justify-center bg-globe-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-             </div>
-          )}
-        </CardContent>
-      </Card>
-      <div className="lg:col-span-1">
-        {clickedCountryInfo ? (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{clickedCountryInfo.ADMIN}</CardTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => setClickedCountryInfo(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                ISO Code: {clickedCountryInfo.ADM0_A3 || 'N/A'}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Transiting DPPs: {Math.floor(Math.random() * 20)} (Mock)
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Country Details</CardTitle>
-              <CardDescription>
-                Click on a country on the globe to see detailed information and
-                related DPPs.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center h-48 bg-muted rounded-md">
-                <p className="text-muted-foreground">Widget placeholder</p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+    <div className="relative h-[calc(100vh-10rem)] w-full">
+      <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className='bg-background/80 p-2 rounded-lg backdrop-blur-sm'>
+        <ProductTrackerSelector
+            products={allProducts}
+            selectedProductId={selectedProductId}
+            onProductSelect={handleProductSelect}
+            className="w-full sm:w-[300px]"
+        />
+        </div>
+        <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+          <Select
+            onValueChange={value =>
+              setCountryFilter(value as 'all' | 'eu' | 'supplyChain')
+            }
+            value={countryFilter}
+          >
+            <SelectTrigger className="w-full sm:w-auto">
+              <SelectValue placeholder="Filter Countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              <SelectItem value="eu">EU Countries</SelectItem>
+              <SelectItem value="supplyChain" disabled={!selectedProduct}>
+                Product Focus
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsAutoRotating(!isAutoRotating)}
+          >
+            {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
+          </Button>
+        </div>
       </div>
+      {globeSize.width > 0 && typeof window !== 'undefined' ? (
+        <>
+          <Globe
+            ref={globeEl}
+            width={globeSize.width}
+            height={globeSize.height}
+            backgroundColor="rgba(0,0,0,0)"
+            globeMaterial={globeMaterial}
+            polygonsData={filteredLandPolygons}
+            polygonCapColor={getPolygonCapColor}
+            polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+            polygonStrokeColor={getPolygonStrokeColor}
+            polygonAltitude={getPolygonAltitude}
+            onPolygonClick={handlePolygonClick}
+            polygonLabel={getPolygonLabel}
+            polygonsTransitionDuration={300}
+            arcsData={arcsData}
+            arcColor={'color'}
+            arcDashLength={0.4}
+            arcDashGap={0.1}
+            arcDashAnimateTime={2000}
+            arcStroke={0.5}
+            arcLabel="label"
+            onGlobeReady={() => setGlobeReady(true)}
+            enablePointerInteraction={true}
+          />
+          {selectedProduct && (
+            <SelectedProductCustomsInfoCard
+              product={selectedProduct}
+              alerts={selectedProductAlerts}
+              onDismiss={() => handleProductSelect(null)}
+            />
+          )}
+          {clickedCountryInfo && (
+              <Card className="absolute top-24 left-4 z-20 w-full max-w-xs shadow-xl bg-card/95 backdrop-blur-sm">
+                <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4">
+                  <CardTitle className="text-md font-semibold">{clickedCountryInfo.ADMIN}</CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setClickedCountryInfo(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 text-xs space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    ISO Code: {clickedCountryInfo.ADM0_A3 || 'N/A'}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Products in this region: {Math.floor(Math.random() * 20)} (Mock)
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+        </>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center bg-globe-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      )}
+       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
+            <Info className="inline h-3 w-3 mr-1" />
+            <span className="font-bold">Legend:</span> EU Countries: <span className="text-blue-600 dark:text-blue-400 font-semibold">Blue</span> | Product Focus: <span className="text-amber-600 dark:text-amber-400 font-semibold">Amber</span>
+        </div>
     </div>
   );
 }

@@ -96,7 +96,7 @@ export default function SelectedProductCustomsInfoCard({
     .replace(/\b\w/g, char => char.toUpperCase());
 
   return (
-    <Card className="absolute bottom-4 left-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm flex flex-col max-h-[calc(100vh-8rem)]">
+    <Card className="absolute bottom-4 right-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm flex flex-col max-h-[calc(100vh-8rem)]">
       <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4">
         <div className="flex items-center">
           <Package className="h-5 w-5 mr-2 text-primary" />
