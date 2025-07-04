@@ -26,17 +26,22 @@ export async function getServiceTickets(
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
-  if (
-    hasRole(user, UserRoles.ADMIN) ||
-    hasRole(user, UserRoles.SERVICE_PROVIDER) ||
-    hasRole(user, UserRoles.MANUFACTURER)
-  ) {
+  const canViewAll =
+    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.MANUFACTURER);
+
+  if (canViewAll || hasRole(user, UserRoles.SERVICE_PROVIDER)) {
     let results = [...mockServiceTickets];
+
+    if (!canViewAll && hasRole(user, UserRoles.SERVICE_PROVIDER)) {
+      results = results.filter(t => t.userId === user.id);
+    }
+
     if (filters?.productionLineId) {
       results = results.filter(
         t => t.productionLineId === filters.productionLineId,
       );
     }
+
     return Promise.resolve(
       results.sort(
         (a, b) =>

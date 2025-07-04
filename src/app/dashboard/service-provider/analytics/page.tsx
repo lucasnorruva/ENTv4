@@ -1,7 +1,7 @@
 // src/app/dashboard/service-provider/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { getProducts, getAuditLogsForUser } from '@/lib/actions';
+import { getProducts, getServiceTickets } from '@/lib/actions';
 import { UserRoles, hasRole } from '@/lib/constants';
 import {
   Card,
@@ -10,24 +10,9 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wrench, BookCopy, Clock, Edit, FilePlus } from 'lucide-react';
+import { Wrench, BookCopy, Clock } from 'lucide-react';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog } from '@/types';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart'; // Reusing this chart for services over time
-
-const actionIcons: Record<string, React.ElementType> = {
-  'product.serviced': Wrench,
-  'product.created': FilePlus,
-  'product.updated': Edit,
-  default: Clock,
-};
-
-const getActionLabel = (action: string): string => {
-  return action
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
 
 export default async function ServiceProviderAnalyticsPage() {
   const user = await getCurrentUser(UserRoles.SERVICE_PROVIDER);
@@ -38,31 +23,36 @@ export default async function ServiceProviderAnalyticsPage() {
 
   const [products, serviceLogs] = await Promise.all([
     getProducts(user.id),
-    getAuditLogsForUser(user.id).then(logs => logs.filter(log => log.action === 'product.serviced')),
+    getServiceTickets(user.id),
   ]);
 
   const stats = {
     totalServices: serviceLogs.length,
     productsWithManuals: products.filter(p => p.manualUrl).length,
-    servicesLast30Days: serviceLogs.filter(log => new Date(log.createdAt) > subDays(new Date(), 30)).length,
+    servicesLast30Days: serviceLogs.filter(
+      log => new Date(log.createdAt) > subDays(new Date(), 30),
+    ).length,
   };
 
-  const servicesByDate = serviceLogs.reduce((acc, log) => {
-    const date = format(new Date(log.createdAt), 'yyyy-MM-dd');
-    if (!acc[date]) {
-      acc[date] = 0;
-    }
-    acc[date]++;
-    return acc;
-  }, {} as Record<string, number>);
-  
+  const servicesByDate = serviceLogs.reduce(
+    (acc, log) => {
+      const date = format(new Date(log.createdAt), 'yyyy-MM-dd');
+      if (!acc[date]) {
+        acc[date] = 0;
+      }
+      acc[date]++;
+      return acc;
+    },
+    {} as Record<string, number>,
+  );
+
   const servicesOverTimeData = Object.entries(servicesByDate)
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const recentActivity = serviceLogs.slice(0, 5);
   const productMap = new Map(products.map(p => [p.id, p.productName]));
-  
+
   return (
     <div className="space-y-6">
       <div>
@@ -74,7 +64,9 @@ export default async function ServiceProviderAnalyticsPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Services</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Services
+            </CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -86,7 +78,9 @@ export default async function ServiceProviderAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Services (Last 30d)</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Services (Last 30d)
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -98,7 +92,9 @@ export default async function ServiceProviderAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Product Manuals</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Product Manuals
+            </CardTitle>
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -130,28 +126,28 @@ export default async function ServiceProviderAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map(log => {
-                const Icon = actionIcons[log.action] || actionIcons.default;
-                const product = productMap.get(log.entityId) || log.entityId;
-                const actionLabel = getActionLabel(log.action);
+              {recentActivity.map(ticket => {
+                const product = ticket.productId
+                  ? productMap.get(ticket.productId)
+                  : null;
                 return (
-                  <div key={log.id} className="flex items-center gap-4">
+                  <div key={ticket.id} className="flex items-center gap-4">
                     <div className="p-2 bg-muted rounded-full">
-                      <Icon className="h-5 w-5 text-muted-foreground" />
+                      <Wrench className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">
-                        {actionLabel}
+                        Service for {product || 'Unknown Product'}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        Product: {product}
+                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        {ticket.issue}
                       </p>
                     </div>
                     <p
                       className="text-xs text-muted-foreground shrink-0"
                       suppressHydrationWarning
                     >
-                      {formatDistanceToNow(new Date(log.createdAt), {
+                      {formatDistanceToNow(new Date(ticket.createdAt), {
                         addSuffix: true,
                       })}
                     </p>
