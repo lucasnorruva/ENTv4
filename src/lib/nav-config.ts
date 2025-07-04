@@ -56,6 +56,7 @@ export const navConfig: NavConfig = {
         },
         { title: 'Platform Logs', icon: History, href: 'logs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker'},
         { title: 'Service Tickets', icon: Wrench, href: 'service-tickets' },
         { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],

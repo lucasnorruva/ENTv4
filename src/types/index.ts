@@ -8,6 +8,8 @@ import type {
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 
+export * from './transit';
+
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
 

@@ -1,0 +1,55 @@
+// src/lib/mockTransitProducts.ts
+import type { TransitProduct } from '@/types';
+
+export const MOCK_TRANSIT_PRODUCTS: TransitProduct[] = [
+  {
+    id: 'pp-001',
+    name: 'Eco-Friendly Smart Watch Series 5',
+    stage: 'Cleared - Inland Transit (DE)',
+    eta: '2024-08-02',
+    dppStatus: 'Verified',
+    transport: 'Truck',
+    origin: 'Gdansk, Poland',
+    destination: 'Berlin, Germany',
+  },
+  {
+    id: 'pp-003',
+    name: 'Organic Cotton T-Shirt',
+    stage: 'At Customs (Rotterdam, NL)',
+    eta: '2024-08-05',
+    dppStatus: 'Pending',
+    transport: 'Ship',
+    origin: 'Mumbai, India',
+    destination: 'Paris, France',
+  },
+  {
+    id: 'pp-004',
+    name: 'Leather Handbag',
+    stage: 'Airborne - Approaching EU',
+    eta: '2024-08-08',
+    dppStatus: 'Failed',
+    transport: 'Plane',
+    origin: 'Shenzhen, China',
+    destination: 'Frankfurt, Germany',
+  },
+  {
+    id: 'pp-005',
+    name: 'Pro-Grade 4K Drone',
+    stage: 'Awaiting Customs Clearance (Antwerp, BE)',
+    eta: '2024-08-01',
+    dppStatus: 'Pending',
+    transport: 'Ship',
+    origin: 'Ho Chi Minh City, Vietnam',
+    destination: 'Lyon, France',
+  },
+  {
+    id: 'pp-006',
+    name: 'Non-Compliant Power Bank',
+    stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
+    eta: '2024-08-15',
+    dppStatus: 'Failed',
+    transport: 'Ship',
+    origin: 'Newark, United States',
+    destination: 'Stuttgart, Germany',
+  },
+];
