@@ -2,6 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
+import { BatteryCharging } from 'lucide-react';
 import {
   FormControl,
   FormDescription,
@@ -20,6 +21,13 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import type { ProductFormValues } from '@/lib/schemas';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../ui/accordion';
+import { Switch } from '../ui/switch';
 
 interface LifecycleTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -28,7 +36,6 @@ interface LifecycleTabProps {
 export default function LifecycleTab({ form }: LifecycleTabProps) {
   return (
     <div className="p-6 space-y-6">
-      <h3 className="text-lg font-semibold">Lifecycle & Durability</h3>
       <FormField
         control={form.control}
         name="lifecycle.energyEfficiencyClass"
@@ -141,6 +148,86 @@ export default function LifecycleTab({ form }: LifecycleTabProps) {
           </FormItem>
         )}
       />
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="battery" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <BatteryCharging />
+              Battery Details (if applicable)
+            </h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="battery.type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Battery Type</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Lithium-ion" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="battery.capacityMah"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Capacity (mAh)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 3110"
+                        {...field}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="battery.voltage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Voltage (V)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 3.83"
+                        {...field}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="battery.isRemovable"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Is Removable?</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

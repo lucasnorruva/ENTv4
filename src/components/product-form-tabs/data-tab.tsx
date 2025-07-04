@@ -6,7 +6,7 @@ import type {
   UseFieldArrayReturn,
   FieldArrayWithId,
 } from 'react-hook-form';
-import { BatteryCharging, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -22,7 +22,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
 import BomAnalysisWidget from '../bom-analysis-widget';
 
@@ -260,84 +259,6 @@ export default function DataTab({
                 </div>
               ))}
             </div>
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="battery" className="border p-4 rounded-lg">
-          <AccordionTrigger>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <BatteryCharging />
-              Battery Details (if applicable)
-            </h3>
-          </AccordionTrigger>
-          <AccordionContent className="pt-4 space-y-4">
-            <FormField
-              control={form.control}
-              name="battery.type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Battery Type</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Lithium-ion" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="battery.capacityMah"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Capacity (mAh)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 3110"
-                        {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="battery.voltage"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Voltage (V)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="e.g., 3.83"
-                        {...field}
-                        onChange={e => field.onChange(e.target.valueAsNumber)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="battery.isRemovable"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Is Removable?</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </AccordionContent>
         </AccordionItem>
       </Accordion>
