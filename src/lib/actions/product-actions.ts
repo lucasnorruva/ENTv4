@@ -16,7 +16,11 @@ import { processProductAi } from './product-ai-actions';
 
 export async function getProducts(
   userId?: string,
-  filters?: { searchQuery?: string },
+  filters?: {
+    searchQuery?: string;
+    category?: string;
+    verificationStatus?: string;
+  },
 ): Promise<Product[]> {
   let user: User | undefined;
   if (userId) {
@@ -35,6 +39,18 @@ export async function getProducts(
         p.supplier.toLowerCase().includes(query) ||
         p.category.toLowerCase().includes(query) ||
         p.gtin?.toLowerCase().includes(query),
+    );
+  }
+
+  // Apply category filter
+  if (filters?.category) {
+    results = results.filter(p => p.category === filters.category);
+  }
+
+  // Apply verification status filter
+  if (filters?.verificationStatus) {
+    results = results.filter(
+      p => p.verificationStatus === filters.verificationStatus,
     );
   }
 

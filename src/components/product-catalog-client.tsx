@@ -6,7 +6,7 @@ import type { Product, User } from '@/types';
 import { getProducts } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
-import { Loader2, Search, ShoppingBag, Sparkles } from 'lucide-react';
+import { Loader2, Search, ShoppingBag } from 'lucide-react';
 import ProductCard from './product-card';
 import { useSearchParams } from 'next/navigation';
 import { Separator } from './ui/separator';
@@ -17,6 +17,13 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // Debounce hook to delay fetching data while user is typing
 function useDebounce<T>(value: T, delay: number): T {
@@ -44,6 +51,8 @@ export default function ProductCatalogClient({
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500); // 500ms delay
   const { toast } = useToast();
   const searchParams = useSearchParams();
@@ -58,7 +67,11 @@ export default function ProductCatalogClient({
 
   useEffect(() => {
     setIsLoading(true);
-    getProducts(user.id, { searchQuery: debouncedSearchTerm })
+    getProducts(user.id, {
+      searchQuery: debouncedSearchTerm,
+      category: categoryFilter || undefined,
+      verificationStatus: statusFilter || undefined,
+    })
       .then(data => {
         setProducts(data.filter(p => p.status === 'Published'));
       })
@@ -72,7 +85,7 @@ export default function ProductCatalogClient({
       .finally(() => {
         setIsLoading(false);
       });
-  }, [user.id, debouncedSearchTerm, toast]);
+  }, [user.id, debouncedSearchTerm, categoryFilter, statusFilter, toast]);
 
   const recentProducts = [...products]
     .sort(
@@ -85,17 +98,40 @@ export default function ProductCatalogClient({
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="relative flex-1 min-w-[300px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search by product name, supplier, GTIN, or category..."
+            placeholder="Search by name, supplier, GTIN, or category..."
             className="w-full pl-10"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
           />
         </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="Electronics">Electronics</SelectItem>
+            <SelectItem value="Fashion">Fashion</SelectItem>
+            <SelectItem value="Home Goods">Home Goods</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All Statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">All Statuses</SelectItem>
+            <SelectItem value="Verified">Verified</SelectItem>
+            <SelectItem value="Pending">Pending</SelectItem>
+            <SelectItem value="Failed">Failed</SelectItem>
+            <SelectItem value="Not Submitted">Not Submitted</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoading ? (
@@ -104,40 +140,42 @@ export default function ProductCatalogClient({
         </div>
       ) : products.length > 0 ? (
         <div className="space-y-8">
-          {recentProducts.length > 0 && debouncedSearchTerm.length === 0 && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Recently Added
-              </h2>
-              <Carousel
-                opts={{
-                  align: 'start',
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {recentProducts.map(product => (
-                    <CarouselItem
-                      key={product.id}
-                      className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
-                    >
-                      <div className="p-1">
-                        <ProductCard product={product} roleSlug={roleSlug} />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-              <Separator className="my-8" />
-            </div>
-          )}
+          {recentProducts.length > 0 &&
+            !debouncedSearchTerm &&
+            !categoryFilter &&
+            !statusFilter && (
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold tracking-tight">
+                  Recently Added
+                </h2>
+                <Carousel
+                  opts={{
+                    align: 'start',
+                    loop: true,
+                  }}
+                  className="w-full"
+                >
+                  <CarouselContent>
+                    {recentProducts.map(product => (
+                      <CarouselItem
+                        key={product.id}
+                        className="md:basis-1/2 lg:basis-1/3 xl:basis-1/4"
+                      >
+                        <div className="p-1">
+                          <ProductCard product={product} roleSlug={roleSlug} />
+                        </div>
+                      </CarouselItem>
+                    ))}
+                  </CarouselContent>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </Carousel>
+                <Separator className="my-8" />
+              </div>
+            )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {debouncedSearchTerm.length > 0
+            {(debouncedSearchTerm || categoryFilter || statusFilter)
               ? products.map(product => (
                   <ProductCard
                     key={product.id}
@@ -159,7 +197,7 @@ export default function ProductCatalogClient({
           <ShoppingBag className="mx-auto h-12 w-12" />
           <h3 className="mt-4 text-lg font-semibold">No Products Found</h3>
           <p className="text-sm">
-            No products matched your search term. Try a different search.
+            No products matched your search or filters.
           </p>
         </div>
       )}
