@@ -73,6 +73,7 @@ const entityIcons: Record<string, React.ElementType> = {
   cp: FileQuestion,
   serv: Wrench,
   spt: Ticket,
+  tkt: Ticket,
   global: Shield,
   log: History,
   default: Cog,

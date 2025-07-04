@@ -58,4 +58,13 @@ export let auditLogs: AuditLog[] = [
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
   },
+  {
+    id: 'log-006',
+    userId: 'user-service',
+    action: 'ticket.created',
+    entityId: 'tkt-001',
+    details: { issue: 'Screen flickering' },
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+  },
 ];
