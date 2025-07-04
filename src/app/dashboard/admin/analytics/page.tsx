@@ -2,7 +2,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getAuditLogs } from '@/lib/actions';
+import { getProducts, getAuditLogs, getServiceTickets } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
@@ -30,6 +30,7 @@ import {
   Hourglass,
   Globe,
   Wrench,
+  Ticket,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -96,12 +97,14 @@ export default async function AnalyticsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, users, auditLogs, companies] = await Promise.all([
-    getProducts(user.id),
-    getUsers(),
-    getAuditLogs(),
-    getCompanies(),
-  ]);
+  const [products, users, auditLogs, companies, serviceTickets] =
+    await Promise.all([
+      getProducts(user.id),
+      getUsers(),
+      getAuditLogs(),
+      getCompanies(),
+      getServiceTickets(user.id),
+    ]);
 
   const complianceData = {
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
@@ -122,7 +125,8 @@ export default async function AnalyticsPage() {
     detained: products.filter(p => p.customs?.status === 'Detained').length,
     rejected: products.filter(p => p.customs?.status === 'Rejected').length,
   };
-  const totalInspections = customsData.cleared + customsData.detained + customsData.rejected;
+  const totalInspections =
+    customsData.cleared + customsData.detained + customsData.rejected;
 
   // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
@@ -155,7 +159,7 @@ export default async function AnalyticsPage() {
           An overview of platform activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -193,13 +197,29 @@ export default async function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
+              Open Service Tickets
+            </CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {serviceTickets.filter(t => t.status === 'Open').length}
+            </div>
+            <p className="text-xs text-muted-foreground">Awaiting action</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
               Total Inspections
             </CardTitle>
             <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalInspections}</div>
-            <p className="text-xs text-muted-foreground">Customs events recorded</p>
+            <p className="text-xs text-muted-foreground">
+              Customs events recorded
+            </p>
           </CardContent>
         </Card>
       </div>
