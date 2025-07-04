@@ -240,7 +240,7 @@ export const navConfig: NavConfig = {
       label: 'Operations',
       items: [
         { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
-        { title: 'Product Manuals', icon: BookCopy, href: 'manuals' },
+        { title: 'Browse Products', icon: BookCopy, href: 'products' },
       ],
     },
     {
