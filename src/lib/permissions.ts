@@ -40,7 +40,8 @@ export type Action =
   | 'ticket:manage'
   | 'ticket:view_all'
   | 'support:manage'
-  | 'manufacturer:manage_lines';
+  | 'manufacturer:manage_lines'
+  | 'integration:sync';
 
 /**
  * Checks if a user has permission to perform a specific action.
@@ -133,6 +134,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'manufacturer:manage_lines':
       return hasRole(user, UserRoles.MANUFACTURER);
+    
+    case 'integration:sync':
+        return hasRole(user, UserRoles.DEVELOPER);
 
     default:
       return false;

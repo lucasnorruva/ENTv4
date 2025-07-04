@@ -11,3 +11,4 @@ export * from './company-actions';
 export * from './integration-actions';
 export * from './manufacturing-actions';
 export * from './product-workflow-actions';
+export * from './sync-actions';

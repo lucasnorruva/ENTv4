@@ -128,6 +128,24 @@ export async function getProductById(
   return product.status === 'Published' ? product : undefined;
 }
 
+export async function getProductByGtin(
+    gtin: string,
+    userId: string,
+  ): Promise<Product | undefined> {
+    const user = await getUserById(userId);
+    if (!user) return undefined;
+  
+    // Admins and developers can search across all companies
+    if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.DEVELOPER)) {
+      return mockProducts.find(p => p.gtin === gtin);
+    }
+  
+    // Other users can only find products within their own company
+    return mockProducts.find(
+      p => p.gtin === gtin && p.companyId === user.companyId,
+    );
+  }
+
 export async function saveProduct(
   values: ProductFormValues,
   userId: string,

@@ -4,7 +4,11 @@
 import React, { useState, useTransition, useEffect } from 'react';
 import type { Integration, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getIntegrations, updateIntegrationStatus } from '@/lib/actions';
+import {
+  getIntegrations,
+  updateIntegrationStatus,
+  syncWithErp,
+} from '@/lib/actions';
 
 import {
   Card,
@@ -18,7 +22,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import Image from 'next/image';
-import { Cog, Loader2 } from 'lucide-react';
+import { Cog, Loader2, RefreshCw } from 'lucide-react';
+import { can } from '@/lib/permissions';
 
 interface IntegrationManagementClientProps {
   user: User;
@@ -27,11 +32,17 @@ interface IntegrationManagementClientProps {
 function IntegrationCard({
   integration,
   onStatusChange,
+  onSync,
   isPending,
+  isSyncing,
+  canSync,
 }: {
   integration: Integration;
   onStatusChange: (id: string, enabled: boolean) => void;
+  onSync: (name: string) => void;
   isPending: boolean;
+  isSyncing: boolean;
+  canSync: boolean;
 }) {
   return (
     <Card>
@@ -60,20 +71,38 @@ function IntegrationCard({
           />
           <Label htmlFor={`${integration.id}-switch`}>Enable</Label>
         </div>
-        <Button variant="outline" size="sm" disabled>
-          <Cog className="mr-2 h-4 w-4" />
-          Configure
-        </Button>
+        {canSync && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSync(integration.name)}
+            disabled={isPending || !integration.enabled}
+          >
+            {isSyncing ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Sync Now
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );
 }
 
-export default function IntegrationManagementClient({ user }: IntegrationManagementClientProps) {
+export default function IntegrationManagementClient({
+  user,
+}: IntegrationManagementClientProps) {
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [syncingIntegration, setSyncingIntegration] = useState<string | null>(
+    null,
+  );
   const { toast } = useToast();
+
+  const canSync = can(user, 'integration:sync');
 
   useEffect(() => {
     getIntegrations(user.id)
@@ -92,9 +121,7 @@ export default function IntegrationManagementClient({ user }: IntegrationManagem
     startTransition(async () => {
       try {
         const updated = await updateIntegrationStatus(id, enabled, user.id);
-        setIntegrations(prev =>
-          prev.map(i => (i.id === id ? updated : i)),
-        );
+        setIntegrations(prev => prev.map(i => (i.id === id ? updated : i)));
         toast({
           title: `Integration ${enabled ? 'Enabled' : 'Disabled'}`,
           description: `${updated.name} has been updated.`,
@@ -109,9 +136,33 @@ export default function IntegrationManagementClient({ user }: IntegrationManagem
     });
   };
 
+  const handleSync = (name: string) => {
+    setSyncingIntegration(name);
+    startTransition(async () => {
+      try {
+        const result = await syncWithErp(name, user.id);
+        toast({
+          title: 'Sync Complete',
+          description: `Synced ${result.createdCount} new and ${result.updatedCount} existing products from ${name}.`,
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Sync Failed',
+          description:
+            error.message || 'An error occurred during synchronization.',
+          variant: 'destructive',
+        });
+      } finally {
+        setSyncingIntegration(null);
+      }
+    });
+  };
+
   const erpIntegrations = integrations.filter(i => i.type === 'ERP');
   const plmIntegrations = integrations.filter(i => i.type === 'PLM');
-  const ecommerceIntegrations = integrations.filter(i => i.type === 'E-commerce');
+  const ecommerceIntegrations = integrations.filter(
+    i => i.type === 'E-commerce',
+  );
 
   if (isLoading) {
     return (
@@ -137,7 +188,10 @@ export default function IntegrationManagementClient({ user }: IntegrationManagem
               key={int.id}
               integration={int}
               onStatusChange={handleStatusChange}
+              onSync={handleSync}
               isPending={isPending}
+              isSyncing={syncingIntegration === int.name}
+              canSync={canSync}
             />
           ))}
         </div>
@@ -156,7 +210,10 @@ export default function IntegrationManagementClient({ user }: IntegrationManagem
               key={int.id}
               integration={int}
               onStatusChange={handleStatusChange}
+              onSync={handleSync}
               isPending={isPending}
+              isSyncing={syncingIntegration === int.name}
+              canSync={canSync}
             />
           ))}
         </div>
@@ -175,7 +232,10 @@ export default function IntegrationManagementClient({ user }: IntegrationManagem
               key={int.id}
               integration={int}
               onStatusChange={handleStatusChange}
+              onSync={handleSync}
               isPending={isPending}
+              isSyncing={syncingIntegration === int.name}
+              canSync={canSync}
             />
           ))}
         </div>

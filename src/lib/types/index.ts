@@ -6,6 +6,11 @@ import type {
   DataQualityWarning,
   EsgScoreOutput,
 } from '@/types/ai-outputs';
+import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
+
+// Re-exporting for easy access elsewhere
+export type ErpProduct = ErpProductType;
+
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
