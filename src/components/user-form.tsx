@@ -34,7 +34,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { saveUser } from '@/lib/actions';
 import { userFormSchema, type UserFormValues } from '@/lib/schemas';
-import type { User } from '@/types';
+import type { User, Company } from '@/types';
 import { UserRoles } from '@/lib/constants';
 
 interface UserFormProps {
@@ -43,6 +43,7 @@ interface UserFormProps {
   user: User | null;
   adminUser: User;
   onSave: (user: User) => void;
+  companies: Company[];
 }
 
 export default function UserForm({
@@ -51,6 +52,7 @@ export default function UserForm({
   user,
   adminUser,
   onSave,
+  companies,
 }: UserFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
@@ -148,16 +150,30 @@ export default function UserForm({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="companyId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., comp-01" {...field} />
-                    </FormControl>
+                    <FormLabel>Company</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a company" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {companies.map(company => (
+                          <SelectItem key={company.id} value={company.id}>
+                            {company.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

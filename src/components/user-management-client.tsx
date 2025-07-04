@@ -64,10 +64,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-import type { User } from '@/types';
+import type { User, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions';
-import { getUsers } from '@/lib/auth';
+import { getUsers, getCompanies } from '@/lib/auth';
 import UserForm from './user-form';
 
 interface UserManagementClientProps {
@@ -78,6 +78,7 @@ export default function UserManagementClient({
   user: adminUser,
 }: UserManagementClientProps) {
   const [users, setUsers] = useState<User[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -94,23 +95,28 @@ export default function UserManagementClient({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const fetchUsers = useCallback(() => {
+  const fetchInitialData = useCallback(() => {
     setIsLoading(true);
-    getUsers()
-      .then(setUsers)
+    Promise.all([getUsers(), getCompanies()])
+      .then(([initialUsers, initialCompanies]) => {
+        setUsers(initialUsers);
+        setCompanies(initialCompanies);
+      })
       .catch(() => {
         toast({
           title: 'Error',
-          description: 'Failed to load users.',
+          description: 'Failed to load initial data.',
           variant: 'destructive',
         });
       })
-      .finally(() => setIsLoading(false));
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [toast]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const handleCreateNew = () => {
     setSelectedUser(null);
@@ -151,6 +157,10 @@ export default function UserManagementClient({
     });
     setIsFormOpen(false);
   };
+  
+  const companyMap = React.useMemo(() => {
+    return new Map(companies.map(c => [c.id, c.name]));
+  }, [companies]);
 
   const columns: ColumnDef<User>[] = React.useMemo(
     () => [
@@ -192,9 +202,9 @@ export default function UserManagementClient({
       },
       {
         accessorKey: 'companyId',
-        header: 'Company ID',
+        header: 'Company',
         cell: ({ row }) => (
-          <span className="font-mono text-xs">{row.original.companyId}</span>
+          <span>{companyMap.get(row.original.companyId) || row.original.companyId}</span>
         ),
       },
       {
@@ -264,7 +274,7 @@ export default function UserManagementClient({
         },
       },
     ],
-    [isPending, adminUser.id],
+    [isPending, adminUser.id, companyMap],
   );
 
   const table = useReactTable({
@@ -433,6 +443,7 @@ export default function UserManagementClient({
         user={selectedUser}
         adminUser={adminUser}
         onSave={handleSave}
+        companies={companies}
       />
     </>
   );
