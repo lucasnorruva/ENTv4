@@ -16,12 +16,6 @@ import {
   Loader2,
   Info,
   X,
-  Package,
-  Truck,
-  Ship,
-  Plane,
-  CalendarDays,
-  AlertTriangle,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -35,9 +29,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { products as MOCK_DPPS } from '@/lib/data';
-import { MOCK_TRANSIT_PRODUCTS } from '@/lib/mockTransitProducts';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { TransitProduct, CustomsAlert } from '@/types';
+import type { Product, CustomsAlert } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
@@ -79,12 +72,11 @@ export default function GlobalTrackerPage() {
   const [arcsData, setArcsData] = useState<any[]>([]);
 
   const productIdFromQuery = searchParams.get('productId');
-  const [selectedProduct, setSelectedProduct] = useState<string | null>(
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
     productIdFromQuery,
   );
-
-  const [selectedProductTransitInfo, setSelectedProductTransitInfo] =
-    useState<TransitProduct | null>(null);
+  
+  const selectedProduct = useMemo(() => MOCK_DPPS.find(p => p.id === selectedProductId), [selectedProductId]);
   const [selectedProductAlerts, setSelectedProductAlerts] = useState<
     CustomsAlert[]
   >([]);
@@ -142,7 +134,7 @@ export default function GlobalTrackerPage() {
     'Austria': { lat: 47.5162, lng: 14.5501 },
   }), []);
 
-  const getCountryFromLocationString = useCallback((locationString: string): string | null => {
+  const getCountryFromLocationString = useCallback((locationString?: string): string | null => {
       if (!locationString) return null;
       const parts = locationString.split(',').map(p => p.trim());
       const country = parts.pop(); 
@@ -175,7 +167,6 @@ export default function GlobalTrackerPage() {
   useEffect(() => {
     setHighlightedCountries([]);
     setArcsData([]);
-    setSelectedProductTransitInfo(null);
     setSelectedProductAlerts([]);
     setClickedCountryInfo(null);
 
@@ -184,86 +175,70 @@ export default function GlobalTrackerPage() {
       return;
     }
 
-    const transitInfo = MOCK_TRANSIT_PRODUCTS.find(p => p.id === selectedProduct);
-    setSelectedProductTransitInfo(transitInfo || null);
-    setSelectedProductAlerts(MOCK_CUSTOMS_ALERTS.filter(a => a.productId === selectedProduct));
-
-    if (transitInfo) {
-      const originCountry = getCountryFromLocationString(transitInfo.origin);
-      const destinationCountry = getCountryFromLocationString(transitInfo.destination);
+    setSelectedProductAlerts(MOCK_CUSTOMS_ALERTS.filter(a => a.productId === selectedProduct.id));
+    
+    const countries = new Set<string>();
+    const newSupplyArcs: any[] = [];
+    
+    // Add supply chain countries and arcs
+    const manufacturerCountry = getCountryFromLocationString(selectedProduct.manufacturing?.country);
+    if (manufacturerCountry) {
+        countries.add(manufacturerCountry);
+        const manufacturerCoords = mockCountryCoordinates[manufacturerCountry];
+        if (manufacturerCoords) {
+            selectedProduct.materials?.forEach(material => {
+                const supplierCountry = getCountryFromLocationString(material.origin);
+                if (supplierCountry && supplierCountry !== manufacturerCountry) {
+                    countries.add(supplierCountry);
+                    const supplierCoords = mockCountryCoordinates[supplierCountry];
+                    if (supplierCoords) {
+                        newSupplyArcs.push({
+                            startLat: supplierCoords.lat, startLng: supplierCoords.lng,
+                            endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
+                            color: '#F59E0B',
+                            label: `Supply: ${material.name} from ${supplierCountry}`
+                        });
+                    }
+                }
+            });
+        }
+    }
+    
+    // Add transit arc if it exists
+    if (selectedProduct.transit) {
+      const originCountry = getCountryFromLocationString(selectedProduct.transit.origin);
+      const destinationCountry = getCountryFromLocationString(selectedProduct.transit.destination);
       const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
       const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
 
-      const newHighlights: string[] = [];
-      if (originCountry) newHighlights.push(originCountry);
-      if (destinationCountry && destinationCountry !== originCountry) newHighlights.push(destinationCountry);
-      setHighlightedCountries(newHighlights);
+      if (originCountry) countries.add(originCountry);
+      if (destinationCountry) countries.add(destinationCountry);
       
       if (originCoords && destinationCoords) {
-        setArcsData([{
+        newSupplyArcs.push({
           startLat: originCoords.lat, startLng: originCoords.lng,
           endLat: destinationCoords.lat, endLng: destinationCoords.lng,
           color: '#3B82F6', 
-          label: `${transitInfo.name} Transit`
-        }]);
+          label: `${selectedProduct.productName} Transit`
+        });
         if (globeEl.current) { 
              const midLat = (originCoords.lat + destinationCoords.lat) / 2;
              const midLng = (originCoords.lng + destinationCoords.lng) / 2;
              globeEl.current.pointOfView({ lat: midLat, lng: midLng, altitude: 2.0 }, 1000);
         }
-      } else {
-        setArcsData([]);
-        if (globeEl.current) globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
       }
     } else {
-      fetch(`/api/v1/dpp/graph/${selectedProduct}`)
-        .then(res => res.ok ? res.json() : null)
-        .then((graph) => {
-          if (!graph || !graph.nodes) { return; }
-          const countries = new Set<string>();
-          let manufacturerCountry: string | null = null;
-          graph.nodes.forEach((node: any) => {
-            const loc: string | undefined = node.data?.location;
-            if (loc) {
-              const country = getCountryFromLocationString(loc);
-              if (country) {
-                countries.add(country);
-                if (node.type === 'manufacturer') manufacturerCountry = country;
-              }
-            }
-          });
-          const supplyChainCountries = Array.from(countries);
-          setHighlightedCountries(supplyChainCountries);
-          
-          const newSupplyArcs: any[] = [];
-          if (manufacturerCountry && supplyChainCountries.length > 1) {
-            const manufacturerCoords = mockCountryCoordinates[manufacturerCountry];
-            if (manufacturerCoords) {
-                supplyChainCountries.forEach(countryName => {
-                    if (countryName !== manufacturerCountry) {
-                        const supplierCoords = mockCountryCoordinates[countryName];
-                        if (supplierCoords) {
-                            newSupplyArcs.push({
-                                startLat: manufacturerCoords.lat, startLng: manufacturerCoords.lng,
-                                endLat: supplierCoords.lat, endLng: supplierCoords.lng,
-                                color: '#F59E0B',
-                                label: `Supply: ${countryName} to ${manufacturerCountry}`
-                            });
-                        }
-                    }
-                });
-            }
-          }
-          setArcsData(newSupplyArcs);
-          if (globeEl.current) {
+        if (globeEl.current) {
             if (countries.has('China') || countries.has('Japan') || countries.has('India')) globeEl.current.pointOfView({ lat: 20, lng: 90, altitude: 2.5 }, 1000);
             else if (countries.has('United States') || countries.has('Canada')) globeEl.current.pointOfView({ lat: 45, lng: -90, altitude: 2.5 }, 1000);
             else globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
-          }
-        })
-        .catch((err) => { console.error('Error fetching product graph:', err); setHighlightedCountries([]); setArcsData([]); });
+        }
     }
-  }, [selectedProduct, mockCountryCoordinates, router, getCountryFromLocationString]); 
+    
+    setHighlightedCountries(Array.from(countries));
+    setArcsData(newSupplyArcs);
+
+  }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString]); 
 
   const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
   
@@ -309,7 +284,7 @@ export default function GlobalTrackerPage() {
   }, [isEU, highlightedCountries, clickedCountryInfo, hoverD]);
 
   const handleDismissProductInfo = () => {
-    setSelectedProduct(null);
+    setSelectedProductId(null);
     router.push(`/dashboard/admin/global-tracker`, { scroll: false });
   };
 
@@ -336,8 +311,8 @@ export default function GlobalTrackerPage() {
               const isEUCountry = isEU(iso); const isHighlighted = highlightedCountries.some(hc => name.toLowerCase().includes(hc.toLowerCase()));
               let roleInContext = "";
               if (isHighlighted) {
-                  if (selectedProductTransitInfo?.origin && getCountryFromLocationString(selectedProductTransitInfo.origin) === name) roleInContext += "Transit Origin. ";
-                  if (selectedProductTransitInfo?.destination && getCountryFromLocationString(selectedProductTransitInfo.destination) === name) roleInContext += "Transit Destination. ";
+                  if (selectedProduct?.transit?.origin && getCountryFromLocationString(selectedProduct.transit.origin) === name) roleInContext += "Transit Origin. ";
+                  if (selectedProduct?.transit?.destination && getCountryFromLocationString(selectedProduct.transit.destination) === name) roleInContext += "Transit Destination. ";
                   if (!roleInContext) roleInContext = "Supply Chain Node."
               }
               return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${iso ? ` (${iso})` : ''}<br/>${isEUCountry ? 'EU Member' : 'Non-EU Member'}<br/>${roleInContext.trim()}</div>`;
@@ -367,11 +342,11 @@ export default function GlobalTrackerPage() {
        <Select
          onValueChange={(value) => {
             const newProductId = value === 'select-placeholder' ? null : value;
-            setSelectedProduct(newProductId);
+            setSelectedProductId(newProductId);
             if (newProductId) router.push(`/dashboard/admin/global-tracker?productId=${newProductId}`, { scroll: false });
             else router.push(`/dashboard/admin/global-tracker`, { scroll: false });
          }}
-         value={selectedProduct || 'select-placeholder'}
+         value={selectedProductId || 'select-placeholder'}
        >
         <SelectTrigger className="w-[250px] sm:w-[300px]"><SelectValue placeholder="Select a Product" /></SelectTrigger>
         <SelectContent>
@@ -400,9 +375,9 @@ export default function GlobalTrackerPage() {
         </Card>
       )}
 
-      {selectedProductTransitInfo && (
+      {selectedProduct && (
         <SelectedProductCustomsInfoCard 
-            productTransitInfo={selectedProductTransitInfo}
+            product={selectedProduct}
             alerts={selectedProductAlerts}
             onDismiss={handleDismissProductInfo}
         />
@@ -412,11 +387,12 @@ export default function GlobalTrackerPage() {
         <Info className="inline h-3 w-3 mr-1" />
         {countryFilter === 'all' ? 'EU: Dark Blue | Non-EU: Grey.' : 
          countryFilter === 'eu' ? 'Displaying EU Countries.' : 
-         countryFilter === 'supplyChain' && selectedProduct ? `Displaying Focus Area for ${selectedProduct}.` :
+         countryFilter === 'supplyChain' && selectedProduct ? `Displaying Focus Area for ${selectedProduct.productName}.` :
          'Select a product to view its focus area.'
         }
         {selectedProduct && highlightedCountries.length > 0 && ` Highlighted: Amber/Orange.`}
-        {arcsData.length > 0 && (arcsData[0].color === '#3B82F6' ? ` Transit Arc: Blue.` : ` Supply Arc(s): Orange.`)}
+        {arcsData.length > 0 && (arcsData.some(a => a.color === '#3B82F6') ? ` Transit Arc: Blue.` : ``)}
+        {arcsData.length > 0 && (arcsData.some(a => a.color === '#F59E0B') ? ` Supply Arc(s): Orange.` : ``)}
       </div>
     </div>
   </>

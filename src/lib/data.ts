@@ -64,6 +64,13 @@ export let products: Product[] = [
       voltage: 3.83,
       isRemovable: false,
     },
+    transit: {
+      stage: 'Cleared - Inland Transit',
+      eta: '2024-08-02',
+      transport: 'Truck',
+      origin: 'Gdansk, Poland',
+      destination: 'Berlin, Germany',
+    },
     compliance: {
       rohs: { compliant: true },
       ce: { marked: true },
@@ -102,9 +109,10 @@ export let products: Product[] = [
     supplier: 'Eco Innovate Ltd.',
     status: 'Draft',
     materials: [
-      { name: 'Recycled ABS Plastic', percentage: 95, recycledContent: 95 },
-      { name: 'Steel Screws', percentage: 5, recycledContent: 10 },
+      { name: 'Recycled ABS Plastic', percentage: 95, recycledContent: 95, origin: 'China' },
+      { name: 'Steel Screws', percentage: 5, recycledContent: 10, origin: 'Japan' },
     ],
+    manufacturing: { facility: 'Shenzhen Plant', country: 'China' },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     lastUpdated: new Date(
@@ -139,6 +147,14 @@ export let products: Product[] = [
         origin: 'India',
       },
     ],
+    manufacturing: { facility: 'Mumbai Textiles', country: 'India' },
+    transit: {
+      stage: 'At Customs',
+      eta: '2024-08-05',
+      transport: 'Ship',
+      origin: 'Mumbai, India',
+      destination: 'Rotterdam, Netherlands',
+    },
     certifications: [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade', issuer: 'Fairtrade International' },
@@ -159,7 +175,7 @@ export let products: Product[] = [
     lastUpdated: new Date(
       new Date(now).setDate(now.getDate() - 4),
     ).toISOString(),
-    verificationStatus: 'Verified',
+    verificationStatus: 'Pending',
     endOfLifeStatus: 'Active',
     isProcessing: false,
   },
@@ -178,6 +194,14 @@ export let products: Product[] = [
       { name: 'Leather', origin: 'Brazil' },
       { name: 'Lead-based dye' },
     ],
+    manufacturing: { facility: 'Milan Leathers', country: 'Italy' },
+    transit: {
+      stage: 'Airborne - Approaching EU',
+      eta: '2024-08-08',
+      transport: 'Plane',
+      origin: 'Shenzhen, China',
+      destination: 'Frankfurt, Germany',
+    },
     compliance: { eudr: { compliant: false }, reach: { svhcDeclared: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 15),
@@ -218,10 +242,18 @@ export let products: Product[] = [
     supplier: 'Eco Innovate Ltd.',
     status: 'Draft',
     materials: [
-      { name: 'Carbon Fiber' },
-      { name: 'Plastic' },
-      { name: 'Lithium Battery' },
+      { name: 'Carbon Fiber', origin: 'Japan' },
+      { name: 'Plastic', origin: 'South Korea' },
+      { name: 'Lithium Battery', origin: 'China' },
     ],
+    manufacturing: { facility: 'Aero Plant 1', country: 'USA' },
+    transit: {
+        stage: 'Awaiting Customs Clearance',
+        eta: '2024-08-01',
+        transport: 'Ship',
+        origin: 'Ho Chi Minh City, Vietnam',
+        destination: 'Antwerp, Belgium',
+    },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
       new Date(now).setHours(now.getHours() - 12),
@@ -244,7 +276,15 @@ export let products: Product[] = [
     supplier: 'Eco Innovate Ltd.',
     status: 'Draft',
     compliancePathId: 'cp-electronics-01',
-    materials: [{ name: 'Lithium Battery' }, { name: 'Plastic Casing' }],
+    materials: [{ name: 'Lithium Battery', origin: 'USA' }, { name: 'Plastic Casing', origin: 'USA' }],
+    manufacturing: { facility: 'Newark Electronics', country: 'USA' },
+    transit: {
+        stage: 'Pre-Arrival Notification Submitted',
+        eta: '2024-08-15',
+        transport: 'Ship',
+        origin: 'Newark, United States',
+        destination: 'Bremerhaven, Germany',
+    },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 1),

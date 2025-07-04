@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Loader2,
   Archive,
+  Globe,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -80,6 +81,7 @@ import {
 import { UserRoles } from "@/lib/constants";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
+import { useRouter } from "next/navigation";
 
 interface ProductTableProps {
   products: Product[];
@@ -113,6 +115,7 @@ export default function ProductTable({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState(initialFilter ?? '');
+  const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
@@ -296,6 +299,12 @@ export default function ProductTable({
                     <FilePenLine className="mr-2 h-4 w-4" />
                     View / Edit
                   </Link>
+                </DropdownMenuItem>
+                 <DropdownMenuItem
+                  onClick={() => router.push(`/dashboard/admin/global-tracker?productId=${product.id}`)}
+                >
+                  <Globe className="mr-2 h-4 w-4" />
+                  Track on Globe
                 </DropdownMenuItem>
                 {can(user, "product:recalculate", product) && (
                   <>

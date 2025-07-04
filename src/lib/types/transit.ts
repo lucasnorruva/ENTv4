@@ -1,16 +1,8 @@
 // src/types/transit.ts
 import type { Product } from '@/types/index';
 
-export interface TransitProduct {
-  id: string;
-  name: string;
-  stage: string;
-  eta: string; // ISO date string
-  dppStatus: Product['verificationStatus'];
-  transport: 'Ship' | 'Truck' | 'Plane';
-  origin: string; // e.g., "City, Country" or just "Country"
-  destination: string; // e.g., "City, Country"
-}
+// This interface is now obsolete as its properties have been merged into the Product interface.
+// export interface TransitProduct { ... }
 
 export interface CustomsAlert {
   id: string;

@@ -8,7 +8,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,7 @@ import {
   CalendarDays,
   ExternalLink,
 } from 'lucide-react';
-import type { TransitProduct, CustomsAlert } from '@/types';
+import type { Product, CustomsAlert } from '@/types';
 import { cn } from '@/lib/utils';
 import {
   getStatusIcon,
@@ -31,37 +30,37 @@ import {
 } from '@/lib/dppDisplayUtils';
 
 interface SelectedProductCustomsInfoCardProps {
-  productTransitInfo: TransitProduct;
+  product: Product;
   alerts: CustomsAlert[];
   onDismiss: () => void;
 }
 
 export default function SelectedProductCustomsInfoCard({
-  productTransitInfo,
+  product,
   alerts,
   onDismiss,
 }: SelectedProductCustomsInfoCardProps) {
+  if (!product.transit) return null;
+
+  const { transit } = product;
+
   const TransportIcon =
-    productTransitInfo.transport === 'Ship'
+    transit.transport === 'Ship'
       ? Ship
-      : productTransitInfo.transport === 'Truck'
+      : transit.transport === 'Truck'
       ? Truck
       : Plane;
 
-  const etaDate = new Date(productTransitInfo.eta);
+  const etaDate = new Date(transit.eta);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const isEtaPast = etaDate < today;
   const isEtaToday = etaDate.toDateString() === today.toDateString();
 
-  const DppStatusIcon = getStatusIcon(productTransitInfo.dppStatus);
-  const dppStatusBadgeVariant = getStatusBadgeVariant(
-    productTransitInfo.dppStatus,
-  );
-  const dppStatusClasses = getStatusBadgeClasses(
-    productTransitInfo.dppStatus,
-  );
-  const formattedDppStatus = (productTransitInfo.dppStatus || 'Not Submitted')
+  const DppStatusIcon = getStatusIcon(product.verificationStatus);
+  const dppStatusBadgeVariant = getStatusBadgeVariant(product.verificationStatus);
+  const dppStatusClasses = getStatusBadgeClasses(product.verificationStatus);
+  const formattedDppStatus = (product.verificationStatus || 'Not Submitted')
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase());
 
@@ -71,7 +70,7 @@ export default function SelectedProductCustomsInfoCard({
         <div className="flex items-center">
           <Package className="h-5 w-5 mr-2 text-primary" />
           <CardTitle className="text-md font-semibold">
-            {productTransitInfo.name}
+            {product.productName}
           </CardTitle>
         </div>
         <Button
@@ -88,7 +87,7 @@ export default function SelectedProductCustomsInfoCard({
         <p className="text-sm text-muted-foreground">
           ID:{' '}
           <span className="font-mono text-foreground">
-            {productTransitInfo.id}
+            {product.id}
           </span>
         </p>
 
@@ -96,20 +95,20 @@ export default function SelectedProductCustomsInfoCard({
           <h4 className="font-medium text-foreground">Transit Details:</h4>
           <p>
             <strong className="text-muted-foreground">Stage:</strong>{' '}
-            {productTransitInfo.stage}
+            {transit.stage}
           </p>
           <p className="flex items-center">
             <strong className="text-muted-foreground mr-1">Transport:</strong>{' '}
             <TransportIcon className="h-4 w-4 mr-1 text-primary" />{' '}
-            {productTransitInfo.transport}
+            {transit.transport}
           </p>
           <p>
             <strong className="text-muted-foreground">Origin:</strong>{' '}
-            {productTransitInfo.origin}
+            {transit.origin}
           </p>
           <p>
             <strong className="text-muted-foreground">Destination:</strong>{' '}
-            {productTransitInfo.destination}
+            {transit.destination}
           </p>
           <div className="flex items-center">
             <strong className="text-muted-foreground mr-1">ETA:</strong>
@@ -178,7 +177,7 @@ export default function SelectedProductCustomsInfoCard({
           asChild
         >
           <Link
-            href={`/products/${productTransitInfo.id}`}
+            href={`/products/${product.id}`}
             target="_blank"
             rel="noopener noreferrer"
           >
