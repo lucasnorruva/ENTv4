@@ -282,16 +282,3 @@ export interface ApiSettings {
   };
   isWebhookSigningEnabled: boolean;
 }
-
-/**
- * Represents a configurable integration with an external system.
- */
-export interface Integration extends BaseEntity {
-  name: string;
-  type: 'ERP' | 'PLM' | 'E-commerce';
-  logo: string;
-  dataAiHint: string;
-  description: string;
-  enabled: boolean;
-  config?: Record<string, any>;
-}
