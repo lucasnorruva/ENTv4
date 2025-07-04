@@ -1,4 +1,3 @@
-
 // src/components/product-table.tsx
 "use client";
 
@@ -78,6 +77,8 @@ import {
   TooltipTrigger,
 } from "./ui/tooltip";
 import { UserRoles } from "@/lib/constants";
+import { Checkbox } from "./ui/checkbox";
+import { can } from "@/lib/permissions";
 
 interface ProductTableProps {
   products: Product[];
@@ -87,6 +88,8 @@ interface ProductTableProps {
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
+  onBulkDelete: (ids: string[]) => void;
+  onBulkSubmit: (ids: string[]) => void;
   initialFilter?: string;
 }
 
@@ -98,6 +101,8 @@ export default function ProductTable({
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
+  onBulkDelete,
+  onBulkSubmit,
   initialFilter,
 }: ProductTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -108,9 +113,7 @@ export default function ProductTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState(initialFilter ?? '');
 
-  const canEdit =
-    user.roles.includes(UserRoles.ADMIN) ||
-    user.roles.includes(UserRoles.SUPPLIER);
+  const canCreate = can(user, 'product:create');
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
   const getStatusVariant = (status: Product['status']) => {
@@ -141,6 +144,28 @@ export default function ProductTable({
 
   const columns: ColumnDef<Product>[] = React.useMemo(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: 'productName',
         header: ({ column }) => (
@@ -264,7 +289,7 @@ export default function ProductTable({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {canEdit && (
+                {can(user, "product:edit", product) && (
                   <DropdownMenuItem onClick={() => onEdit(product)}>
                     <FilePenLine className="mr-2 h-4 w-4" />
                     Edit
@@ -279,7 +304,7 @@ export default function ProductTable({
                     View Details Page
                   </Link>
                 </DropdownMenuItem>
-                {canEdit && (
+                {can(user, "product:recalculate", product) && (
                   <>
                     <DropdownMenuItem
                       onClick={() =>
@@ -300,11 +325,12 @@ export default function ProductTable({
                       Submit for Review
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <AlertDialog>
+                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem
                           onSelect={e => e.preventDefault()}
                           className="text-destructive"
+                          disabled={!can(user, 'product:delete', product)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -338,7 +364,7 @@ export default function ProductTable({
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, canEdit, roleSlug],
+    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, user, roleSlug],
   );
 
   const table = useReactTable({
@@ -373,53 +399,91 @@ export default function ProductTable({
     },
   });
 
+  const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
+  const canBulkDelete =
+    can(user, 'product:delete') &&
+    table.getFilteredSelectedRowModel().rows.every(row => can(user, 'product:delete', row.original));
+
+  const canBulkSubmit =
+    can(user, 'product:submit') &&
+    table.getFilteredSelectedRowModel().rows.every(row => can(user, 'product:submit', row.original));
+
+
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center py-4 gap-2">
-        <Input
-          placeholder="Filter by name, GTIN, or supplier..."
-          value={globalFilter ?? ''}
-          onChange={event => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
-        />
-        <Select
-          value={(table.getColumn('status')?.getFilterValue() as string) ?? 'all'}
-          onValueChange={value =>
-            table.getColumn('status')?.setFilterValue(value === 'all' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Published">Published</SelectItem>
-            <SelectItem value="Draft">Draft</SelectItem>
-            <SelectItem value="Archived">Archived</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          value={
-            (table.getColumn('verificationStatus')?.getFilterValue() as string) ??
-            'all'
-          }
-          onValueChange={value =>
-            table
-              .getColumn('verificationStatus')
-              ?.setFilterValue(value === 'all' ? '' : value)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by verification..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Verification</SelectItem>
-            <SelectItem value="Verified">Verified</SelectItem>
-            <SelectItem value="Pending">Pending</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
-            <SelectItem value="Not Submitted">Not Submitted</SelectItem>
-          </SelectContent>
-        </Select>
+       <div className="flex items-center py-4 gap-2">
+        {selectedRowCount > 0 ? (
+          <>
+            <div className="flex-1 text-sm text-muted-foreground">
+              {selectedRowCount} of {table.getFilteredRowModel().rows.length}{" "}
+              row(s) selected.
+            </div>
+            {canBulkSubmit && (
+                <Button variant="outline" size="sm" onClick={() => onBulkSubmit(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Submit for Review ({selectedRowCount})
+                </Button>
+            )}
+            {canBulkDelete && (
+                <Button variant="destructive" size="sm" onClick={() => onBulkDelete(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete ({selectedRowCount})
+                </Button>
+            )}
+          </>
+        ) : (
+          <>
+            <Input
+              placeholder="Filter by name, GTIN, or supplier..."
+              value={globalFilter ?? ""}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="max-w-sm"
+            />
+            <Select
+              value={
+                (table.getColumn("status")?.getFilterValue() as string) ?? "all"
+              }
+              onValueChange={(value) =>
+                table
+                  .getColumn("status")
+                  ?.setFilterValue(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="Published">Published</SelectItem>
+                <SelectItem value="Draft">Draft</SelectItem>
+                <SelectItem value="Archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={
+                (table
+                  .getColumn("verificationStatus")
+                  ?.getFilterValue() as string) ?? "all"
+              }
+              onValueChange={(value) =>
+                table
+                  .getColumn("verificationStatus")
+                  ?.setFilterValue(value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by verification..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Verification</SelectItem>
+                <SelectItem value="Verified">Verified</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Failed">Failed</SelectItem>
+                <SelectItem value="Not Submitted">Not Submitted</SelectItem>
+              </SelectContent>
+            </Select>
+          </>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -430,16 +494,18 @@ export default function ProductTable({
           <DropdownMenuContent align="end">
             {table
               .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => {
+              .filter((column) => column.getCanHide())
+              .map((column) => {
                 return (
                   <DropdownMenuCheckboxItem
                     key={column.id}
                     className="capitalize"
                     checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(!!value)}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
                   >
-                    {column.id.replace(/([A-Z])/g, ' $1')}
+                    {column.id.replace(/([A-Z])/g, " $1")}
                   </DropdownMenuCheckboxItem>
                 );
               })}

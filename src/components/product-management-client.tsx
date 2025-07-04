@@ -23,6 +23,8 @@ import {
   submitForReview,
   recalculateScore,
   getProducts,
+  bulkDeleteProducts,
+  bulkSubmitForReview,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
@@ -177,6 +179,22 @@ export default function ProductManagementClient({
     setTimeout(fetchProducts, 4000); // Re-sync after AI processing delay
   };
 
+  const handleBulkDelete = (productIds: string[]) => {
+    startTransition(async () => {
+        await bulkDeleteProducts(productIds, user.id);
+        toast({ title: `Deleted ${productIds.length} products.` });
+        fetchProducts(); // Refetch data
+    });
+  }
+
+  const handleBulkSubmit = (productIds: string[]) => {
+    startTransition(async () => {
+        await bulkSubmitForReview(productIds, user.id);
+        toast({ title: `Submitted ${productIds.length} products for review.` });
+        fetchProducts(); // Refetch data
+    });
+  }
+
   return (
     <>
       <Card>
@@ -212,6 +230,8 @@ export default function ProductManagementClient({
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}
             onRecalculateScore={handleRecalculateScore}
+            onBulkDelete={handleBulkDelete}
+            onBulkSubmit={handleBulkSubmit}
             initialFilter={initialFilter}
           />
         </CardContent>

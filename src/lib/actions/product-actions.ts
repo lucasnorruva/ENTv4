@@ -309,6 +309,60 @@ export async function deleteProduct(
   return Promise.resolve();
 }
 
+export async function bulkDeleteProducts(
+  productIds: string[],
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const deletedIds: string[] = [];
+  for (const productId of productIds) {
+    try {
+      await deleteProduct(productId, userId);
+      deletedIds.push(productId);
+    } catch (error) {
+      console.warn(`Could not delete product ${productId}: ${(error as Error).message}`);
+    }
+  }
+
+  if (deletedIds.length > 0) {
+    await logAuditEvent(
+      'product.bulk_delete',
+      'multiple',
+      { count: deletedIds.length, productIds: deletedIds },
+      userId,
+    );
+  }
+}
+
+export async function bulkSubmitForReview(
+  productIds: string[],
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const submittedIds: string[] = [];
+  for (const productId of productIds) {
+    try {
+      await submitForReview(productId, userId);
+      submittedIds.push(productId);
+    } catch (error) {
+      console.warn(`Could not submit product ${productId} for review: ${(error as Error).message}`);
+    }
+  }
+
+  if (submittedIds.length > 0) {
+    await logAuditEvent(
+      'product.bulk_submit',
+      'multiple',
+      { count: submittedIds.length, productIds: submittedIds },
+      userId,
+    );
+  }
+}
+
 export async function submitForReview(
   productId: string,
   userId: string,
