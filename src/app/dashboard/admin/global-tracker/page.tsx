@@ -475,16 +475,6 @@ export default function GlobalTrackerPage() {
     [isEU, highlightedCountries, clickedCountryInfo],
   );
 
-  const getPolygonAltitude = useCallback(
-    (feat: object) => {
-        const p = (feat as CountryFeature).properties;
-        const name = p?.ADMIN || p?.NAME_LONG || '';
-        const count = countryProductStats.get(name) || 0;
-        return Math.max(0.01, Math.min(0.2, count / 50));
-    },
-    [countryProductStats],
-  );
-
   const getPolygonLabel = useCallback((feat: object) => {
     const p = (feat as CountryFeature).properties;
     const iso = p?.ADM0_A3 || p?.ISO_A3;
@@ -566,7 +556,9 @@ export default function GlobalTrackerPage() {
             polygonCapColor={(feat: object) => getPolygonCapColor(feat as CountryFeature)}
             polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
             polygonStrokeColor={() => '#000000'}
-            polygonAltitude={getPolygonAltitude}
+            // By setting altitude to a constant, we ensure all countries are "planted"
+            // firmly on the globe, removing any "hovering" or data-driven height variations.
+            polygonAltitude={0.01}
             onPolygonClick={(feat: object) => handlePolygonClick(feat as CountryFeature)}
             polygonLabel={(feat: object) => getPolygonLabel(feat as CountryFeature)}
             polygonsTransitionDuration={100}
