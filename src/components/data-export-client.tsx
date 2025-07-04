@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/popover';
 
 import { useToast } from '@/hooks/use-toast';
-import { exportProducts, exportComplianceReport } from '@/lib/actions';
+import { exportProducts, exportComplianceReport, exportFullAuditTrail } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 
 export default function DataExportClient() {
@@ -55,7 +55,7 @@ export default function DataExportClient() {
     document.body.removeChild(link);
   };
 
-  const handleGenerateExport = (exportType: 'Product' | 'Compliance') => {
+  const handleGenerateExport = (exportType: 'Product' | 'Compliance' | 'Audit') => {
     if (!dateRange?.from || !dateRange?.to) {
         toast({ title: "Date Range Required", description: "Please select a valid date range.", variant: "destructive" });
         return;
@@ -64,43 +64,52 @@ export default function DataExportClient() {
     setGeneratingType(exportType);
     startTransition(async () => {
       try {
-        if (exportType === 'Product') {
-          toast({
-            title: 'Generating Product Report...',
-            description: `Your product data is being prepared as a .${productFormat} file.`,
-          });
-          const fileContent = await exportProducts(productFormat, dateRange);
-          if(!fileContent) {
-            toast({ title: 'No Data Found', description: 'There are no products for the selected period.'});
-            setGeneratingType(null);
-            return;
-          }
-          const mimeType = productFormat === 'csv' ? 'text/csv' : 'application/json';
-          const fileName = `norruva-products-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.${productFormat}`;
-          handleDownload(fileContent, fileName, mimeType);
-          toast({
-            title: 'Product Report Downloaded!',
-            description: 'Your export has been successfully generated.',
-          });
-        } else {
-          toast({
-            title: 'Generating Compliance Report...',
-            description: `Your compliance data is being prepared as a .csv file.`,
-          });
-          const fileContent = await exportComplianceReport('csv', dateRange);
-          if(!fileContent) {
-            toast({ title: 'No Data Found', description: 'There is no compliance data for the selected period.'});
-            setGeneratingType(null);
-            return;
-          }
-          const mimeType = 'text/csv';
-          const fileName = `norruva-compliance-report-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.csv`;
-          handleDownload(fileContent, fileName, mimeType);
-          toast({
-            title: 'Compliance Report Downloaded!',
-            description: 'Your export has been successfully generated.',
-          });
+        let fileContent: string = '';
+        let mimeType: string = '';
+        let fileName: string = '';
+        
+        switch (exportType) {
+          case 'Product':
+            toast({
+              title: 'Generating Product Report...',
+              description: `Your product data is being prepared as a .${productFormat} file.`,
+            });
+            fileContent = await exportProducts(productFormat, dateRange);
+            mimeType = productFormat === 'csv' ? 'text/csv' : 'application/json';
+            fileName = `norruva-products-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.${productFormat}`;
+            break;
+          case 'Compliance':
+            toast({
+              title: 'Generating Compliance Report...',
+              description: `Your compliance data is being prepared as a .csv file.`,
+            });
+            fileContent = await exportComplianceReport('csv', dateRange);
+            mimeType = 'text/csv';
+            fileName = `norruva-compliance-report-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.csv`;
+            break;
+          case 'Audit':
+             toast({
+              title: 'Generating Audit Report...',
+              description: `Your full audit trail is being prepared as a .csv file.`,
+            });
+            fileContent = await exportFullAuditTrail(dateRange);
+            mimeType = 'text/csv';
+            fileName = `norruva-audit-trail-${format(dateRange.from!, 'yyyy-MM-dd')}_to_${format(dateRange.to!, 'yyyy-MM-dd')}.csv`;
+            break;
         }
+
+        if(!fileContent) {
+          toast({ title: 'No Data Found', description: 'There is no data for the selected period.'});
+          setGeneratingType(null);
+          return;
+        }
+        
+        handleDownload(fileContent, fileName, mimeType);
+        toast({
+          title: 'Report Downloaded!',
+          description: 'Your export has been successfully generated.',
+        });
+
       } catch (error) {
         toast({
           title: 'Export Failed',
@@ -126,7 +135,7 @@ export default function DataExportClient() {
        <Card>
           <CardHeader>
             <CardTitle>Select Date Range</CardTitle>
-            <CardDescription>All reports will be generated for the selected date range based on when products were last updated.</CardDescription>
+            <CardDescription>All reports will be generated for the selected date range based on when events occurred or data was last updated.</CardDescription>
           </CardHeader>
           <CardContent>
             <Popover>
@@ -168,8 +177,8 @@ export default function DataExportClient() {
           </CardContent>
         </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileDown className="h-5 w-5 text-muted-foreground" />
@@ -179,7 +188,7 @@ export default function DataExportClient() {
               Export a complete dataset of all products updated in the selected period.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             <RadioGroup
               defaultValue="csv"
               className="space-y-2"
@@ -199,6 +208,7 @@ export default function DataExportClient() {
           </CardContent>
           <CardFooter>
             <Button
+              className="w-full"
               onClick={() => handleGenerateExport('Product')}
               disabled={isGenerating}
             >
@@ -210,31 +220,60 @@ export default function DataExportClient() {
           </CardFooter>
         </Card>
 
-        <Card>
+        <Card className="flex flex-col">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HardDriveDownload className="h-5 w-5 text-muted-foreground" />
-              Compliance Report Export
+              Compliance Report
             </CardTitle>
             <CardDescription>
-              A detailed report of compliance status for products updated in the selected period.
+              A CSV summary of compliance status for products in the selected period.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex-1">
-            <p className="text-sm text-muted-foreground">
-              This will generate a CSV file with the compliance status for all
-              products in the selected date range.
+             <p className="text-sm text-muted-foreground">
+              This report contains high-level verification and compliance data for auditing purposes.
             </p>
           </CardContent>
           <CardFooter>
             <Button
+              className="w-full"
               onClick={() => handleGenerateExport('Compliance')}
               disabled={isGenerating}
             >
               {isGenerating && generatingType === 'Compliance' && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Generate Compliance Export (CSV)
+              Generate Compliance Export
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <HardDriveDownload className="h-5 w-5 text-muted-foreground" />
+              Full Audit Trail
+            </CardTitle>
+            <CardDescription>
+              A complete CSV export of all platform activity in the selected period.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1">
+            <p className="text-sm text-muted-foreground">
+              This report includes all actions taken by all users for security and auditing.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              className="w-full"
+              onClick={() => handleGenerateExport('Audit')}
+              disabled={isGenerating}
+            >
+              {isGenerating && generatingType === 'Audit' && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Generate Audit Trail
             </Button>
           </CardFooter>
         </Card>

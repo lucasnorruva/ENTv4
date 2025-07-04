@@ -43,12 +43,12 @@ export async function exportProducts(
       });
     }
   
-    if (format === 'json') {
-      return JSON.stringify(products, null, 2);
-    }
-  
     if (products.length === 0) {
       return '';
+    }
+    
+    if (format === 'json') {
+      return JSON.stringify(products, null, 2);
     }
   
     const flatProducts = products.map(flattenObject);
