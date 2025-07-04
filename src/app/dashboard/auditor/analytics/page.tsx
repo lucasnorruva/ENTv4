@@ -29,6 +29,7 @@ import {
   Building2,
   Hourglass,
   Globe,
+  Wrench,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';

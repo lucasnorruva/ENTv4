@@ -228,7 +228,7 @@ export const navConfig: NavConfig = {
         {
           title: 'API Documentation',
           icon: FileCode,
-          href: '/docs',
+          href: '/docs/api',
           external: true,
         },
       ],
