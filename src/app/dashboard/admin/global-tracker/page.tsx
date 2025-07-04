@@ -486,12 +486,9 @@ export default function GlobalTrackerPage() {
     const d = feat as CountryFeature;
     const countryName = d.properties.ADMIN;
     const stat = countryProductStats.get(countryName);
-    let altitude = stat ? Math.max(0.01, Math.sqrt(stat) * 0.04) : 0.01;
-    if(hoverD && d.properties.ADMIN === hoverD.properties.ADMIN) {
-        altitude += 0.05;
-    }
+    const altitude = stat ? Math.max(0.01, Math.sqrt(stat) * 0.04) : 0.01;
     return altitude;
-  }, [countryProductStats, hoverD]);
+  }, [countryProductStats]);
 
   const handleDismissProductInfo = () => {
     setSelectedProductId(null);
