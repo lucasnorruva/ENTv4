@@ -20,6 +20,7 @@ import {
   Users,
   FileDown,
   History,
+  Search as SearchIcon,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -175,7 +176,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Retail Operations',
       items: [
-        { title: 'Product Catalog', icon: Package, href: 'catalog' },
+        { title: 'Product Catalog', icon: SearchIcon, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
