@@ -3,11 +3,16 @@
 
 import type {
   Product,
+  User,
   ComplianceGap,
   ServiceRecord,
   SustainabilityData,
 } from '@/types';
-import { productFormSchema, type ProductFormValues, bulkProductImportSchema } from '@/lib/schemas';
+import {
+  productFormSchema,
+  type ProductFormValues,
+  bulkProductImportSchema,
+} from '@/lib/schemas';
 import {
   anchorToPolygon,
   generateEbsiCredential,
@@ -33,6 +38,8 @@ import { validateProductData } from '@/ai/flows/validate-product-data';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles, type Role } from '@/lib/constants';
 
 async function processProductAi(product: Product): Promise<{
   sustainability: SustainabilityData;
@@ -98,18 +105,99 @@ export async function getProducts(
   userId?: string,
   filters?: { searchQuery?: string },
 ): Promise<Product[]> {
-  const { getProducts: originalGetProducts } = await import('@/lib/data-actions');
-  return originalGetProducts(userId, filters);
+  let user: User | undefined;
+  if (userId) {
+    user = await getUserById(userId);
+    if (!user) return [];
+  }
+
+  let results = [...mockProducts];
+
+  // Apply search filter if provided
+  if (filters?.searchQuery) {
+    const query = filters.searchQuery.toLowerCase();
+    results = results.filter(
+      p =>
+        p.productName.toLowerCase().includes(query) ||
+        p.supplier.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        p.gtin?.toLowerCase().includes(query),
+    );
+  }
+
+  if (!userId) {
+    // Public access: only published products
+    return Promise.resolve(results.filter(p => p.status === 'Published'));
+  }
+
+  const globalReadRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.AUDITOR,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.RETAILER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
+    UserRoles.RECYCLER,
+  ];
+  const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
+
+  if (hasGlobalRead) {
+    return Promise.resolve(
+      results.sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      ),
+    );
+  }
+
+  // Company-specific access
+  return Promise.resolve(
+    results
+      .filter(p => p.companyId === user!.companyId)
+      .sort(
+        (a, b) =>
+          new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime(),
+      ),
+  );
 }
 
 export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const { getProductById: originalGetProductById } = await import('@/lib/data-actions');
-  return originalGetProductById(id, userId);
-}
+  const product = mockProducts.find(p => p.id === id);
+  if (!product) return undefined;
 
+  if (!userId) {
+    return product.status === 'Published' ? product : undefined;
+  }
+  const user = await getUserById(userId);
+  if (!user) return undefined;
+
+  const globalReadRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.AUDITOR,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.RECYCLER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
+    UserRoles.RETAILER,
+  ];
+
+  const hasGlobalReadAccess = globalReadRoles.some(role =>
+    hasRole(user, role),
+  );
+
+  if (hasGlobalReadAccess || user.companyId === product.companyId) {
+    return product;
+  }
+
+  return product.status === 'Published' ? product : undefined;
+}
 
 export async function saveProduct(
   values: ProductFormValues,
@@ -200,7 +288,6 @@ export async function saveProduct(
 
   return Promise.resolve(savedProduct);
 }
-
 
 export async function deleteProduct(
   productId: string,
@@ -311,7 +398,6 @@ export async function recalculateScore(
 
   return Promise.resolve();
 }
-
 
 export async function runDataValidationCheck(
   productId: string,
@@ -520,7 +606,6 @@ export async function generateAndSaveProductImage(
   return Promise.resolve(mockProducts[productIndex]);
 }
 
-
 export async function approvePassport(
   productId: string,
   userId: string,
@@ -650,7 +735,6 @@ export async function suggestImprovements(input: {
   return await suggestImprovementsFlow(input);
 }
 
-
 export async function addServiceRecord(
   productId: string,
   notes: string,
@@ -716,7 +800,6 @@ export async function generateAndSaveConformityDeclaration(
 
   return Promise.resolve();
 }
-
 
 export async function generateConformityDeclarationText(
   productId: string,
