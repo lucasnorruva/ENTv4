@@ -224,8 +224,9 @@ export default function GlobalTrackerPage() {
   );
 
   useEffect(() => {
+    // Use higher-resolution map data to fix visual gaps in countries.
     fetch(
-      'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson',
+      'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson',
     )
       .then(res => res.json())
       .then((geoJson: FeatureCollection<Geometry, CountryProperties>) => {
