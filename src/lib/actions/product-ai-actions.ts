@@ -257,49 +257,32 @@ export async function runComplianceCheck(
 
   setTimeout(async () => {
     try {
-      const company = await getCompanyById(product.companyId);
-      if (!company) throw new Error('Company not found');
+      const productToProcess = mockProducts[productIndex];
+      if (productToProcess) {
+        const complianceResult = await summarizeComplianceGaps({
+          product: productToProcess,
+          compliancePath: compliancePath,
+        });
 
-      const aiProductInput: AiProduct = {
-        productName: product.productName,
-        productDescription: product.productDescription,
-        category: product.category,
-        supplier: company.name,
-        materials: product.materials,
-        gtin: product.gtin,
-        manufacturing: product.manufacturing,
-        certifications: product.certifications,
-        packaging: product.packaging,
-        lifecycle: product.lifecycle,
-        battery: product.battery,
-        compliance: product.compliance,
-        verificationStatus: 'Not Submitted',
-        complianceSummary: '',
-      };
-
-      const complianceResult = await summarizeComplianceGaps({
-        product: aiProductInput,
-        compliancePath: compliancePath,
-      });
-
-      const currentIndex = mockProducts.findIndex(p => p.id === productId);
-      if (currentIndex !== -1) {
-        const currentSustainability =
-          mockProducts[currentIndex].sustainability;
-        mockProducts[currentIndex].sustainability = {
-          ...currentSustainability!,
-          isCompliant: complianceResult.isCompliant,
-          complianceSummary: complianceResult.complianceSummary,
-          gaps: complianceResult.gaps,
-        };
-        mockProducts[currentIndex].isProcessing = false;
-        mockProducts[currentIndex].lastUpdated = new Date().toISOString();
-        await logAuditEvent(
-          'product.compliance.checked',
-          productId,
-          { result: complianceResult },
-          userId,
-        );
+        const currentIndex = mockProducts.findIndex(p => p.id === productId);
+        if (currentIndex !== -1) {
+          const currentSustainability =
+            mockProducts[currentIndex].sustainability;
+          mockProducts[currentIndex].sustainability = {
+            ...currentSustainability!,
+            isCompliant: complianceResult.isCompliant,
+            complianceSummary: complianceResult.complianceSummary,
+            gaps: complianceResult.gaps,
+          };
+          mockProducts[currentIndex].isProcessing = false;
+          mockProducts[currentIndex].lastUpdated = new Date().toISOString();
+          await logAuditEvent(
+            'product.compliance.checked',
+            productId,
+            { result: complianceResult },
+            userId,
+          );
+        }
       }
     } catch (error) {
       const currentIndex = mockProducts.findIndex(p => p.id === productId);

@@ -1,21 +1,23 @@
 
-"use server";
+'use server';
 
 /**
  * @fileOverview An AI agent for summarizing compliance gaps in product data.
+ * This flow first uses deterministic logic to find compliance gaps, then uses
+ * an LLM to generate a human-readable summary of those gaps.
  *
  * - summarizeComplianceGaps - A function that analyzes a product against a compliance path.
  * - SummarizeComplianceGapsInput - The input type for the function.
  * - SummarizeComplianceGapsOutput - The return type for the function.
  */
 
-import { ai } from "@/ai/genkit";
-import { z } from "genkit";
-import type { CompliancePath } from "@/types";
-import { AiProductSchema } from "../schemas";
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
+import type { CompliancePath, Product, ComplianceGap } from '@/types';
+import { verifyProductAgainstPath } from '@/services/compliance';
 
 const SummarizeComplianceGapsInputSchema = z.object({
-  product: AiProductSchema,
+  product: z.custom<Product>(),
   compliancePath: z.custom<CompliancePath>(),
 });
 export type SummarizeComplianceGapsInput = z.infer<
@@ -25,26 +27,26 @@ export type SummarizeComplianceGapsInput = z.infer<
 const GapSchema = z.object({
   regulation: z
     .string()
-    .describe("The regulation or rule that has a compliance gap."),
-  issue: z.string().describe("A detailed description of the compliance gap."),
+    .describe('The regulation or rule that has a compliance gap.'),
+  issue: z.string().describe('A detailed description of the compliance gap.'),
 });
 
 const SummarizeComplianceGapsOutputSchema = z.object({
   isCompliant: z
     .boolean()
     .describe(
-      "A boolean indicating if the product is fully compliant with all rules. This should be false if any gaps are found.",
+      'A boolean indicating if the product is fully compliant with all rules. This should be false if any gaps are found.',
     ),
   complianceSummary: z
     .string()
     .describe(
-      "A concise, human-readable summary (2-4 sentences) explaining the overall compliance status. If non-compliant, briefly mention the number of gaps found.",
+      'A concise, human-readable summary (2-4 sentences) explaining the overall compliance status. If non-compliant, briefly mention the number of gaps found.',
     ),
   gaps: z
     .array(GapSchema)
     .optional()
     .describe(
-      "A structured list of specific compliance gaps found. If the product is compliant, this should be an empty array or omitted.",
+      'A structured list of specific compliance gaps found. If the product is compliant, this should be an empty array or omitted.',
     ),
 });
 
@@ -52,53 +54,76 @@ export type SummarizeComplianceGapsOutput = z.infer<
   typeof SummarizeComplianceGapsOutputSchema
 >;
 
+// The wrapper function signature remains the same.
 export async function summarizeComplianceGaps(
   input: SummarizeComplianceGapsInput,
 ): Promise<SummarizeComplianceGapsOutput> {
   return summarizeComplianceGapsFlow(input);
 }
 
+// The prompt input schema changes. It no longer needs the rules, but takes the pre-computed gaps.
+const PromptInputSchema = z.object({
+  productName: z.string(),
+  compliancePathName: z.string(),
+  isCompliant: z.boolean(),
+  gaps: z.array(GapSchema),
+});
+
 const prompt = ai.definePrompt({
-  name: "summarizeComplianceGapsPrompt",
-  input: { schema: SummarizeComplianceGapsInputSchema },
-  output: { schema: SummarizeComplianceGapsOutputSchema },
-  prompt: `SYSTEM: You are an expert EU regulatory compliance auditor AI. Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
-- Analyze the product's structured data against the given compliance rules.
-- Identify every rule that is not met by the product data. For example, if a rule bans a material, check if that material is in the materials list.
-- If data is insufficient to verify a rule, treat it as a gap.
-- Your summary should be neutral and factual.
+  name: 'summarizeComplianceGapsPrompt',
+  input: { schema: PromptInputSchema },
+  // The output is now just the summary string. The other fields are known deterministically.
+  output: { schema: z.object({ summary: z.string() }) },
+  prompt: `SYSTEM: You are an expert EU regulatory compliance auditor AI. Your task is to write a concise, human-readable summary (2-4 sentences) explaining the overall compliance status of a product.
+- If the product is compliant, state this clearly and positively.
+- If the product is not compliant, state this and briefly mention the number and type of gaps found.
+- Be neutral and factual. Do not add any text or explanation outside of the summary.
 
 USER_DATA:
 """
-Product Name: {{{product.productName}}}
-Category: {{{product.category}}}
-Compliance Path: {{{compliancePath.name}}}
-
-Materials:
-{{#each product.materials}}
-- Name: {{name}}
+Product Name: {{{productName}}}
+Compliance Path: {{{compliancePathName}}}
+Is Compliant: {{{isCompliant}}}
+{{#if gaps}}
+Compliance Gaps:
+{{#each gaps}}
+- {{regulation}}: {{issue}}
 {{/each}}
-
-Compliance Rules (JSON):
-\`\`\`json
-{{{JSONstringify compliancePath.rules}}}
-\`\`\`
+{{/if}}
 """
 `,
 });
 
 const summarizeComplianceGapsFlow = ai.defineFlow(
   {
-    name: "summarizeComplianceGapsFlow",
+    name: 'summarizeComplianceGapsFlow',
     inputSchema: SummarizeComplianceGapsInputSchema,
     outputSchema: SummarizeComplianceGapsOutputSchema,
   },
-  async (input) => {
+  async ({ product, compliancePath }) => {
+    // Step 1: Deterministically find compliance gaps.
+    const { isCompliant, gaps } = await verifyProductAgainstPath(
+      product,
+      compliancePath,
+    );
+
+    // Step 2: Use AI to generate a human-readable summary.
     const { output } = await prompt({
-      ...input,
-      // Helper to stringify JSON in Handlebars context
-      JSONstringify: (data: any) => JSON.stringify(data, null, 2),
+      productName: product.productName,
+      compliancePathName: compliancePath.name,
+      isCompliant,
+      gaps,
     });
-    return output!;
+
+    if (!output) {
+      throw new Error('AI failed to generate a compliance summary.');
+    }
+    
+    // Step 3: Combine deterministic results with AI summary.
+    return {
+      isCompliant,
+      gaps,
+      complianceSummary: output.summary,
+    };
   },
 );
