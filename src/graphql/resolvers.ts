@@ -32,7 +32,6 @@ export const resolvers = {
     createProduct: async (_: any, { input }: { input: ProductFormValues }) => {
       const user = await getContextUser();
       // The saveProduct action handles creation when no ID is passed.
-      // It also performs validation.
       return saveProduct(input, user.id);
     },
     updateProduct: async (

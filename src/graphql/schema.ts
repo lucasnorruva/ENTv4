@@ -2,18 +2,21 @@
 import { gql } from 'graphql-tag';
 
 export const typeDefs = gql`
+  # The basic query operations
   type Query {
     products: [Product!]
     product(id: ID!): Product
   }
 
+  # The basic mutation operations
   type Mutation {
     createProduct(input: ProductInput!): Product
     updateProduct(id: ID!, input: ProductInput!): Product
     deleteProduct(id: ID!): ID
   }
 
-  # INPUTS
+  # --- INPUTS --- #
+
   input ProductInput {
     productName: String!
     productDescription: String!
@@ -23,6 +26,7 @@ export const typeDefs = gql`
     gtin: String
     compliancePathId: String
     manualUrl: String
+    declarationOfConformity: String
     materials: [MaterialInput!]
     manufacturing: ManufacturingInput
     certifications: [CertificationInput!]
@@ -83,9 +87,14 @@ export const typeDefs = gql`
     ceMarked: Boolean
     foodContactSafe: Boolean
     foodContactComplianceStandard: String
+    weeeRegistered: Boolean
+    weeeRegistrationNumber: String
+    eudrCompliant: Boolean
+    eudrDiligenceId: String
   }
 
-  # OUTPUTS
+  # --- OUTPUTS --- #
+
   type Product {
     id: ID!
     productName: String!
@@ -166,6 +175,10 @@ export const typeDefs = gql`
     ceMarked: Boolean
     foodContactSafe: Boolean
     foodContactComplianceStandard: String
+    weeeRegistered: Boolean
+    weeeRegistrationNumber: String
+    eudrCompliant: Boolean
+    eudrDiligenceId: String
   }
 
   type ComplianceGap {
