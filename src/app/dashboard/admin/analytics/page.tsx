@@ -29,6 +29,7 @@ import {
   Wrench,
   Building2,
   Hourglass,
+  Globe,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -36,6 +37,7 @@ import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
 import type { AuditLog, Product } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
+import CustomsStatusChart from '@/components/charts/customs-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -48,6 +50,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.rejected': FileX,
   'compliance.resolved': ShieldX,
   'product.serviced': Wrench,
+  'customs.inspected': Globe,
   default: Clock,
 };
 
@@ -113,6 +116,13 @@ export default async function AnalyticsPage() {
     disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
   };
 
+  const customsData = {
+    cleared: products.filter(p => p.customs?.status === 'Cleared').length,
+    detained: products.filter(p => p.customs?.status === 'Detained').length,
+    rejected: products.filter(p => p.customs?.status === 'Rejected').length,
+  };
+  const totalInspections = customsData.cleared + customsData.detained + customsData.rejected;
+
   // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
@@ -144,7 +154,7 @@ export default async function AnalyticsPage() {
           An overview of platform activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -182,51 +192,17 @@ export default async function AnalyticsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Verified Passports
+              Total Inspections
             </CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+            <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{complianceData.verified}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully anchored
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Products Recycled
-            </CardTitle>
-            <Recycle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{eolData.recycled}</div>
-            <p className="text-xs text-muted-foreground">
-              Marked as end-of-life
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Audits Today</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                auditLogs.filter(
-                  log =>
-                    new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes('passport.'),
-                ).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">In the last 24h</p>
+            <div className="text-2xl font-bold">{totalInspections}</div>
+            <p className="text-xs text-muted-foreground">Customs events recorded</p>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
@@ -271,56 +247,67 @@ export default async function AnalyticsPage() {
             <EolStatusChart data={eolData} />
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Customs Status</CardTitle>
+            <CardDescription>
+              A breakdown of border inspection results.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CustomsStatusChart data={customsData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Platform Activity</CardTitle>
+            <CardDescription>
+              A stream of the latest actions across the system.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map(log => {
+                const Icon = actionIcons[log.action] || actionIcons.default;
+                const user = userMap.get(log.userId) || 'System';
+                const product = productMap.get(log.entityId) || log.entityId;
+                const actionLabel = getActionLabel(log.action);
+                return (
+                  <div key={log.id} className="flex items-center gap-4">
+                    <div className="p-2 bg-muted rounded-full">
+                      <Icon className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {actionLabel}{' '}
+                        <span className="font-normal text-muted-foreground">
+                          by {user}
+                        </span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Product: {product}
+                      </p>
+                    </div>
+                    <p
+                      className="text-xs text-muted-foreground shrink-0"
+                      suppressHydrationWarning
+                    >
+                      {formatDistanceToNow(new Date(log.createdAt), {
+                        addSuffix: true,
+                      })}
+                    </p>
+                  </div>
+                );
+              })}
+              {recentActivity.length === 0 && (
+                <p className="text-sm text-center text-muted-foreground py-4">
+                  No recent activity.
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Platform Activity</CardTitle>
-          <CardDescription>
-            A stream of the latest actions across the system.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map(log => {
-              const Icon = actionIcons[log.action] || actionIcons.default;
-              const user = userMap.get(log.userId) || 'System';
-              const product = productMap.get(log.entityId) || log.entityId;
-              const actionLabel = getActionLabel(log.action);
-              return (
-                <div key={log.id} className="flex items-center gap-4">
-                  <div className="p-2 bg-muted rounded-full">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {actionLabel}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        by {user}
-                      </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Product: {product}
-                    </p>
-                  </div>
-                  <p
-                    className="text-xs text-muted-foreground shrink-0"
-                    suppressHydrationWarning
-                  >
-                    {formatDistanceToNow(new Date(log.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                </div>
-              );
-            })}
-            {recentActivity.length === 0 && (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                No recent activity.
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
