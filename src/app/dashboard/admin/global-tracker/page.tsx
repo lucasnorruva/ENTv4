@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin/global-tracker/page.tsx
 'use client';
 
@@ -481,8 +480,8 @@ export default function GlobalTrackerPage() {
     [],
   );
 
-  const getPolygonLabel = useCallback((feat: CountryFeature) => {
-    const p = feat.properties;
+  const getPolygonLabel = useCallback((feat: object) => {
+    const p = (feat as CountryFeature).properties;
     const iso = p?.ADM0_A3 || p?.ISO_A3;
     const name = p?.ADMIN || p?.NAME_LONG || 'Country';
     const isEUCountry = isEU(iso);

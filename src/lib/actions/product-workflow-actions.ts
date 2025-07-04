@@ -200,32 +200,38 @@ export async function addServiceRecord(
 }
 
 export async function performCustomsInspection(
-    productId: string,
-    values: CustomsInspectionFormValues,
-    userId: string
-  ): Promise<Product> {
-    const user = await getUserById(userId);
-    if (!user) throw new PermissionError('User not found.');
-    checkPermission(user, 'product:customs_inspect');
-  
-    const validatedData = customsInspectionFormSchema.parse(values);
-  
-    const productIndex = mockProducts.findIndex(p => p.id === productId);
-    if (productIndex === -1) throw new Error('Product not found.');
-  
-    const now = new Date().toISOString();
-    const newCustomsStatus: CustomsStatus = {
-      ...validatedData,
-      date: now,
-    };
-  
-    mockProducts[productIndex].customs = newCustomsStatus;
-    mockProducts[productIndex].lastUpdated = now;
-  
-    await logAuditEvent('customs.inspected', productId, { ...newCustomsStatus }, userId);
-  
-    return Promise.resolve(mockProducts[productIndex]);
+  productId: string,
+  values: CustomsInspectionFormValues,
+  userId: string
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'product:customs_inspect');
+
+  const validatedData = customsInspectionFormSchema.parse(values);
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+  const product = mockProducts[productIndex];
+
+  const now = new Date().toISOString();
+  const newCustomsStatus: CustomsStatus = {
+    ...validatedData,
+    date: now,
+  };
+
+  const currentHistory = product.customs?.history || [];
+  if (product.customs && product.customs.date) {
+      currentHistory.push({ ...product.customs });
   }
+
+  mockProducts[productIndex].customs = { ...newCustomsStatus, history: currentHistory };
+  mockProducts[productIndex].lastUpdated = now;
+
+  await logAuditEvent('customs.inspected', productId, { ...newCustomsStatus }, userId);
+
+  return Promise.resolve(mockProducts[productIndex]);
+}
 
 // --- Bulk Actions ---
 
