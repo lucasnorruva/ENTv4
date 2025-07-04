@@ -51,6 +51,10 @@ import type {
   GenerateComplianceRulesInput,
   GenerateComplianceRulesOutput,
 } from "@/ai/flows/generate-compliance-rules";
+import type {
+  GenerateProductDescriptionInput,
+  GenerateProductDescriptionOutput,
+} from "@/ai/flows/generate-product-description";
 
 // Export Input types
 export type {
@@ -65,6 +69,7 @@ export type {
   GenerateProductImageInput,
   CreateProductFromImageInput,
   GenerateComplianceRulesInput,
+  GenerateProductDescriptionInput,
 };
 
 // Export Output types
@@ -81,4 +86,5 @@ export type {
   GenerateProductImageOutput,
   CreateProductFromImageOutput,
   GenerateComplianceRulesOutput,
+  GenerateProductDescriptionOutput,
 };

@@ -3,6 +3,7 @@
 
 import type { UseFormReturn } from 'react-hook-form';
 import Image from 'next/image';
+import { Sparkles, Loader2 } from 'lucide-react';
 
 import {
   FormControl,
@@ -12,6 +13,7 @@ import {
   FormMessage,
   FormDescription,
 } from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -31,6 +33,8 @@ interface GeneralTabProps {
   imagePreview: string | null;
   handleImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   uploadProgress: number;
+  handleGenerateDescription: () => void;
+  isGeneratingDescription: boolean;
 }
 
 export default function GeneralTab({
@@ -40,6 +44,8 @@ export default function GeneralTab({
   imagePreview,
   handleImageChange,
   uploadProgress,
+  handleGenerateDescription,
+  isGeneratingDescription,
 }: GeneralTabProps) {
   return (
     <div className="p-6 space-y-6">
@@ -81,7 +87,24 @@ export default function GeneralTab({
         name="productDescription"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Product Description</FormLabel>
+            <div className="flex items-center justify-between">
+              <FormLabel>Product Description</FormLabel>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleGenerateDescription}
+                disabled={isGeneratingDescription}
+                className="text-xs"
+              >
+                {isGeneratingDescription ? (
+                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-3 w-3" />
+                )}
+                Generate with AI
+              </Button>
+            </div>
             <FormControl>
               <Textarea placeholder="Describe the product..." {...field} />
             </FormControl>

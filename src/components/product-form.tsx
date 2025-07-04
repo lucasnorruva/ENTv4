@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, User, CompliancePath } from '@/types';
 import { saveProduct } from '@/lib/actions';
 import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
+import { generateProductDescription } from '@/ai/flows/generate-product-description';
 import { useToast } from '@/hooks/use-toast';
 import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
@@ -59,6 +60,7 @@ export default function ProductForm({
 }: ProductFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
   const [isSuggesting, startSuggestionTransition] = useTransition();
+  const [isGeneratingDescription, startDescriptionGeneration] = useTransition();
   const [recommendations, setRecommendations] =
     useState<SuggestImprovementsOutput | null>(null);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
@@ -265,6 +267,42 @@ export default function ProductForm({
     });
   };
 
+  const handleGenerateDescription = () => {
+    const { productName, category, materials } = form.getValues();
+    if (!productName || !category) {
+      toast({
+        title: 'Missing Information',
+        description:
+          'Please provide a Product Name and Category before generating a description.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    startDescriptionGeneration(async () => {
+      try {
+        const result = await generateProductDescription({
+          productName,
+          category,
+          materials: materials || [],
+        });
+        form.setValue('productDescription', result.productDescription, {
+          shouldValidate: true,
+        });
+        toast({
+          title: 'Description Generated',
+          description: 'The AI-powered description has been added.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate description.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   return (
     <>
       <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -303,6 +341,8 @@ export default function ProductForm({
                       imagePreview={imagePreview}
                       handleImageChange={handleImageChange}
                       uploadProgress={uploadProgress}
+                      handleGenerateDescription={handleGenerateDescription}
+                      isGeneratingDescription={isGeneratingDescription}
                     />
                   </TabsContent>
 
