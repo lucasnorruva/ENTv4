@@ -1,6 +1,7 @@
 // src/lib/dppDisplayUtils.tsx
 import React from 'react';
 import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { cn } from './utils';
 
 export function getStatusIcon(status: string | undefined) {
   switch (status) {

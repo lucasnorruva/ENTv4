@@ -112,7 +112,11 @@ export default function SelectedProductCustomsInfoCard({
     .replace(/_/g, ' ')
     .replace(/\b\w/g, char => char.toUpperCase());
   
-  const eventHistory = [...(customs?.history || []), customs].filter(Boolean).sort((a,b) => new Date(a!.date).getTime() - new Date(b!.date).getTime())
+  const eventHistory = [...(customs?.history || [])];
+  if (customs) {
+    eventHistory.push(customs);
+  }
+  eventHistory.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
   return (
     <Card className="absolute bottom-4 left-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm flex flex-col max-h-[calc(100vh-8rem)]">
