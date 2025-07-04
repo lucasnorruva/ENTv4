@@ -20,6 +20,8 @@ import { checkPermission, PermissionError } from '@/lib/permissions';
 import { getProductById, getCompliancePathById } from '@/lib/actions/index';
 import { logAuditEvent } from './audit-actions';
 import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
+import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
+
 
 // --- AI Processing ---
 
@@ -443,3 +445,11 @@ export async function askQuestionAboutProduct(
   const result = await askQuestionAboutProductFlow(productId, question);
   return result;
 }
+
+export async function generateProductDescription(input: {
+    productName: string;
+    category: string;
+    materials: { name: string }[];
+  }) {
+    return generateProductDescriptionFlow(input);
+  }
