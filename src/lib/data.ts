@@ -265,11 +265,11 @@ export let products: Product[] = [
     ],
     manufacturing: { facility: 'Aero Plant 1', country: 'USA' },
     transit: {
-        stage: 'Awaiting Customs Clearance',
+        stage: 'Awaiting Customs Clearance (Antwerp, BE)',
         eta: '2024-08-01',
         transport: 'Ship',
         origin: 'Ho Chi Minh City, Vietnam',
-        destination: 'Antwerp, Belgium',
+        destination: 'Lyon, France',
     },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
