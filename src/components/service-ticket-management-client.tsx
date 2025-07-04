@@ -63,7 +63,7 @@ import {
   getServiceTickets,
   updateServiceTicketStatus,
   getProducts,
-  getProductionLines
+  getProductionLines,
 } from '@/lib/actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { hasRole } from '@/lib/auth-utils';
