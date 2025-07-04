@@ -15,6 +15,7 @@ import {
   Factory,
   Box,
 } from 'lucide-react';
+import Link from 'next/link';
 import {
     ColumnDef,
     SortingState,
@@ -93,9 +94,13 @@ export default function ServiceTicketManagementClient({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     {},
   );
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const canManage =
-    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SERVICE_PROVIDER);
+    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SERVICE_PROVIDER) || hasRole(user, UserRoles.MANUFACTURER);
+  
+  const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
+
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -194,10 +199,12 @@ export default function ServiceTicketManagementClient({
         cell: ({ row }) => {
             const ticket = row.original;
             if (ticket.productionLineId) {
-                return <div className="flex items-center gap-2"><Factory className="h-4 w-4 text-muted-foreground" /> {lineMap.get(ticket.productionLineId) || 'Unknown Line'}</div>
+                const lineName = lineMap.get(ticket.productionLineId) || 'Unknown Line';
+                return <Link href={`/dashboard/${roleSlug}/lines/${ticket.productionLineId}`} className="flex items-center gap-2 hover:underline"><Factory className="h-4 w-4 text-muted-foreground" /> {lineName}</Link>
             }
             if (ticket.productId) {
-                return <div className="flex items-center gap-2"><Box className="h-4 w-4 text-muted-foreground" /> {productMap.get(ticket.productId) || 'Unknown Product'}</div>
+                const productName = productMap.get(ticket.productId) || 'Unknown Product';
+                return <Link href={`/dashboard/${roleSlug}/products/${ticket.productId}`} className="flex items-center gap-2 hover:underline"><Box className="h-4 w-4 text-muted-foreground" /> {productName}</Link>
             }
             return 'N/A';
         },
@@ -264,8 +271,7 @@ export default function ServiceTicketManagementClient({
           ]
         : []),
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending, productMap, lineMap, canManage],
+    [isPending, productMap, lineMap, canManage, roleSlug],
   );
 
   const table = useReactTable({
@@ -278,10 +284,28 @@ export default function ServiceTicketManagementClient({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      globalFilter,
+    },
+    globalFilterFn: (row, columnId, filterValue) => {
+        const search = filterValue.toLowerCase();
+        
+        const ticket = row.original;
+        const requesterMatch = ticket.customerName.toLowerCase().includes(search);
+        const issueMatch = ticket.issue.toLowerCase().includes(search);
+  
+        const entityName = ticket.productId
+          ? productMap.get(ticket.productId)
+          : ticket.productionLineId
+          ? lineMap.get(ticket.productionLineId)
+          : '';
+        const entityMatch = entityName?.toLowerCase().includes(search) ?? false;
+  
+        return requesterMatch || issueMatch || entityMatch;
     },
   });
 
@@ -307,14 +331,9 @@ export default function ServiceTicketManagementClient({
         <CardContent>
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter by customer or issue..."
-              value={
-                (table.getColumn('customerName')?.getFilterValue() as string) ?? ''
-              }
-              onChange={event => {
-                table.getColumn('customerName')?.setFilterValue(event.target.value);
-                table.getColumn('issue')?.setFilterValue(event.target.value);
-              }}
+              placeholder="Filter by requester, issue, or entity..."
+              value={globalFilter}
+              onChange={event => setGlobalFilter(event.target.value)}
               className="max-w-sm"
             />
             <DropdownMenu>

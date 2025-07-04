@@ -100,6 +100,16 @@ export default function ServiceTicketForm({
       }
     }
   }, [ticket, isOpen, form]);
+  
+  const handleTicketTypeChange = (value: TicketType) => {
+    setTicketType(value);
+    if (value === 'product') {
+      form.setValue('productionLineId', '');
+    } else {
+      form.setValue('productId', '');
+    }
+  };
+
 
   const onSubmit = (values: ServiceTicketFormValues) => {
     startSavingTransition(async () => {
@@ -146,7 +156,7 @@ export default function ServiceTicketForm({
               <FormLabel>Ticket Type</FormLabel>
               <RadioGroup
                 value={ticketType}
-                onValueChange={(value: TicketType) => setTicketType(value)}
+                onValueChange={handleTicketTypeChange}
                 className="flex gap-4"
               >
                 <FormItem className="flex items-center space-x-2 space-y-0">
