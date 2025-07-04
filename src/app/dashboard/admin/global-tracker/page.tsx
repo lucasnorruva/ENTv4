@@ -14,6 +14,7 @@ import type { GlobeMethods } from 'react-globe.gl';
 import type { Feature as GeoJsonFeature, GeoJsonProperties } from 'geojson';
 import { MeshPhongMaterial } from 'three';
 import { Loader2, Info, X } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -98,6 +99,7 @@ export default function GlobalTrackerPage() {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme } = useTheme();
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [landPolygons, setLandPolygons] = useState<CountryFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
@@ -158,7 +160,6 @@ export default function GlobalTrackerPage() {
         'South Korea': { lat: 35.9078, lng: 127.7669 },
         Brazil: { lat: -14.235, lng: -51.9253 },
         Austria: { lat: 47.5162, lng: 14.5501 },
-        // Cities - Standardized
         Shanghai: { lat: 31.2304, lng: 121.4737 },
         Mumbai: { lat: 19.076, lng: 72.8777 },
         Shenzhen: { lat: 22.5431, lng: 114.0579 },
@@ -314,7 +315,7 @@ export default function GlobalTrackerPage() {
           startLng: originCoords.lng,
           endLat: destinationCoords.lat,
           endLng: destinationCoords.lng,
-          color: '#3B82F6',
+          color: theme === 'dark' ? '#60A5FA' : '#3B82F6',
           label: `${selectedProduct.productName} Transit`,
         });
       }
@@ -353,7 +354,7 @@ export default function GlobalTrackerPage() {
                     startLng: supplierCoords.lng,
                     endLat: manufacturerCoords.lat,
                     endLng: manufacturerCoords.lng,
-                    color: '#F59E0B',
+                    color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
                     label: `Supply from ${supplierCountry}`,
                   });
                 }
@@ -396,7 +397,7 @@ export default function GlobalTrackerPage() {
         setArcsData(allArcs);
         setHighlightedCountries(Array.from(allHighlightedCountries));
       });
-  }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString]);
+  }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString, theme]);
 
   const isEU = useCallback(
     (isoA3: string | undefined) =>
@@ -433,15 +434,13 @@ export default function GlobalTrackerPage() {
     selectedProduct,
   ]);
 
-  const globeMaterial = useMemo(
-    () =>
-      new MeshPhongMaterial({
-        color: '#a9d5e5',
-        transparent: true,
-        opacity: 1,
-      }),
-    [],
-  );
+  const globeMaterial = useMemo(() => {
+    return new MeshPhongMaterial({
+      color: theme === 'dark' ? '#0a192f' : '#a9d5e5',
+      transparent: true,
+      opacity: 1,
+    });
+  }, [theme]);
 
   useEffect(() => {
     if (globeEl.current && globeReady) {
@@ -463,24 +462,34 @@ export default function GlobalTrackerPage() {
       const properties = (feat as CountryFeature).properties;
       const iso = properties?.ADM0_A3 || properties?.ISO_A3;
       const name = properties?.ADMIN || properties?.NAME_LONG || '';
+      const isDark = theme === 'dark';
 
       if (
         clickedCountryInfo &&
         (clickedCountryInfo.ADM0_A3 === iso || clickedCountryInfo.ADMIN === name)
       )
-        return '#ff4500';
+        return isDark ? '#ff6347' : '#ff4500';
 
       if (
         highlightedCountries.some(hc =>
           name.toLowerCase().includes(hc.toLowerCase()),
         )
       ) {
-        return isEU(iso) ? '#FFBF00' : '#f97316';
+        return isDark ? '#FBBF24' : '#F59E0B';
       }
-      return isEU(iso) ? '#002D62' : '#CCCCCC';
+
+      if (isEU(iso)) {
+        return isDark ? '#3B82F6' : '#002D62';
+      }
+
+      return isDark ? '#4A5568' : '#FFFFFF';
     },
-    [isEU, highlightedCountries, clickedCountryInfo],
+    [theme, isEU, highlightedCountries, clickedCountryInfo],
   );
+
+  const getPolygonStrokeColor = useCallback(() => {
+    return theme === 'dark' ? '#A0AEC0' : '#111111';
+  }, [theme]);
 
   const getPolygonAltitude = useCallback(() => 0.01, []);
 
@@ -583,8 +592,7 @@ export default function GlobalTrackerPage() {
           {typeof window !== 'undefined' && (
             <Globe
               ref={globeEl}
-              globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-              backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
+              globeMaterial={globeMaterial}
               arcsData={arcsData}
               arcColor={'color'}
               arcDashLength={0.4}
@@ -597,8 +605,8 @@ export default function GlobalTrackerPage() {
               polygonCapColor={feat =>
                 getPolygonCapColor(feat as CountryFeature)
               }
-              polygonSideColor={() => 'rgba(0, 100, 0, 0.15)'}
-              polygonStrokeColor={() => '#111'}
+              polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+              polygonStrokeColor={getPolygonStrokeColor}
               polygonAltitude={feat =>
                 getPolygonAltitude(feat as CountryFeature)
               }
@@ -701,9 +709,9 @@ export default function GlobalTrackerPage() {
           {selectedProduct &&
             highlightedCountries.length > 0 &&
             `Highlighted: Amber/Orange.`}{' '}
-          {arcsData.some(a => a.color === '#3B82F6') &&
+          {arcsData.some(a => a.color.includes('3B82F6') || a.color.includes('60A5FA')) &&
             `Transit Arc: Blue.`}{' '}
-          {arcsData.some(a => a.color === '#F59E0B') &&
+          {arcsData.some(a => a.color.includes('F59E0B') || a.color.includes('FBBF24')) &&
             `Supply Arc(s): Orange.`}
         </div>
       </CardContent>
