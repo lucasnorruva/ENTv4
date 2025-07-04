@@ -9,12 +9,13 @@ import {
   onboardingFormSchema,
   type OnboardingFormValues,
 } from '@/lib/schemas';
-import { getUserById } from '@/lib/auth';
+import { getUserById, getUserByEmail } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
 import { companies as mockCompanies } from '@/lib/company-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
+import { adminAuth } from '@/lib/firebase-admin';
 
 export async function saveUser(
   values: UserFormValues,
@@ -209,3 +210,20 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
     user.readNotificationIds = mockAuditLogs.map(log => log.id);
     return Promise.resolve();
   }
+
+export async function signInWithMockUser(email: string, pass: string) {
+    if (pass !== 'password123') {
+        return { success: false, error: "Invalid credentials" };
+    }
+    const user = await getUserByEmail(email);
+    if (user) {
+        try {
+        const customToken = await adminAuth.createCustomToken(user.id);
+        return { success: true, token: customToken };
+        } catch (error: any) {
+        console.error("Error creating custom token:", error);
+        return { success: false, error: error.message };
+        }
+    }
+    return { success: false, error: "User not found" };
+}
