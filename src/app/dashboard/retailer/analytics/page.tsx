@@ -1,7 +1,7 @@
 // src/app/dashboard/retailer/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, getCompanies, hasRole } from '@/lib/auth';
-import { getProducts, getAuditLogs } from '@/lib/actions';
+import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getProducts } from '@/lib/actions';
 import { UserRoles } from '@/lib/constants';
 import {
   Card,
@@ -10,67 +10,52 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import {
-  Activity,
-  BookCopy,
-  ShieldCheck,
-  Users,
-  Clock,
-  Edit,
-  FilePlus,
-  FileUp,
-  Trash2,
-  CheckCircle,
-  FileX,
-  Calculator,
-  Recycle,
-  ShieldX,
-  Building2,
-} from 'lucide-react';
+import { Package, ShieldCheck, Award, TrendingUp } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
-import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
-import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
-import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
-import EolStatusChart from '@/components/charts/eol-status-chart';
+import SustainabilityByCategoryChart from '@/components/charts/sustainability-by-category-chart';
+import EsgBySupplierChart from '@/components/charts/esg-by-supplier-chart';
+import type { Product } from '@/types';
 
-const actionIcons: Record<string, React.ElementType> = {
-  'product.created': FilePlus,
-  'product.updated': Edit,
-  'product.deleted': Trash2,
-  'product.recycled': Recycle,
-  'product.recalculate_score': Calculator,
-  'passport.submitted': FileUp,
-  'passport.approved': CheckCircle,
-  'passport.rejected': FileX,
-  'compliance.resolved': ShieldX,
-  default: Clock,
-};
-
-const getActionLabel = (action: string): string => {
-  return action
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
-// Helper to generate mock compliance rate data
-const generateComplianceRateData = (products: Product[]) => {
-  const data: { date: string; rate: number }[] = [];
-  const sortedProducts = products.sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
-
-  let verifiedCount = 0;
-  sortedProducts.forEach((p, index) => {
-    if (p.verificationStatus === 'Verified') {
-      verifiedCount++;
+// Helper function to aggregate ESG scores by category
+const aggregateScoresByCategory = (products: Product[]) => {
+  const categoryScores: Record<string, { totalScore: number; count: number }> =
+    {};
+  products.forEach(product => {
+    if (product.sustainability?.score !== undefined) {
+      if (!categoryScores[product.category]) {
+        categoryScores[product.category] = { totalScore: 0, count: 0 };
+      }
+      categoryScores[product.category].totalScore +=
+        product.sustainability.score;
+      categoryScores[product.category].count++;
     }
-    const rate = Math.round((verifiedCount / (index + 1)) * 100);
-    data.push({ date: format(new Date(p.createdAt), 'yyyy-MM-dd'), rate });
   });
+  return Object.entries(categoryScores).map(([category, data]) => ({
+    category,
+    averageScore:
+      data.count > 0 ? Math.round(data.totalScore / data.count) : 0,
+  }));
+};
 
-  return data;
+// Helper function to aggregate ESG scores by supplier
+const aggregateScoresBySupplier = (products: Product[]) => {
+  const supplierScores: Record<string, { totalScore: number; count: number }> =
+    {};
+  products.forEach(product => {
+    if (product.sustainability?.score !== undefined) {
+      if (!supplierScores[product.supplier]) {
+        supplierScores[product.supplier] = { totalScore: 0, count: 0 };
+      }
+      supplierScores[product.supplier].totalScore +=
+        product.sustainability.score;
+      supplierScores[product.supplier].count++;
+    }
+  });
+  return Object.entries(supplierScores).map(([supplier, data]) => ({
+    supplier,
+    averageScore:
+      data.count > 0 ? Math.round(data.totalScore / data.count) : 0,
+  }));
 };
 
 export default async function RetailerAnalyticsPage() {
@@ -80,225 +65,155 @@ export default async function RetailerAnalyticsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, users, auditLogs, companies] = await Promise.all([
-    getProducts(user.id),
-    getUsers(),
-    getAuditLogs(),
-    getCompanies(),
-  ]);
-
-  const complianceData = {
-    verified: products.filter(p => p.verificationStatus === 'Verified').length,
-    pending: products.filter(p => p.verificationStatus === 'Pending').length,
-    failed: products.filter(p => p.verificationStatus === 'Failed').length,
-  };
-
-  const eolData = {
-    active: products.filter(
-      p => p.endOfLifeStatus === 'Active' || !p.endOfLifeStatus,
-    ).length,
-    recycled: products.filter(p => p.endOfLifeStatus === 'Recycled').length,
-    disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
-  };
-
-  // Group products by creation date for the time-series chart
-  const productsByDate = products.reduce(
-    (acc, product) => {
-      const date = format(new Date(product.createdAt), 'yyyy-MM-dd');
-      if (!acc[date]) {
-        acc[date] = 0;
-      }
-      acc[date]++;
-      return acc;
-    },
-    {} as Record<string, number>,
+  const products = await getProducts(user.id);
+  const publishedProducts = products.filter(p => p.status === 'Published');
+  const scoredProducts = publishedProducts.filter(
+    p => p.sustainability?.score !== undefined,
   );
 
-  const productsOverTimeData = Object.entries(productsByDate)
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const stats = {
+    totalProducts: publishedProducts.length,
+    complianceRate:
+      publishedProducts.length > 0
+        ? Math.round(
+            (publishedProducts.filter(p => p.verificationStatus === 'Verified')
+              .length /
+              publishedProducts.length) *
+              100,
+          )
+        : 0,
+    averageEsg:
+      scoredProducts.length > 0
+        ? Math.round(
+            scoredProducts.reduce(
+              (sum, p) => sum + p.sustainability!.score,
+              0,
+            ) / scoredProducts.length,
+          )
+        : 0,
+  };
 
-  const complianceRateData = generateComplianceRateData(products);
+  const complianceData = {
+    verified: publishedProducts.filter(p => p.verificationStatus === 'Verified')
+      .length,
+    pending: publishedProducts.filter(p => p.verificationStatus === 'Pending')
+      .length,
+    failed: publishedProducts.filter(p => p.verificationStatus === 'Failed')
+      .length,
+  };
 
-  const recentActivity = auditLogs.slice(0, 5);
-  const productMap = new Map(products.map(p => [p.id, p.productName]));
-  const userMap = new Map(users.map(u => [u.id, u.fullName]));
+  const sustainabilityByCategoryData =
+    aggregateScoresByCategory(scoredProducts);
+  const esgBySupplierData = aggregateScoresBySupplier(scoredProducts).sort(
+    (a, b) => b.averageScore - a.averageScore,
+  );
+
+  const topSupplier = esgBySupplierData.length > 0 ? esgBySupplierData[0] : null;
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Market Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Supplier & Product Analytics
+        </h1>
         <p className="text-muted-foreground">
-          An overview of product and compliance trends across the platform.
+          Analyze product trends to inform your purchasing and retail strategy.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Available Products
+              Available Products
             </CardTitle>
-            <BookCopy className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground">
-              Across all suppliers
+              Published passports in the catalog
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Suppliers
-            </CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{companies.length}</div>
-            <p className="text-xs text-muted-foreground">On the platform</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Verified Passports
+              Compliance Rate
             </CardTitle>
             <ShieldCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{complianceData.verified}</div>
+            <div className="text-2xl font-bold">{stats.complianceRate}%</div>
             <p className="text-xs text-muted-foreground">
-              Trusted and anchored products
+              Of all published products are verified
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Products Recycled
+              Average ESG Score
             </CardTitle>
-            <Recycle className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{eolData.recycled}</div>
+            <div className="text-2xl font-bold">{stats.averageEsg} / 100</div>
             <p className="text-xs text-muted-foreground">
-              Marked as end-of-life
+              Across all scored products
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Audits</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Top Supplier</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                auditLogs.filter(
-                  log =>
-                    new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes('passport.'),
-                ).length
-              }
+            <div className="text-2xl font-bold truncate">
+              {topSupplier ? topSupplier.supplier : 'N/A'}
             </div>
-            <p className="text-xs text-muted-foreground">In the last 24h</p>
+            <p className="text-xs text-muted-foreground">
+              {topSupplier
+                ? `Avg. ESG Score: ${topSupplier.averageScore}`
+                : 'No scored suppliers'}
+            </p>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Products Created Over Time</CardTitle>
+            <CardTitle>Average ESG Score by Supplier</CardTitle>
             <CardDescription>
-              A view of new passports being created on the platform.
+              Compare the sustainability performance of different suppliers.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductsOverTimeChart data={productsOverTimeData} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Compliance Rate Over Time</CardTitle>
-            <CardDescription>
-              The percentage of total products that are verified.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ComplianceRateChart data={complianceRateData} />
+            <EsgBySupplierChart data={esgBySupplierData.slice(0, 10)} />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
             <CardDescription>
-              A snapshot of the current verification status across all products.
+              A breakdown of verification status for all available products.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ComplianceOverviewChart data={complianceData} />
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>End-of-Life Status</CardTitle>
-            <CardDescription>
-              A breakdown of the lifecycle status of all products.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EolStatusChart data={eolData} />
-          </CardContent>
-        </Card>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Recent Platform Activity</CardTitle>
+          <CardTitle>Average ESG Score by Category</CardTitle>
           <CardDescription>
-            A stream of the latest actions across the system.
+            Identify which product categories have the strongest sustainability
+            profiles.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map(log => {
-              const Icon = actionIcons[log.action] || actionIcons.default;
-              const user = userMap.get(log.userId) || 'System';
-              const product = productMap.get(log.entityId) || log.entityId;
-              const actionLabel = getActionLabel(log.action);
-              return (
-                <div key={log.id} className="flex items-center gap-4">
-                  <div className="p-2 bg-muted rounded-full">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {actionLabel}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        by {user}
-                      </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Product: {product}
-                    </p>
-                  </div>
-                  <p
-                    className="text-xs text-muted-foreground shrink-0"
-                    suppressHydrationWarning
-                  >
-                    {formatDistanceToNow(new Date(log.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                </div>
-              );
-            })}
-            {recentActivity.length === 0 && (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                No recent activity.
-              </p>
-            )}
-          </div>
+          <SustainabilityByCategoryChart data={sustainabilityByCategoryData} />
         </CardContent>
       </Card>
     </div>
