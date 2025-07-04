@@ -215,20 +215,23 @@ export async function performCustomsInspection(
   const product = mockProducts[productIndex];
 
   const now = new Date().toISOString();
-  const newCustomsStatus: Omit<CustomsStatus, 'history'> = {
+  const newCustomsEvent: Omit<CustomsStatus, 'history'> = {
     ...validatedData,
     date: now,
   };
 
   const currentHistory = product.customs?.history || [];
   if (product.customs && product.customs.date) {
-      currentHistory.push({ ...product.customs, history: undefined });
+    // Add the previous 'latest' event to the history log.
+    const previousEvent = { ...product.customs, history: undefined };
+    currentHistory.push(previousEvent);
   }
 
-  mockProducts[productIndex].customs = { ...newCustomsStatus, history: currentHistory };
+  // Set the new event as the latest status
+  mockProducts[productIndex].customs = { ...newCustomsEvent, history: currentHistory };
   mockProducts[productIndex].lastUpdated = now;
 
-  await logAuditEvent('customs.inspected', productId, { ...newCustomsStatus }, userId);
+  await logAuditEvent('customs.inspected', productId, { ...newCustomsEvent }, userId);
 
   return Promise.resolve(mockProducts[productIndex]);
 }

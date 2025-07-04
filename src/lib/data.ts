@@ -249,7 +249,7 @@ export let products: Product[] = [
       gaps: [
         {
           regulation: 'EU Leather Goods Standard',
-          issue: 'Contains banned substance: Lead-based dye',
+          issue: 'Contains banned material: Lead-based dye',
         },
       ],
     },

@@ -116,7 +116,7 @@ export default function SelectedProductCustomsInfoCard({
   if (customs) {
     // Make sure not to add the same event twice
     if (!customs.history?.find(h => h.date === customs.date && h.status === customs.status)) {
-        eventHistory.push(customs);
+        eventHistory.push({ ...customs, history: undefined });
     }
   }
   eventHistory.sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())

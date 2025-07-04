@@ -136,23 +136,24 @@ export default function GlobalTrackerClient({
 
   const [pointsData, setPointsData] = useState<PointData[]>([]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
   const [globeSize, setGlobeSize] = useState({ width: 0, height: 0 });
-  const globeContainerRef = useCallback((node: HTMLDivElement) => {
-    if (node !== null) {
-      const observer = new ResizeObserver(() => {
-        const { width, height } = node.getBoundingClientRect();
-        if(width > 0 && height > 0) {
-            setGlobeSize({ width, height });
-        }
-      });
-      observer.observe(node);
-      const { width, height } = node.getBoundingClientRect();
-      if(width > 0 && height > 0) {
+
+  const updateGlobeSize = useCallback(() => {
+    if (containerRef.current) {
+      const { width, height } = containerRef.current.getBoundingClientRect();
+      if (width > 0 && height > 0) {
         setGlobeSize({ width, height });
       }
-      return () => observer.disconnect();
     }
   }, []);
+
+  useEffect(() => {
+    updateGlobeSize();
+    window.addEventListener('resize', updateGlobeSize);
+    return () => window.removeEventListener('resize', updateGlobeSize);
+  }, [updateGlobeSize]);
+
 
   const mockCountryCoordinates: { [key: string]: { lat: number; lng: number } } =
     useMemo(
@@ -494,7 +495,7 @@ export default function GlobalTrackerClient({
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#cbd5e1'; // slate-700 / slate-300
+      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0'; // slate-700 / slate-200
       const iso = feat.properties.ADM0_A3 || feat.properties.ISO_A3;
       const name = feat.properties.ADMIN || feat.properties.NAME_LONG || '';
       const isDark = theme === 'dark';
@@ -584,7 +585,7 @@ export default function GlobalTrackerClient({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 h-[80vh] flex flex-col">
+      <Card className="lg:col-span-2 h-[80vh] flex flex-col">
           <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
@@ -627,7 +628,7 @@ export default function GlobalTrackerClient({
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 p-0 relative" ref={globeContainerRef}>
+        <CardContent className="flex-1 p-0 relative" ref={containerRef}>
             {globeSize.width > 0 && typeof window !== 'undefined' ? (
               <>
                 <Globe
