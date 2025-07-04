@@ -156,8 +156,8 @@ export default async function SupplierDashboard({ user }: { user: User }) {
                       </Badge>
                     </div>
                     <Button asChild variant="outline" size="sm">
-                      <Link href="/dashboard/supplier/products">
-                        View <ArrowRight className="ml-2 h-4 w-4" />
+                      <Link href={`/dashboard/supplier/products/${product.id}`}>
+                        View
                       </Link>
                     </Button>
                   </div>

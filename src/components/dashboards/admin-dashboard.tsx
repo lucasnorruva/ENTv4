@@ -9,7 +9,6 @@ import {
 } from '@/components/ui/card';
 import type { AuditLog, Company, Product, User, Webhook } from '@/types';
 import {
-  getCompliancePaths,
   getProducts,
   getAuditLogs,
   getServiceTickets,
@@ -18,7 +17,6 @@ import {
 import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
 import {
-  FileQuestion,
   Users,
   ArrowRight,
   BookCopy,
@@ -40,6 +38,8 @@ import {
   Ticket,
   UserPlus,
   Webhook as WebhookIcon,
+  KeyRound,
+  History,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
@@ -63,7 +63,10 @@ const actionIcons: Record<string, React.ElementType> = {
   'webhook.delivery.success': CheckCircle,
   'webhook.delivery.failure': ShieldX,
   'ticket.created': Ticket,
-  'api_key.created': Cog,
+  'api_key.created': KeyRound,
+  'system.sync.reference_data': Cog,
+  'cron.start': Clock,
+  'cron.end': History,
   default: Clock,
 };
 
@@ -115,7 +118,6 @@ const getLogDescription = (log: AuditLog, maps: EntityMaps): string => {
 export default async function AdminDashboard({ user }: { user: User }) {
   const [
     allUsers,
-    allCompliancePaths,
     allProducts,
     auditLogs,
     allCompanies,
@@ -123,7 +125,6 @@ export default async function AdminDashboard({ user }: { user: User }) {
     webhooks,
   ] = await Promise.all([
     getUsers(),
-    getCompliancePaths(),
     getProducts(),
     getAuditLogs(),
     getCompanies(),
