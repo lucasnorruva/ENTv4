@@ -588,10 +588,11 @@ export default function GlobalTrackerPage() {
         </div>
       </CardHeader>
       <CardContent className="flex-1 p-0 relative">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-muted">
           {typeof window !== 'undefined' && (
             <Globe
               ref={globeEl}
+              backgroundColor="rgba(0,0,0,0)"
               globeMaterial={globeMaterial}
               arcsData={arcsData}
               arcColor={'color'}
@@ -608,7 +609,7 @@ export default function GlobalTrackerPage() {
               polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
               polygonStrokeColor={getPolygonStrokeColor}
               polygonAltitude={feat =>
-                getPolygonAltitude(feat as CountryFeature)
+                getPolygonAltitude()
               }
               onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
               polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
