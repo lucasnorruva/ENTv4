@@ -105,6 +105,13 @@ export const companyFormSchema = z.object({
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
+export const companySettingsSchema = z.object({
+  aiEnabled: z.boolean().optional(),
+  apiAccess: z.boolean().optional(),
+  brandingCustomization: z.boolean().optional(),
+});
+export type CompanySettingsFormValues = z.infer<typeof companySettingsSchema>;
+
 export const compliancePathFormSchema = z.object({
   name: z.string().min(3, 'Path name is required.'),
   description: z.string().min(10, 'Description is required.'),

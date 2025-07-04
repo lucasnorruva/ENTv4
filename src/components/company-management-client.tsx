@@ -11,7 +11,9 @@ import {
   Building2,
   ArrowUpDown,
   ChevronDown,
+  Cog,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
   SortingState,
@@ -48,6 +50,7 @@ import {
   DropdownMenuItem,
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -81,6 +84,7 @@ export default function CompanyManagementClient({
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
@@ -208,6 +212,17 @@ export default function CompanyManagementClient({
                     <Edit className="mr-2 h-4 w-4" />
                     Edit Company
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      router.push(
+                        `/dashboard/admin/companies/${company.id}/settings`,
+                      )
+                    }
+                  >
+                    <Cog className="mr-2 h-4 w-4" />
+                    Manage Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem
@@ -245,6 +260,7 @@ export default function CompanyManagementClient({
         },
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isPending, adminUser.id],
   );
 

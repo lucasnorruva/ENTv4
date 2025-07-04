@@ -11,6 +11,11 @@ export let companies: Company[] = [
     industry: 'Electronics',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: false,
+    },
   },
   {
     id: 'comp-thread',
@@ -19,6 +24,11 @@ export let companies: Company[] = [
     industry: 'Fashion',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: false,
+      brandingCustomization: true,
+    },
   },
   {
     id: 'comp-norruva',
@@ -27,5 +37,10 @@ export let companies: Company[] = [
     industry: 'Technology',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: true,
+    },
   },
 ];

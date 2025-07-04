@@ -2,7 +2,12 @@
 'use server';
 
 import type { Company } from '@/types';
-import { companyFormSchema, type CompanyFormValues } from '../schemas';
+import {
+  companyFormSchema,
+  type CompanyFormValues,
+  companySettingsSchema,
+  type CompanySettingsFormValues,
+} from '../schemas';
 import { companies as mockCompanies } from '../company-data';
 import { getUserById } from '../auth';
 import { checkPermission } from '../permissions';
@@ -38,6 +43,11 @@ export async function saveCompany(
       ...validatedData,
       createdAt: now,
       updatedAt: now,
+      settings: {
+        aiEnabled: true,
+        apiAccess: false,
+        brandingCustomization: false,
+      },
     };
     mockCompanies.push(savedCompany);
     await logAuditEvent('company.created', savedCompany.id, {}, userId);
@@ -59,4 +69,34 @@ export async function deleteCompany(
     await logAuditEvent('company.deleted', companyId, {}, userId);
   }
   return Promise.resolve();
+}
+
+export async function saveCompanySettings(
+  companyId: string,
+  values: CompanySettingsFormValues,
+  userId: string,
+): Promise<Company> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'admin:manage_settings');
+
+  const validatedData = companySettingsSchema.parse(values);
+
+  const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
+  if (companyIndex === -1) throw new Error('Company not found');
+
+  mockCompanies[companyIndex].settings = {
+    ...mockCompanies[companyIndex].settings,
+    ...validatedData,
+  };
+  mockCompanies[companyIndex].updatedAt = new Date().toISOString();
+
+  await logAuditEvent(
+    'company.settings.updated',
+    companyId,
+    { settings: Object.keys(values) },
+    userId,
+  );
+
+  return Promise.resolve(mockCompanies[companyIndex]);
 }

@@ -37,6 +37,11 @@ export interface Company extends BaseEntity {
   name: string;
   ownerId: string; // ID of the user who created the company
   industry?: string;
+  settings?: {
+    aiEnabled?: boolean;
+    apiAccess?: boolean;
+    brandingCustomization?: boolean;
+  };
 }
 
 // --- PRODUCT DATA STRUCTURES ---
