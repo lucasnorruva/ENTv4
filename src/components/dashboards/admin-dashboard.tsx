@@ -7,12 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { User } from '@/types';
+import type { AuditLog, Company, Product, User, Webhook } from '@/types';
 import {
   getCompliancePaths,
   getProducts,
   getAuditLogs,
   getServiceTickets,
+  getWebhooks,
 } from '@/lib/actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
@@ -36,6 +37,9 @@ import {
   Hourglass,
   Cog,
   Wrench,
+  Ticket,
+  UserPlus,
+  Webhook as WebhookIcon,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
@@ -51,6 +55,15 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.rejected': FileX,
   'compliance.resolved': ShieldX,
   'product.serviced': Wrench,
+  'user.created': UserPlus,
+  'user.updated': Edit,
+  'user.deleted': Trash2,
+  'company.created': Building2,
+  'webhook.created': WebhookIcon,
+  'webhook.delivery.success': CheckCircle,
+  'webhook.delivery.failure': ShieldX,
+  'ticket.created': Ticket,
+  'api_key.created': Cog,
   default: Clock,
 };
 
@@ -61,6 +74,44 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
+interface EntityMaps {
+  users: Map<string, string>;
+  products: Map<string, string>;
+  companies: Map<string, string>;
+  webhooks: Map<string, string>;
+}
+
+const getLogDescription = (log: AuditLog, maps: EntityMaps): string => {
+  const { action, entityId, details } = log;
+
+  if (action.startsWith('product.') || action.startsWith('passport.')) {
+    return `Product: ${maps.products.get(entityId) || entityId}`;
+  }
+  if (action.startsWith('user.')) {
+    return `User: ${maps.users.get(entityId) || entityId}`;
+  }
+  if (action.startsWith('company.')) {
+    return `Company: ${maps.companies.get(entityId) || entityId}`;
+  }
+  if (action.startsWith('webhook.delivery')) {
+    return `Webhook: ${maps.webhooks.get(entityId) || entityId}`;
+  }
+  if (action.startsWith('webhook.')) {
+    return `URL: ${details.url || entityId}`;
+  }
+  if (action.startsWith('ticket.')) {
+    const productName = details.productId
+      ? maps.products.get(details.productId)
+      : 'N/A';
+    return `For Product: ${productName}`;
+  }
+  if (action.startsWith('api_key.')) {
+    return `Label: ${details.label || entityId}`;
+  }
+
+  return `Entity ID: ${entityId}`;
+};
+
 export default async function AdminDashboard({ user }: { user: User }) {
   const [
     allUsers,
@@ -69,6 +120,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
     auditLogs,
     allCompanies,
     serviceTickets,
+    webhooks,
   ] = await Promise.all([
     getUsers(),
     getCompliancePaths(),
@@ -76,6 +128,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
     getAuditLogs(),
     getCompanies(),
     getServiceTickets(),
+    getWebhooks(),
   ]);
 
   const stats = {
@@ -100,8 +153,13 @@ export default async function AdminDashboard({ user }: { user: User }) {
   };
 
   const recentActivity = auditLogs.slice(0, 5);
-  const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
-  const productMap = new Map(allProducts.map(p => [p.id, p.productName]));
+
+  const entityMaps: EntityMaps = {
+    users: new Map(allUsers.map(u => [u.id, u.fullName])),
+    products: new Map(allProducts.map(p => [p.id, p.productName])),
+    companies: new Map(allCompanies.map(c => [c.id, c.name])),
+    webhooks: new Map(webhooks.map(wh => [wh.id, wh.url])),
+  };
 
   return (
     <div className="space-y-6">
@@ -218,9 +276,9 @@ export default async function AdminDashboard({ user }: { user: User }) {
             <div className="space-y-4">
               {recentActivity.map(log => {
                 const Icon = actionIcons[log.action] || actionIcons.default;
-                const logUser = userMap.get(log.userId) || 'System';
-                const product = productMap.get(log.entityId) || log.entityId;
+                const logUser = entityMaps.users.get(log.userId) || 'System';
                 const actionLabel = getActionLabel(log.action);
+                const description = getLogDescription(log, entityMaps);
                 return (
                   <div key={log.id} className="flex items-center gap-4">
                     <div className="p-2 bg-muted rounded-full">
@@ -233,11 +291,8 @@ export default async function AdminDashboard({ user }: { user: User }) {
                           by {logUser}
                         </span>
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {log.action.includes('product') ||
-                        log.action.includes('passport')
-                          ? `Product: ${product}`
-                          : `Entity: ${product}`}
+                      <p className="text-xs text-muted-foreground truncate max-w-sm">
+                        {description}
                       </p>
                     </div>
                     <p
@@ -301,6 +356,18 @@ export default async function AdminDashboard({ user }: { user: User }) {
               <Button asChild variant="outline" size="sm">
                 <Link href="/dashboard/admin/api-settings">
                   Configure API Settings
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/service-tickets">
+                  Manage Service Tickets
+                  <ArrowRight className="ml-auto h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard/admin/tickets">
+                  Manage Support Tickets
                   <ArrowRight className="ml-auto h-4 w-4" />
                 </Link>
               </Button>
