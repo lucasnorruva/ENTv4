@@ -1,8 +1,8 @@
 // src/app/dashboard/manufacturer/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsersByCompanyId } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getAuditLogs } from '@/lib/actions';
+import { getProducts, getProductionLines, getServiceTickets } from '@/lib/actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,
@@ -14,65 +14,18 @@ import {
 import {
   Activity,
   BookCopy,
-  ShieldCheck,
-  FileEdit,
+  Factory,
   Clock,
-  Edit,
-  FilePlus,
-  FileUp,
-  Trash2,
-  CheckCircle,
-  FileX,
-  Calculator,
-  Recycle,
-  ShieldX,
-  Hourglass,
+  Wrench,
+  Power,
+  PowerOff,
+  Gauge,
 } from 'lucide-react';
-import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
-import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
-import EolStatusChart from '@/components/charts/eol-status-chart';
-
-const actionIcons: Record<string, React.ElementType> = {
-  'product.created': FilePlus,
-  'product.updated': Edit,
-  'product.deleted': Trash2,
-  'product.recycled': Recycle,
-  'product.recalculate_score': Calculator,
-  'passport.submitted': FileUp,
-  'passport.approved': CheckCircle,
-  'passport.rejected': FileX,
-  'compliance.resolved': ShieldX,
-  default: Clock,
-};
-
-const getActionLabel = (action: string): string => {
-  return action
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
-
-// Helper to generate mock compliance rate data
-const generateComplianceRateData = (products: Product[]) => {
-  const data: { date: string; rate: number }[] = [];
-  const sortedProducts = products.sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
-
-  let verifiedCount = 0;
-  sortedProducts.forEach((p, index) => {
-    if (p.verificationStatus === 'Verified') {
-      verifiedCount++;
-    }
-    const rate = Math.round((verifiedCount / (index + 1)) * 100);
-    data.push({ date: format(new Date(p.createdAt), 'yyyy-MM-dd'), rate });
-  });
-
-  return data;
-};
+import type { AuditLog, Product, ProductionLine } from '@/types';
+import ProductionOutputChart from '@/components/charts/production-output-chart';
+import ProductionLineStatusChart from '@/components/charts/production-line-status-chart';
 
 export default async function AnalyticsPage() {
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
@@ -83,25 +36,30 @@ export default async function AnalyticsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, companyUsers, auditLogs] = await Promise.all([
+  const [products, lines, serviceTickets] = await Promise.all([
     getProducts(user.id),
-    getUsersByCompanyId(user.companyId),
-    getAuditLogs({ companyId: user.companyId }),
+    getProductionLines(),
+    getServiceTickets(user.id),
   ]);
 
-  const complianceData = {
-    verified: products.filter(p => p.verificationStatus === 'Verified').length,
-    pending: products.filter(p => p.verificationStatus === 'Pending').length,
-    failed: products.filter(p => p.verificationStatus === 'Failed').length,
+  const lineStats = {
+    totalLines: lines.length,
+    activeLines: lines.filter(l => l.status === 'Active').length,
+    idleLines: lines.filter(l => l.status === 'Idle').length,
+    maintenanceLines: lines.filter(l => l.status === 'Maintenance').length,
+    totalOutput: lines.reduce((sum, l) => sum + (l.status === 'Active' ? l.outputPerHour : 0), 0),
+  };
+  
+  const lineStatusData = {
+    active: lineStats.activeLines,
+    idle: lineStats.idleLines,
+    maintenance: lineStats.maintenanceLines,
   };
 
-  const eolData = {
-    active: products.filter(
-      p => p.endOfLifeStatus === 'Active' || !p.endOfLifeStatus,
-    ).length,
-    recycled: products.filter(p => p.endOfLifeStatus === 'Recycled').length,
-    disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
-  };
+  const lineOutputData = lines
+    .filter(l => l.status === 'Active')
+    .map(l => ({ name: l.name, output: l.outputPerHour }))
+    .sort((a,b) => b.output - a.output);
 
   // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
@@ -120,14 +78,12 @@ export default async function AnalyticsPage() {
     .map(([date, count]) => ({ date, count }))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const complianceRateData = generateComplianceRateData(products);
-  const productsInDraft = products.filter(p => p.status === 'Draft').length;
-  const productsPendingReview = products.filter(p => p.verificationStatus === 'Pending').length;
+  const recentMaintenance = serviceTickets
+    .filter(t => t.productionLineId)
+    .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
-
-  const recentActivity = auditLogs.slice(0, 5);
-  const productMap = new Map(products.map(p => [p.id, p.productName]));
-  const userMap = new Map(companyUsers.map(u => [u.id, u.fullName]));
+  const lineMap = new Map(lines.map(l => [l.id, l.name]));
 
   return (
     <div className="space-y-6">
@@ -136,10 +92,10 @@ export default async function AnalyticsPage() {
           Manufacturer Analytics
         </h1>
         <p className="text-muted-foreground">
-          An overview of your company's product activity and key metrics.
+          An overview of your company's production and product metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -152,75 +108,68 @@ export default async function AnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Products in Draft</CardTitle>
-            <FileEdit className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Production Lines</CardTitle>
+            <Factory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productsInDraft}</div>
-            <p className="text-xs text-muted-foreground">Awaiting completion</p>
+            <div className="text-2xl font-bold">{lineStats.totalLines}</div>
+            <p className="text-xs text-muted-foreground">{lineStats.activeLines} active, {lineStats.maintenanceLines} in maintenance</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
-            <Hourglass className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Output</CardTitle>
+            <Gauge className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{productsPendingReview}</div>
-            <p className="text-xs text-muted-foreground">Awaiting auditor approval</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Verified Passports
-            </CardTitle>
-            <ShieldCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{complianceData.verified}</div>
-            <p className="text-xs text-muted-foreground">
-              Successfully anchored
-            </p>
+            <div className="text-2xl font-bold">{lineStats.totalOutput}</div>
+            <p className="text-xs text-muted-foreground">Units per hour from active lines</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Products Recycled
+              Recent Maintenance
             </CardTitle>
-            <Recycle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{eolData.recycled}</div>
-            <p className="text-xs text-muted-foreground">
-              Marked as end-of-life
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Company Audits Today
-            </CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {
-                auditLogs.filter(
+                serviceTickets.filter(
                   log =>
-                    new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes('passport.'),
+                    log.productionLineId && new Date(log.createdAt) > subDays(new Date(), 30),
                 ).length
               }
             </div>
-            <p className="text-xs text-muted-foreground">In the last 24h</p>
+            <p className="text-xs text-muted-foreground">Tickets in the last 30 days</p>
           </CardContent>
         </Card>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card>
+          <CardHeader>
+            <CardTitle>Production Output by Line</CardTitle>
+            <CardDescription>
+              Output per hour for all currently active production lines.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProductionOutputChart data={lineOutputData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Production Line Status</CardTitle>
+            <CardDescription>
+              A breakdown of the current operational status of all lines.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProductionLineStatusChart data={lineStatusData} />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Products Created Over Time</CardTitle>
             <CardDescription>
@@ -231,84 +180,45 @@ export default async function AnalyticsPage() {
             <ProductsOverTimeChart data={productsOverTimeData} />
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Compliance Rate Over Time</CardTitle>
-            <CardDescription>
-              The percentage of your total products that are verified.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ComplianceRateChart data={complianceRateData} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Compliance Overview</CardTitle>
-            <CardDescription>
-              A snapshot of the current verification status for your products.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ComplianceOverviewChart data={complianceData} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>End-of-Life Status</CardTitle>
-            <CardDescription>
-              A breakdown of the lifecycle status of your products.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <EolStatusChart data={eolData} />
-          </CardContent>
-        </Card>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Recent Company Activity</CardTitle>
+          <CardTitle>Recent Maintenance Activity</CardTitle>
           <CardDescription>
-            A stream of the latest actions from users in your company.
+            A stream of the latest service tickets for your production lines.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentActivity.map(log => {
-              const Icon = actionIcons[log.action] || actionIcons.default;
-              const user = userMap.get(log.userId) || 'System';
-              const product = productMap.get(log.entityId) || log.entityId;
-              const actionLabel = getActionLabel(log.action);
+            {recentMaintenance.map(ticket => {
+              const lineName = ticket.productionLineId ? lineMap.get(ticket.productionLineId) : 'Unknown Line';
               return (
-                <div key={log.id} className="flex items-center gap-4">
+                <div key={ticket.id} className="flex items-center gap-4">
                   <div className="p-2 bg-muted rounded-full">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
+                    <Wrench className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">
-                      {actionLabel}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        by {user}
-                      </span>
+                      {ticket.issue}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Product: {product}
+                      Line: {lineName}
                     </p>
                   </div>
                   <p
                     className="text-xs text-muted-foreground shrink-0"
                     suppressHydrationWarning
                   >
-                    {formatDistanceToNow(new Date(log.createdAt), {
+                    {formatDistanceToNow(new Date(ticket.createdAt), {
                       addSuffix: true,
                     })}
                   </p>
                 </div>
               );
             })}
-            {recentActivity.length === 0 && (
+            {recentMaintenance.length === 0 && (
               <p className="text-sm text-center text-muted-foreground py-4">
-                No recent activity.
+                No recent maintenance activity.
               </p>
             )}
           </div>
