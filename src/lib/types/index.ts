@@ -41,6 +41,16 @@ export interface Company extends BaseEntity {
     aiEnabled?: boolean;
     apiAccess?: boolean;
     brandingCustomization?: boolean;
+    theme?: {
+      light?: {
+        primary?: string;
+        accent?: string;
+      };
+      dark?: {
+        primary?: string;
+        accent?: string;
+      };
+    };
   };
 }
 
