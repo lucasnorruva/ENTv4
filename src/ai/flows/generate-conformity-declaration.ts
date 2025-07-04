@@ -72,14 +72,18 @@ Use the following template. Fill in the placeholders \`[...]\` with the appropri
     {{#each product.certifications}}
     - \`{{this.name}}\`
     {{/each}}
-    {{else}}
-    - No specific directives listed.
     {{/if}}
     {{#if product.compliance.rohs.compliant}}
     - Directive 2011/65/EU (RoHS) on the restriction of the use of certain hazardous substances in electrical and electronic equipment.
     {{/if}}
     {{#if product.compliance.ce.marked}}
     - All applicable CE marking directives.
+    {{/if}}
+    {{#if product.compliance.weee.registered}}
+    - Directive 2012/19/EU (WEEE) on waste electrical and electronic equipment.
+    {{/if}}
+    {{#if product.compliance.eudr.compliant}}
+    - Regulation (EU) 2023/1115 (EUDR) on deforestation-free products.
     {{/if}}
 
 6.  **References to the relevant harmonised standards used or references to the other technical specifications in relation to which conformity is declared:**
@@ -110,6 +114,8 @@ Certifications:
 Compliance Declarations:
 - RoHS Compliant: {{#if product.compliance.rohs.compliant}}Yes{{else}}No{{/if}}
 - CE Marked: {{#if product.compliance.ce.marked}}Yes{{else}}No{{/if}}
+- WEEE Registered: {{#if product.compliance.weee.registered}}Yes{{else}}No{{/if}}
+- EUDR Compliant: {{#if product.compliance.eudr.compliant}}Yes{{else}}No{{/if}}
 """
 `,
 });
