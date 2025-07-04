@@ -8,6 +8,8 @@ import type {
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 
+export * from './transit';
+
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
 
@@ -105,18 +107,32 @@ export interface Battery {
 }
 
 export interface Compliance {
-  rohsCompliant?: boolean;
-  rohsExemption?: string;
-  reachSVHC?: boolean;
-  scipReference?: string;
-  weeeRegistered?: boolean;
-  weeeRegistrationNumber?: string;
-  prop65WarningRequired?: boolean;
-  eudrCompliant?: boolean;
-  eudrDiligenceId?: string;
-  ceMarked?: boolean;
-  foodContactSafe?: boolean;
-  foodContactComplianceStandard?: string;
+  rohs?: {
+    compliant: boolean;
+    exemption?: string;
+  };
+  reach?: {
+    svhcDeclared: boolean;
+    scipReference?: string;
+  };
+  weee?: {
+    registered: boolean;
+    registrationNumber?: string;
+  };
+  eudr?: {
+    compliant: boolean;
+    diligenceId?: string;
+  };
+  ce?: {
+    marked: boolean;
+  };
+  prop65?: {
+    warningRequired: boolean;
+  };
+  foodContact?: {
+    safe: boolean;
+    standard?: string;
+  };
 }
 
 export interface ComplianceGap {
@@ -131,6 +147,14 @@ export interface ServiceRecord extends BaseEntity {
   providerId: string;
   providerName: string;
   notes: string;
+}
+
+export interface CustomsStatus {
+  status: 'Cleared' | 'Detained' | 'Rejected';
+  authority: string;
+  location: string;
+  date: string; // ISO 8601 format
+  notes?: string;
 }
 
 /**
@@ -171,6 +195,7 @@ export interface Product extends BaseEntity {
   battery?: Battery;
   compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
+  customs?: CustomsStatus;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
