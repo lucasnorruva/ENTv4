@@ -21,6 +21,7 @@ import {
   FileDown,
   History,
   Search as SearchIcon,
+  Webhook,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -205,7 +206,7 @@ export const navConfig: NavConfig = {
       label: 'Configuration',
       items: [
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
-        { title: 'Webhooks', icon: Cog, href: 'webhooks' },
+        { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
         { title: 'API Settings', icon: Cog, href: 'api-settings' },
         { title: 'Integrations', icon: Wrench, href: 'integrations' },
       ],
