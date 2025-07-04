@@ -9,10 +9,11 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { User } from '@/types';
-import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { AlertTriangle, ArrowRight, ShieldX } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { getProducts } from '@/lib/actions';
+import { Badge } from '@/components/ui/badge';
 
 export default async function ComplianceManagerDashboard({
   user,
@@ -31,6 +32,20 @@ export default async function ComplianceManagerDashboard({
         new Date(a.lastVerificationDate!).getTime(),
     )
     .slice(0, 5);
+
+  // Aggregate compliance gaps from flagged products
+  const gapCounts = new Map<string, number>();
+  flaggedProducts.forEach(product => {
+    product.sustainability?.gaps?.forEach(gap => {
+      const key = `${gap.regulation}: ${gap.issue}`;
+      gapCounts.set(key, (gapCounts.get(key) || 0) + 1);
+    });
+  });
+
+  const commonGaps = Array.from(gapCounts.entries())
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([issue, count]) => ({ issue, count }));
 
   return (
     <div className="space-y-6">
@@ -109,6 +124,39 @@ export default async function ComplianceManagerDashboard({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldX className="h-5 w-5 text-muted-foreground" />
+            Most Common Compliance Gaps
+          </CardTitle>
+          <CardDescription>
+            The top compliance issues found across all flagged products.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {commonGaps.length > 0 ? (
+            <div className="space-y-4">
+              {commonGaps.map((gap, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <p className="text-sm text-muted-foreground flex-1">
+                    {gap.issue}
+                  </p>
+                  <Badge variant="destructive">{gap.count} products</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 text-muted-foreground">
+              <p>No compliance gaps found in flagged products.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
