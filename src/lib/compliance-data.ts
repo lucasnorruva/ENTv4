@@ -6,10 +6,10 @@ const now = new Date();
 export let compliancePaths: CompliancePath[] = [
   {
     id: 'cp-electronics-01',
-    name: 'EU Electronics Sustainability Standard (ESPR, RoHS)',
+    name: 'EU Electronics Sustainability Standard (ESPR, RoHS, WEEE)',
     description:
-      'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions.',
-    regulations: ['ESPR', 'RoHS'],
+      'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions and WEEE registration.',
+    regulations: ['ESPR', 'RoHS', 'WEEE'],
     category: 'Electronics',
     rules: {
       minSustainabilityScore: 60,

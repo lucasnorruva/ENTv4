@@ -24,7 +24,9 @@ export async function verifyProductAgainstPath(
     if (score === undefined || score < minScore) {
       gaps.push({
         regulation: path.name,
-        issue: `Product ESG score of ${score ?? 'N/A'} is below the required minimum of ${minScore}.`,
+        issue: `Product ESG score of ${
+          score ?? 'N/A'
+        } is below the required minimum of ${minScore}.`,
       });
     }
   }
@@ -57,9 +59,55 @@ export async function verifyProductAgainstPath(
     if (!hasRequiredKeyword) {
       gaps.push({
         regulation: path.name,
-        issue: `Product is missing a required material. Must include one of: ${requiredKeywords.join(', ')}.`,
+        issue: `Product is missing a required material. Must include one of: ${requiredKeywords.join(
+          ', ',
+        )}.`,
       });
     }
+  }
+
+  // 4. Check for specific regulation flags
+  const productCompliance = product.compliance || {};
+  const lowerCaseRegulations = path.regulations.map(r => r.toLowerCase());
+
+  if (
+    lowerCaseRegulations.includes('rohs') &&
+    !productCompliance.rohsCompliant
+  ) {
+    gaps.push({
+      regulation: 'RoHS',
+      issue: 'Product is not declared as RoHS compliant.',
+    });
+  }
+
+  if (
+    lowerCaseRegulations.includes('reach') &&
+    !productCompliance.reachSVHC
+  ) {
+    gaps.push({
+      regulation: 'REACH',
+      issue: 'Product has not been declared for Substances of Very High Concern (SVHC).',
+    });
+  }
+
+  if (
+    lowerCaseRegulations.includes('weee') &&
+    !productCompliance.weeeRegistered
+  ) {
+    gaps.push({
+      regulation: 'WEEE',
+      issue: 'Product is not registered with a WEEE compliance scheme.',
+    });
+  }
+
+  if (
+    lowerCaseRegulations.includes('eudr') &&
+    !productCompliance.eudrCompliant
+  ) {
+    gaps.push({
+      regulation: 'EUDR',
+      issue: 'Product does not have a valid EU Deforestation-Free Regulation declaration.',
+    });
   }
 
   return {
