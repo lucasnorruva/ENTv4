@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '../ui/button';
 import type { User } from '@/types';
-import { getProducts, getServiceTickets } from '@/lib/actions';
+import { getProducts, getServiceTickets, getProductionLines } from '@/lib/actions';
 import { ArrowRight, Wrench, Ticket, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
@@ -20,9 +20,10 @@ export default async function ServiceProviderDashboard({
 }: {
   user: User;
 }) {
-  const [products, tickets] = await Promise.all([
+  const [products, tickets, lines] = await Promise.all([
     getProducts(user.id),
     getServiceTickets(),
+    getProductionLines(),
   ]);
 
   const availableManuals = products.filter(p => p.manualUrl).length;
@@ -37,6 +38,7 @@ export default async function ServiceProviderDashboard({
     .slice(0, 5);
 
   const productMap = new Map(products.map(p => [p.id, p.productName]));
+  const lineMap = new Map(lines.map(l => [l.id, l.name]));
 
   return (
     <div className="space-y-6">
@@ -121,31 +123,34 @@ export default async function ServiceProviderDashboard({
         <CardContent>
           {recentOpenTickets.length > 0 ? (
             <div className="space-y-4">
-              {recentOpenTickets.map(ticket => (
-                <div
-                  key={ticket.id}
-                  className="flex items-center justify-between gap-4"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {productMap.get(ticket.productId!) || 'Unknown Product'}
-                    </p>
-                    <p className="text-sm text-muted-foreground truncate max-w-xs">
-                      {ticket.issue}
-                    </p>
-                  </div>
-                  <div className="text-right text-xs text-muted-foreground shrink-0">
-                    <p suppressHydrationWarning>
-                      {formatDistanceToNow(new Date(ticket.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
-                    <div className="mt-1">
-                      <Badge variant="destructive">{ticket.status}</Badge>
+              {recentOpenTickets.map(ticket => {
+                const entityName = ticket.productId ? productMap.get(ticket.productId) : ticket.productionLineId ? lineMap.get(ticket.productionLineId) : 'Unknown Entity';
+                return (
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between gap-4"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {entityName}
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate max-w-xs">
+                        {ticket.issue}
+                      </p>
+                    </div>
+                    <div className="text-right text-xs text-muted-foreground shrink-0">
+                      <p suppressHydrationWarning>
+                        {formatDistanceToNow(new Date(ticket.createdAt), {
+                          addSuffix: true,
+                        })}
+                      </p>
+                      <div className="mt-1">
+                        <Badge variant="destructive">{ticket.status}</Badge>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
