@@ -28,8 +28,7 @@ import {
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, User, CompliancePath } from '@/types';
-import { saveProduct } from '@/lib/actions';
-import { suggestImprovements } from '@/ai/flows/enhance-passport-information';
+import { saveProduct, suggestImprovements } from '@/lib/actions';
 import { generateProductDescription } from '@/ai/flows/generate-product-description';
 import { useToast } from '@/hooks/use-toast';
 import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
@@ -402,8 +401,8 @@ export default function ProductForm({
                   {isUploading
                     ? 'Uploading...'
                     : isSaving
-                      ? 'Saving...'
-                      : 'Save Passport'}
+                    ? 'Saving...'
+                    : 'Save Passport'}
                 </Button>
               </div>
             </form>

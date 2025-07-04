@@ -35,7 +35,9 @@ export default function FlaggedProductsClient({
     setIsLoading(true);
     getProducts(user.id)
       .then(allProducts => {
-        const flagged = allProducts.filter(p => p.verificationStatus === 'Failed');
+        const flagged = allProducts.filter(
+          p => p.verificationStatus === 'Failed',
+        );
         setProducts(flagged);
       })
       .catch(() => {
@@ -53,7 +55,6 @@ export default function FlaggedProductsClient({
   useEffect(() => {
     fetchFlaggedProducts();
   }, [fetchFlaggedProducts]);
-
 
   const handleResolve = (product: Product) => {
     startTransition(async () => {

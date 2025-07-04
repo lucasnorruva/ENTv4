@@ -71,7 +71,9 @@ export default function ProductImportDialog({
               return {
                 data: row,
                 isValid: false,
-                errors: parsed.error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+                errors: parsed.error.errors.map(
+                  e => `${e.path.join('.')}: ${e.message}`,
+                ),
               };
             }
           });
@@ -79,54 +81,72 @@ export default function ProductImportDialog({
           setIsParsing(false);
         },
         error: () => {
-            toast({ title: "Parsing Error", description: "Could not parse the CSV file.", variant: "destructive" });
-            setIsParsing(false);
-        }
+          toast({
+            title: 'Parsing Error',
+            description: 'Could not parse the CSV file.',
+            variant: 'destructive',
+          });
+          setIsParsing(false);
+        },
       });
     }
   };
 
   const handleImport = () => {
-    const productsToImport = validatedData.filter(row => row.isValid).map(row => row.data);
-    if(productsToImport.length === 0) {
-        toast({ title: "No valid products", description: "There are no valid products to import.", variant: "destructive" });
-        return;
+    const productsToImport = validatedData
+      .filter(row => row.isValid)
+      .map(row => row.data);
+    if (productsToImport.length === 0) {
+      toast({
+        title: 'No valid products',
+        description: 'There are no valid products to import.',
+        variant: 'destructive',
+      });
+      return;
     }
     startSavingTransition(async () => {
-        try {
-            const result = await bulkCreateProducts(productsToImport, user.id);
-            toast({ title: "Import Successful", description: `${result.createdCount} products have been imported and are being processed.` });
-            onSave();
-            handleClose();
-        } catch (error: any) {
-            toast({ title: "Import Failed", description: error.message, variant: "destructive" });
-        }
+      try {
+        const result = await bulkCreateProducts(productsToImport, user.id);
+        toast({
+          title: 'Import Successful',
+          description: `${result.createdCount} products have been imported and are being processed.`,
+        });
+        onSave();
+        handleClose();
+      } catch (error: any) {
+        toast({
+          title: 'Import Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     });
   };
-  
+
   const handleClose = () => {
     setFile(null);
     setValidatedData([]);
     onOpenChange(false);
-  }
+  };
 
   const validRows = validatedData.filter(row => row.isValid).length;
   const invalidRows = validatedData.length - validRows;
 
   const getTemplate = () => {
-    const headers = "productName,productDescription,gtin,category,productImage,manualUrl,materials";
+    const headers =
+      'productName,productDescription,gtin,category,productImage,manualUrl,materials';
     const example = `"Smart Thermostat","An AI-powered thermostat for your home.","123456789012","Electronics","https://placehold.co/400x400.png","https://example.com/manual.pdf","[{""name"": ""Recycled Plastic"", ""percentage"": 80},{""name"": ""Copper"", ""percentage"": 5}]"`;
     const csvContent = `${headers}\n${example}`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute("download", "norruva_import_template.csv");
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'norruva_import_template.csv');
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -139,51 +159,66 @@ export default function ProductImportDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
-            <Input type="file" accept=".csv" onChange={handleFileChange} />
-            <Button variant="outline" size="sm" onClick={getTemplate}>Download CSV Template</Button>
+          <Input type="file" accept=".csv" onChange={handleFileChange} />
+          <Button variant="outline" size="sm" onClick={getTemplate}>
+            Download CSV Template
+          </Button>
         </div>
 
-        {isParsing ? <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /> :
-        (
-            validatedData.length > 0 && (
-                <>
-                <div className="flex gap-4 text-sm">
-                    <Badge variant="default">{validRows} valid rows</Badge>
-                    <Badge variant={invalidRows > 0 ? "destructive" : "secondary"}>{invalidRows} invalid rows</Badge>
-                </div>
-                <ScrollArea className="flex-1 border rounded-md">
-                    <Table>
-                        <TableHeader className="sticky top-0 bg-muted">
-                            <TableRow>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Product Name</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead>Errors</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {validatedData.map((row, index) => (
-                                <TableRow key={index} className={!row.isValid ? "bg-destructive/10" : ""}>
-                                    <TableCell>
-                                        <Badge variant={row.isValid ? 'default' : 'destructive'}>{row.isValid ? 'Valid' : 'Invalid'}</Badge>
-                                    </TableCell>
-                                    <TableCell>{row.data.productName}</TableCell>
-                                    <TableCell>{row.data.category}</TableCell>
-                                    <TableCell className="text-xs text-destructive">
-                                        {row.errors?.join(', ')}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </ScrollArea>
-                </>
-            )
+        {isParsing ? (
+          <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
+        ) : (
+          validatedData.length > 0 && (
+            <>
+              <div className="flex gap-4 text-sm">
+                <Badge variant="default">{validRows} valid rows</Badge>
+                <Badge variant={invalidRows > 0 ? 'destructive' : 'secondary'}>
+                  {invalidRows} invalid rows
+                </Badge>
+              </div>
+              <ScrollArea className="flex-1 border rounded-md">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-muted">
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Product Name</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Errors</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {validatedData.map((row, index) => (
+                      <TableRow
+                        key={index}
+                        className={!row.isValid ? 'bg-destructive/10' : ''}
+                      >
+                        <TableCell>
+                          <Badge variant={row.isValid ? 'default' : 'destructive'}>
+                            {row.isValid ? 'Valid' : 'Invalid'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{row.data.productName}</TableCell>
+                        <TableCell>{row.data.category}</TableCell>
+                        <TableCell className="text-xs text-destructive">
+                          {row.errors?.join(', ')}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
+            </>
+          )
         )}
-        
+
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleImport} disabled={isSaving || isParsing || validRows === 0}>
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleImport}
+            disabled={isSaving || isParsing || validRows === 0}
+          >
             {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Import {validRows} Products
           </Button>

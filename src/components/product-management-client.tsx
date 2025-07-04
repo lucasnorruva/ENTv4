@@ -20,9 +20,9 @@ import ProductForm from './product-form';
 import ProductTable from './product-table';
 import {
   deleteProduct,
+  getProducts,
   submitForReview,
   recalculateScore,
-  getProducts,
   bulkDeleteProducts,
   bulkSubmitForReview,
 } from '@/lib/actions';
@@ -129,7 +129,7 @@ export default function ProductManagementClient({
     startTransition(async () => {
       try {
         const reviewedProduct = await submitForReview(id, user.id);
-        setProducts(prev => prev.map(p => p.id === id ? reviewedProduct : p));
+        setProducts(prev => prev.map(p => (p.id === id ? reviewedProduct : p)));
         toast({
           title: 'Product Submitted',
           description: `"${reviewedProduct.productName}" has been submitted for review.`,
@@ -153,7 +153,9 @@ export default function ProductManagementClient({
           description: `AI data for "${productName}" is being updated. This may take a moment.`,
         });
         // Optimistically set processing state
-        setProducts(prev => prev.map(p => p.id === id ? {...p, isProcessing: true} : p));
+        setProducts(prev =>
+          prev.map(p => (p.id === id ? { ...p, isProcessing: true } : p)),
+        );
       } catch (error) {
         toast({
           title: 'Recalculation Failed',
@@ -168,11 +170,11 @@ export default function ProductManagementClient({
     setIsSheetOpen(false);
     // Optimistically update the list
     setProducts(prev => {
-        const exists = prev.some(p => p.id === savedProduct.id);
-        if (exists) {
-            return prev.map(p => p.id === savedProduct.id ? savedProduct : p);
-        }
-        return [savedProduct, ...prev];
+      const exists = prev.some(p => p.id === savedProduct.id);
+      if (exists) {
+        return prev.map(p => (p.id === savedProduct.id ? savedProduct : p));
+      }
+      return [savedProduct, ...prev];
     });
     // The background processing will eventually update the final state.
     // A full refetch might be good here too.
@@ -181,19 +183,19 @@ export default function ProductManagementClient({
 
   const handleBulkDelete = (productIds: string[]) => {
     startTransition(async () => {
-        await bulkDeleteProducts(productIds, user.id);
-        toast({ title: `Deleted ${productIds.length} products.` });
-        fetchProducts(); // Refetch data
+      await bulkDeleteProducts(productIds, user.id);
+      toast({ title: `Deleted ${productIds.length} products.` });
+      fetchProducts(); // Refetch data
     });
-  }
+  };
 
   const handleBulkSubmit = (productIds: string[]) => {
     startTransition(async () => {
-        await bulkSubmitForReview(productIds, user.id);
-        toast({ title: `Submitted ${productIds.length} products for review.` });
-        fetchProducts(); // Refetch data
+      await bulkSubmitForReview(productIds, user.id);
+      toast({ title: `Submitted ${productIds.length} products for review.` });
+      fetchProducts(); // Refetch data
     });
-  }
+  };
 
   return (
     <>

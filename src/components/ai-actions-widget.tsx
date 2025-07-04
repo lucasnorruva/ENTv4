@@ -28,7 +28,14 @@ import {
   suggestImprovements,
   generateAndSaveConformityDeclaration,
 } from '@/lib/actions';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 
 interface AiActionsWidgetProps {
   product: Product;
@@ -47,12 +54,18 @@ export default function AiActionsWidget({
 }: AiActionsWidgetProps) {
   const [isPending, startTransition] = useTransition();
   const [activeAction, setActiveAction] = useState<string | null>(null);
-  const [recommendations, setRecommendations] = useState<SuggestImprovementsOutput | null>(null);
+  const [recommendations, setRecommendations] =
+    useState<SuggestImprovementsOutput | null>(null);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleAction = (action: () => Promise<any>, actionName: string, successTitle: string, successDescription: string) => {
+  const handleAction = (
+    action: () => Promise<any>,
+    actionName: string,
+    successTitle: string,
+    successDescription: string,
+  ) => {
     setActiveAction(actionName);
     startTransition(async () => {
       try {
@@ -62,7 +75,8 @@ export default function AiActionsWidget({
       } catch (error: any) {
         toast({
           title: `Error: ${actionName}`,
-          description: error.message || `Failed to run ${actionName.toLowerCase()}.`,
+          description:
+            error.message || `Failed to run ${actionName.toLowerCase()}.`,
           variant: 'destructive',
         });
       } finally {
@@ -70,7 +84,7 @@ export default function AiActionsWidget({
       }
     });
   };
-  
+
   const handleGetSuggestions = () => {
     if (!product.productName || !product.productDescription) {
       toast({
@@ -107,7 +121,8 @@ export default function AiActionsWidget({
         <CardHeader>
           <CardTitle>AI Actions</CardTitle>
           <CardDescription>
-            Use AI to analyze, improve, and generate documents for this passport.
+            Use AI to analyze, improve, and generate documents for this
+            passport.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -121,21 +136,37 @@ export default function AiActionsWidget({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-3 space-y-2">
-                  <p className="text-xs text-muted-foreground">Run an on-demand AI analysis against the product's assigned compliance path.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Run an on-demand AI analysis against the product's assigned
+                    compliance path.
+                  </p>
                   <Button
                     className="w-full"
-                    onClick={() => handleAction(() => runComplianceCheck(product.id, user.id), 'compliance', 'Analysis Complete', 'The AI compliance check has finished.')}
+                    onClick={() =>
+                      handleAction(
+                        () => runComplianceCheck(product.id, user.id),
+                        'compliance',
+                        'Analysis Complete',
+                        'The AI compliance check has finished.',
+                      )
+                    }
                     disabled={isPending}
                   >
-                    {isPending && activeAction === 'compliance' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Bot className="mr-2 h-4 w-4" />}
-                    {isPending && activeAction === 'compliance' ? 'Analyzing...' : 'Run Compliance Check'}
+                    {isPending && activeAction === 'compliance' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Bot className="mr-2 h-4 w-4" />
+                    )}
+                    {isPending && activeAction === 'compliance'
+                      ? 'Analyzing...'
+                      : 'Run Compliance Check'}
                   </Button>
                 </AccordionContent>
               </AccordionItem>
             )}
 
             {canValidateData && (
-                <AccordionItem value="quality" className="border rounded-md px-3">
+              <AccordionItem value="quality" className="border rounded-md px-3">
                 <AccordionTrigger className="py-3">
                   <div className="flex items-center gap-2">
                     <ListChecks className="h-4 w-4" />
@@ -143,20 +174,36 @@ export default function AiActionsWidget({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-3 space-y-2">
-                  <p className="text-xs text-muted-foreground">Run an on-demand AI analysis to check for data quality issues and anomalies.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Run an on-demand AI analysis to check for data quality
+                    issues and anomalies.
+                  </p>
                   <Button
                     className="w-full"
-                    onClick={() => handleAction(() => runDataValidationCheck(product.id, user.id), 'validation', 'Validation Complete', "The product's warnings have been updated.")}
+                    onClick={() =>
+                      handleAction(
+                        () => runDataValidationCheck(product.id, user.id),
+                        'validation',
+                        'Validation Complete',
+                        "The product's warnings have been updated.",
+                      )
+                    }
                     disabled={isPending}
                     variant="secondary"
                   >
-                    {isPending && activeAction === 'validation' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ListChecks className="mr-2 h-4 w-4" />}
-                    {isPending && activeAction === 'validation' ? 'Validating...' : 'Run Data Quality Check'}
+                    {isPending && activeAction === 'validation' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ListChecks className="mr-2 h-4 w-4" />
+                    )}
+                    {isPending && activeAction === 'validation'
+                      ? 'Validating...'
+                      : 'Run Data Quality Check'}
                   </Button>
                 </AccordionContent>
               </AccordionItem>
             )}
-            
+
             <AccordionItem value="suggestions" className="border rounded-md px-3">
               <AccordionTrigger className="py-3">
                 <div className="flex items-center gap-2">
@@ -165,14 +212,23 @@ export default function AiActionsWidget({
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pb-3 space-y-2">
-                <p className="text-xs text-muted-foreground">Get recommendations to improve this passport's data quality and sustainability profile.</p>
-                 <Button
-                    className="w-full"
-                    onClick={handleGetSuggestions}
-                    disabled={isPending}
-                 >
-                    {isPending && activeAction === 'suggestions' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                    {isPending && activeAction === 'suggestions' ? 'Analyzing...' : 'Generate Suggestions'}
+                <p className="text-xs text-muted-foreground">
+                  Get recommendations to improve this passport's data quality
+                  and sustainability profile.
+                </p>
+                <Button
+                  className="w-full"
+                  onClick={handleGetSuggestions}
+                  disabled={isPending}
+                >
+                  {isPending && activeAction === 'suggestions' ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-4 w-4" />
+                  )}
+                  {isPending && activeAction === 'suggestions'
+                    ? 'Analyzing...'
+                    : 'Generate Suggestions'}
                 </Button>
               </AccordionContent>
             </AccordionItem>
@@ -186,15 +242,35 @@ export default function AiActionsWidget({
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="pb-3 space-y-2">
-                  <p className="text-xs text-muted-foreground">Use AI to generate compliance documents based on this passport's data.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Use AI to generate compliance documents based on this
+                    passport's data.
+                  </p>
                   <Button
                     className="w-full"
                     variant="outline"
-                    onClick={() => handleAction(() => generateAndSaveConformityDeclaration(product.id, user.id), 'docgen', 'Document Generated', 'The Declaration of Conformity has been saved.')}
+                    onClick={() =>
+                      handleAction(
+                        () =>
+                          generateAndSaveConformityDeclaration(
+                            product.id,
+                            user.id,
+                          ),
+                        'docgen',
+                        'Document Generated',
+                        'The Declaration of Conformity has been saved.',
+                      )
+                    }
                     disabled={isPending}
                   >
-                    {isPending && activeAction === 'docgen' ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileText className="mr-2 h-4 w-4" />}
-                    {isPending && activeAction === 'docgen' ? 'Generating...' : 'Generate Declaration of Conformity'}
+                    {isPending && activeAction === 'docgen' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="mr-2 h-4 w-4" />
+                    )}
+                    {isPending && activeAction === 'docgen'
+                      ? 'Generating...'
+                      : 'Generate Declaration of Conformity'}
                   </Button>
                 </AccordionContent>
               </AccordionItem>
@@ -202,7 +278,7 @@ export default function AiActionsWidget({
           </Accordion>
         </CardContent>
       </Card>
-      
+
       <Dialog open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
         <DialogContent>
           <DialogHeader>

@@ -1,5 +1,7 @@
 // src/lib/actions/index.ts
 export * from './product-actions';
+export * from './product-workflow-actions';
+export * from './product-ai-actions';
 export * from './user-actions';
 export * from './compliance-actions';
 export * from './api-actions';
