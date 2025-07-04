@@ -166,3 +166,26 @@ export async function saveSupportTicket(
   );
   return newTicket;
 }
+
+export async function getServiceTicketById(
+  ticketId: string,
+  userId: string,
+): Promise<ServiceTicket | undefined> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const ticket = mockServiceTickets.find(t => t.id === ticketId);
+  if (!ticket) return undefined;
+
+  const canViewAll =
+    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.MANUFACTURER);
+  if (canViewAll) {
+    return ticket;
+  }
+
+  if (hasRole(user, UserRoles.SERVICE_PROVIDER) && ticket.userId === user.id) {
+    return ticket;
+  }
+
+  return undefined;
+}
