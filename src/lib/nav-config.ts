@@ -90,6 +90,10 @@ export const navConfig: NavConfig = {
       ],
     },
     {
+      label: 'Analysis',
+      items: [{ title: 'Analytics', icon: BarChart3, href: 'analytics' }],
+    },
+    {
       label: 'Account',
       items: [{ title: 'Activity History', icon: Clock, href: 'history' }],
     },
