@@ -31,11 +31,13 @@ export default function ProductDetailView({
   user,
   compliancePath,
   auditLogs,
+  userMap,
 }: {
   product: Product;
   user: User;
   compliancePath?: CompliancePath;
   auditLogs: AuditLog[];
+  userMap: Map<string, string>;
 }) {
   const [product, setProduct] = useState(productProp);
   const [isGeneratingImage, startImageGenerationTransition] = useTransition();
@@ -216,7 +218,7 @@ export default function ProductDetailView({
               </TabsContent>
 
               <TabsContent value="log" className="mt-4">
-                <AuditLogTimeline logs={auditLogs} />
+                <AuditLogTimeline logs={auditLogs} userMap={userMap} />
               </TabsContent>
             </Tabs>
           </div>

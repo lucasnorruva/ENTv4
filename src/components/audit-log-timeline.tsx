@@ -46,7 +46,13 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-export function AuditLogTimeline({ logs }: { logs: AuditLog[] }) {
+export function AuditLogTimeline({
+  logs,
+  userMap,
+}: {
+  logs: AuditLog[];
+  userMap: Map<string, string>;
+}) {
   if (!logs || logs.length === 0) {
     return (
       <Card>
@@ -80,6 +86,8 @@ export function AuditLogTimeline({ logs }: { logs: AuditLog[] }) {
           {logs.map((log, index) => {
             const Icon = actionIcons[log.action] || actionIcons.default;
             const label = getActionLabel(log.action);
+            const userName = userMap.get(log.userId) || log.userId;
+
             return (
               <div
                 key={log.id}
@@ -101,8 +109,10 @@ export function AuditLogTimeline({ logs }: { logs: AuditLog[] }) {
                     </p>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Action performed by user:{' '}
-                    <span className="font-mono text-xs">{log.userId}</span>
+                    Action performed by{' '}
+                    <span className="font-semibold text-foreground">
+                      {userName}
+                    </span>
                   </p>
                 </div>
               </div>

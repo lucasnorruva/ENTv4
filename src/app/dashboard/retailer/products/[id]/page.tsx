@@ -3,6 +3,7 @@ import {
   getProductById,
   getCompliancePathById,
   getAuditLogsForEntity,
+  getUsers,
 } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
@@ -27,12 +28,15 @@ export default async function ProductDetailPage({
   }
 
   // Fetch audit logs and compliance path for the full detail view
-  const [compliancePath, auditLogs] = await Promise.all([
+  const [compliancePath, auditLogs, allUsers] = await Promise.all([
     product.compliancePathId
       ? getCompliancePathById(product.compliancePathId)
       : undefined,
     getAuditLogsForEntity(product.id),
+    getUsers(),
   ]);
+
+  const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
 
   return (
     <div className="space-y-4">
@@ -48,6 +52,7 @@ export default async function ProductDetailPage({
         user={user}
         compliancePath={compliancePath}
         auditLogs={auditLogs}
+        userMap={userMap}
       />
     </div>
   );
