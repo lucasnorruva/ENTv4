@@ -56,15 +56,7 @@ const prompt = ai.definePrompt({
 
 USER_DATA:
 """
-Product Name: {{{product.productName}}}
-Product Description: {{{product.productDescription}}}
-Category: {{{product.category}}}
-Materials:
-{{#each product.materials}}
-- Name: {{name}}, Percentage: {{percentage}}%, Recycled: {{recycledContent}}%, Origin: {{origin}}
-{{/each}}
-Manufacturing:
-- Facility: {{product.manufacturing.facility}}, Country: {{product.manufacturing.country}}, CO2e Emissions: {{product.manufacturing.emissionsKgCo2e}}
+{{{json product}}}
 """
 `,
 });

@@ -46,47 +46,34 @@ const batterySchema = z.object({
 });
 
 const complianceSchema = z.object({
-  rohs: z
-    .object({
-      compliant: z.boolean().default(false),
-      exemption: z.string().optional(),
-    })
-    .optional(),
-  reach: z
-    .object({
-      svhcDeclared: z.boolean().default(false),
-      scipReference: z.string().optional(),
-    })
-    .optional(),
-  weee: z
-    .object({
-      registered: z.boolean().default(false),
-      registrationNumber: z.string().optional(),
-    })
-    .optional(),
-  eudr: z
-    .object({
-      compliant: z.boolean().default(false),
-      diligenceId: z.string().optional(),
-    })
-    .optional(),
-  ce: z
-    .object({
-      marked: z.boolean().default(false),
-    })
-    .optional(),
-  prop65: z
-    .object({
-      warningRequired: z.boolean().default(false),
-    })
-    .optional(),
-  foodContact: z
-    .object({
-      safe: z.boolean().default(false),
-      standard: z.string().optional(),
-    })
-    .optional(),
+  rohs: z.object({
+    compliant: z.boolean().default(false),
+    exemption: z.string().optional(),
+  }).optional(),
+  reach: z.object({
+    svhcDeclared: z.boolean().default(false),
+    scipReference: z.string().optional(),
+  }).optional(),
+  weee: z.object({
+    registered: z.boolean().default(false),
+    registrationNumber: z.string().optional(),
+  }).optional(),
+  eudr: z.object({
+    compliant: z.boolean().default(false),
+    diligenceId: z.string().optional(),
+  }).optional(),
+  ce: z.object({
+    marked: z.boolean().default(false),
+  }).optional(),
+  prop65: z.object({
+    warningRequired: z.boolean().default(false),
+  }).optional(),
+  foodContact: z.object({
+    safe: z.boolean().default(false),
+    standard: z.string().optional(),
+  }).optional(),
 });
+
 
 export const customsInspectionFormSchema = z.object({
     status: z.enum(['Cleared', 'Detained', 'Rejected']),

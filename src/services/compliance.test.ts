@@ -51,7 +51,7 @@ const createMockPath = (
 
 describe('Compliance Verification Service', () => {
   it('should return compliant if all rules pass', async () => {
-    const product = createMockProduct(80, [{ name: 'Recycled Plastic' }], { rohsCompliant: true });
+    const product = createMockProduct(80, [{ name: 'Recycled Plastic' }], { rohs: { compliant: true } });
     const path = createMockPath('p1', { minSustainabilityScore: 70, requiredKeywords: ['Plastic'] }, ['RoHS']);
     const { isCompliant, gaps } = await verifyProductAgainstPath(product, path);
     expect(isCompliant).toBe(true);
@@ -94,7 +94,7 @@ describe('Compliance Verification Service', () => {
   });
 
   it('should fail if a specific compliance flag is not set', async () => {
-    const product = createMockProduct(80, [], { rohsCompliant: false });
+    const product = createMockProduct(80, [], { rohs: { compliant: false } });
     const path = createMockPath('p6', {}, ['RoHS']);
     const { isCompliant, gaps } = await verifyProductAgainstPath(product, path);
     expect(isCompliant).toBe(false);
@@ -104,7 +104,7 @@ describe('Compliance Verification Service', () => {
   });
 
   it('should identify multiple gaps at once', async () => {
-    const product = createMockProduct(40, [{ name: 'Lead-based paint' }], { rohsCompliant: false });
+    const product = createMockProduct(40, [{ name: 'Lead-based paint' }], { rohs: { compliant: false } });
     const path = createMockPath('p7', { minSustainabilityScore: 50, bannedKeywords: ['Lead'] }, ['RoHS']);
     const { isCompliant, gaps } = await verifyProductAgainstPath(product, path);
     expect(isCompliant).toBe(false);

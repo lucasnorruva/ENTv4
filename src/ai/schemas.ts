@@ -70,14 +70,13 @@ export const AiProductSchema = z.object({
     .optional(),
   compliance: z
     .object({
-      rohsCompliant: z.boolean().optional(),
-      rohsExemption: z.string().optional(),
-      reachSVHC: z.boolean().optional(),
-      scipReference: z.string().optional(),
-      prop65WarningRequired: z.boolean().optional(),
-      ceMarked: z.boolean().optional(),
-      foodContactSafe: z.boolean().optional(),
-      foodContactComplianceStandard: z.string().optional(),
+      rohs: z.object({ compliant: z.boolean().optional(), exemption: z.string().optional() }).optional(),
+      reach: z.object({ svhcDeclared: z.boolean().optional(), scipReference: z.string().optional() }).optional(),
+      weee: z.object({ registered: z.boolean().optional(), registrationNumber: z.string().optional() }).optional(),
+      eudr: z.object({ compliant: z.boolean().optional(), diligenceId: z.string().optional() }).optional(),
+      ce: z.object({ marked: z.boolean().optional() }).optional(),
+      prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
+      foodContact: z.object({ safe: z.boolean().optional(), standard: z.string().optional() }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),

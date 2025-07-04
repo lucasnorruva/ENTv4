@@ -75,10 +75,10 @@ Use the following template. Fill in the placeholders \`[...]\` with the appropri
     {{else}}
     - No specific directives listed.
     {{/if}}
-    {{#if product.compliance.rohsCompliant}}
+    {{#if product.compliance.rohs.compliant}}
     - Directive 2011/65/EU (RoHS) on the restriction of the use of certain hazardous substances in electrical and electronic equipment.
     {{/if}}
-    {{#if product.compliance.ceMarked}}
+    {{#if product.compliance.ce.marked}}
     - All applicable CE marking directives.
     {{/if}}
 
@@ -108,8 +108,8 @@ Certifications:
 {{/each}}
 
 Compliance Declarations:
-- RoHS Compliant: {{#if product.compliance.rohsCompliant}}Yes{{else}}No{{/if}}
-- CE Marked: {{#if product.compliance.ceMarked}}Yes{{else}}No{{/if}}
+- RoHS Compliant: {{#if product.compliance.rohs.compliant}}Yes{{else}}No{{/if}}
+- CE Marked: {{#if product.compliance.ce.marked}}Yes{{else}}No{{/if}}
 """
 `,
 });
