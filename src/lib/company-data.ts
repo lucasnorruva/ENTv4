@@ -37,7 +37,7 @@ export let companies: Company[] = [
     settings: {
       aiEnabled: true,
       apiAccess: false,
-      brandingCustomization: true,
+      brandingCustomization: false,
     },
   },
   {
