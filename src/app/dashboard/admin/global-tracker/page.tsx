@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin/global-tracker/page.tsx
 'use client';
 
@@ -91,7 +92,6 @@ export default function GlobalTrackerPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [landPolygons, setLandPolygons] = useState<CountryFeature[]>([]);
-  const [hoverD, setHoverD] = useState<CountryFeature | null>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [globeReady, setGlobeReady] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -476,11 +476,10 @@ export default function GlobalTrackerPage() {
     [isEU, highlightedCountries, clickedCountryInfo],
   );
 
-  const getPolygonAltitude = useCallback((feat: CountryFeature) => {
-    const countryName = feat.properties.ADMIN;
-    const stat = countryProductStats.get(countryName);
-    return stat ? Math.max(0.01, Math.sqrt(stat) * 0.04) : 0.01;
-  }, [countryProductStats]);
+  const getPolygonAltitude = useCallback(
+    () => 0.01,
+    [],
+  );
 
   const getPolygonLabel = useCallback((feat: CountryFeature) => {
     const p = feat.properties;
@@ -563,8 +562,7 @@ export default function GlobalTrackerPage() {
             polygonCapColor={(feat: object) => getPolygonCapColor(feat as CountryFeature)}
             polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
             polygonStrokeColor={() => '#000000'}
-            polygonAltitude={(feat: object) => getPolygonAltitude(feat as CountryFeature)}
-            onPolygonHover={(feat: object | null) => setHoverD(feat as CountryFeature | null)}
+            polygonAltitude={(feat: object) => getPolygonAltitude()}
             onPolygonClick={(feat: object) => handlePolygonClick(feat as CountryFeature)}
             polygonLabel={(feat: object) => getPolygonLabel(feat as CountryFeature)}
             polygonsTransitionDuration={100}
