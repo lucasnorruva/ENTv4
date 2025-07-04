@@ -1,16 +1,17 @@
 // src/app/dashboard/admin/global-tracker/page.tsx
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
-import type {
-  Feature as GeoJsonFeature,
-  FeatureCollection,
-  Geometry,
-  GeoJsonProperties,
-} from 'geojson';
+import type { Feature as GeoJsonFeature, GeoJsonProperties } from 'geojson';
 import { MeshPhongMaterial } from 'three';
 import { Loader2, Info, X } from 'lucide-react';
 
@@ -30,10 +31,11 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 
-import { products as mockProducts } from '@/lib/data'; // Use main products data
+import { getProducts } from '@/lib/actions';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product, CustomsAlert } from '@/types'; // Use main types
+import type { Product, CustomsAlert } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
+import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -82,7 +84,7 @@ interface CountryProperties extends GeoJsonProperties {
   ISO_A3?: string;
 }
 
-type CountryFeature = GeoJsonFeature<Geometry, CountryProperties>;
+type CountryFeature = GeoJsonFeature<any, CountryProperties>;
 
 interface PointData {
   lat: number;
@@ -96,6 +98,7 @@ export default function GlobalTrackerPage() {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [landPolygons, setLandPolygons] = useState<CountryFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -111,9 +114,10 @@ export default function GlobalTrackerPage() {
   );
 
   const selectedProduct = useMemo(
-    () => mockProducts.find(p => p.id === selectedProductId),
-    [selectedProductId],
+    () => allProducts.find(p => p.id === selectedProductId),
+    [selectedProductId, allProducts],
   );
+
   const [selectedProductAlerts, setSelectedProductAlerts] = useState<
     CustomsAlert[]
   >([]);
@@ -220,29 +224,37 @@ export default function GlobalTrackerPage() {
   );
 
   useEffect(() => {
-    // Use higher-resolution map data to fix visual gaps in countries.
-    fetch(
-      'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson',
-    )
-      .then(res => res.json())
-      .then((geoJson: FeatureCollection<Geometry, CountryProperties>) => {
-        setLandPolygons(geoJson.features);
+    // Fetch products and GeoJSON data in parallel
+    Promise.all([
+      getProducts(),
+      fetch(
+        'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson',
+      ).then(res => res.json()),
+    ])
+      .then(([productsData, geoJsonData]) => {
+        const publishedProducts = productsData.filter(
+          p => p.status === 'Published',
+        );
+        setAllProducts(publishedProducts);
+        setLandPolygons(geoJsonData.features);
+
+        const stats = new Map<string, number>();
+        productsData.forEach(p => {
+          const country = getCountryFromLocationString(
+            p.manufacturing?.country,
+          );
+          if (country) {
+            stats.set(country, (stats.get(country) || 0) + 1);
+          }
+        });
+        setCountryProductStats(stats);
       })
       .catch(err => {
-        console.error('Error fetching country polygons:', err);
+        console.error('Error fetching initial data:', err);
       })
       .finally(() => {
         setDataLoaded(true);
       });
-
-    const stats = new Map<string, number>();
-    mockProducts.forEach(p => {
-      const country = getCountryFromLocationString(p.manufacturing?.country);
-      if (country) {
-        stats.set(country, (stats.get(country) || 0) + 1);
-      }
-    });
-    setCountryProductStats(stats);
   }, [getCountryFromLocationString]);
 
   useEffect(() => {
@@ -525,9 +537,12 @@ export default function GlobalTrackerPage() {
     ],
   );
 
-  const handleDismissProductInfo = () => {
-    setSelectedProductId(null);
-    router.push(`/dashboard/admin/global-tracker`, { scroll: false });
+  const handleProductSelect = (productId: string | null) => {
+    setSelectedProductId(productId);
+    const newPath = productId
+      ? `/dashboard/admin/global-tracker?productId=${productId}`
+      : '/dashboard/admin/global-tracker';
+    router.push(newPath, { scroll: false });
   };
 
   if (!dataLoaded) {
@@ -548,42 +563,16 @@ export default function GlobalTrackerPage() {
           <div>
             <CardTitle>Global Supply Chain Tracker</CardTitle>
             <CardDescription>
-              Visualize product supply chains, transit routes, and customs events in
-              real-time.
+              Visualize product supply chains, transit routes, and customs
+              events in real-time.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <Select
-              onValueChange={value => {
-                const newProductId =
-                  value === 'select-placeholder' ? null : value;
-                setSelectedProductId(newProductId);
-                if (newProductId)
-                  router.push(
-                    `/dashboard/admin/global-tracker?productId=${newProductId}`,
-                    { scroll: false },
-                  );
-                else
-                  router.push(`/dashboard/admin/global-tracker`, {
-                    scroll: false,
-                  });
-              }}
-              value={selectedProductId || 'select-placeholder'}
-            >
-              <SelectTrigger className="w-full sm:w-[250px]">
-                <SelectValue placeholder="Select a Product" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="select-placeholder">
-                  Select a Product to Track
-                </SelectItem>
-                {mockProducts.map(dpp => (
-                  <SelectItem key={dpp.id} value={dpp.id}>
-                    {dpp.productName} ({dpp.id})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ProductTrackerSelector
+              products={allProducts}
+              selectedProductId={selectedProductId}
+              onProductSelect={handleProductSelect}
+            />
             <Button
               size="sm"
               variant="outline"
@@ -724,7 +713,7 @@ export default function GlobalTrackerPage() {
           <SelectedProductCustomsInfoCard
             product={selectedProduct}
             alerts={selectedProductAlerts}
-            onDismiss={handleDismissProductInfo}
+            onDismiss={() => handleProductSelect(null)}
           />
         )}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
