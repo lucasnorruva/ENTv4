@@ -251,6 +251,7 @@ export interface ProductionLine extends BaseEntity {
   currentProduct: string;
   lastMaintenance: string;
   productId?: string;
+  companyId: string; // Foreign key to the Company
 }
 
 /**
