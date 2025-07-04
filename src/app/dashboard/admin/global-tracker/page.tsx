@@ -12,11 +12,7 @@ import type {
   GeoJsonProperties,
 } from 'geojson';
 import { MeshPhongMaterial } from 'three';
-import {
-  Loader2,
-  Info,
-  X,
-} from 'lucide-react';
+import { Loader2, Info, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -36,7 +32,7 @@ import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedPro
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full w-full bg-white">
+    <div className="flex items-center justify-center h-full w-full bg-background">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
       <p className="ml-4 text-lg text-muted-foreground">Loading Globe...</p>
     </div>
@@ -44,9 +40,33 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 });
 
 const EU_COUNTRY_CODES = new Set([
-  'AUT', 'BEL', 'BGR', 'HRV', 'CYP', 'CZE', 'DNK', 'EST', 'FIN', 'FRA', 'DEU',
-  'GRC', 'HUN', 'IRL', 'ITA', 'LVA', 'LTU', 'LUX', 'MLT', 'NLD', 'POL',
-  'PRT', 'ROU', 'SVK', 'SVN', 'ESP', 'SWE',
+  'AUT',
+  'BEL',
+  'BGR',
+  'HRV',
+  'CYP',
+  'CZE',
+  'DNK',
+  'EST',
+  'FIN',
+  'FRA',
+  'DEU',
+  'GRC',
+  'HUN',
+  'IRL',
+  'ITA',
+  'LVA',
+  'LTU',
+  'LUX',
+  'MLT',
+  'NLD',
+  'POL',
+  'PRT',
+  'ROU',
+  'SVK',
+  'SVN',
+  'ESP',
+  'SWE',
 ]);
 
 interface CountryProperties extends GeoJsonProperties {
@@ -67,7 +87,9 @@ export default function GlobalTrackerPage() {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [globeReady, setGlobeReady] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
+    [],
+  );
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [arcsData, setArcsData] = useState<any[]>([]);
 
@@ -75,8 +97,11 @@ export default function GlobalTrackerPage() {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     productIdFromQuery,
   );
-  
-  const selectedProduct = useMemo(() => MOCK_DPPS.find(p => p.id === selectedProductId), [selectedProductId]);
+
+  const selectedProduct = useMemo(
+    () => MOCK_DPPS.find(p => p.id === selectedProductId),
+    [selectedProductId],
+  );
   const [selectedProductAlerts, setSelectedProductAlerts] = useState<
     CustomsAlert[]
   >([]);
@@ -108,45 +133,64 @@ export default function GlobalTrackerPage() {
     setClickedCountryInfo((feat as CountryFeature).properties);
   }, []);
 
-  const mockCountryCoordinates: { [key: string]: { lat: number; lng: number } } = useMemo(() => ({
-    'Germany': { lat: 51.1657, lng: 10.4515 }, 'France': { lat: 46.6034, lng: 1.8883 },
-    'Italy': { lat: 41.8719, lng: 12.5674 }, 'Spain': { lat: 40.4637, lng: -3.7492 },
-    'Poland': { lat: 51.9194, lng: 19.1451 }, 'United States': { lat: 37.0902, lng: -95.7129 },
-    'China': { lat: 35.8617, lng: 104.1954 }, 'Japan': { lat: 36.2048, lng: 138.2529 },
-    'United Kingdom': { lat: 55.3781, lng: -3.4360 }, 'Canada': { lat: 56.1304, lng: -106.3468 },
-    'India': { lat: 20.5937, lng: 78.9629 }, 'Netherlands': { lat: 52.1326, lng: 5.2913 },
-    'Czechia': { lat: 49.8175, lng: 15.4730 }, 'Belgium': { lat: 50.5039, lng: 4.4699 },
-    'Switzerland': { lat: 46.8182, lng: 8.2275}, 'Kenya': {lat: -0.0236, lng: 37.9062},
-    'Vietnam': { lat: 14.0583, lng: 108.2772 }, 
-    'Hong Kong': { lat: 22.3193, lng: 114.1694 }, 
-    'Australia': { lat: -25.2744, lng: 133.7751 },
-    'South Korea': { lat: 35.9078, lng: 127.7669 }, 'Brazil': { lat: -14.235, lng: -51.9253 },
-    'Shanghai': { lat: 31.2304, lng: 121.4737 },
-    'Mumbai': { lat: 19.0760, lng: 72.8777 },
-    'Shenzhen': { lat: 22.5431, lng: 114.0579 },
-    'Ho Chi Minh City': { lat: 10.8231, lng: 106.6297 },
-    'Newark': { lat: 40.7357, lng: -74.1724 },
-    'Gdansk': { lat: 54.372158, lng: 18.638306 },
-    'Milan': { lat: 45.4642, lng: 9.1900 },
-    'Zurich': { lat: 47.3769, lng: 8.5417 },
-    'Prague': { lat: 50.0755, lng: 14.4378 },
-    'Nairobi': { lat: -1.2921, lng: 36.8219 },
-    'Austria': { lat: 47.5162, lng: 14.5501 },
-  }), []);
+  const mockCountryCoordinates: { [key: string]: { lat: number; lng: number } } =
+    useMemo(
+      () => ({
+        Germany: { lat: 51.1657, lng: 10.4515 },
+        France: { lat: 46.6034, lng: 1.8883 },
+        Italy: { lat: 41.8719, lng: 12.5674 },
+        Spain: { lat: 40.4637, lng: -3.7492 },
+        Poland: { lat: 51.9194, lng: 19.1451 },
+        'United States': { lat: 37.0902, lng: -95.7129 },
+        China: { lat: 35.8617, lng: 104.1954 },
+        Japan: { lat: 36.2048, lng: 138.2529 },
+        'United Kingdom': { lat: 55.3781, lng: -3.436 },
+        Canada: { lat: 56.1304, lng: -106.3468 },
+        India: { lat: 20.5937, lng: 78.9629 },
+        Netherlands: { lat: 52.1326, lng: 5.2913 },
+        Czechia: { lat: 49.8175, lng: 15.473 },
+        Belgium: { lat: 50.5039, lng: 4.4699 },
+        Switzerland: { lat: 46.8182, lng: 8.2275 },
+        Kenya: { lat: -0.0236, lng: 37.9062 },
+        Vietnam: { lat: 14.0583, lng: 108.2772 },
+        'Hong Kong': { lat: 22.3193, lng: 114.1694 },
+        Australia: { lat: -25.2744, lng: 133.7751 },
+        'South Korea': { lat: 35.9078, lng: 127.7669 },
+        Brazil: { lat: -14.235, lng: -51.9253 },
+        Shanghai: { lat: 31.2304, lng: 121.4737 },
+        Mumbai: { lat: 19.076, lng: 72.8777 },
+        Shenzhen: { lat: 22.5431, lng: 114.0579 },
+        'Ho Chi Minh City': { lat: 10.8231, lng: 106.6297 },
+        Newark: { lat: 40.7357, lng: -74.1724 },
+        Gdansk: { lat: 54.372158, lng: 18.638306 },
+        Milan: { lat: 45.4642, lng: 9.19 },
+        Zurich: { lat: 47.3769, lng: 8.5417 },
+        Prague: { lat: 50.0755, lng: 14.4378 },
+        Nairobi: { lat: -1.2921, lng: 36.8219 },
+        Austria: { lat: 47.5162, lng: 14.5501 },
+      }),
+      [],
+    );
 
-  const getCountryFromLocationString = useCallback((locationString?: string): string | null => {
+  const getCountryFromLocationString = useCallback(
+    (locationString?: string): string | null => {
       if (!locationString) return null;
       const parts = locationString.split(',').map(p => p.trim());
-      const country = parts.pop(); 
-      if (country && (mockCountryCoordinates[country] || EU_COUNTRY_CODES.has(country.toUpperCase()))) {
-          return country;
+      const country = parts.pop();
+      if (
+        country &&
+        (mockCountryCoordinates[country] || EU_COUNTRY_CODES.has(country.toUpperCase()))
+      ) {
+        return country;
       }
       if (parts.length > 0) {
-          const city = parts.pop();
-          if (city && mockCountryCoordinates[city]) return city; 
+        const city = parts.pop();
+        if (city && mockCountryCoordinates[city]) return city;
       }
-      return country || null; 
-  }, [mockCountryCoordinates]);
+      return country || null;
+    },
+    [mockCountryCoordinates],
+  );
 
   useEffect(() => {
     fetch(
@@ -171,117 +215,176 @@ export default function GlobalTrackerPage() {
     setClickedCountryInfo(null);
 
     if (!selectedProduct) {
-      if (globeEl.current) globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
+      if (globeEl.current)
+        globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
       return;
     }
 
-    setSelectedProductAlerts(MOCK_CUSTOMS_ALERTS.filter(a => a.productId === selectedProduct.id));
-    
+    setSelectedProductAlerts(
+      MOCK_CUSTOMS_ALERTS.filter(a => a.productId === selectedProduct.id),
+    );
+
     const countries = new Set<string>();
     const newSupplyArcs: any[] = [];
-    
+
     // Add supply chain countries and arcs
-    const manufacturerCountry = getCountryFromLocationString(selectedProduct.manufacturing?.country);
+    const manufacturerCountry = getCountryFromLocationString(
+      selectedProduct.manufacturing?.country,
+    );
     if (manufacturerCountry) {
-        countries.add(manufacturerCountry);
-        const manufacturerCoords = mockCountryCoordinates[manufacturerCountry];
-        if (manufacturerCoords) {
-            selectedProduct.materials?.forEach(material => {
-                const supplierCountry = getCountryFromLocationString(material.origin);
-                if (supplierCountry && supplierCountry !== manufacturerCountry) {
-                    countries.add(supplierCountry);
-                    const supplierCoords = mockCountryCoordinates[supplierCountry];
-                    if (supplierCoords) {
-                        newSupplyArcs.push({
-                            startLat: supplierCoords.lat, startLng: supplierCoords.lng,
-                            endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
-                            color: '#F59E0B',
-                            label: `Supply: ${material.name} from ${supplierCountry}`
-                        });
-                    }
-                }
-            });
-        }
+      countries.add(manufacturerCountry);
+      const manufacturerCoords = mockCountryCoordinates[manufacturerCountry];
+      if (manufacturerCoords) {
+        selectedProduct.materials?.forEach(material => {
+          const supplierCountry = getCountryFromLocationString(material.origin);
+          if (supplierCountry && supplierCountry !== manufacturerCountry) {
+            countries.add(supplierCountry);
+            const supplierCoords = mockCountryCoordinates[supplierCountry];
+            if (supplierCoords) {
+              newSupplyArcs.push({
+                startLat: supplierCoords.lat,
+                startLng: supplierCoords.lng,
+                endLat: manufacturerCoords.lat,
+                endLng: manufacturerCoords.lng,
+                color: '#F59E0B',
+                label: `Supply: ${material.name} from ${supplierCountry}`,
+              });
+            }
+          }
+        });
+      }
     }
-    
+
     // Add transit arc if it exists
     if (selectedProduct.transit) {
-      const originCountry = getCountryFromLocationString(selectedProduct.transit.origin);
-      const destinationCountry = getCountryFromLocationString(selectedProduct.transit.destination);
-      const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
-      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
+      const originCountry = getCountryFromLocationString(
+        selectedProduct.transit.origin,
+      );
+      const destinationCountry = getCountryFromLocationString(
+        selectedProduct.transit.destination,
+      );
+      const originCoords = originCountry
+        ? mockCountryCoordinates[originCountry]
+        : null;
+      const destinationCoords = destinationCountry
+        ? mockCountryCoordinates[destinationCountry]
+        : null;
 
       if (originCountry) countries.add(originCountry);
       if (destinationCountry) countries.add(destinationCountry);
-      
+
       if (originCoords && destinationCoords) {
         newSupplyArcs.push({
-          startLat: originCoords.lat, startLng: originCoords.lng,
-          endLat: destinationCoords.lat, endLng: destinationCoords.lng,
-          color: '#3B82F6', 
-          label: `${selectedProduct.productName} Transit`
+          startLat: originCoords.lat,
+          startLng: originCoords.lng,
+          endLat: destinationCoords.lat,
+          endLng: destinationCoords.lng,
+          color: '#3B82F6',
+          label: `${selectedProduct.productName} Transit`,
         });
-        if (globeEl.current) { 
-             const midLat = (originCoords.lat + destinationCoords.lat) / 2;
-             const midLng = (originCoords.lng + destinationCoords.lng) / 2;
-             globeEl.current.pointOfView({ lat: midLat, lng: midLng, altitude: 2.0 }, 1000);
+        if (globeEl.current) {
+          const midLat = (originCoords.lat + destinationCoords.lat) / 2;
+          const midLng = (originCoords.lng + destinationCoords.lng) / 2;
+          globeEl.current.pointOfView(
+            { lat: midLat, lng: midLng, altitude: 2.0 },
+            1000,
+          );
         }
       }
     } else {
-        if (globeEl.current) {
-            if (countries.has('China') || countries.has('Japan') || countries.has('India')) globeEl.current.pointOfView({ lat: 20, lng: 90, altitude: 2.5 }, 1000);
-            else if (countries.has('United States') || countries.has('Canada')) globeEl.current.pointOfView({ lat: 45, lng: -90, altitude: 2.5 }, 1000);
-            else globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
-        }
+      if (globeEl.current) {
+        if (countries.has('China') || countries.has('Japan') || countries.has('India'))
+          globeEl.current.pointOfView({ lat: 20, lng: 90, altitude: 2.5 }, 1000);
+        else if (
+          countries.has('United States') ||
+          countries.has('Canada')
+        )
+          globeEl.current.pointOfView({ lat: 45, lng: -90, altitude: 2.5 }, 1000);
+        else
+          globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
+      }
     }
-    
+
     setHighlightedCountries(Array.from(countries));
     setArcsData(newSupplyArcs);
+  }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString]);
 
-  }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString]); 
+  const isEU = useCallback(
+    (isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
+    [],
+  );
 
-  const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
-  
   useEffect(() => {
     if (!landPolygons.length) return;
     let filtered = landPolygons;
     if (countryFilter === 'eu') {
-      filtered = landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
-    } else if (countryFilter === 'supplyChain' && selectedProduct && highlightedCountries.length > 0) { 
+      filtered = landPolygons.filter(feat =>
+        isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3),
+      );
+    } else if (
+      countryFilter === 'supplyChain' &&
+      selectedProduct &&
+      highlightedCountries.length > 0
+    ) {
       filtered = landPolygons.filter(feat => {
-        const adminName = feat.properties?.ADMIN || feat.properties?.NAME_LONG || '';
-        return highlightedCountries.some(hc => adminName.toLowerCase().includes(hc.toLowerCase()));
+        const adminName =
+          feat.properties?.ADMIN || feat.properties?.NAME_LONG || '';
+        return highlightedCountries.some(hc =>
+          adminName.toLowerCase().includes(hc.toLowerCase()),
+        );
       });
     }
     setFilteredLandPolygons(filtered);
   }, [countryFilter, landPolygons, highlightedCountries, isEU, selectedProduct]);
 
-  const globeMaterial = useMemo(() => new MeshPhongMaterial({ color: '#a9d5e5', transparent: true, opacity: 1 }), []);
+  const globeMaterial = useMemo(
+    () => new MeshPhongMaterial({ color: '#a9d5e5', transparent: true, opacity: 1 }),
+    [],
+  );
 
   useEffect(() => {
     if (globeEl.current && globeReady) {
       const controls = globeEl.current.controls();
       if (controls) {
-        controls.autoRotate = isAutoRotating; controls.autoRotateSpeed = 0.3; 
-        controls.enableZoom = true; controls.minDistance = 150; controls.maxDistance = 1000;  
+        controls.autoRotate = isAutoRotating;
+        controls.autoRotateSpeed = 0.3;
+        controls.enableZoom = true;
+        controls.minDistance = 150;
+        controls.maxDistance = 1000;
       }
-      if (!selectedProduct) globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
+      if (!selectedProduct)
+        globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
     }
   }, [globeReady, isAutoRotating, selectedProduct]);
-  
-  const getPolygonCapColor = useCallback((feat: object) => {
-    const properties = (feat as CountryFeature).properties;
-    const iso = properties?.ADM0_A3 || properties?.ISO_A3;
-    const name = properties?.ADMIN || properties?.NAME_LONG || '';
 
-    if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === iso || clickedCountryInfo.ADMIN === name) ) return '#ff4500';
-    if (hoverD && (hoverD.properties.ADM0_A3 === iso || hoverD.properties.ADMIN === name)) return '#ffa500';
-    
-    if (highlightedCountries.some(hc => name.toLowerCase().includes(hc.toLowerCase()))) {
-        return isEU(iso) ? '#FFBF00' : '#f97316'; 
-    }
-    return isEU(iso) ? '#002D62' : '#CCCCCC'; 
-  }, [isEU, highlightedCountries, clickedCountryInfo, hoverD]);
+  const getPolygonCapColor = useCallback(
+    (feat: object) => {
+      const properties = (feat as CountryFeature).properties;
+      const iso = properties?.ADM0_A3 || properties?.ISO_A3;
+      const name = properties?.ADMIN || properties?.NAME_LONG || '';
+
+      if (
+        clickedCountryInfo &&
+        (clickedCountryInfo.ADM0_A3 === iso || clickedCountryInfo.ADMIN === name)
+      )
+        return '#ff4500';
+      if (
+        hoverD &&
+        (hoverD.properties.ADM0_A3 === iso || hoverD.properties.ADMIN === name)
+      )
+        return '#ffa500';
+
+      if (
+        highlightedCountries.some(hc =>
+          name.toLowerCase().includes(hc.toLowerCase()),
+        )
+      ) {
+        return isEU(iso) ? '#FFBF00' : '#f97316';
+      }
+      return isEU(iso) ? '#002D62' : '#CCCCCC';
+    },
+    [isEU, highlightedCountries, clickedCountryInfo, hoverD],
+  );
 
   const handleDismissProductInfo = () => {
     setSelectedProductId(null);
@@ -291,110 +394,235 @@ export default function GlobalTrackerPage() {
   if (dimensions.width === 0 || dimensions.height === 0 || !dataLoaded) {
     return (
       <div className="flex items-center justify-center h-full w-full bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" /><p className="ml-4 text-lg text-muted-foreground">Preparing Global Tracker...</p>
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="ml-4 text-lg text-muted-foreground">
+          Preparing Global Tracker...
+        </p>
       </div>
     );
   }
 
   return (
     <>
-      <div style={{ width: '100%', height: `100%`, position: 'relative', background: 'white' }}>
-        {typeof window !== 'undefined' && dimensions.width > 0 && dimensions.height > 0 && (
-          <Globe
-            ref={globeEl} globeImageUrl={null} globeMaterial={globeMaterial} backgroundColor="rgba(255, 255, 255, 1)"
-            arcsData={arcsData} arcColor={'color'} arcDashLength={0.4} arcDashGap={0.1} arcDashAnimateTime={2000} arcStroke={0.5}
-            showAtmosphere={false} polygonsData={filteredLandPolygons} polygonCapColor={getPolygonCapColor}
-            polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'} polygonStrokeColor={() => '#000000'} polygonAltitude={0.008}
-            onPolygonHover={setHoverD as (feature: GeoJsonFeature | null) => void} onPolygonClick={handlePolygonClick} 
-            polygonLabel={({ properties }: object) => {
-              const p = properties as CountryProperties; const iso = p?.ADM0_A3 || p?.ISO_A3; const name = p?.ADMIN || p?.NAME_LONG || 'Country';
-              const isEUCountry = isEU(iso); const isHighlighted = highlightedCountries.some(hc => name.toLowerCase().includes(hc.toLowerCase()));
-              let roleInContext = "";
-              if (isHighlighted) {
-                  if (selectedProduct?.transit?.origin && getCountryFromLocationString(selectedProduct.transit.origin) === name) roleInContext += "Transit Origin. ";
-                  if (selectedProduct?.transit?.destination && getCountryFromLocationString(selectedProduct.transit.destination) === name) roleInContext += "Transit Destination. ";
-                  if (!roleInContext) roleInContext = "Supply Chain Node."
-              }
-              return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${iso ? ` (${iso})` : ''}<br/>${isEUCountry ? 'EU Member' : 'Non-EU Member'}<br/>${roleInContext.trim()}</div>`;
-            }}
-            polygonsTransitionDuration={100} width={dimensions.width} height={dimensions.height}
-            onGlobeReady={() => setGlobeReady(true)} enablePointerInteraction={true}
-          />
-        )}
+      <div
+        style={{
+          width: '100%',
+          height: `100%`,
+          position: 'relative',
+          background: 'white',
+        }}
+      >
+        {typeof window !== 'undefined' &&
+          dimensions.width > 0 &&
+          dimensions.height > 0 && (
+            <Globe
+              ref={globeEl}
+              globeImageUrl={null}
+              globeMaterial={globeMaterial}
+              backgroundColor="rgba(255, 255, 255, 1)"
+              arcsData={arcsData}
+              arcColor={'color'}
+              arcDashLength={0.4}
+              arcDashGap={0.1}
+              arcDashAnimateTime={2000}
+              arcStroke={0.5}
+              showAtmosphere={false}
+              polygonsData={filteredLandPolygons}
+              polygonCapColor={getPolygonCapColor}
+              polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
+              polygonStrokeColor={() => '#000000'}
+              polygonAltitude={0.008}
+              onPolygonHover={setHoverD as (feature: GeoJsonFeature | null) => void}
+              onPolygonClick={handlePolygonClick}
+              polygonLabel={({ properties }: object) => {
+                const p = properties as CountryProperties;
+                const iso = p?.ADM0_A3 || p?.ISO_A3;
+                const name = p?.ADMIN || p?.NAME_LONG || 'Country';
+                const isEUCountry = isEU(iso);
+                const isHighlighted = highlightedCountries.some(hc =>
+                  name.toLowerCase().includes(hc.toLowerCase()),
+                );
+                let roleInContext = '';
+                if (isHighlighted) {
+                  if (
+                    selectedProduct?.transit?.origin &&
+                    getCountryFromLocationString(
+                      selectedProduct.transit.origin,
+                    ) === name
+                  )
+                    roleInContext += 'Transit Origin. ';
+                  if (
+                    selectedProduct?.transit?.destination &&
+                    getCountryFromLocationString(
+                      selectedProduct.transit.destination,
+                    ) === name
+                  )
+                    roleInContext += 'Transit Destination. ';
+                  if (!roleInContext) roleInContext = 'Supply Chain Node.';
+                }
+                return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b>${
+                  iso ? ` (${iso})` : ''
+                }<br/>${isEUCountry ? 'EU Member' : 'Non-EU Member'}<br/>${roleInContext.trim()}</div>`;
+              }}
+              polygonsTransitionDuration={100}
+              width={dimensions.width}
+              height={dimensions.height}
+              onGlobeReady={() => setGlobeReady(true)}
+              enablePointerInteraction={true}
+            />
+          )}
 
         {dimensions.width > 0 && dimensions.height > 0 && (
-          <Button className="absolute top-4 right-[170px] z-10" size="sm" onClick={() => setIsAutoRotating(!isAutoRotating)}>
+          <Button
+            className="absolute top-4 right-[170px] z-10"
+            size="sm"
+            onClick={() => setIsAutoRotating(!isAutoRotating)}
+          >
             {isAutoRotating ? 'Stop Auto-Rotate' : 'Start Auto-Rotate'}
           </Button>
         )}
 
         <div className="absolute top-4 right-4 z-10">
-         <Select onValueChange={(value) => setCountryFilter(value as 'all' | 'eu' | 'supplyChain') } value={countryFilter}>
-          <SelectTrigger className="w-[150px]"><SelectValue placeholder="Filter Countries" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Countries</SelectItem><SelectItem value="eu">EU Countries</SelectItem>
-            <SelectItem value="supplyChain" disabled={!selectedProduct}>Product Focus</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <Select
+            onValueChange={value =>
+              setCountryFilter(value as 'all' | 'eu' | 'supplyChain')
+            }
+            value={countryFilter}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Filter Countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              <SelectItem value="eu">EU Countries</SelectItem>
+              <SelectItem value="supplyChain" disabled={!selectedProduct}>
+                Product Focus
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="absolute top-4 left-4 z-10">
-       <Select
-         onValueChange={(value) => {
-            const newProductId = value === 'select-placeholder' ? null : value;
-            setSelectedProductId(newProductId);
-            if (newProductId) router.push(`/dashboard/admin/global-tracker?productId=${newProductId}`, { scroll: false });
-            else router.push(`/dashboard/admin/global-tracker`, { scroll: false });
-         }}
-         value={selectedProductId || 'select-placeholder'}
-       >
-        <SelectTrigger className="w-[250px] sm:w-[300px]"><SelectValue placeholder="Select a Product" /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="select-placeholder">Select a Product to Track</SelectItem>
-          {MOCK_DPPS.map(dpp => ( 
-            <SelectItem key={dpp.id} value={dpp.id}>{dpp.productName} ({dpp.id})</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-        
-      {clickedCountryInfo && (
-        <Card className="absolute top-16 right-4 z-20 w-72 shadow-xl bg-card">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-md font-semibold">{clickedCountryInfo.ADMIN || 'Selected Country'}</CardTitle>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setClickedCountryInfo(null)}><X className="h-4 w-4" /></Button>
-          </CardHeader>
-          <CardContent className="text-xs space-y-1">
-            <p><strong className="text-muted-foreground">ISO A3:</strong> {clickedCountryInfo.ADM0_A3 || clickedCountryInfo.ISO_A3 || 'N/A'}</p>
-            <p><strong className="text-muted-foreground">DPPs Originating:</strong> {Math.floor(Math.random() * 50)} (Mock)</p>
-            <p><strong className="text-muted-foreground">DPPs Transiting:</strong> {Math.floor(Math.random() * 20)} (Mock)</p>
-            {isEU(clickedCountryInfo.ADM0_A3 || clickedCountryInfo.ISO_A3) && <p className="text-green-600 font-medium">EU Member State</p>}
-            {(highlightedCountries.includes(clickedCountryInfo.ADMIN || '') || highlightedCountries.includes(clickedCountryInfo.ADM0_A3 || '')) && <p className="text-orange-600 font-medium">Part of Focus Area</p>}
-            <Button variant="link" size="sm" className="p-0 h-auto text-primary mt-2" disabled>View DPPs for {clickedCountryInfo.ADMIN?.substring(0,15) || 'Country'}... (Conceptual)</Button>
-          </CardContent>
-        </Card>
-      )}
+        <div className="absolute top-4 left-4 z-10">
+          <Select
+            onValueChange={value => {
+              const newProductId = value === 'select-placeholder' ? null : value;
+              setSelectedProductId(newProductId);
+              if (newProductId)
+                router.push(
+                  `/dashboard/admin/global-tracker?productId=${newProductId}`,
+                  { scroll: false },
+                );
+              else
+                router.push(`/dashboard/admin/global-tracker`, { scroll: false });
+            }}
+            value={selectedProductId || 'select-placeholder'}
+          >
+            <SelectTrigger className="w-[250px] sm:w-[300px]">
+              <SelectValue placeholder="Select a Product" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="select-placeholder">
+                Select a Product to Track
+              </SelectItem>
+              {MOCK_DPPS.map(dpp => (
+                <SelectItem key={dpp.id} value={dpp.id}>
+                  {dpp.productName} ({dpp.id})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {selectedProduct && (
-        <SelectedProductCustomsInfoCard 
+        {clickedCountryInfo && (
+          <Card className="absolute top-16 right-4 z-20 w-72 shadow-xl bg-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-md font-semibold">
+                {clickedCountryInfo.ADMIN || 'Selected Country'}
+              </CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setClickedCountryInfo(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent className="text-xs space-y-1">
+              <p>
+                <strong className="text-muted-foreground">ISO A3:</strong>{' '}
+                {clickedCountryInfo.ADM0_A3 ||
+                  clickedCountryInfo.ISO_A3 ||
+                  'N/A'}
+              </p>
+              <p>
+                <strong className="text-muted-foreground">
+                  DPPs Originating:
+                </strong>{' '}
+                {Math.floor(Math.random() * 50)} (Mock)
+              </p>
+              <p>
+                <strong className="text-muted-foreground">
+                  DPPs Transiting:
+                </strong>{' '}
+                {Math.floor(Math.random() * 20)} (Mock)
+              </p>
+              {isEU(
+                clickedCountryInfo.ADM0_A3 || clickedCountryInfo.ISO_A3,
+              ) && <p className="text-green-600 font-medium">EU Member State</p>}
+              {(highlightedCountries.includes(clickedCountryInfo.ADMIN || '') ||
+                highlightedCountries.includes(
+                  clickedCountryInfo.ADM0_A3 || '',
+                )) && (
+                <p className="text-orange-600 font-medium">
+                  Part of Focus Area
+                </p>
+              )}
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 h-auto text-primary mt-2"
+                disabled
+              >
+                View DPPs for{' '}
+                {clickedCountryInfo.ADMIN?.substring(0, 15) || 'Country'}...
+                (Conceptual)
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {selectedProduct && (
+          <SelectedProductCustomsInfoCard
             product={selectedProduct}
             alerts={selectedProductAlerts}
             onDismiss={handleDismissProductInfo}
-        />
-      )}
+          />
+        )}
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
-        <Info className="inline h-3 w-3 mr-1" />
-        {countryFilter === 'all' ? 'EU: Dark Blue | Non-EU: Grey.' : 
-         countryFilter === 'eu' ? 'Displaying EU Countries.' : 
-         countryFilter === 'supplyChain' && selectedProduct ? `Displaying Focus Area for ${selectedProduct.productName}.` :
-         'Select a product to view its focus area.'
-        }
-        {selectedProduct && highlightedCountries.length > 0 && ` Highlighted: Amber/Orange.`}
-        {arcsData.length > 0 && (arcsData.some(a => a.color === '#3B82F6') ? ` Transit Arc: Blue.` : ``)}
-        {arcsData.length > 0 && (arcsData.some(a => a.color === '#F59E0B') ? ` Supply Arc(s): Orange.` : ``)}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
+          <Info className="inline h-3 w-3 mr-1" />
+          {countryFilter === 'all'
+            ? 'EU: Dark Blue | Non-EU: Grey.'
+            : countryFilter === 'eu'
+            ? 'Displaying EU Countries.'
+            : countryFilter === 'supplyChain' && selectedProduct
+            ? `Displaying Focus Area for ${selectedProduct.productName}.`
+            : 'Select a product to view its focus area.'}
+          {selectedProduct &&
+            highlightedCountries.length > 0 &&
+            ` Highlighted: Amber/Orange.`}
+          {arcsData.length > 0 &&
+            (arcsData.some(a => a.color === '#3B82F6')
+              ? ` Transit Arc: Blue.`
+              : ``)}
+          {arcsData.length > 0 &&
+            (arcsData.some(a => a.color === '#F59E0B')
+              ? ` Supply Arc(s): Orange.`
+              : ``)}
+        </div>
       </div>
-    </div>
-  </>
+    </>
   );
 }
+```
