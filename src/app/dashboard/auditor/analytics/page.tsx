@@ -28,6 +28,7 @@ import {
   ShieldX,
   Building2,
   Hourglass,
+  Globe,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -35,6 +36,7 @@ import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
 import type { AuditLog, Product } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
+import CustomsStatusChart from '@/components/charts/customs-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -46,6 +48,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.approved': CheckCircle,
   'passport.rejected': FileX,
   'compliance.resolved': ShieldX,
+  'customs.inspected': Globe,
   default: Clock,
 };
 
@@ -109,6 +112,12 @@ export default async function AuditorAnalyticsPage() {
     ).length,
     recycled: products.filter(p => p.endOfLifeStatus === 'Recycled').length,
     disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
+  };
+
+  const customsData = {
+    cleared: products.filter(p => p.customs?.status === 'Cleared').length,
+    detained: products.filter(p => p.customs?.status === 'Detained').length,
+    rejected: products.filter(p => p.customs?.status === 'Rejected').length,
   };
 
   // Group products by creation date for the time-series chart
@@ -256,6 +265,17 @@ export default async function AuditorAnalyticsPage() {
           </CardHeader>
           <CardContent>
             <EolStatusChart data={eolData} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Customs Status</CardTitle>
+            <CardDescription>
+              A breakdown of border inspection results.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CustomsStatusChart data={customsData} />
           </CardContent>
         </Card>
       </div>

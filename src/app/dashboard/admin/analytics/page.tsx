@@ -26,7 +26,6 @@ import {
   Calculator,
   Recycle,
   ShieldX,
-  Wrench,
   Building2,
   Hourglass,
   Globe,
@@ -89,6 +88,7 @@ export default async function AnalyticsPage() {
     UserRoles.RECYCLER,
     UserRoles.SERVICE_PROVIDER,
     UserRoles.RETAILER,
+    UserRoles.AUDITOR,
   ];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {

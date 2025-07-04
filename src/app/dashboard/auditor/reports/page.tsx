@@ -12,6 +12,7 @@ export default async function ReportsPage() {
     UserRoles.AUDITOR,
     UserRoles.BUSINESS_ANALYST,
     UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.ADMIN,
   ];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {

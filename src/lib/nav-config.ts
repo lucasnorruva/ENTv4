@@ -145,6 +145,7 @@ export const navConfig: NavConfig = {
           href: 'compliance',
         },
         { title: 'Reports', icon: FileText, href: 'reports' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
   ],

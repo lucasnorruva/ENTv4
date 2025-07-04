@@ -30,7 +30,7 @@ import ProductionLineStatusChart from '@/components/charts/production-line-statu
 export default async function AnalyticsPage() {
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
 
-  const allowedRoles: Role[] = [UserRoles.MANUFACTURER];
+  const allowedRoles: Role[] = [UserRoles.MANUFACTURER, UserRoles.ADMIN];
 
   if (!allowedRoles.some(role => hasRole(user, role))) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
