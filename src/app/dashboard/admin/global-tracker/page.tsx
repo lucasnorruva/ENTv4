@@ -456,7 +456,7 @@ export default function GlobalTrackerPage() {
 
   const globeMaterial = useMemo(() => {
     return new MeshPhongMaterial({
-      color: theme === 'dark' ? '#020617' : '#e0f2fe', // Deep space blue / Light sky blue
+      color: theme === 'dark' ? '#020617' : '#e0f2fe',
       transparent: true,
       opacity: 1,
     });
@@ -568,7 +568,7 @@ export default function GlobalTrackerPage() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <Card className="lg:col-span-2 h-[80vh] flex flex-col">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
