@@ -5,8 +5,9 @@ import ReactMarkdown from 'react-markdown';
 
 async function getDocContent(slug: string[] | undefined) {
   const isRoot = !slug || slug.length === 0;
-  const fileName = isRoot ? 'README.md' : `${slug.join('/')}.md`;
-  const filePath = path.join(process.cwd(), isRoot ? '' : 'docs', fileName);
+  // If root, try `docs/index.md`, otherwise construct path from slug
+  const docPath = isRoot ? 'index.md' : `${slug.join('/')}.md`;
+  const filePath = path.join(process.cwd(), 'docs', docPath);
 
   try {
     const content = await fs.readFile(filePath, 'utf-8');

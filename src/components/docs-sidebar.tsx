@@ -15,34 +15,43 @@ const docsConfig = {
       title: 'Platform Architecture',
       href: '/docs/platform-architecture',
     },
-    {
-      title: 'Business Logic',
-      href: '/docs/business-logic-flows',
-    },
-    {
-      title: 'CI/CD & Versioning',
-      href: '/docs/versioning',
-    },
   ],
   sidebarNav: [
     {
-      title: 'Getting Started',
+      title: 'Overview',
       items: [
         {
           title: 'Introduction',
           href: '/docs',
         },
         {
+          title: 'Development Roadmap',
+          href: '/docs/roadmap',
+        },
+        {
+          title: 'Contributing Guide',
+          href: '/docs/contributing',
+        },
+      ],
+    },
+    {
+      title: 'Platform',
+      items: [
+        {
           title: 'Platform Architecture',
           href: '/docs/platform-architecture',
         },
         {
-          title: 'User Roles',
+          title: 'Business Logic Flows',
+          href: '/docs/business-logic-flows',
+        },
+        {
+          title: 'User Roles & Permissions',
           href: '/docs/roles',
         },
         {
-          title: 'Contributing',
-          href: '/docs/contributing',
+          title: 'CI/CD & Versioning',
+          href: '/docs/versioning',
         },
       ],
     },
@@ -50,8 +59,8 @@ const docsConfig = {
       title: 'Core Concepts',
       items: [
         {
-          title: 'Business Logic Flows',
-          href: '/docs/business-logic-flows',
+          title: 'DPP Methodology',
+          href: '/docs/dpp-methodology',
         },
         {
           title: 'Compliance Matrix',
@@ -62,13 +71,13 @@ const docsConfig = {
           href: '/docs/ai-prompt-design',
         },
         {
-          title: 'Development Roadmap',
-          href: '/docs/roadmap',
+          title: 'Internationalization',
+          href: '/docs/internationalization',
         },
       ],
     },
     {
-      title: 'Integrations',
+      title: 'Integrations & API',
       items: [
         {
           title: 'API Specification',
@@ -88,16 +97,16 @@ const docsConfig = {
       title: 'Strategy',
       items: [
         {
+          title: 'Go-to-Market',
+          href: '/docs/go-to-market',
+        },
+        {
           title: 'Funding & Governance',
           href: '/docs/funding-and-governance',
         },
         {
-          title: 'Innovations',
+          title: 'Future Innovations',
           href: '/docs/innovations',
-        },
-        {
-          title: 'Internationalization',
-          href: '/docs/internationalization',
         },
       ],
     },
