@@ -37,7 +37,6 @@ import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 // Import the new tab components
 import GeneralTab from './product-form-tabs/general-tab';
 import DataTab from './product-form-tabs/data-tab';
-import PackagingTab from './product-form-tabs/packaging-tab';
 import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
 
@@ -287,10 +286,9 @@ export default function ProductForm({
             >
               <Tabs defaultValue="general" className="h-full flex flex-col">
                 <div className="px-6">
-                  <TabsList className="grid w-full grid-cols-5">
+                  <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="general">General</TabsTrigger>
                     <TabsTrigger value="data">Data</TabsTrigger>
-                    <TabsTrigger value="packaging">Packaging</TabsTrigger>
                     <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                     <TabsTrigger value="compliance">Compliance</TabsTrigger>
                   </TabsList>
@@ -318,10 +316,6 @@ export default function ProductForm({
                       appendCert={appendCert}
                       removeCert={removeCert}
                     />
-                  </TabsContent>
-
-                  <TabsContent value="packaging">
-                    <PackagingTab form={form} />
                   </TabsContent>
 
                   <TabsContent value="lifecycle">

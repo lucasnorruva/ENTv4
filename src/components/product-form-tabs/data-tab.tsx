@@ -16,12 +16,14 @@ import {
 import { Button } from '@/components/ui/button';
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
 import BomAnalysisWidget from '../bom-analysis-widget';
 
@@ -201,6 +203,84 @@ export default function DataTab({
                 </div>
               ))}
             </div>
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="packaging" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="text-lg font-semibold">Packaging</h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="packaging.type"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Recycled Cardboard" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="packaging.weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Weight (grams)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 50"
+                        {...field}
+                        onChange={e => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <FormField
+              control={form.control}
+              name="packaging.recycledContent"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Recycled Content (%)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g. 100"
+                      {...field}
+                      onChange={e => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="packaging.recyclable"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Recyclable</FormLabel>
+                    <FormDescription>
+                      Is the packaging material recyclable?
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="certifications" className="border p-4 rounded-lg">
