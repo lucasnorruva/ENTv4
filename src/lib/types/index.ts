@@ -202,7 +202,6 @@ export interface Product extends BaseEntity {
   packaging?: Packaging;
   lifecycle?: Lifecycle;
   battery?: Battery;
-  compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
   transit?: TransitInfo;
