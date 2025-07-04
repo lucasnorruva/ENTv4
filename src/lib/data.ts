@@ -113,6 +113,13 @@ export let products: Product[] = [
       { name: 'Steel Screws', percentage: 5, recycledContent: 10, origin: 'Japan' },
     ],
     manufacturing: { facility: 'Shenzhen Plant', country: 'China' },
+    transit: {
+        stage: 'Awaiting Shipment',
+        eta: '2024-09-01',
+        transport: 'Ship',
+        origin: 'Shenzhen, China',
+        destination: 'Los Angeles, USA',
+    },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     lastUpdated: new Date(
@@ -282,7 +289,7 @@ export let products: Product[] = [
         stage: 'Pre-Arrival Notification Submitted',
         eta: '2024-08-15',
         transport: 'Ship',
-        origin: 'Newark, United States',
+        origin: 'Newark, USA',
         destination: 'Bremerhaven, Germany',
     },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },

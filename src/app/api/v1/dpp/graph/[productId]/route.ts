@@ -64,7 +64,7 @@ export async function GET(
         });
     }
     edges.push({
-      id: `edge_prod_mfg_${product.id}`,
+      id: `edge_mfg_prod_${product.id}`,
       source: manufacturerId,
       target: product.id,
       label: 'manufactured_by',
@@ -91,24 +91,28 @@ export async function GET(
         });
 
         // Mock supplier for material
-        const supplier = MOCK_SUPPLIERS[index % MOCK_SUPPLIERS.length];
-        const supplierNodeId = `sup_${supplier.id}`;
+        if (material.origin) {
+            const supplier = MOCK_SUPPLIERS.find(s => s.location.includes(material.origin!));
+            if (supplier) {
+                const supplierNodeId = `sup_${supplier.id}`;
 
-        if (!nodes.find(n => n.id === supplierNodeId)) {
-            nodes.push({
-                id: supplierNodeId,
-                label: supplier.name,
-                type: 'supplier',
-                data: { location: supplier.location }
-            });
+                if (!nodes.find(n => n.id === supplierNodeId)) {
+                    nodes.push({
+                        id: supplierNodeId,
+                        label: supplier.name,
+                        type: 'supplier',
+                        data: { location: supplier.location }
+                    });
+                }
+        
+                edges.push({
+                    id: `edge_sup_comp_${supplier.id}_${index}`,
+                    source: supplierNodeId,
+                    target: componentNodeId,
+                    label: 'supplies_item'
+                });
+            }
         }
-
-        edges.push({
-            id: `edge_sup_comp_${supplier.id}_${index}`,
-            source: supplierNodeId,
-            target: componentNodeId,
-            label: 'supplies_item'
-        });
     });
   }
 

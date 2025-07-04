@@ -24,9 +24,9 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { products as MOCK_DPPS } from '@/lib/data';
+import { products as mockProducts } from '@/lib/data'; // Use main products data
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product, CustomsAlert } from '@/types';
+import type { Product, CustomsAlert } from '@/types'; // Use main types
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
@@ -99,7 +99,7 @@ export default function GlobalTrackerPage() {
   );
 
   const selectedProduct = useMemo(
-    () => MOCK_DPPS.find(p => p.id === selectedProductId),
+    () => mockProducts.find(p => p.id === selectedProductId),
     [selectedProductId],
   );
   const [selectedProductAlerts, setSelectedProductAlerts] = useState<
@@ -141,7 +141,7 @@ export default function GlobalTrackerPage() {
         Italy: { lat: 41.8719, lng: 12.5674 },
         Spain: { lat: 40.4637, lng: -3.7492 },
         Poland: { lat: 51.9194, lng: 19.1451 },
-        'United States': { lat: 37.0902, lng: -95.7129 },
+        USA: { lat: 37.0902, lng: -95.7129 },
         China: { lat: 35.8617, lng: 104.1954 },
         Japan: { lat: 36.2048, lng: 138.2529 },
         'United Kingdom': { lat: 55.3781, lng: -3.436 },
@@ -208,107 +208,106 @@ export default function GlobalTrackerPage() {
       });
   }, []);
 
+  // Main data fetching and processing effect
   useEffect(() => {
     setHighlightedCountries([]);
     setArcsData([]);
     setSelectedProductAlerts([]);
     setClickedCountryInfo(null);
-
+  
     if (!selectedProduct) {
       if (globeEl.current)
         globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
       return;
     }
-
+  
     setSelectedProductAlerts(
       MOCK_CUSTOMS_ALERTS.filter(a => a.productId === selectedProduct.id),
     );
-
-    const countries = new Set<string>();
-    const newSupplyArcs: any[] = [];
-
-    // Add supply chain countries and arcs
-    const manufacturerCountry = getCountryFromLocationString(
-      selectedProduct.manufacturing?.country,
-    );
-    if (manufacturerCountry) {
-      countries.add(manufacturerCountry);
-      const manufacturerCoords = mockCountryCoordinates[manufacturerCountry];
-      if (manufacturerCoords) {
-        selectedProduct.materials?.forEach(material => {
-          const supplierCountry = getCountryFromLocationString(material.origin);
-          if (supplierCountry && supplierCountry !== manufacturerCountry) {
-            countries.add(supplierCountry);
-            const supplierCoords = mockCountryCoordinates[supplierCountry];
-            if (supplierCoords) {
-              newSupplyArcs.push({
-                startLat: supplierCoords.lat,
-                startLng: supplierCoords.lng,
-                endLat: manufacturerCoords.lat,
-                endLng: manufacturerCoords.lng,
-                color: '#F59E0B',
-                label: `Supply: ${material.name} from ${supplierCountry}`,
-              });
-            }
-          }
-        });
-      }
-    }
-
-    // Add transit arc if it exists
+  
+    const allArcs: any[] = [];
+    const allHighlightedCountries = new Set<string>();
+  
+    // 1. Process Transit Arc
     if (selectedProduct.transit) {
-      const originCountry = getCountryFromLocationString(
-        selectedProduct.transit.origin,
-      );
-      const destinationCountry = getCountryFromLocationString(
-        selectedProduct.transit.destination,
-      );
-      const originCoords = originCountry
-        ? mockCountryCoordinates[originCountry]
-        : null;
-      const destinationCoords = destinationCountry
-        ? mockCountryCoordinates[destinationCountry]
-        : null;
-
-      if (originCountry) countries.add(originCountry);
-      if (destinationCountry) countries.add(destinationCountry);
-
+      const { transit } = selectedProduct;
+      const originCountry = getCountryFromLocationString(transit.origin);
+      const destinationCountry = getCountryFromLocationString(transit.destination);
+      const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
+      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
+  
+      if (originCountry) allHighlightedCountries.add(originCountry);
+      if (destinationCountry) allHighlightedCountries.add(destinationCountry);
+  
       if (originCoords && destinationCoords) {
-        newSupplyArcs.push({
+        allArcs.push({
           startLat: originCoords.lat,
           startLng: originCoords.lng,
           endLat: destinationCoords.lat,
           endLng: destinationCoords.lng,
-          color: '#3B82F6',
+          color: '#3B82F6', // Blue for transit
           label: `${selectedProduct.productName} Transit`,
         });
-        if (globeEl.current) {
-          const midLat = (originCoords.lat + destinationCoords.lat) / 2;
-          const midLng = (originCoords.lng + destinationCoords.lng) / 2;
-          globeEl.current.pointOfView(
-            { lat: midLat, lng: midLng, altitude: 2.0 },
-            1000,
-          );
-        }
-      }
-    } else {
-      if (globeEl.current) {
-        if (countries.has('China') || countries.has('Japan') || countries.has('India'))
-          globeEl.current.pointOfView({ lat: 20, lng: 90, altitude: 2.5 }, 1000);
-        else if (
-          countries.has('United States') ||
-          countries.has('Canada')
-        )
-          globeEl.current.pointOfView({ lat: 45, lng: -90, altitude: 2.5 }, 1000);
-        else
-          globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
       }
     }
-
-    setHighlightedCountries(Array.from(countries));
-    setArcsData(newSupplyArcs);
+  
+    // 2. Process Supply Chain Arcs from Graph API
+    fetch(`/api/v1/dpp/graph/${selectedProduct.id}`)
+      .then(res => (res.ok ? res.json() : null))
+      .then(graph => {
+        if (!graph || !graph.nodes) return;
+  
+        const manufacturerNode = graph.nodes.find((n:any) => n.type === 'manufacturer');
+        const manufacturerCountry = manufacturerNode?.data?.location;
+        const manufacturerCoords = manufacturerCountry ? mockCountryCoordinates[manufacturerCountry] : null;
+  
+        if (manufacturerCountry) allHighlightedCountries.add(manufacturerCountry);
+  
+        if (manufacturerCoords) {
+            graph.nodes.forEach((node: any) => {
+                if (node.type === 'supplier') {
+                    const supplierCountry = getCountryFromLocationString(node.data.location);
+                    if (supplierCountry) {
+                        allHighlightedCountries.add(supplierCountry);
+                        const supplierCoords = mockCountryCoordinates[supplierCountry];
+                        if (supplierCoords && supplierCountry !== manufacturerCountry) {
+                            allArcs.push({
+                                startLat: supplierCoords.lat,
+                                startLng: supplierCoords.lng,
+                                endLat: manufacturerCoords.lat,
+                                endLng: manufacturerCoords.lng,
+                                color: '#F59E0B', // Orange for supply chain
+                                label: `Supply from ${supplierCountry}`
+                            });
+                        }
+                    }
+                }
+            });
+        }
+  
+        setArcsData(allArcs);
+        setHighlightedCountries(Array.from(allHighlightedCountries));
+        
+        // Point globe to a relevant location
+        if (globeEl.current) {
+            if (allHighlightedCountries.has('China') || allHighlightedCountries.has('Japan') || allHighlightedCountries.has('India')) {
+                globeEl.current.pointOfView({ lat: 20, lng: 90, altitude: 2.5 }, 1000);
+            } else if (allHighlightedCountries.has('USA') || allHighlightedCountries.has('Canada')) {
+                globeEl.current.pointOfView({ lat: 45, lng: -90, altitude: 2.5 }, 1000);
+            } else {
+                globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.0 }, 1000);
+            }
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching product graph:', err);
+        // Set data even if graph fails, so transit arc still shows
+        setArcsData(allArcs);
+        setHighlightedCountries(Array.from(allHighlightedCountries));
+      });
+  
   }, [selectedProduct, mockCountryCoordinates, getCountryFromLocationString]);
-
+  
   const isEU = useCallback(
     (isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
     [],
@@ -524,7 +523,7 @@ export default function GlobalTrackerPage() {
               <SelectItem value="select-placeholder">
                 Select a Product to Track
               </SelectItem>
-              {MOCK_DPPS.map(dpp => (
+              {mockProducts.map(dpp => (
                 <SelectItem key={dpp.id} value={dpp.id}>
                   {dpp.productName} ({dpp.id})
                 </SelectItem>
@@ -612,17 +611,10 @@ export default function GlobalTrackerPage() {
           {selectedProduct &&
             highlightedCountries.length > 0 &&
             ` Highlighted: Amber/Orange.`}
-          {arcsData.length > 0 &&
-            (arcsData.some(a => a.color === '#3B82F6')
-              ? ` Transit Arc: Blue.`
-              : ``)}
-          {arcsData.length > 0 &&
-            (arcsData.some(a => a.color === '#F59E0B')
-              ? ` Supply Arc(s): Orange.`
-              : ``)}
+          {arcsData.some(a => a.color === '#3B82F6') && ` Transit Arc: Blue.`}
+          {arcsData.some(a => a.color === '#F59E0B') && ` Supply Arc(s): Orange.`}
         </div>
       </div>
     </>
   );
 }
-```
