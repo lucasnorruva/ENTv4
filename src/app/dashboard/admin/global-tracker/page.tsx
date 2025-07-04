@@ -502,7 +502,7 @@ export default function GlobalTrackerPage() {
         return isDark ? '#2563eb' : '#002D62';
       }
 
-      return isDark ? '#334155' : '#E5E7EB'; // slate-700 / gray-200
+      return isDark ? '#334155' : '#e2e8f0';
     },
     [theme, isEU, highlightedCountries, clickedCountryInfo],
   );
@@ -568,8 +568,8 @@ export default function GlobalTrackerPage() {
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <Card className="flex-1 w-full flex flex-col">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+      <Card className="lg:col-span-2 h-[80vh] flex flex-col">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
@@ -613,7 +613,7 @@ export default function GlobalTrackerPage() {
           </div>
         </CardHeader>
         <CardContent className="flex-1 p-0 relative">
-          <div className="w-full h-full bg-globe-background">
+          <div className="absolute inset-0 bg-globe-background">
             {typeof window !== 'undefined' && (
               <Globe
                 ref={globeEl}
@@ -739,6 +739,21 @@ export default function GlobalTrackerPage() {
           </div>
         </CardContent>
       </Card>
+      <div className="lg:col-span-1">
+        <Card>
+            <CardHeader>
+                <CardTitle>Future Widget Area</CardTitle>
+                <CardDescription>
+                    This space can be used for detailed analytics, event logs, or other related components.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex items-center justify-center h-48 bg-muted rounded-md">
+                    <p className="text-muted-foreground">Widget placeholder</p>
+                </div>
+            </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
