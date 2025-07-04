@@ -50,14 +50,14 @@ const complianceSchema = z.object({
   rohsExemption: z.string().optional(),
   reachSVHC: z.boolean().optional(),
   scipReference: z.string().optional(),
-  weeeRegistered: z.boolean().optional(),
-  weeeRegistrationNumber: z.string().optional(),
   prop65WarningRequired: z.boolean().optional(),
-  eudrCompliant: z.boolean().optional(),
-  eudrDiligenceId: z.string().optional(),
   ceMarked: z.boolean().optional(),
   foodContactSafe: z.boolean().optional(),
   foodContactComplianceStandard: z.string().optional(),
+  weeeRegistered: z.boolean().optional(),
+  weeeRegistrationNumber: z.string().optional(),
+  eudrCompliant: z.boolean().optional(),
+  eudrDiligenceId: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
