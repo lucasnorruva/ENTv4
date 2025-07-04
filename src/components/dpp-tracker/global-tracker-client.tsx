@@ -471,7 +471,7 @@ export default function GlobalTrackerClient({
 
   const globeMaterial = useMemo(() => {
     return new MeshPhongMaterial({
-      color: theme === 'dark' ? '#0f172a' : '#93c5fd', // slate-900 for dark, blue-300 for light
+      color: theme === 'dark' ? '#0f172a' : '#bfdbfe', // slate-900 for dark, blue-200 for light
       transparent: true,
       opacity: 1,
     });
@@ -503,7 +503,7 @@ export default function GlobalTrackerClient({
         clickedCountryInfo &&
         (clickedCountryInfo.ADM0_A3 === iso || clickedCountryInfo.ADMIN === name)
       )
-        return isDark ? '#ff6347' : '#ff4500';
+        return 'tomato';
 
       if (
         highlightedCountries.some(hc =>
@@ -583,188 +583,163 @@ export default function GlobalTrackerClient({
   }
 
   return (
-    <Card className="lg:col-span-2 h-[80vh] flex flex-col">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div>
-            <CardTitle>Global Supply Chain Tracker</CardTitle>
-            <CardDescription>
-              Visualize product supply chains, transit routes, and customs
-              events in real-time.
-            </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <ProductTrackerSelector
-              products={allProducts}
-              selectedProductId={selectedProductId}
-              onProductSelect={handleProductSelect}
-            />
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setIsAutoRotating(!isAutoRotating)}
-            >
-              {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
-            </Button>
-            <Select
-              onValueChange={value =>
-                setCountryFilter(value as 'all' | 'eu' | 'supplyChain')
-              }
-              value={countryFilter}
-            >
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <SelectValue placeholder="Filter Countries" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Countries</SelectItem>
-                <SelectItem value="eu">EU Countries</SelectItem>
-                <SelectItem value="supplyChain" disabled={!selectedProduct}>
-                  Product Focus
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 p-0 relative" ref={globeContainerRef}>
-        {globeSize.width > 0 && typeof window !== 'undefined' ? (
-          <>
-            <Globe
-              ref={globeEl}
-              width={globeSize.width}
-              height={globeSize.height}
-              backgroundColor="rgba(0,0,0,0)"
-              globeMaterial={globeMaterial}
-              polygonsData={filteredLandPolygons}
-              polygonCapColor={getPolygonCapColor}
-              polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
-              polygonStrokeColor={getPolygonStrokeColor}
-              polygonAltitude={getPolygonAltitude}
-              onPolygonClick={handlePolygonClick}
-              polygonLabel={getPolygonLabel}
-              polygonsTransitionDuration={300}
-              arcsData={arcsData}
-              arcColor={'color'}
-              arcDashLength={0.4}
-              arcDashGap={0.1}
-              arcDashAnimateTime={2000}
-              arcStroke={0.5}
-              arcLabel="label"
-              pointsData={pointsData}
-              pointLat="lat"
-              pointLng="lng"
-              pointAltitude={0.02}
-              pointRadius="size"
-              pointColor="color"
-              pointLabel="label"
-              ringsData={pointsData.filter(
-                p => p.color === 'tomato' || p.color === 'orange',
-              )}
-              ringLat="lat"
-              ringLng="lng"
-              ringColor="color"
-              ringMaxRadius={1.5}
-              ringPropagationSpeed={1.5}
-              ringRepeatPeriod={800}
-              onGlobeReady={() => setGlobeReady(true)}
-              enablePointerInteraction={true}
-            />
-            {clickedCountryInfo && (
-              <Card className="absolute top-4 right-4 z-20 w-72 shadow-xl bg-card/95 backdrop-blur-sm">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-md font-semibold">
-                    {clickedCountryInfo.ADMIN || 'Selected Country'}
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => setClickedCountryInfo(null)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </CardHeader>
-                <CardContent className="text-xs space-y-1">
-                  <p>
-                    <strong className="text-muted-foreground">
-                      ISO A3:
-                    </strong>{' '}
-                    {clickedCountryInfo.ADM0_A3 ||
-                      clickedCountryInfo.ISO_A3 ||
-                      'N/A'}
-                  </p>
-                  <p>
-                    <strong className="text-muted-foreground">
-                      DPPs Transiting:
-                    </strong>{' '}
-                    {Math.floor(Math.random() * 20)} (Mock)
-                  </p>
-                  {isEU(
-                    clickedCountryInfo.ADM0_A3 || clickedCountryInfo.ISO_A3,
-                  ) && (
-                    <p className="text-green-600 font-medium">
-                      EU Member State
-                    </p>
-                  )}
-                  {(highlightedCountries.includes(
-                    clickedCountryInfo.ADMIN || '',
-                  ) ||
-                    highlightedCountries.includes(
-                      clickedCountryInfo.ADM0_A3 || '',
-                    )) && (
-                    <p className="text-orange-600 font-medium">
-                      Part of Focus Area
-                    </p>
-                  )}
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="p-0 h-auto text-primary mt-2"
-                    disabled
-                  >
-                    View DPPs for{' '}
-                    {clickedCountryInfo.ADMIN?.substring(0, 15) ||
-                      'Country'}
-                    ... (Conceptual)
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            {selectedProduct && (
-              <SelectedProductCustomsInfoCard
-                product={selectedProduct}
-                alerts={selectedProductAlerts}
-                onDismiss={() => handleProductSelect(null)}
-              />
-            )}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
-              <Info className="inline h-3 w-3 mr-1" />
-              {countryFilter === 'all'
-                ? 'EU: Dark Blue.'
-                : countryFilter === 'eu'
-                ? 'Displaying EU Countries.'
-                : countryFilter === 'supplyChain' && selectedProduct
-                ? `Displaying Focus Area for ${selectedProduct.productName}.`
-                : 'Select a product to view its focus area.'}{' '}
-              {selectedProduct &&
-                highlightedCountries.length > 0 &&
-                `Highlighted: Amber/Orange.`}{' '}
-              {arcsData.some(
-                a =>
-                  a.color.includes('3B82F6') ||
-                  a.color.includes('60A5FA'),
-              ) && `Transit Arc: Blue.`}{' '}
-              {arcsData.some(
-                a =>
-                  a.color.includes('F59E0B') ||
-                  a.color.includes('FBBF24'),
-              ) && `Supply Arc(s): Orange.`}
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="lg:col-span-2 h-[80vh] flex flex-col">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div>
+                <CardTitle>Global Supply Chain Tracker</CardTitle>
+                <CardDescription>
+                  Visualize product supply chains, transit routes, and customs
+                  events in real-time.
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <ProductTrackerSelector
+                  products={allProducts}
+                  selectedProductId={selectedProductId}
+                  onProductSelect={handleProductSelect}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsAutoRotating(!isAutoRotating)}
+                >
+                  {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
+                </Button>
+                <Select
+                  onValueChange={value =>
+                    setCountryFilter(value as 'all' | 'eu' | 'supplyChain')
+                  }
+                  value={countryFilter}
+                >
+                  <SelectTrigger className="w-full sm:w-[150px]">
+                    <SelectValue placeholder="Filter Countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    <SelectItem value="eu">EU Countries</SelectItem>
+                    <SelectItem value="supplyChain" disabled={!selectedProduct}>
+                      Product Focus
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </>
-        ) : (
-          <div className="bg-globe-background w-full h-full" />
-        )}
-      </CardContent>
-    </Card>
+          </CardHeader>
+          <CardContent className="flex-1 p-0 relative" ref={globeContainerRef}>
+            {globeSize.width > 0 && typeof window !== 'undefined' ? (
+              <>
+                <Globe
+                  ref={globeEl}
+                  width={globeSize.width}
+                  height={globeSize.height}
+                  backgroundColor="rgba(0,0,0,0)"
+                  globeMaterial={globeMaterial}
+                  polygonsData={filteredLandPolygons}
+                  polygonCapColor={getPolygonCapColor}
+                  polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+                  polygonStrokeColor={getPolygonStrokeColor}
+                  polygonAltitude={getPolygonAltitude}
+                  onPolygonClick={handlePolygonClick}
+                  polygonLabel={getPolygonLabel}
+                  polygonsTransitionDuration={300}
+                  arcsData={arcsData}
+                  arcColor={'color'}
+                  arcDashLength={0.4}
+                  arcDashGap={0.1}
+                  arcDashAnimateTime={2000}
+                  arcStroke={0.5}
+                  arcLabel="label"
+                  pointsData={pointsData}
+                  pointLat="lat"
+                  pointLng="lng"
+                  pointAltitude={0.02}
+                  pointRadius="size"
+                  pointColor="color"
+                  pointLabel="label"
+                  ringsData={pointsData.filter(
+                    p => p.color === 'tomato' || p.color === 'orange',
+                  )}
+                  ringLat="lat"
+                  ringLng="lng"
+                  ringColor="color"
+                  ringMaxRadius={1.5}
+                  ringPropagationSpeed={1.5}
+                  ringRepeatPeriod={800}
+                  onGlobeReady={() => setGlobeReady(true)}
+                  enablePointerInteraction={true}
+                />
+                {selectedProduct && (
+                  <SelectedProductCustomsInfoCard
+                    product={selectedProduct}
+                    alerts={selectedProductAlerts}
+                    onDismiss={() => handleProductSelect(null)}
+                  />
+                )}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
+                  <Info className="inline h-3 w-3 mr-1" />
+                  {countryFilter === 'all'
+                    ? 'EU: Dark Blue.'
+                    : countryFilter === 'eu'
+                    ? 'Displaying EU Countries.'
+                    : countryFilter === 'supplyChain' && selectedProduct
+                    ? `Displaying Focus Area for ${selectedProduct.productName}.`
+                    : 'Select a product to view its focus area.'}{' '}
+                  {selectedProduct &&
+                    highlightedCountries.length > 0 &&
+                    `Highlighted: Amber/Orange.`}{' '}
+                  {arcsData.some(
+                    a =>
+                      a.color.includes('3B82F6') ||
+                      a.color.includes('60A5FA'),
+                  ) && `Transit Arc: Blue.`}{' '}
+                  {arcsData.some(
+                    a =>
+                      a.color.includes('F59E0B') ||
+                      a.color.includes('FBBF24'),
+                  ) && `Supply Arc(s): Orange.`}
+                </div>
+              </>
+            ) : (
+              <div className="bg-globe-background w-full h-full" />
+            )}
+          </CardContent>
+        </Card>
+      <div className="lg:col-span-1">
+        {clickedCountryInfo ? (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>{clickedCountryInfo.ADMIN}</CardTitle>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setClickedCountryInfo(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  ISO Code: {clickedCountryInfo.ADM0_A3 || 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Transiting DPPs: {Math.floor(Math.random() * 20)} (Mock)
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Country Details</CardTitle>
+                <CardDescription>
+                  Click on a country on the globe to see detailed information and related DPPs.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-center h-48 bg-muted rounded-md">
+                  <p className="text-muted-foreground">Widget placeholder</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+      </div>
+    </div>
   );
 }
