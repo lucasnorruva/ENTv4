@@ -24,6 +24,7 @@ import {
   Webhook,
   ShoppingBag,
   Globe,
+  Landmark,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -54,6 +55,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        { title: 'Customs Requirements', icon: Landmark, href: 'customs' },
         { title: 'Platform Logs', icon: History, href: 'logs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
         { title: 'Global Tracker', icon: Globe, href: 'global-tracker'},
@@ -129,7 +131,8 @@ export const navConfig: NavConfig = {
       label: 'Auditing',
       items: [
         { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
-        { title: 'Border Inspection', icon: Globe, href: 'inspection' },
+        { title: 'Customs Inspection', icon: Globe, href: 'inspection' },
+        { title: 'Customs Requirements', icon: Landmark, href: 'customs' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
       ],
     },
