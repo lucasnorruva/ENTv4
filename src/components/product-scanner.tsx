@@ -1,7 +1,8 @@
 // src/components/product-scanner.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
+import jsQR from 'jsqr';
 import {
   Card,
   CardContent,
@@ -19,12 +20,14 @@ import {
   Recycle,
   Package,
   AlertTriangle,
+  Camera,
 } from 'lucide-react';
 import { getProductById, markAsRecycled } from '@/lib/actions';
 import type { Product, User } from '@/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from './ui/badge';
+import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 interface ProductScannerProps {
   user: User;
@@ -38,25 +41,38 @@ export default function ProductScanner({ user }: ProductScannerProps) {
   const [isRecycling, startRecycleTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleSearch = () => {
-    if (!productId) return;
-    setError(null);
-    setProduct(null);
-    startSearchTransition(async () => {
-      try {
-        const foundProduct = await getProductById(productId, user.id);
-        if (foundProduct) {
-          setProduct(foundProduct);
-        } else {
-          setError(
-            'Product not found or you do not have permission to view it.',
-          );
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState<
+    boolean | null
+  >(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameId = useRef<number>();
+
+  const findProduct = useCallback(
+    (id: string) => {
+      if (!id) return;
+
+      setError(null);
+      setProduct(null);
+
+      startSearchTransition(async () => {
+        try {
+          const foundProduct = await getProductById(id, user.id);
+          if (foundProduct) {
+            setProduct(foundProduct);
+          } else {
+            setError(
+              'Product not found or you do not have permission to view it.',
+            );
+          }
+        } catch (err) {
+          setError('An error occurred while searching for the product.');
         }
-      } catch (err) {
-        setError('An error occurred while searching for the product.');
-      }
-    });
-  };
+      });
+    },
+    [user.id],
+  );
 
   const handleRecycle = () => {
     if (!product) return;
@@ -80,6 +96,87 @@ export default function ProductScanner({ user }: ProductScannerProps) {
     });
   };
 
+  const tick = useCallback(() => {
+    if (
+      videoRef.current &&
+      videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA &&
+      canvasRef.current
+    ) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        canvas.height = video.videoHeight;
+        canvas.width = video.videoWidth;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code && code.data) {
+          try {
+            const url = new URL(code.data);
+            const pathParts = url.pathname.split('/');
+            const id = pathParts.pop() || pathParts.pop(); // handle trailing slash
+            if (id) {
+              setProductId(id);
+              findProduct(id);
+              setIsCameraOpen(false); // This will trigger cleanup
+              return; // Stop the loop
+            }
+          } catch (e) {
+            // Not a valid URL, ignore and continue scanning
+          }
+        }
+      }
+    }
+    animationFrameId.current = requestAnimationFrame(tick);
+  }, [findProduct]);
+
+  useEffect(() => {
+    if (isCameraOpen && hasCameraPermission) {
+      animationFrameId.current = requestAnimationFrame(tick);
+    }
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+    };
+  }, [isCameraOpen, hasCameraPermission, tick]);
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    const getCameraPermission = async () => {
+      if (!isCameraOpen) return;
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description:
+            'Please enable camera permissions in your browser settings to use this app.',
+        });
+        setIsCameraOpen(false);
+      }
+    };
+    getCameraPermission();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, [isCameraOpen, toast]);
+
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -87,8 +184,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
           <QrCode /> Product EOL Scanner
         </CardTitle>
         <CardDescription>
-          Enter a product ID to simulate scanning and view its materials for
-          recycling.
+          Enter a product ID or scan a QR code to process items for recycling.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -97,9 +193,9 @@ export default function ProductScanner({ user }: ProductScannerProps) {
             placeholder="Enter Product ID (e.g., pp-001)"
             value={productId}
             onChange={e => setProductId(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleSearch()}
+            onKeyDown={e => e.key === 'Enter' && findProduct(productId)}
           />
-          <Button onClick={handleSearch} disabled={isSearching}>
+          <Button onClick={() => findProduct(productId)} disabled={isSearching}>
             {isSearching ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -107,7 +203,35 @@ export default function ProductScanner({ user }: ProductScannerProps) {
             )}
             Find
           </Button>
+          <Button
+            variant="outline"
+            onClick={() => setIsCameraOpen(prev => !prev)}
+          >
+            <Camera className="mr-2 h-4 w-4" />
+            {isCameraOpen ? 'Close Camera' : 'Scan'}
+          </Button>
         </div>
+
+        {isCameraOpen && (
+          <div className="space-y-2">
+            <video
+              ref={videoRef}
+              className="w-full aspect-video rounded-md bg-muted"
+              autoPlay
+              muted
+              playsInline
+            />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            {hasCameraPermission === false && (
+              <Alert variant="destructive">
+                <AlertTitle>Camera Access Required</AlertTitle>
+                <AlertDescription>
+                  Please allow camera access to use this feature.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="text-destructive text-sm p-4 bg-destructive/10 rounded-md flex items-center gap-2">
