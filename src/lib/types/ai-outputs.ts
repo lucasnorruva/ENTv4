@@ -6,6 +6,7 @@
  */
 
 import type { z } from "zod";
+import type { AiProduct } from "@/ai/schemas";
 import type {
   CalculateSustainabilityInput,
   EsgScoreOutput,
@@ -55,6 +56,9 @@ import type {
   GenerateProductDescriptionInput,
   GenerateProductDescriptionOutput,
 } from "@/ai/flows/generate-product-description";
+
+// Re-export AI Product Schema
+export type { AiProduct };
 
 // Export Input types
 export type {
