@@ -308,3 +308,40 @@ export async function bulkCreateProducts(
 
   return Promise.resolve({ createdCount });
 }
+
+export async function bulkArchiveProducts(
+  productIds: string[],
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const archivedIds: string[] = [];
+  for (const productId of productIds) {
+    const product = await getProductById(productId, userId);
+    if (!product) continue;
+
+    try {
+      checkPermission(user, 'product:archive', product);
+      const index = mockProducts.findIndex(p => p.id === productId);
+      if (index > -1) {
+        mockProducts[index].status = 'Archived';
+        mockProducts[index].lastUpdated = new Date().toISOString();
+        archivedIds.push(productId);
+      }
+    } catch (error) {
+      console.warn(
+        `Could not archive product ${productId}: ${(error as Error).message}`,
+      );
+    }
+  }
+
+  if (archivedIds.length > 0) {
+    await logAuditEvent(
+      'product.bulk_archive',
+      'multiple',
+      { count: archivedIds.length, productIds: archivedIds },
+      userId,
+    );
+  }
+}

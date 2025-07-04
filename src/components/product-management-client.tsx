@@ -25,6 +25,7 @@ import {
   recalculateScore,
   bulkDeleteProducts,
   bulkSubmitForReview,
+  bulkArchiveProducts,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
@@ -197,6 +198,14 @@ export default function ProductManagementClient({
     });
   };
 
+  const handleBulkArchive = (productIds: string[]) => {
+    startTransition(async () => {
+      await bulkArchiveProducts(productIds, user.id);
+      toast({ title: `Archived ${productIds.length} products.` });
+      fetchProducts(); // Refetch data
+    });
+  };
+
   return (
     <>
       <Card>
@@ -234,6 +243,7 @@ export default function ProductManagementClient({
             onRecalculateScore={handleRecalculateScore}
             onBulkDelete={handleBulkDelete}
             onBulkSubmit={handleBulkSubmit}
+            onBulkArchive={handleBulkArchive}
             initialFilter={initialFilter}
           />
         </CardContent>

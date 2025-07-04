@@ -16,6 +16,7 @@ import {
   BookCopy,
   ExternalLink,
   Loader2,
+  Archive,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -90,6 +91,7 @@ interface ProductTableProps {
   onRecalculateScore: (id: string, productName: string) => void;
   onBulkDelete: (ids: string[]) => void;
   onBulkSubmit: (ids: string[]) => void;
+  onBulkArchive: (ids: string[]) => void;
   initialFilter?: string;
 }
 
@@ -103,6 +105,7 @@ export default function ProductTable({
   onRecalculateScore,
   onBulkDelete,
   onBulkSubmit,
+  onBulkArchive,
   initialFilter,
 }: ProductTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -408,6 +411,10 @@ export default function ProductTable({
     can(user, 'product:submit') &&
     table.getFilteredSelectedRowModel().rows.every(row => can(user, 'product:submit', row.original));
 
+  const canBulkArchive =
+    can(user, 'product:archive') &&
+    table.getFilteredSelectedRowModel().rows.every(row => can(user, 'product:archive', row.original));
+
 
   return (
     <div className="w-full">
@@ -422,6 +429,12 @@ export default function ProductTable({
                 <Button variant="outline" size="sm" onClick={() => onBulkSubmit(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
                     <Send className="mr-2 h-4 w-4" />
                     Submit for Review ({selectedRowCount})
+                </Button>
+            )}
+            {canBulkArchive && (
+                <Button variant="outline" size="sm" onClick={() => onBulkArchive(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
+                    <Archive className="mr-2 h-4 w-4" />
+                    Archive ({selectedRowCount})
                 </Button>
             )}
             {canBulkDelete && (
