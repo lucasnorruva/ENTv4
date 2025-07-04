@@ -23,6 +23,7 @@ import {
   Search as SearchIcon,
   Webhook,
   ShoppingBag,
+  Globe,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -127,6 +128,7 @@ export const navConfig: NavConfig = {
       label: 'Auditing',
       items: [
         { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
+        { title: 'Border Inspection', icon: Globe, href: 'inspection' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
       ],
     },

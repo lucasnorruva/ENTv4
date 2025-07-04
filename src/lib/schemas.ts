@@ -88,6 +88,14 @@ const complianceSchema = z.object({
     .optional(),
 });
 
+const customsStatusSchema = z.object({
+  status: z.enum(['Cleared', 'Detained', 'Rejected']),
+  authority: z.string().min(1, 'Authority is required.'),
+  location: z.string().min(1, 'Location is required.'),
+  date: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" }),
+  notes: z.string().optional(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -114,6 +122,7 @@ export const productFormSchema = z.object({
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
+  customs: customsStatusSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -287,3 +296,11 @@ export const apiSettingsSchema = z.object({
   isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
+
+export const customsInspectionFormSchema = z.object({
+    status: z.enum(['Cleared', 'Detained', 'Rejected']),
+    authority: z.string().min(3, 'Authority name is required.'),
+    location: z.string().min(3, 'Inspection location is required.'),
+    notes: z.string().optional(),
+  });
+export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;

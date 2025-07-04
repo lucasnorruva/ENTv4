@@ -1,7 +1,7 @@
 // src/lib/actions/product-workflow-actions.ts
 'use server';
 
-import type { Product, User, ComplianceGap, ServiceRecord } from '@/types';
+import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { getWebhooks, getProductById, deleteProduct } from '@/lib/actions/index';
 import { logAuditEvent } from './audit-actions';
@@ -14,7 +14,7 @@ import {
   anchorToPolygon,
   generateEbsiCredential,
 } from '@/services/blockchain';
-import { bulkProductImportSchema } from '../schemas';
+import { bulkProductImportSchema, customsInspectionFormSchema, type CustomsInspectionFormValues } from '../schemas';
 
 // --- Workflow Actions ---
 
@@ -198,6 +198,34 @@ export async function addServiceRecord(
 
   return Promise.resolve(product);
 }
+
+export async function performCustomsInspection(
+    productId: string,
+    values: CustomsInspectionFormValues,
+    userId: string
+  ): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+    checkPermission(user, 'product:customs_inspect');
+  
+    const validatedData = customsInspectionFormSchema.parse(values);
+  
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found.');
+  
+    const now = new Date().toISOString();
+    const newCustomsStatus: CustomsStatus = {
+      ...validatedData,
+      date: now,
+    };
+  
+    mockProducts[productIndex].customs = newCustomsStatus;
+    mockProducts[productIndex].lastUpdated = now;
+  
+    await logAuditEvent('customs.inspected', productId, { ...newCustomsStatus }, userId);
+  
+    return Promise.resolve(mockProducts[productIndex]);
+  }
 
 // --- Bulk Actions ---
 

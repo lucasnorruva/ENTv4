@@ -29,6 +29,7 @@ export type Action =
   | 'product:add_service_record'
   | 'product:validate_data'
   | 'product:run_compliance'
+  | 'product:customs_inspect'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -91,6 +92,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:approve':
     case 'product:reject':
+    case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
 
     case 'product:resolve':

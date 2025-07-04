@@ -22,6 +22,7 @@ import {
   ShieldX,
   List,
   Wrench,
+  Globe,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -36,6 +37,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'passport.rejected': FileX,
   'compliance.resolved': ShieldX,
   'product.serviced': Wrench,
+  'customs.inspected': Globe,
   default: Clock,
 };
 

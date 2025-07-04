@@ -147,6 +147,14 @@ export interface ServiceRecord extends BaseEntity {
   notes: string;
 }
 
+export interface CustomsStatus {
+  status: 'Cleared' | 'Detained' | 'Rejected';
+  authority: string;
+  location: string;
+  date: string; // ISO 8601 format
+  notes?: string;
+}
+
 /**
  * Groups all AI-generated and compliance-related data.
  */
@@ -185,6 +193,7 @@ export interface Product extends BaseEntity {
   battery?: Battery;
   compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
+  customs?: CustomsStatus;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

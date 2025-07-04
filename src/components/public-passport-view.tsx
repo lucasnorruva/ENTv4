@@ -39,8 +39,9 @@ import {
   Sparkles,
   HeartPulse,
   BatteryCharging,
+  Plane,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import Link from 'next/link';
 import ProductAIChatbot from './product-ai-chatbot';
@@ -78,6 +79,19 @@ export default function PublicPassportView({
   const { sustainability } = product;
   const esg = sustainability;
   const aiLifecycle = sustainability?.lifecycleAnalysis;
+
+  const getCustomsStatusVariant = (status: Product['customs']['status']) => {
+    switch (status) {
+      case 'Cleared':
+        return 'default';
+      case 'Detained':
+        return 'secondary';
+      case 'Rejected':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm">
@@ -118,7 +132,7 @@ export default function PublicPassportView({
         </div>
       </CardHeader>
       <CardContent className="p-6">
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card className="p-4 flex flex-col justify-center">
             <CardTitle as="h2" className="text-lg mb-2">
               ESG Score
@@ -186,6 +200,31 @@ export default function PublicPassportView({
                   <LinkIcon className="h-3 w-3" /> View On-Chain Proof
                 </Link>
               )}
+          </Card>
+          <Card className="p-4 flex flex-col justify-center">
+            <CardTitle as="h2" className="text-lg mb-2">
+              Customs Status
+            </CardTitle>
+            {product.customs ? (
+              <div className="flex items-center gap-3">
+                <Globe className="h-10 w-10 text-primary" />
+                <div>
+                  <Badge variant={getCustomsStatusVariant(product.customs.status)} className="text-sm">
+                    {product.customs.status}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    At: {product.customs.location}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1" suppressHydrationWarning>
+                    {formatDistanceToNow(new Date(product.customs.date), {addSuffix: true})}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                No customs events recorded.
+              </p>
+            )}
           </Card>
         </div>
 
@@ -400,10 +439,10 @@ export default function PublicPassportView({
                   </InfoRow>
                   <InfoRow icon={ShieldCheck} label="RoHS Compliant">
                     <p className="text-sm text-muted-foreground">
-                      {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
-                      {product.compliance?.rohsExemption && (
+                      {product.compliance?.rohs?.compliant ? 'Yes' : 'No'}
+                      {product.compliance?.rohs?.exemption && (
                         <span className="ml-2 text-xs">
-                          (Exemption: {product.compliance.rohsExemption})
+                          (Exemption: {product.compliance.rohs.exemption})
                         </span>
                       )}
                     </p>
