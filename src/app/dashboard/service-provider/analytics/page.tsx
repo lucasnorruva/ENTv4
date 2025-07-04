@@ -10,9 +10,17 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wrench, BookCopy, Clock } from 'lucide-react';
-import { format, subDays, formatDistanceToNow } from 'date-fns';
-import ProductsOverTimeChart from '@/components/charts/products-over-time-chart'; // Reusing this chart for services over time
+import {
+  Wrench,
+  BookCopy,
+  Clock,
+  BarChart3,
+  Ticket,
+  CheckSquare,
+} from 'lucide-react';
+import { differenceInHours } from 'date-fns';
+import ServiceTicketStatusChart from '@/components/charts/service-ticket-status-chart';
+import ServiceTicketsByCategoryChart from '@/components/charts/service-tickets-by-category-chart';
 
 export default async function ServiceProviderAnalyticsPage() {
   const user = await getCurrentUser(UserRoles.SERVICE_PROVIDER);
@@ -21,37 +29,54 @@ export default async function ServiceProviderAnalyticsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const [products, serviceLogs] = await Promise.all([
+  const [products, serviceTickets] = await Promise.all([
     getProducts(user.id),
     getServiceTickets(user.id),
   ]);
 
-  const stats = {
-    totalServices: serviceLogs.length,
-    productsWithManuals: products.filter(p => p.manualUrl).length,
-    servicesLast30Days: serviceLogs.filter(
-      log => new Date(log.createdAt) > subDays(new Date(), 30),
-    ).length,
-  };
+  const openTickets = serviceTickets.filter(t => t.status === 'Open');
+  const closedTickets = serviceTickets.filter(t => t.status === 'Closed');
 
-  const servicesByDate = serviceLogs.reduce(
-    (acc, log) => {
-      const date = format(new Date(log.createdAt), 'yyyy-MM-dd');
-      if (!acc[date]) {
-        acc[date] = 0;
+  const resolutionTimes = closedTickets
+    .map(t => differenceInHours(new Date(t.updatedAt), new Date(t.createdAt)))
+    .filter(t => t >= 0);
+
+  const avgResolutionTime =
+    resolutionTimes.length > 0
+      ? Math.round(
+          resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length,
+        )
+      : 0;
+
+  const productMap = new Map(products.map(p => [p.id, p]));
+
+  const ticketsByCategory = serviceTickets.reduce(
+    (acc, ticket) => {
+      if (ticket.productId) {
+        const product = productMap.get(ticket.productId);
+        if (product) {
+          acc[product.category] = (acc[product.category] || 0) + 1;
+        }
+      } else {
+        acc['Production Line'] = (acc['Production Line'] || 0) + 1;
       }
-      acc[date]++;
       return acc;
     },
     {} as Record<string, number>,
   );
 
-  const servicesOverTimeData = Object.entries(servicesByDate)
-    .map(([date, count]) => ({ date, count }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const categoryChartData = Object.entries(ticketsByCategory)
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count);
 
-  const recentActivity = serviceLogs.slice(0, 5);
-  const productMap = new Map(products.map(p => [p.id, p.productName]));
+  const ticketStatusData = {
+    open: openTickets.length,
+    inProgress: serviceTickets.filter(t => t.status === 'In Progress').length,
+    closed: closedTickets.length,
+  };
+
+  const topCategory =
+    categoryChartData.length > 0 ? categoryChartData[0].category : 'N/A';
 
   return (
     <div className="space-y-6">
@@ -61,16 +86,14 @@ export default async function ServiceProviderAnalyticsPage() {
           An overview of your service activities and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Services
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Services</CardTitle>
             <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalServices}</div>
+            <div className="text-2xl font-bold">{serviceTickets.length}</div>
             <p className="text-xs text-muted-foreground">
               Total maintenance records created
             </p>
@@ -78,29 +101,39 @@ export default async function ServiceProviderAnalyticsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Services (Last 30d)
-            </CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.servicesLast30Days}</div>
+            <div className="text-2xl font-bold">{openTickets.length}</div>
             <p className="text-xs text-muted-foreground">
-              Number of services in the last month
+              Currently awaiting action
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Product Manuals
+              Avg. Resolution Time
             </CardTitle>
-            <BookCopy className="h-4 w-4 text-muted-foreground" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.productsWithManuals}</div>
+            <div className="text-2xl font-bold">{avgResolutionTime} hours</div>
             <p className="text-xs text-muted-foreground">
-              Manuals available for products
+              For all closed tickets
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Top Category</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{topCategory}</div>
+            <p className="text-xs text-muted-foreground">
+              Most frequently serviced
             </p>
           </CardContent>
         </Card>
@@ -108,58 +141,24 @@ export default async function ServiceProviderAnalyticsPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Services Performed Over Time</CardTitle>
+            <CardTitle>Tickets by Status</CardTitle>
             <CardDescription>
-              A view of your maintenance activity.
+              A breakdown of all tickets by their current status.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ProductsOverTimeChart data={servicesOverTimeData} />
+            <ServiceTicketStatusChart data={ticketStatusData} />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Recent Service Activity</CardTitle>
+            <CardTitle>Tickets by Category</CardTitle>
             <CardDescription>
-              A stream of your latest service records.
+              Volume of service tickets across different product categories.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivity.map(ticket => {
-                const product = ticket.productId
-                  ? productMap.get(ticket.productId)
-                  : null;
-                return (
-                  <div key={ticket.id} className="flex items-center gap-4">
-                    <div className="p-2 bg-muted rounded-full">
-                      <Wrench className="h-5 w-5 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        Service for {product || 'Unknown Product'}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                        {ticket.issue}
-                      </p>
-                    </div>
-                    <p
-                      className="text-xs text-muted-foreground shrink-0"
-                      suppressHydrationWarning
-                    >
-                      {formatDistanceToNow(new Date(ticket.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
-                  </div>
-                );
-              })}
-              {recentActivity.length === 0 && (
-                <p className="text-sm text-center text-muted-foreground py-4">
-                  No service activity yet.
-                </p>
-              )}
-            </div>
+            <ServiceTicketsByCategoryChart data={categoryChartData} />
           </CardContent>
         </Card>
       </div>
