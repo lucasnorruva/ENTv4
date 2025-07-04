@@ -199,7 +199,8 @@ export interface AuditLog extends BaseEntity {
  * Represents a service ticket for product repair or issues.
  */
 export interface ServiceTicket extends BaseEntity {
-  productId: string;
+  productId?: string;
+  productionLineId?: string;
   userId: string;
   customerName: string;
   issue: string;

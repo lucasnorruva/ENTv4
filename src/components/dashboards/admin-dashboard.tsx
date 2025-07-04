@@ -12,7 +12,7 @@ import {
   getCompliancePaths,
   getProducts,
   getAuditLogs,
-  getSupportTickets,
+  getServiceTickets,
 } from '@/lib/actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
@@ -35,7 +35,6 @@ import {
   Building2,
   Hourglass,
   Cog,
-  Ticket,
   Wrench,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -69,14 +68,14 @@ export default async function AdminDashboard({ user }: { user: User }) {
     allProducts,
     auditLogs,
     allCompanies,
-    supportTickets,
+    serviceTickets,
   ] = await Promise.all([
     getUsers(),
     getCompliancePaths(),
     getProducts(),
     getAuditLogs(),
     getCompanies(),
-    getSupportTickets(),
+    getServiceTickets(),
   ]);
 
   const stats = {
@@ -91,7 +90,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
     failedVerifications: allProducts.filter(
       p => p.verificationStatus === 'Failed',
     ).length,
-    openSupportTickets: supportTickets.filter(t => t.status === 'Open').length,
+    openServiceTickets: serviceTickets.filter(t => t.status === 'Open').length,
   };
 
   const complianceChartData = {
@@ -194,17 +193,15 @@ export default async function AdminDashboard({ user }: { user: User }) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Open Support Tickets
+              Open Service Tickets
             </CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
+            <Wrench className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.openSupportTickets}
+              {stats.openServiceTickets}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting response
-            </p>
+            <p className="text-xs text-muted-foreground">Awaiting response</p>
           </CardContent>
         </Card>
       </div>

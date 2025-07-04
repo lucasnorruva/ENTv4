@@ -75,7 +75,7 @@ export default async function ServiceProviderDashboard({
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
+            <CardTitle className="text-sm font-medium">Open Service Tickets</CardTitle>
             <Ticket className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -113,7 +113,7 @@ export default async function ServiceProviderDashboard({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Recently Opened Tickets</CardTitle>
+          <CardTitle>Recently Opened Service Tickets</CardTitle>
           <CardDescription>
             The latest service requests needing your attention.
           </CardDescription>
@@ -128,7 +128,7 @@ export default async function ServiceProviderDashboard({
                 >
                   <div>
                     <p className="font-medium">
-                      {productMap.get(ticket.productId) || 'Unknown Product'}
+                      {productMap.get(ticket.productId!) || 'Unknown Product'}
                     </p>
                     <p className="text-sm text-muted-foreground truncate max-w-xs">
                       {ticket.issue}
