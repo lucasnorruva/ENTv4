@@ -29,7 +29,7 @@ export let products: Product[] = [
     packaging: { type: "Recycled Cardboard", recyclable: true },
     lifecycle: { carbonFootprint: 25.5, repairabilityScore: 8, expectedLifespan: 5, energyEfficiencyClass: "A" },
     battery: { type: "Lithium-ion", capacityMah: 3110, voltage: 3.83, isRemovable: false },
-    compliance: { rohsCompliant: true, ceMarked: true },
+    compliance: { rohsCompliant: true, ceMarked: true, weeeRegistered: true, weeeRegistrationNumber: "DE 12345678" },
     sustainability: {
       score: 85,
       environmental: 90,
@@ -116,7 +116,8 @@ export let products: Product[] = [
     supplier: 'Sustainable Threads Inc.',
     status: 'Draft',
     compliancePathId: 'cp-fashion-02',
-    materials: [{ name: 'Leather' }, { name: 'Lead-based dye' }],
+    materials: [{ name: 'Leather', origin: 'Brazil' }, { name: 'Lead-based dye' }],
+    compliance: { eudrCompliant: false },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 15)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     lastUpdated: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),

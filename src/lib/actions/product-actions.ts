@@ -2,10 +2,7 @@
 'use server';
 
 import type { Product, User } from '@/types';
-import {
-  productFormSchema,
-  type ProductFormValues,
-} from '@/lib/schemas';
+import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { products as mockProducts } from '@/lib/data';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
