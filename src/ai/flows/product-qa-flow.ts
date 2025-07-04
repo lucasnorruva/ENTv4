@@ -12,7 +12,7 @@ import { z } from 'genkit';
 import { getProductById } from '@/lib/actions';
 import { AiProduct, AiProductSchema } from '../schemas';
 
-export const ProductQuestionInputSchema = z.object({
+const ProductQuestionInputSchema = z.object({
   productContext: AiProductSchema.describe(
     'The full data context of the product.',
   ),
@@ -20,7 +20,7 @@ export const ProductQuestionInputSchema = z.object({
 });
 export type ProductQuestionInput = z.infer<typeof ProductQuestionInputSchema>;
 
-export const ProductQuestionOutputSchema = z.object({
+const ProductQuestionOutputSchema = z.object({
   answer: z
     .string()
     .describe(
