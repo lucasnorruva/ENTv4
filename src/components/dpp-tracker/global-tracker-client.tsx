@@ -453,7 +453,7 @@ export default function GlobalTrackerClient({
 
   const globeMaterial = useMemo(() => {
     return new MeshPhongMaterial({
-      color: theme === 'dark' ? '#020617' : '#e0f2fe',
+      color: theme === 'dark' ? '#0f172a' : '#93c5fd', // slate-900 for dark, blue-300 for light
       transparent: true,
       opacity: 1,
     });
@@ -476,7 +476,7 @@ export default function GlobalTrackerClient({
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
+      if (!feat.properties) return theme === 'dark' ? '#334155' : '#cbd5e1'; // slate-700 / slate-300
       const iso = feat.properties.ADM0_A3 || feat.properties.ISO_A3;
       const name = feat.properties.ADMIN || feat.properties.NAME_LONG || '';
       const isDark = theme === 'dark';
@@ -496,10 +496,10 @@ export default function GlobalTrackerClient({
       }
 
       if (isEU(iso)) {
-        return isDark ? '#2563eb' : '#002D62';
+        return isDark ? '#2563eb' : '#002D62'; // blue-600 / dark blue
       }
 
-      return isDark ? '#334155' : '#e2e8f0';
+      return isDark ? '#334155' : '#e2e8f0'; // slate-700 / slate-200
     },
     [theme, isEU, highlightedCountries, clickedCountryInfo],
   );
@@ -718,7 +718,7 @@ export default function GlobalTrackerClient({
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white text-xs p-2 rounded-md shadow-lg pointer-events-none">
             <Info className="inline h-3 w-3 mr-1" />
             {countryFilter === 'all'
-              ? 'EU: Dark Blue | Non-EU: Grey.'
+              ? 'EU: Dark Blue.'
               : countryFilter === 'eu'
               ? 'Displaying EU Countries.'
               : countryFilter === 'supplyChain' && selectedProduct
@@ -738,17 +738,18 @@ export default function GlobalTrackerClient({
       </Card>
       <div className="lg:col-span-1">
         <Card>
-            <CardHeader>
-                <CardTitle>Future Widget Area</CardTitle>
-                <CardDescription>
-                    This space can be used for detailed analytics, event logs, or other related components.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center justify-center h-48 bg-muted rounded-md">
-                    <p className="text-muted-foreground">Widget placeholder</p>
-                </div>
-            </CardContent>
+          <CardHeader>
+            <CardTitle>Future Widget Area</CardTitle>
+            <CardDescription>
+              This space can be used for detailed analytics, event logs, or
+              other related components.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-48 bg-muted rounded-md">
+              <p className="text-muted-foreground">Widget placeholder</p>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </div>
