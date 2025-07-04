@@ -84,18 +84,46 @@ export const typeDefs = gql`
   }
 
   input ComplianceInput {
-    rohsCompliant: Boolean
-    rohsExemption: String
-    reachSVHC: Boolean
+    rohs: RohsInput
+    reach: ReachInput
+    weee: WeeeInput
+    eudr: EudrInput
+    ce: CeInput
+    prop65: Prop65Input
+    foodContact: FoodContactInput
+  }
+
+  input RohsInput {
+    compliant: Boolean
+    exemption: String
+  }
+
+  input ReachInput {
+    svhcDeclared: Boolean
     scipReference: String
-    prop65WarningRequired: Boolean
-    ceMarked: Boolean
-    foodContactSafe: Boolean
-    foodContactComplianceStandard: String
-    weeeRegistered: Boolean
-    weeeRegistrationNumber: String
-    eudrCompliant: Boolean
-    eudrDiligenceId: String
+  }
+
+  input WeeeInput {
+    registered: Boolean
+    registrationNumber: String
+  }
+
+  input EudrInput {
+    compliant: Boolean
+    diligenceId: String
+  }
+
+  input CeInput {
+    marked: Boolean
+  }
+
+  input Prop65Input {
+    warningRequired: Boolean
+  }
+
+  input FoodContactInput {
+    safe: Boolean
+    standard: String
   }
 
   # --- OUTPUTS --- #
@@ -174,18 +202,46 @@ export const typeDefs = gql`
   }
 
   type Compliance {
-    rohsCompliant: Boolean
-    rohsExemption: String
-    reachSVHC: Boolean
+    rohs: RohsCompliance
+    reach: ReachCompliance
+    weee: WeeeCompliance
+    eudr: EudrCompliance
+    ce: CeCompliance
+    prop65: Prop65Compliance
+    foodContact: FoodContactCompliance
+  }
+
+  type RohsCompliance {
+    compliant: Boolean
+    exemption: String
+  }
+
+  type ReachCompliance {
+    svhcDeclared: Boolean
     scipReference: String
-    prop65WarningRequired: Boolean
-    ceMarked: Boolean
-    foodContactSafe: Boolean
-    foodContactComplianceStandard: String
-    weeeRegistered: Boolean
-    weeeRegistrationNumber: String
-    eudrCompliant: Boolean
-    eudrDiligenceId: String
+  }
+
+  type WeeeCompliance {
+    registered: Boolean
+    registrationNumber: String
+  }
+  
+  type EudrCompliance {
+    compliant: Boolean
+    diligenceId: String
+  }
+
+  type CeCompliance {
+    marked: Boolean
+  }
+
+  type Prop65Compliance {
+    warningRequired: Boolean
+  }
+
+  type FoodContactCompliance {
+    safe: Boolean
+    standard: String
   }
 
   type ComplianceGap {
