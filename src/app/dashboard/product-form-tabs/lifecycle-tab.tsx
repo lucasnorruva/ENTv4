@@ -1,4 +1,4 @@
-// src/app/dashboard/product-form-tabs/lifecycle-tab.tsx
+// src/components/product-form-tabs/lifecycle-tab.tsx
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';

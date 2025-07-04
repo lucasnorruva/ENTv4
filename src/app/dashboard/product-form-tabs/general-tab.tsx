@@ -1,4 +1,4 @@
-// src/app/dashboard/product-form-tabs/general-tab.tsx
+// src/components/product-form-tabs/general-tab.tsx
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';

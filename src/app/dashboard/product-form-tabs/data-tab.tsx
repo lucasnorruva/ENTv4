@@ -1,4 +1,4 @@
-// src/app/dashboard/product-form-tabs/data-tab.tsx
+// src/components/product-form-tabs/data-tab.tsx
 'use client';
 
 import type {

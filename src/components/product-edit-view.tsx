@@ -91,6 +91,43 @@ export default function ProductEditView({
     });
   }, [initialProduct, form]);
 
+  const handleContextImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setContextImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  const handleGenerateImage = () => {
+    startImageGenerationTransition(async () => {
+      try {
+        const updatedProduct = await generateAndSaveProductImage(
+          product.id,
+          user.id,
+          contextImagePreview ?? undefined,
+        );
+        setProduct(updatedProduct);
+        form.setValue('productImage', updatedProduct.productImage);
+        toast({
+          title: 'Image Generated!',
+          description: 'A new AI-powered image has been generated and saved.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate product image.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   const onSubmit = (values: ProductFormValues) => {
     startSavingTransition(async () => {
       let imageUrl = product?.productImage;
@@ -156,19 +193,6 @@ export default function ProductEditView({
         });
       }
     });
-  };
-
-  const handleContextImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setContextImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleGenerateDescription = () => {
