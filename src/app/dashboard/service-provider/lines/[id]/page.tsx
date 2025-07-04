@@ -1,4 +1,4 @@
-// src/app/dashboard/manufacturer/lines/[id]/page.tsx
+// src/app/dashboard/service-provider/lines/[id]/page.tsx
 import {
   getProductionLineById,
   getServiceTickets,
@@ -10,12 +10,12 @@ import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ProductionLineDetailPage({
+export default async function ServiceProviderLineDetailPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const user = await getCurrentUser(UserRoles.MANUFACTURER);
+  const user = await getCurrentUser(UserRoles.SERVICE_PROVIDER);
   const line = await getProductionLineById(params.id);
 
   if (!line) {
@@ -32,7 +32,7 @@ export default async function ProductionLineDetailPage({
       line={line}
       serviceHistory={serviceHistory}
       user={user}
-      roleSlug="manufacturer"
+      roleSlug="service-provider"
     />
   );
 }

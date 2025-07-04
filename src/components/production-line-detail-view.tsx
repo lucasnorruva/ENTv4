@@ -21,6 +21,7 @@ interface ProductionLineDetailViewProps {
   line: ProductionLine;
   serviceHistory: ServiceTicket[];
   user: User;
+  roleSlug: string;
 }
 
 const getStatusVariant = (status: string) => {
@@ -39,11 +40,12 @@ export default function ProductionLineDetailView({
   line,
   serviceHistory,
   user,
+  roleSlug,
 }: ProductionLineDetailViewProps) {
   return (
     <div className="space-y-6">
       <Button asChild variant="outline" size="sm">
-        <Link href="/dashboard/manufacturer/lines">
+        <Link href={`/dashboard/${roleSlug}/lines`}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Production Lines
         </Link>
