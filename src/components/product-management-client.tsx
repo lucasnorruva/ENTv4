@@ -106,11 +106,6 @@ export default function ProductManagementClient({
     setIsSheetOpen(true);
   };
 
-  const handleEdit = (product: Product) => {
-    setSelectedProduct(product);
-    setIsSheetOpen(true);
-  };
-
   const handleDelete = (id: string) => {
     startTransition(async () => {
       try {
@@ -237,7 +232,6 @@ export default function ProductManagementClient({
             products={products}
             user={user}
             isLoading={isLoading}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             onSubmitForReview={handleSubmitForReview}
             onRecalculateScore={handleRecalculateScore}

@@ -85,7 +85,6 @@ interface ProductTableProps {
   products: Product[];
   user: User;
   isLoading: boolean;
-  onEdit: (product: Product) => void;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
@@ -99,7 +98,6 @@ export default function ProductTable({
   products,
   user,
   isLoading,
-  onEdit,
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
@@ -116,7 +114,6 @@ export default function ProductTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState(initialFilter ?? '');
 
-  const canCreate = can(user, 'product:create');
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
   const getStatusVariant = (status: Product['status']) => {
@@ -292,19 +289,12 @@ export default function ProductTable({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                {can(user, "product:edit", product) && (
-                  <DropdownMenuItem onClick={() => onEdit(product)}>
-                    <FilePenLine className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                )}
                 <DropdownMenuItem asChild>
                   <Link
                     href={`/dashboard/${roleSlug}/products/${product.id}`}
-                    target="_blank"
                   >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Details Page
+                    <FilePenLine className="mr-2 h-4 w-4" />
+                    View / Edit
                   </Link>
                 </DropdownMenuItem>
                 {can(user, "product:recalculate", product) && (
@@ -367,7 +357,7 @@ export default function ProductTable({
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onEdit, onDelete, onRecalculateScore, onSubmitForReview, user, roleSlug],
+    [onDelete, onRecalculateScore, onSubmitForReview, user, roleSlug],
   );
 
   const table = useReactTable({
