@@ -125,7 +125,8 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'ticket:manage':
       return (
         hasRole(user, UserRoles.SERVICE_PROVIDER) ||
-        hasRole(user, UserRoles.ADMIN)
+        hasRole(user, UserRoles.ADMIN) ||
+        hasRole(user, UserRoles.MANUFACTURER)
       );
 
     case 'ticket:view_all':
