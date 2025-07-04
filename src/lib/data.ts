@@ -65,11 +65,21 @@ export let products: Product[] = [
       isRemovable: false,
     },
     transit: {
-      stage: 'Cleared - Inland Transit',
+      stage: 'Inland Transit',
       eta: '2024-08-02',
       transport: 'Truck',
       origin: 'Gdansk, Poland',
       destination: 'Berlin, Germany',
+    },
+    customs: {
+      status: 'Cleared',
+      authority: 'German Customs (Zoll)',
+      location: 'Frankfurt (Oder)',
+      date: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
+      notes: 'Standard spot check passed.',
+      history: [
+        { status: 'Detained', authority: 'Polish Customs', location: 'Port of Gdansk', date: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(), notes: "Awaiting final paperwork from exporter."},
+      ]
     },
     compliance: {
       rohs: { compliant: true },
@@ -208,6 +218,13 @@ export let products: Product[] = [
       transport: 'Plane',
       origin: 'Shenzhen, China',
       destination: 'Frankfurt, Germany',
+    },
+    customs: {
+      status: 'Rejected',
+      authority: 'German Customs (Zoll)',
+      location: 'Frankfurt Airport',
+      date: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
+      notes: 'Rejected due to non-compliant materials (lead) found during inspection.'
     },
     compliance: { eudr: { compliant: false }, reach: { svhcDeclared: false } },
     createdAt: new Date(
