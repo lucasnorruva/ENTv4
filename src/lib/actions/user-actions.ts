@@ -6,69 +6,15 @@ import { UserRoles, type Role } from '@/lib/constants';
 import {
   userFormSchema,
   type UserFormValues,
-  companyFormSchema,
-  type CompanyFormValues,
   onboardingFormSchema,
   type OnboardingFormValues,
 } from '@/lib/schemas';
-import { getUserById, getCompanyById } from '@/lib/auth';
+import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
 import { companies as mockCompanies } from '@/lib/company-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
-
-export async function saveCompany(
-  values: CompanyFormValues,
-  userId: string,
-  companyId?: string,
-): Promise<Company> {
-  const validatedData = companyFormSchema.parse(values);
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  checkPermission(user, 'company:manage');
-
-  const now = new Date().toISOString();
-  let savedCompany: Company;
-
-  if (companyId) {
-    const companyIndex = mockCompanies.findIndex(c => c.id === companyId);
-    if (companyIndex === -1) throw new Error('Company not found');
-    savedCompany = {
-      ...mockCompanies[companyIndex],
-      ...validatedData,
-      updatedAt: now,
-    };
-    mockCompanies[companyIndex] = savedCompany;
-    await logAuditEvent('company.updated', companyId, {}, userId);
-  } else {
-    savedCompany = {
-      id: newId('comp'),
-      ...validatedData,
-      createdAt: now,
-      updatedAt: now,
-    };
-    mockCompanies.push(savedCompany);
-    await logAuditEvent('company.created', savedCompany.id, {}, userId);
-  }
-  return Promise.resolve(savedCompany);
-}
-
-export async function deleteCompany(
-  companyId: string,
-  userId: string,
-): Promise<void> {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  checkPermission(user, 'company:manage');
-
-  const index = mockCompanies.findIndex(c => c.id === companyId);
-  if (index > -1) {
-    mockCompanies.splice(index, 1);
-    await logAuditEvent('company.deleted', companyId, {}, userId);
-  }
-  return Promise.resolve();
-}
 
 export async function saveUser(
   values: UserFormValues,

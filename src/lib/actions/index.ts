@@ -8,3 +8,4 @@ export * from './report-actions';
 export * from './audit-actions';
 export * from './search-actions';
 export * from './manufacturing-actions';
+export * from './company-actions';
