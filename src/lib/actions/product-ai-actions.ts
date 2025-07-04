@@ -14,6 +14,7 @@ import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { validateProductData } from '@/ai/flows/validate-product-data';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
+import { askQuestionAboutProductFlow } from '@/ai/flows/product-qa-flow';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission, PermissionError } from '@/lib/permissions';
 import { getProductById, getCompliancePathById } from '@/lib/actions/index';
@@ -429,4 +430,16 @@ export async function suggestImprovements(input: {
   productDescription: string;
 }) {
   return await suggestImprovementsFlow(input);
+}
+
+export async function askQuestionAboutProduct(
+  productId: string,
+  question: string,
+): Promise<{ answer: string }> {
+  if (!productId || !question) {
+    throw new Error('Product ID and question are required.');
+  }
+
+  const result = await askQuestionAboutProductFlow(productId, question);
+  return result;
 }

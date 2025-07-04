@@ -15,3 +15,4 @@ import "@/ai/flows/analyze-bom.ts";
 import "@/ai/flows/create-product-from-image.ts";
 import "@/ai/flows/generate-compliance-rules.ts";
 import "@/ai/flows/generate-product-description.ts";
+import "@/ai/flows/product-qa-flow.ts";

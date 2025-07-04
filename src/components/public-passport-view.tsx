@@ -43,6 +43,7 @@ import {
 import { format } from 'date-fns';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import Link from 'next/link';
+import ProductAIChatbot from './product-ai-chatbot';
 
 function InfoRow({
   icon: Icon,
@@ -188,249 +189,260 @@ export default function PublicPassportView({
           </Card>
         </div>
 
-        <Accordion
-          type="multiple"
-          className="w-full"
-          defaultValue={['item-1', 'item-2', 'item-3', 'item-4']}
-        >
-          <AccordionItem value="item-1">
-            <AccordionTrigger className="text-xl font-semibold">
-              Materials & Manufacturing
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <InfoRow icon={Factory} label="Manufacturing">
-                <p className="text-sm text-muted-foreground">
-                  {product.manufacturing?.facility} in{' '}
-                  {product.manufacturing?.country}
-                </p>
-              </InfoRow>
-              <InfoRow icon={Scale} label="Material Composition">
-                {product.materials.length > 0 ? (
-                  <div className="space-y-3 mt-2">
-                    {product.materials.map((mat, index) => (
-                      <div key={index} className="text-sm">
-                        <p className="font-medium text-foreground">
-                          {mat.name}
-                        </p>
-                        <div className="flex gap-4 text-muted-foreground text-xs">
-                          {mat.percentage !== undefined && (
-                            <span className="flex items-center gap-1">
-                              <Percent className="h-3 w-3" /> {mat.percentage}%
-                              of total
-                            </span>
-                          )}
-                          {mat.recycledContent !== undefined && (
-                            <span className="flex items-center gap-1">
-                              <Recycle className="h-3 w-3" />{' '}
-                              {mat.recycledContent}% recycled
-                            </span>
-                          )}
-                          {mat.origin && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> Origin:{' '}
-                              {mat.origin}
-                            </span>
-                          )}
-                        </div>
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="lg:col-span-1">
+            <Accordion
+              type="multiple"
+              className="w-full"
+              defaultValue={['item-1', 'item-2', 'item-3', 'item-4']}
+            >
+              <AccordionItem value="item-1">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Materials & Manufacturing
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <InfoRow icon={Factory} label="Manufacturing">
+                    <p className="text-sm text-muted-foreground">
+                      {product.manufacturing?.facility} in{' '}
+                      {product.manufacturing?.country}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Scale} label="Material Composition">
+                    {product.materials.length > 0 ? (
+                      <div className="space-y-3 mt-2">
+                        {product.materials.map((mat, index) => (
+                          <div key={index} className="text-sm">
+                            <p className="font-medium text-foreground">
+                              {mat.name}
+                            </p>
+                            <div className="flex gap-4 text-muted-foreground text-xs">
+                              {mat.percentage !== undefined && (
+                                <span className="flex items-center gap-1">
+                                  <Percent className="h-3 w-3" />{' '}
+                                  {mat.percentage}% of total
+                                </span>
+                              )}
+                              {mat.recycledContent !== undefined && (
+                                <span className="flex items-center gap-1">
+                                  <Recycle className="h-3 w-3" />{' '}
+                                  {mat.recycledContent}% recycled
+                                </span>
+                              )}
+                              {mat.origin && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" /> Origin:{' '}
+                                  {mat.origin}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">
-                    No material data provided.
-                  </p>
-                )}
-              </InfoRow>
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-2">
-            <AccordionTrigger className="text-xl font-semibold">
-              Circularity & Lifecycle
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <InfoRow icon={Package} label="Packaging">
-                <p className="text-sm text-muted-foreground">
-                  {product.packaging?.type}
-                  {product.packaging?.recycledContent !== undefined &&
-                    ` (${product.packaging.recycledContent}% recycled)`}
-                  . Recyclable: {product.packaging?.recyclable ? 'Yes' : 'No'}.
-                </p>
-              </InfoRow>
-              <InfoRow icon={HeartPulse} label="Expected Lifespan">
-                <p className="text-sm text-muted-foreground">
-                  {product.lifecycle?.expectedLifespan
-                    ? `${product.lifecycle.expectedLifespan} years`
-                    : 'Not specified'}
-                </p>
-              </InfoRow>
-              <InfoRow icon={Wrench} label="Repairability">
-                <p className="text-sm text-muted-foreground">
-                  {product.lifecycle?.repairabilityScore
-                    ? `Score: ${product.lifecycle.repairabilityScore}/10. `
-                    : ''}
-                  Repair manuals and end-of-life instructions are available to
-                  authorized service providers and recyclers.
-                </p>
-              </InfoRow>
-              {product.endOfLifeStatus &&
-                product.endOfLifeStatus !== 'Active' && (
-                  <InfoRow icon={Archive} label="End-of-Life Status">
-                    <Badge
-                      variant={
-                        product.endOfLifeStatus === 'Recycled'
-                          ? 'default'
-                          : 'secondary'
-                      }
-                    >
-                      {product.endOfLifeStatus}
-                    </Badge>
-                  </InfoRow>
-                )}
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-4">
-            <AccordionTrigger className="text-xl font-semibold">
-              Environmental Impact
-            </AccordionTrigger>
-            <AccordionContent className="pt-2">
-              <InfoRow
-                icon={Thermometer}
-                label="Carbon Footprint"
-                value={
-                  product.lifecycle?.carbonFootprint
-                    ? `${product.lifecycle.carbonFootprint} kg CO2-eq`
-                    : 'Not available'
-                }
-              >
-                {product.lifecycle?.carbonFootprintMethod && (
-                  <p className="text-xs text-muted-foreground">
-                    Method: {product.lifecycle.carbonFootprintMethod}
-                  </p>
-                )}
-              </InfoRow>
-              {product.battery && (
-                <InfoRow
-                  icon={BatteryCharging}
-                  label="Battery"
-                  value={`${product.battery.type || 'N/A'}${
-                    product.battery.capacityMah
-                      ? `, ${product.battery.capacityMah}mAh`
-                      : ''
-                  }`}
-                >
-                  <p className="text-xs text-muted-foreground">
-                    Removable:{' '}
-                    {product.battery.isRemovable ? 'Yes' : 'No'}
-                  </p>
-                </InfoRow>
-              )}
-              {aiLifecycle && (
-                <>
-                  <InfoRow
-                    icon={Lightbulb}
-                    label="AI Lifecycle Stages Analysis"
-                  >
-                    <div className="space-y-2 mt-2 text-sm text-muted-foreground">
-                      <p>
-                        <strong>Manufacturing:</strong>{' '}
-                        {aiLifecycle.lifecycleStages.manufacturing}
+                    ) : (
+                      <p className="text-muted-foreground">
+                        No material data provided.
                       </p>
-                      <p>
-                        <strong>Use Phase:</strong>{' '}
-                        {aiLifecycle.lifecycleStages.usePhase}
-                      </p>
-                      <p>
-                        <strong>End-of-Life:</strong>{' '}
-                        {aiLifecycle.lifecycleStages.endOfLife}
-                      </p>
-                    </div>
-                  </InfoRow>
-                  <InfoRow
-                    icon={Sparkles}
-                    label="AI Improvement Opportunities"
-                  >
-                    <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
-                      {aiLifecycle.improvementOpportunities.map((opp, i) => (
-                        <li key={i}>{opp}</li>
-                      ))}
-                    </ul>
-                  </InfoRow>
-                </>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-
-          <AccordionItem value="item-3">
-            <AccordionTrigger className="text-xl font-semibold">
-              Compliance & Certifications
-            </AccordionTrigger>
-            <AccordionContent className="pt-2 space-y-2">
-              {sustainability?.gaps && sustainability.gaps.length > 0 && (
-                <Alert variant="destructive">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Compliance Gaps Identified</AlertTitle>
-                  <AlertDescription>
-                    <ul className="list-disc list-inside text-xs mt-2 space-y-1">
-                      {sustainability.gaps.map((gap, index) => (
-                        <li key={index}>
-                          <strong>{gap.regulation}:</strong> {gap.issue}
-                        </li>
-                      ))}
-                    </ul>
-                  </AlertDescription>
-                </Alert>
-              )}
-              <InfoRow icon={FileQuestion} label="Compliance Path">
-                <p className="font-semibold text-foreground">
-                  {compliancePath?.name ?? 'No path selected.'}
-                </p>
-                {compliancePath?.description && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {compliancePath.description}
-                  </p>
-                )}
-              </InfoRow>
-              <InfoRow icon={ShieldCheck} label="RoHS Compliant">
-                <p className="text-sm text-muted-foreground">
-                  {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
-                  {product.compliance?.rohsExemption && (
-                    <span className="ml-2 text-xs">
-                      (Exemption: {product.compliance.rohsExemption})
-                    </span>
-                  )}
-                </p>
-              </InfoRow>
-              <InfoRow icon={FileText} label="Certifications">
-                {product.certifications && product.certifications.length > 0 ? (
-                  <ul className="list-disc list-inside text-sm text-muted-foreground">
-                    {product.certifications.map(
-                      (cert: any, index: number) => (
-                        <li key={index}>{cert.name}</li>
-                      ),
                     )}
-                  </ul>
-                ) : (
-                  <p className="text-muted-foreground">
-                    No certifications listed.
-                  </p>
-                )}
-              </InfoRow>
-              {product.ebsiVcId && (
-                <InfoRow
-                  icon={Fingerprint}
-                  label="EBSI Credential ID"
-                  value={
-                    <span className="font-mono text-xs break-all">
-                      {product.ebsiVcId}
-                    </span>
-                  }
-                />
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+                  </InfoRow>
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-2">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Circularity & Lifecycle
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <InfoRow icon={Package} label="Packaging">
+                    <p className="text-sm text-muted-foreground">
+                      {product.packaging?.type}
+                      {product.packaging?.recycledContent !== undefined &&
+                        ` (${product.packaging.recycledContent}% recycled)`}
+                      . Recyclable:{' '}
+                      {product.packaging?.recyclable ? 'Yes' : 'No'}.
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={HeartPulse} label="Expected Lifespan">
+                    <p className="text-sm text-muted-foreground">
+                      {product.lifecycle?.expectedLifespan
+                        ? `${product.lifecycle.expectedLifespan} years`
+                        : 'Not specified'}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={Wrench} label="Repairability">
+                    <p className="text-sm text-muted-foreground">
+                      {product.lifecycle?.repairabilityScore
+                        ? `Score: ${product.lifecycle.repairabilityScore}/10. `
+                        : ''}
+                      Repair manuals and end-of-life instructions are available
+                      to authorized service providers and recyclers.
+                    </p>
+                  </InfoRow>
+                  {product.endOfLifeStatus &&
+                    product.endOfLifeStatus !== 'Active' && (
+                      <InfoRow icon={Archive} label="End-of-Life Status">
+                        <Badge
+                          variant={
+                            product.endOfLifeStatus === 'Recycled'
+                              ? 'default'
+                              : 'secondary'
+                          }
+                        >
+                          {product.endOfLifeStatus}
+                        </Badge>
+                      </InfoRow>
+                    )}
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-4">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Environmental Impact
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <InfoRow
+                    icon={Thermometer}
+                    label="Carbon Footprint"
+                    value={
+                      product.lifecycle?.carbonFootprint
+                        ? `${product.lifecycle.carbonFootprint} kg CO2-eq`
+                        : 'Not available'
+                    }
+                  >
+                    {product.lifecycle?.carbonFootprintMethod && (
+                      <p className="text-xs text-muted-foreground">
+                        Method: {product.lifecycle.carbonFootprintMethod}
+                      </p>
+                    )}
+                  </InfoRow>
+                  {product.battery && (
+                    <InfoRow
+                      icon={BatteryCharging}
+                      label="Battery"
+                      value={`${product.battery.type || 'N/A'}${
+                        product.battery.capacityMah
+                          ? `, ${product.battery.capacityMah}mAh`
+                          : ''
+                      }`}
+                    >
+                      <p className="text-xs text-muted-foreground">
+                        Removable:{' '}
+                        {product.battery.isRemovable ? 'Yes' : 'No'}
+                      </p>
+                    </InfoRow>
+                  )}
+                  {aiLifecycle && (
+                    <>
+                      <InfoRow
+                        icon={Lightbulb}
+                        label="AI Lifecycle Stages Analysis"
+                      >
+                        <div className="space-y-2 mt-2 text-sm text-muted-foreground">
+                          <p>
+                            <strong>Manufacturing:</strong>{' '}
+                            {aiLifecycle.lifecycleStages.manufacturing}
+                          </p>
+                          <p>
+                            <strong>Use Phase:</strong>{' '}
+                            {aiLifecycle.lifecycleStages.usePhase}
+                          </p>
+                          <p>
+                            <strong>End-of-Life:</strong>{' '}
+                            {aiLifecycle.lifecycleStages.endOfLife}
+                          </p>
+                        </div>
+                      </InfoRow>
+                      <InfoRow
+                        icon={Sparkles}
+                        label="AI Improvement Opportunities"
+                      >
+                        <ul className="list-disc list-inside mt-2 text-sm text-muted-foreground space-y-1">
+                          {aiLifecycle.improvementOpportunities.map(
+                            (opp, i) => (
+                              <li key={i}>{opp}</li>
+                            ),
+                          )}
+                        </ul>
+                      </InfoRow>
+                    </>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="item-3">
+                <AccordionTrigger className="text-xl font-semibold">
+                  Compliance & Certifications
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 space-y-2">
+                  {sustainability?.gaps && sustainability.gaps.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Compliance Gaps Identified</AlertTitle>
+                      <AlertDescription>
+                        <ul className="list-disc list-inside text-xs mt-2 space-y-1">
+                          {sustainability.gaps.map((gap, index) => (
+                            <li key={index}>
+                              <strong>{gap.regulation}:</strong> {gap.issue}
+                            </li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  <InfoRow icon={FileQuestion} label="Compliance Path">
+                    <p className="font-semibold text-foreground">
+                      {compliancePath?.name ?? 'No path selected.'}
+                    </p>
+                    {compliancePath?.description && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {compliancePath.description}
+                      </p>
+                    )}
+                  </InfoRow>
+                  <InfoRow icon={ShieldCheck} label="RoHS Compliant">
+                    <p className="text-sm text-muted-foreground">
+                      {product.compliance?.rohsCompliant ? 'Yes' : 'No'}
+                      {product.compliance?.rohsExemption && (
+                        <span className="ml-2 text-xs">
+                          (Exemption: {product.compliance.rohsExemption})
+                        </span>
+                      )}
+                    </p>
+                  </InfoRow>
+                  <InfoRow icon={FileText} label="Certifications">
+                    {product.certifications &&
+                    product.certifications.length > 0 ? (
+                      <ul className="list-disc list-inside text-sm text-muted-foreground">
+                        {product.certifications.map(
+                          (cert: any, index: number) => (
+                            <li key={index}>{cert.name}</li>
+                          ),
+                        )}
+                      </ul>
+                    ) : (
+                      <p className="text-muted-foreground">
+                        No certifications listed.
+                      </p>
+                    )}
+                  </InfoRow>
+                  {product.ebsiVcId && (
+                    <InfoRow
+                      icon={Fingerprint}
+                      label="EBSI Credential ID"
+                      value={
+                        <span className="font-mono text-xs break-all">
+                          {product.ebsiVcId}
+                        </span>
+                      }
+                    />
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+          <div className="lg:col-span-1">
+            <ProductAIChatbot productId={product.id} />
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
