@@ -1,4 +1,3 @@
-
 // src/components/global-search-button.tsx
 'use client';
 
