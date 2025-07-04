@@ -19,6 +19,7 @@ import {
   ListChecks,
   Users,
   FileDown,
+  History,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -49,6 +50,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        { title: 'Platform Logs', icon: History, href: 'logs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
         { title: 'Service Tickets', icon: Wrench, href: 'service-tickets' },
         { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
