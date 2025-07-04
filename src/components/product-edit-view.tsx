@@ -24,10 +24,10 @@ import { storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
 
-import GeneralTab from './product-form-tabs/general-tab';
-import DataTab from './product-form-tabs/data-tab';
-import LifecycleTab from './product-form-tabs/lifecycle-tab';
-import ComplianceTab from './product-form-tabs/compliance-tab';
+import GeneralTab from '../app/dashboard/product-form-tabs/general-tab';
+import DataTab from '../app/dashboard/product-form-tabs/data-tab';
+import LifecycleTab from '../app/dashboard/product-form-tabs/lifecycle-tab';
+import ComplianceTab from '../app/dashboard/product-form-tabs/compliance-tab';
 
 export default function ProductEditView({
   product: initialProduct,
