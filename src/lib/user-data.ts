@@ -15,6 +15,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-supplier',
@@ -26,6 +27,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-auditor',
@@ -37,6 +39,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-compliance',
@@ -48,6 +51,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-manufacturer',
@@ -59,6 +63,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-service',
@@ -70,6 +75,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-recycler',
@@ -81,6 +87,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-retailer',
@@ -92,6 +99,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-developer',
@@ -103,6 +111,7 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
   {
     id: 'user-analyst',
@@ -114,5 +123,6 @@ export let users: User[] = [
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     onboardingComplete: true,
     isMfaEnabled: false,
+    readNotificationIds: [],
   },
 ];
