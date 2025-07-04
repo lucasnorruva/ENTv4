@@ -22,7 +22,13 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 
 import { products as mockProducts } from '@/lib/data'; // Use main products data
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
@@ -536,54 +542,17 @@ export default function GlobalTrackerPage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col">
-      <div className="flex-1 relative bg-background">
-        {typeof window !== 'undefined' && (
-          <Globe
-            ref={globeEl}
-            globeImageUrl={null}
-            globeMaterial={globeMaterial}
-            backgroundColor="rgba(255, 255, 255, 0)"
-            arcsData={arcsData}
-            arcColor={'color'}
-            arcDashLength={0.4}
-            arcDashGap={0.1}
-            arcDashAnimateTime={2000}
-            arcStroke={0.5}
-            arcLabel="label"
-            showAtmosphere={false}
-            polygonsData={filteredLandPolygons}
-            polygonCapColor={feat =>
-              getPolygonCapColor(feat as CountryFeature)
-            }
-            polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
-            polygonStrokeColor={() => '#000000'}
-            polygonAltitude={0.01}
-            onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
-            polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
-            polygonsTransitionDuration={100}
-            pointsData={pointsData}
-            pointLat="lat"
-            pointLng="lng"
-            pointAltitude={0.02}
-            pointRadius="size"
-            pointColor="color"
-            pointLabel="label"
-            ringsData={pointsData.filter(
-              p => p.color === 'red' || p.color === 'orange',
-            )}
-            ringLat="lat"
-            ringLng="lng"
-            ringColor="color"
-            ringMaxRadius={1}
-            ringPropagationSpeed={1}
-            ringRepeatPeriod={1000}
-            onGlobeReady={() => setGlobeReady(true)}
-            enablePointerInteraction={true}
-          />
-        )}
-        <div className="absolute top-4 left-4 right-4 flex justify-between z-10 pointer-events-none">
-          <div className="pointer-events-auto">
+    <Card className="h-full w-full flex flex-col">
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <CardTitle>Global Supply Chain Tracker</CardTitle>
+            <CardDescription>
+              Visualize product supply chains, transit routes, and customs events in
+              real-time.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2">
             <Select
               onValueChange={value => {
                 const newProductId =
@@ -601,7 +570,7 @@ export default function GlobalTrackerPage() {
               }}
               value={selectedProductId || 'select-placeholder'}
             >
-              <SelectTrigger className="w-[250px] sm:w-[300px]">
+              <SelectTrigger className="w-full sm:w-[250px]">
                 <SelectValue placeholder="Select a Product" />
               </SelectTrigger>
               <SelectContent>
@@ -615,13 +584,12 @@ export default function GlobalTrackerPage() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div className="flex gap-2 pointer-events-auto">
             <Button
               size="sm"
+              variant="outline"
               onClick={() => setIsAutoRotating(!isAutoRotating)}
             >
-              {isAutoRotating ? 'Stop Auto-Rotate' : 'Start Auto-Rotate'}
+              {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
             </Button>
             <Select
               onValueChange={value =>
@@ -629,7 +597,7 @@ export default function GlobalTrackerPage() {
               }
               value={countryFilter}
             >
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <SelectValue placeholder="Filter Countries" />
               </SelectTrigger>
               <SelectContent>
@@ -642,8 +610,56 @@ export default function GlobalTrackerPage() {
             </Select>
           </div>
         </div>
+      </CardHeader>
+      <CardContent className="flex-1 p-0 relative">
+        <div className="absolute inset-0">
+          {typeof window !== 'undefined' && (
+            <Globe
+              ref={globeEl}
+              globeImageUrl={null}
+              globeMaterial={globeMaterial}
+              backgroundColor="rgba(255, 255, 255, 0)"
+              arcsData={arcsData}
+              arcColor={'color'}
+              arcDashLength={0.4}
+              arcDashGap={0.1}
+              arcDashAnimateTime={2000}
+              arcStroke={0.5}
+              arcLabel="label"
+              showAtmosphere={false}
+              polygonsData={filteredLandPolygons}
+              polygonCapColor={feat =>
+                getPolygonCapColor(feat as CountryFeature)
+              }
+              polygonSideColor={() => 'rgba(0, 0, 0, 0.05)'}
+              polygonStrokeColor={() => '#000000'}
+              polygonAltitude={0.01}
+              onPolygonClick={feat => handlePolygonClick(feat as CountryFeature)}
+              polygonLabel={feat => getPolygonLabel(feat as CountryFeature)}
+              polygonsTransitionDuration={100}
+              pointsData={pointsData}
+              pointLat="lat"
+              pointLng="lng"
+              pointAltitude={0.02}
+              pointRadius="size"
+              pointColor="color"
+              pointLabel="label"
+              ringsData={pointsData.filter(
+                p => p.color === 'red' || p.color === 'orange',
+              )}
+              ringLat="lat"
+              ringLng="lng"
+              ringColor="color"
+              ringMaxRadius={1}
+              ringPropagationSpeed={1}
+              ringRepeatPeriod={1000}
+              onGlobeReady={() => setGlobeReady(true)}
+              enablePointerInteraction={true}
+            />
+          )}
+        </div>
         {clickedCountryInfo && (
-          <Card className="absolute top-16 right-4 z-20 w-72 shadow-xl bg-card/95 backdrop-blur-sm">
+          <Card className="absolute top-4 right-4 z-20 w-72 shadow-xl bg-card/95 backdrop-blur-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-md font-semibold">
                 {clickedCountryInfo.ADMIN || 'Selected Country'}
@@ -728,7 +744,7 @@ export default function GlobalTrackerPage() {
           {arcsData.some(a => a.color === '#F59E0B') &&
             `Supply Arc(s): Orange.`}
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
