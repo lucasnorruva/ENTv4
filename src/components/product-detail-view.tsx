@@ -5,17 +5,9 @@ import React, { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import {
-  Wrench,
-  AlertTriangle,
-} from 'lucide-react';
+import { Wrench, AlertTriangle } from 'lucide-react';
 
-import type {
-  Product,
-  User,
-  CompliancePath,
-  AuditLog,
-} from '@/types';
+import type { Product, User, CompliancePath, AuditLog } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,10 +16,6 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import DppQrCodeWidget from './dpp-qr-code-widget';
 import DppCompletenessWidget from './dpp-completeness-widget';
 import { AuditLogTimeline } from './audit-log-timeline';
-import AiSuggestionsWidget from './ai-suggestions-widget';
-import DocGenerationWidget from './doc-generation-widget';
-import ComplianceAnalysisWidget from './compliance-analysis-widget';
-import DataQualityWidget from './data-quality-widget';
 import { generateAndSaveProductImage } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
@@ -36,7 +24,7 @@ import OverviewTab from './product-detail-tabs/overview-tab';
 import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
-
+import AiActionsWidget from './ai-actions-widget';
 
 export default function ProductDetailView({
   product: productProp,
@@ -91,8 +79,10 @@ export default function ProductDetailView({
         });
         setContextImagePreview(null);
         // Clear file input
-        const input = document.getElementById('context-image') as HTMLInputElement;
-        if(input) input.value = '';
+        const input = document.getElementById(
+          'context-image',
+        ) as HTMLInputElement;
+        if (input) input.value = '';
         router.refresh(); // Refresh server components to ensure consistency
       } catch (error: any) {
         toast({
@@ -201,13 +191,13 @@ export default function ProductDetailView({
               </TabsList>
 
               <TabsContent value="overview" className="mt-4">
-                 <OverviewTab 
-                    product={product} 
-                    isGeneratingImage={isGeneratingImage}
-                    contextImagePreview={contextImagePreview}
-                    handleContextImageChange={handleContextImageChange}
-                    handleGenerateImage={handleGenerateImage}
-                 />
+                <OverviewTab
+                  product={product}
+                  isGeneratingImage={isGeneratingImage}
+                  contextImagePreview={contextImagePreview}
+                  handleContextImageChange={handleContextImageChange}
+                  handleGenerateImage={handleGenerateImage}
+                />
               </TabsContent>
 
               <TabsContent value="sustainability" className="mt-4">
@@ -215,7 +205,10 @@ export default function ProductDetailView({
               </TabsContent>
 
               <TabsContent value="compliance" className="mt-4">
-                <ComplianceTab product={product} compliancePath={compliancePath} />
+                <ComplianceTab
+                  product={product}
+                  compliancePath={compliancePath}
+                />
               </TabsContent>
 
               <TabsContent value="lifecycle" className="mt-4">
@@ -230,16 +223,13 @@ export default function ProductDetailView({
           <div className="space-y-6">
             <DppCompletenessWidget product={product} />
             <DppQrCodeWidget productId={product.id} />
-            {canRunComplianceCheck && (
-              <ComplianceAnalysisWidget product={product} user={user} />
-            )}
-            {canValidateData && (
-              <DataQualityWidget product={product} user={user} />
-            )}
-            <AiSuggestionsWidget product={product} />
-            {canGenerateDoc && (
-              <DocGenerationWidget product={product} user={user} />
-            )}
+            <AiActionsWidget
+              product={product}
+              user={user}
+              canRunComplianceCheck={canRunComplianceCheck}
+              canValidateData={canValidateData}
+              canGenerateDoc={canGenerateDoc}
+            />
           </div>
         </div>
       </div>
