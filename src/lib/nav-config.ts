@@ -131,7 +131,6 @@ export const navConfig: NavConfig = {
       label: 'Auditing',
       items: [
         { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
-        { title: 'Customs Inspection', icon: Globe, href: 'inspection' },
         { title: 'Customs Requirements', icon: Landmark, href: 'customs' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
       ],
