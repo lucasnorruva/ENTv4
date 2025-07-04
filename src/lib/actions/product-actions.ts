@@ -758,10 +758,16 @@ export async function generateConformityDeclarationText(
   return declarationText;
 }
 
-export async function analyzeBillOfMaterials(bomText: string) {
-  return await analyzeBillOfMaterialsFlow({ bomText });
-}
+export async function createProductFromImage(
+  imageDataUri: string,
+  userId: string,
+): Promise<any> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
 
+  return createProductFromImageFlow({ imageDataUri });
+}
 
 export async function bulkCreateProducts(
   productsToImport: any[],
@@ -804,14 +810,6 @@ export async function bulkCreateProducts(
   return Promise.resolve({ createdCount });
 }
 
-
-export async function createProductFromImage(
-  imageDataUri: string,
-  userId: string,
-): Promise<any> {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  checkPermission(user, 'product:create');
-
-  return createProductFromImageFlow({ imageDataUri });
+export async function analyzeBillOfMaterials(bomText: string) {
+  return await analyzeBillOfMaterialsFlow({ bomText });
 }
