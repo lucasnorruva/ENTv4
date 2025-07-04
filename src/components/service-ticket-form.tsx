@@ -40,6 +40,10 @@ import {
   SelectValue,
 } from './ui/select';
 import { RadioGroup, RadioGroupItem } from './ui/radio-group';
+import Image from 'next/image';
+import { Progress } from './ui/progress';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { storage } from '@/lib/firebase';
 
 interface ServiceTicketFormProps {
   isOpen: boolean;
@@ -66,6 +70,11 @@ export default function ServiceTicketForm({
   const [ticketType, setTicketType] = useState<TicketType>('product');
   const { toast } = useToast();
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const form = useForm<ServiceTicketFormValues>({
     resolver: zodResolver(serviceTicketFormSchema),
     defaultValues: {
@@ -74,20 +83,24 @@ export default function ServiceTicketForm({
       customerName: '',
       issue: '',
       status: 'Open',
+      imageUrl: '',
     },
   });
 
   useEffect(() => {
     if (isOpen) {
       if (ticket) {
-        setTicketType(ticket.productionLineId ? 'line' : 'product');
+        const hasProductId = !!ticket.productId;
+        setTicketType(hasProductId ? 'product' : 'line');
         form.reset({
           productId: ticket.productId || '',
           productionLineId: ticket.productionLineId || '',
           customerName: ticket.customerName,
           issue: ticket.issue,
           status: ticket.status,
+          imageUrl: ticket.imageUrl || '',
         });
+        setImagePreview(ticket.imageUrl || null);
       } else {
         setTicketType('product');
         form.reset({
@@ -96,11 +109,22 @@ export default function ServiceTicketForm({
           customerName: '',
           issue: '',
           status: 'Open',
+          imageUrl: '',
         });
+        setImagePreview(null);
       }
+      setImageFile(null);
     }
   }, [ticket, isOpen, form]);
-  
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setImageFile(selectedFile);
+      setImagePreview(URL.createObjectURL(selectedFile));
+    }
+  };
+
   const handleTicketTypeChange = (value: TicketType) => {
     setTicketType(value);
     if (value === 'product') {
@@ -110,17 +134,60 @@ export default function ServiceTicketForm({
     }
   };
 
-
   const onSubmit = (values: ServiceTicketFormValues) => {
     startSavingTransition(async () => {
+      let imageUrl = ticket?.imageUrl ?? '';
+
+      if (imageFile) {
+        setIsUploading(true);
+        setUploadProgress(0);
+        const storageRef = ref(
+          storage,
+          `tickets/${user.id}/${Date.now()}-${imageFile.name}`,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+        try {
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+              },
+              error => {
+                setIsUploading(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploading(false);
+                resolve(downloadURL);
+              },
+            );
+          });
+        } catch (error) {
+          toast({
+            title: 'Image Upload Failed',
+            description: 'There was an error uploading your image.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      const payload = {
+        ...values,
+        imageUrl,
+        productId: ticketType === 'product' ? values.productId : undefined,
+        productionLineId:
+          ticketType === 'line' ? values.productionLineId : undefined,
+      };
       try {
-        const payload = {
-          ...values,
-          productId: ticketType === 'product' ? values.productId : undefined,
-          productionLineId:
-            ticketType === 'line' ? values.productionLineId : undefined,
-        };
-        const saved = await saveServiceTicket(payload, user.id, ticket?.id);
+        await saveServiceTicket(payload, user.id, ticket?.id);
         toast({
           title: 'Success!',
           description: `Service ticket ${ticket ? 'updated' : 'created'}.`,
@@ -263,6 +330,44 @@ export default function ServiceTicketForm({
             />
             <FormField
               control={form.control}
+              name="imageUrl"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Issue Image (Optional)</FormLabel>
+                  {imagePreview && (
+                    <div className="mb-2">
+                      <Image
+                        src={imagePreview}
+                        alt="Issue image preview"
+                        width={100}
+                        height={100}
+                        className="rounded-md object-cover"
+                        data-ai-hint="product photo issue"
+                      />
+                    </div>
+                  )}
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      disabled={isUploading || isSaving}
+                    />
+                  </FormControl>
+                  {isUploading && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Progress value={uploadProgress} className="w-full h-2" />
+                      <span className="text-xs text-muted-foreground">
+                        {Math.round(uploadProgress)}%
+                      </span>
+                    </div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="status"
               render={({ field }) => (
                 <FormItem>
@@ -292,9 +397,16 @@ export default function ServiceTicketForm({
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSaving ? 'Saving...' : 'Save Ticket'}
+              <Button type="submit" disabled={isSaving || isUploading}>
+                {isSaving ||
+                  (isUploading && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ))}
+                {isUploading
+                  ? 'Uploading...'
+                  : isSaving
+                  ? 'Saving...'
+                  : 'Save Ticket'}
               </Button>
             </DialogFooter>
           </form>

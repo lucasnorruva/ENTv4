@@ -138,35 +138,6 @@ export default function ServiceTicketManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleStatusUpdate = (
-    ticketId: string,
-    status: 'Open' | 'In Progress' | 'Closed',
-  ) => {
-    if (!user) return;
-    startTransition(async () => {
-      try {
-        const updatedTicket = await updateServiceTicketStatus(
-          ticketId,
-          status,
-          user.id,
-        );
-        setTickets(prev =>
-          prev.map(t => (t.id === ticketId ? updatedTicket : t)),
-        );
-        toast({
-          title: 'Status Updated',
-          description: `Ticket status set to ${status}.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to update ticket status.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
   const handleSave = () => {
     // Optimistically re-fetch after save
     getServiceTickets(user.id).then(setTickets);
@@ -191,7 +162,11 @@ export default function ServiceTicketManagementClient({
 
   const columns: ColumnDef<ServiceTicket>[] = useMemo(
     () => [
-      { accessorKey: "id", header: "Ticket ID", cell: ({row}) => <div className="font-mono text-xs">{row.getValue("id")}</div> },
+      { accessorKey: "id", header: "Ticket ID", cell: ({row}) => 
+          <Link href={`/dashboard/${roleSlug}/tickets/${row.original.id}`} className="font-mono text-xs hover:underline">
+            {row.getValue("id")}
+          </Link> 
+      },
       { accessorKey: "customerName", header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Requester <ArrowUpDown className="ml-2 h-4 w-4" /></Button> },
       {
         id: 'entity',
@@ -216,62 +191,8 @@ export default function ServiceTicketManagementClient({
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Created At <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
         cell: ({ row }) => format(new Date(row.getValue('createdAt')), 'PPP'),
       },
-      ...(canManage
-        ? [
-            {
-              id: 'actions',
-              cell: ({ row }: { row: { original: ServiceTicket } }) => {
-                const ticket = row.original;
-                return (
-                  <div className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          disabled={isPending}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleEdit(ticket)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          View/Edit Details
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => handleStatusUpdate(ticket.id, 'Open')}
-                          disabled={ticket.status === 'Open'}
-                        >
-                           <RotateCcw className="mr-2 h-4 w-4" />
-                          Mark as Open
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() =>
-                            handleStatusUpdate(ticket.id, 'In Progress')
-                          }
-                          disabled={ticket.status === 'In Progress'}
-                        >
-                          <Loader2 className="mr-2 h-4 w-4" />
-                          Mark as In Progress
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
-                          disabled={ticket.status === 'Closed'}
-                        >
-                          <Check className="mr-2 h-4 w-4" /> Mark as Closed
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                );
-              },
-            },
-          ]
-        : []),
     ],
-    [isPending, productMap, lineMap, canManage, roleSlug],
+    [productMap, lineMap, roleSlug],
   );
 
   const table = useReactTable({
