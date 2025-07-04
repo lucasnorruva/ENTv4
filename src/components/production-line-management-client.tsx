@@ -11,6 +11,7 @@ import {
   Loader2,
   Factory,
 } from 'lucide-react';
+import Link from 'next/link';
 
 import {
   Card,
@@ -49,7 +50,11 @@ import {
 
 import type { ProductionLine, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getProductionLines, deleteProductionLine, getProducts } from '@/lib/actions';
+import {
+  getProductionLines,
+  deleteProductionLine,
+  getProducts,
+} from '@/lib/actions';
 import ProductionLineForm from './production-line-form';
 
 interface ProductionLineManagementClientProps {
@@ -75,13 +80,17 @@ export default function ProductionLineManagementClient({
     async function fetchInitialData() {
       try {
         const [initialLines, initialProducts] = await Promise.all([
-            getProductionLines(),
-            getProducts(user.id)
+          getProductionLines(),
+          getProducts(user.id),
         ]);
         setLines(initialLines);
         setProducts(initialProducts);
       } catch (error) {
-        toast({ title: 'Error', description: 'Failed to load initial data.', variant: 'destructive'});
+        toast({
+          title: 'Error',
+          description: 'Failed to load initial data.',
+          variant: 'destructive',
+        });
       } finally {
         setIsLoading(false);
       }
@@ -172,7 +181,12 @@ export default function ProductionLineManagementClient({
                 {lines.map(line => (
                   <TableRow key={line.id}>
                     <TableCell className="font-medium">
-                      {line.name}
+                      <Link
+                        href={`/dashboard/manufacturer/lines/${line.id}`}
+                        className="hover:underline"
+                      >
+                        {line.name}
+                      </Link>
                       <p className="text-xs text-muted-foreground font-normal">
                         {line.location}
                       </p>

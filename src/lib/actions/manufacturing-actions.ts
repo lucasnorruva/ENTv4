@@ -1,20 +1,26 @@
 // src/lib/actions/manufacturing-actions.ts
 'use server';
 
-import type { ProductionLine } from '@/types';
+import type { ProductionLine, User, Product } from '@/types';
 import {
   productionLineFormSchema,
   type ProductionLineFormValues,
-} from '@/lib/schemas';
-import { productionLines as mockProductionLines } from '@/lib/manufacturing-data';
-import { getUserById } from '@/lib/auth';
-import { checkPermission } from '@/lib/permissions';
+} from '../schemas';
+import { productionLines as mockProductionLines } from '../manufacturing-data';
+import { getUserById } from '../auth';
+import { checkPermission } from '../permissions';
 import { logAuditEvent } from './audit-actions';
 import { getProductById } from './product-actions';
 import { newId } from './utils';
 
 export async function getProductionLines(): Promise<ProductionLine[]> {
   return Promise.resolve(mockProductionLines);
+}
+
+export async function getProductionLineById(
+  lineId: string,
+): Promise<ProductionLine | undefined> {
+  return Promise.resolve(mockProductionLines.find(l => l.id === lineId));
 }
 
 export async function saveProductionLine(
