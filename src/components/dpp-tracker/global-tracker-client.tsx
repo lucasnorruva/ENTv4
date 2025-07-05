@@ -94,7 +94,7 @@ export default function GlobalTrackerClient({
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { theme } } from useTheme();
+  const { theme } = useTheme();
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
