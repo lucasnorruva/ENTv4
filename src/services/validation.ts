@@ -1,5 +1,4 @@
 // src/services/validation.ts
-'use server';
 
 import type { Product, SubmissionChecklist } from '@/types';
 
