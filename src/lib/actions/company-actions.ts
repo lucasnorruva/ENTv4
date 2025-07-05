@@ -54,6 +54,7 @@ export async function saveCompany(
           light: { primary: '', accent: '' },
           dark: { primary: '', accent: '' },
         },
+        customFields: [],
       },
     };
     mockCompanies.push(savedCompany);
