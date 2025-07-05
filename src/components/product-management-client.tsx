@@ -4,6 +4,7 @@
 import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -31,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
 import ProductImportDialog from './product-import-dialog';
 import ProductCreationFromImageDialog from './product-creation-from-image-dialog';
-import ProductForm from './product-form';
 
 interface ProductManagementClientProps {
   user: User;
@@ -50,6 +50,7 @@ export default function ProductManagementClient({
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
@@ -92,9 +93,12 @@ export default function ProductManagementClient({
   };
 
   const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
-    // This part is now handled by navigating to the new page with state
-    // but the dialog can stay for UX.
-    console.log("Analysis complete, would navigate with this data:", data);
+    const query = new URLSearchParams({
+      productName: data.productName,
+      productDescription: data.productDescription,
+      category: data.category,
+    }).toString();
+    router.push(`/dashboard/${roleSlug}/products/new?${query}`);
   };
 
   const handleDelete = (id: string) => {

@@ -8,6 +8,7 @@ import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -22,15 +23,13 @@ import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';
 
-// Import the new tab components
 import GeneralTab from './product-form-tabs/general-tab';
 import DataTab from './product-form-tabs/data-tab';
 import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
-import { useRouter } from 'next/navigation';
 
 interface ProductFormProps {
-  initialData?: Product;
+  initialData?: Partial<Product>;
   user: User;
   compliancePaths: CompliancePath[];
   roleSlug: string;
@@ -58,44 +57,33 @@ export default function ProductForm({
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
-  const isEditMode = !!initialData;
+  const isEditMode = !!initialData?.id;
+
+  const defaultNewValues = {
+    gtin: '',
+    productName: '',
+    productDescription: '',
+    productImage: '',
+    category: 'Electronics',
+    status: 'Draft',
+    materials: [],
+    manufacturing: { facility: '', country: '' },
+    certifications: [],
+    packaging: { type: '', recyclable: false },
+    lifecycle: {},
+    battery: {},
+    compliance: {},
+    manualUrl: '',
+    declarationOfConformity: '',
+    compliancePathId: '',
+  };
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: initialData
-      ? {
-          ...initialData,
-          gtin: initialData.gtin ?? '',
-          productImage: initialData.productImage ?? '',
-          manualUrl: initialData.manualUrl ?? '',
-          declarationOfConformity: initialData.declarationOfConformity ?? '',
-          compliancePathId: initialData.compliancePathId ?? '',
-          materials: initialData.materials || [],
-          manufacturing: initialData.manufacturing || {
-            facility: '',
-            country: '',
-          },
-          certifications: initialData.certifications || [],
-          packaging: initialData.packaging || { type: '', recyclable: false },
-          lifecycle: initialData.lifecycle || {},
-          battery: initialData.battery || {},
-          compliance: initialData.compliance || {},
-        }
-      : {
-          gtin: '',
-          productName: '',
-          productDescription: '',
-          productImage: '',
-          category: 'Electronics',
-          status: 'Draft',
-          materials: [],
-          manufacturing: { facility: '', country: '' },
-          certifications: [],
-          packaging: { type: '', recyclable: false },
-          lifecycle: {},
-          battery: {},
-          compliance: {},
-        },
+    defaultValues: {
+      ...defaultNewValues,
+      ...initialData,
+    },
   });
 
   const {
@@ -139,7 +127,7 @@ export default function ProductForm({
   };
 
   const handleGenerateImage = () => {
-    if (!initialData) {
+    if (!initialData?.id) {
       toast({
         title: 'Save Required',
         description:
@@ -161,7 +149,7 @@ export default function ProductForm({
 
       try {
         const updatedProduct = await generateAndSaveProductImage(
-          initialData.id,
+          initialData.id!,
           user.id,
           contextImageDataUri,
         );
@@ -262,38 +250,59 @@ export default function ProductForm({
           return;
         }
       }
-      
+
       if (manualFile) {
         setIsUploadingManual(true);
         setManualUploadProgress(0);
-        const storageRef = ref(storage, `manuals/${user.id}/${Date.now()}-${manualFile.name}`);
+        const storageRef = ref(
+          storage,
+          `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
+        );
         const uploadTask = uploadBytesResumable(storageRef, manualFile);
 
         try {
           manualUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on('state_changed', snapshot => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setManualUploadProgress(progress);
-            }, error => {
-              setIsUploadingManual(false);
-              reject(error);
-            }, async () => {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              setIsUploadingManual(false);
-              resolve(downloadURL);
-            });
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setManualUploadProgress(progress);
+              },
+              error => {
+                setIsUploadingManual(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploadingManual(false);
+                resolve(downloadURL);
+              },
+            );
           });
           manualFileName = manualFile.name;
           manualFileSize = manualFile.size;
         } catch (error) {
-          toast({ title: "Manual Upload Failed", variant: 'destructive' });
+          toast({ title: 'Manual Upload Failed', variant: 'destructive' });
           return;
         }
       }
 
       try {
-        const productData = { ...values, productImage: imageUrl ?? 'https://placehold.co/100x100.png', manualUrl, manualFileName, manualFileSize };
-        const saved = await saveProduct(productData, user.id, initialData?.id);
+        const productData = {
+          ...values,
+          productImage: imageUrl ?? 'https://placehold.co/100x100.png',
+          manualUrl,
+          manualFileName,
+          manualFileSize,
+        };
+        const saved = await saveProduct(
+          productData,
+          user.id,
+          initialData?.id,
+        );
         toast({
           title: 'Success!',
           description: `Passport for "${saved.productName}" has been saved.`,
@@ -309,8 +318,10 @@ export default function ProductForm({
       }
     });
   };
-  
-  const canEdit = isEditMode ? can(user, 'product:edit', initialData) : can(user, 'product:create');
+
+  const canEdit = isEditMode
+    ? can(user, 'product:edit', initialData)
+    : can(user, 'product:create');
 
   if (!canEdit) {
     return (
@@ -328,13 +339,15 @@ export default function ProductForm({
         <div className="space-y-6">
           <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              {isEditMode && (
-                 <Button asChild variant="outline" size="sm" className="mb-4">
-                 <Link href={`/dashboard/${roleSlug}/products/${initialData.id}`}>
-                   <ArrowLeft className="mr-2 h-4 w-4" />
-                   Back to Product
-                 </Link>
-               </Button>
+              {isEditMode && initialData.id && (
+                <Button asChild variant="outline" size="sm" className="mb-4">
+                  <Link
+                    href={`/dashboard/${roleSlug}/products/${initialData.id}`}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Product
+                  </Link>
+                </Button>
               )}
               <h1 className="text-2xl font-bold tracking-tight">
                 {isEditMode
@@ -344,14 +357,30 @@ export default function ProductForm({
             </div>
             <Button
               type="submit"
-              disabled={isSaving || isUploading || isGeneratingImage || isUploadingManual}
+              disabled={
+                isSaving ||
+                isUploading ||
+                isGeneratingImage ||
+                isUploadingManual
+              }
             >
-              {isSaving || isUploading || isGeneratingImage || isUploadingManual ? (
+              {isSaving ||
+              isUploading ||
+              isGeneratingImage ||
+              isUploadingManual ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isUploading ? 'Uploading Image...' : isUploadingManual ? 'Uploading Manual...' : isGeneratingImage ? 'Generating...' : isSaving ? 'Saving...' : 'Save Changes'}
+              {isUploading
+                ? 'Uploading Image...'
+                : isUploadingManual
+                  ? 'Uploading Manual...'
+                  : isGeneratingImage
+                    ? 'Generating...'
+                    : isSaving
+                      ? 'Saving...'
+                      : 'Save Changes'}
             </Button>
           </header>
 

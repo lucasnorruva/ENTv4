@@ -65,7 +65,7 @@ export default function ProductCreationFromImageDialog({
           const result = await createProductFromImage(imageDataUri, user.id);
           toast({
             title: 'Analysis Complete',
-            description: 'The product details have been pre-filled.',
+            description: 'Redirecting to pre-filled product form...',
           });
           onAnalysisComplete(result);
           handleClose();
@@ -102,8 +102,7 @@ export default function ProductCreationFromImageDialog({
         <DialogHeader>
           <DialogTitle>Create Passport from Image</DialogTitle>
           <DialogDescription>
-            Upload a product image, and our AI will generate a starting point
-            for your Digital Product Passport.
+            Upload a product image, and our AI will pre-fill the product form with a generated name, description, and category.
           </DialogDescription>
         </DialogHeader>
 
