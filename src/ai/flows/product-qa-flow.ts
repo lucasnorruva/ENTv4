@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent that answers questions about a product based on its passport data.
@@ -11,7 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '../schemas';
 
-export const ProductQuestionInputSchema = z.object({
+const ProductQuestionInputSchema = z.object({
   productContext: AiProductSchema.describe(
     'The full data context of the product.',
   ),
@@ -19,7 +18,7 @@ export const ProductQuestionInputSchema = z.object({
 });
 export type ProductQuestionInput = z.infer<typeof ProductQuestionInputSchema>;
 
-export const ProductQuestionOutputSchema = z.object({
+const ProductQuestionOutputSchema = z.object({
   answer: z
     .string()
     .describe(
@@ -27,6 +26,12 @@ export const ProductQuestionOutputSchema = z.object({
     ),
 });
 export type ProductQuestionOutput = z.infer<typeof ProductQuestionOutputSchema>;
+
+export async function productQa(
+  input: ProductQuestionInput,
+): Promise<ProductQuestionOutput> {
+  return productQaFlow(input);
+}
 
 const prompt = ai.definePrompt({
   name: 'productQaPrompt',
@@ -52,8 +57,7 @@ Your goal is to answer user questions about a specific product based *only* on t
 `,
 });
 
-// The defineFlow registers the flow with Genkit, making it callable by other server actions.
-export const productQaFlow = ai.defineFlow(
+const productQaFlow = ai.defineFlow(
   {
     name: 'productQaFlow',
     inputSchema: ProductQuestionInputSchema,

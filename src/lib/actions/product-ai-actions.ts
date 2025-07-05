@@ -14,7 +14,7 @@ import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { validateProductData } from '@/ai/flows/validate-product-data';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { productQaFlow } from '@/ai/flows/product-qa-flow';
+import { productQa } from '@/ai/flows/product-qa-flow';
 import type { ProductQuestionOutput } from '@/ai/flows/product-qa-flow';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission, PermissionError } from '@/lib/permissions';
@@ -576,7 +576,7 @@ export async function askQuestionAboutProduct(
     complianceSummary: product.sustainability?.complianceSummary,
   };
 
-  return await productQaFlow({ productContext, question });
+  return await productQa({ productContext, question });
 }
 
 export async function getFriendlyError(error: Error, context: string, user: User): Promise<{ title: string, description: string }> {
