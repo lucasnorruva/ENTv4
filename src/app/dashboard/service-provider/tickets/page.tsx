@@ -1,4 +1,3 @@
-
 // src/app/dashboard/service-provider/tickets/page.tsx
 import ServiceTicketManagementClient from '@/components/service-ticket-management-client';
 import { getCurrentUser } from '@/lib/auth';

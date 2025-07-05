@@ -1,4 +1,3 @@
-
 // src/components/service-ticket-management-client.tsx
 'use client';
 
