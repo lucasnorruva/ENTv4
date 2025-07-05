@@ -210,6 +210,7 @@ export interface Product extends BaseEntity {
   battery?: Battery;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
+  transit?: TransitInfo;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
