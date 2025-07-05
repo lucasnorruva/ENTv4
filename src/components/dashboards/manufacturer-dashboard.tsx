@@ -8,18 +8,25 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getProductionLines, getProducts } from '@/lib/actions';
+import { getProductionLines, getProducts, getServiceTickets } from '@/lib/actions';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { ArrowRight, BookCopy, Factory, Activity, Wrench } from 'lucide-react';
+import { ArrowRight, BookCopy, Factory, Activity, Wrench, Ticket } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 export default async function ManufacturerDashboard({ user }: { user: User }) {
-  const [products, lines] = await Promise.all([
+  const [products, lines, serviceTickets] = await Promise.all([
     getProducts(user.id),
     getProductionLines(),
+    getServiceTickets(user.id),
   ]);
+
+  const stats = {
+    totalProducts: products.length,
+    totalLines: lines.length,
+    openTickets: serviceTickets.filter(t => t.status === 'Open').length,
+  };
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -45,14 +52,14 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
             <BookCopy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground">
               Across all production lines
             </p>
@@ -66,18 +73,25 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
             <Factory className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lines.length}</div>
+            <div className="text-2xl font-bold">{stats.totalLines}</div>
             <p className="text-xs text-muted-foreground">
               Active, Idle, and Maintenance
             </p>
           </CardContent>
-          <CardFooter>
-            <Button asChild variant="outline" size="sm" className="w-full">
-              <Link href="/dashboard/manufacturer/lines">
-                Manage Lines <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardFooter>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Open Service Tickets
+            </CardTitle>
+            <Ticket className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.openTickets}</div>
+            <p className="text-xs text-muted-foreground">
+              Awaiting action or service
+            </p>
+          </CardContent>
         </Card>
       </div>
 
@@ -89,7 +103,7 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {lines.map(line => (
+          {lines.slice(0, 5).map(line => (
             <div
               key={line.id}
               className="flex flex-wrap items-center justify-between gap-4 p-3 border rounded-lg"
@@ -128,6 +142,13 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
             </p>
           )}
         </CardContent>
+        <CardFooter>
+            <Button asChild variant="outline" size="sm" className="w-full">
+              <Link href="/dashboard/manufacturer/lines">
+                Manage All Lines <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
       </Card>
     </div>
   );

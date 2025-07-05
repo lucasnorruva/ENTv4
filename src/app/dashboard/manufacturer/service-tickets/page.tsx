@@ -1,8 +1,7 @@
-
 // src/app/dashboard/manufacturer/service-tickets/page.tsx
+import ServiceTicketManagementClient from '@/components/service-ticket-management-client';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
-import ServiceTicketManagementClient from '@/components/service-ticket-management-client';
 
 export const dynamic = 'force-dynamic';
 

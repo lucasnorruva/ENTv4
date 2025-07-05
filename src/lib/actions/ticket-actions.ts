@@ -1,7 +1,7 @@
 // src/lib/actions/ticket-actions.ts
 'use server';
 
-import type { ServiceTicket, SupportTicket } from '@/types';
+import type { ServiceTicket, SupportTicket, Product, User } from '@/types';
 import {
   serviceTicketFormSchema,
   type ServiceTicketFormValues,
@@ -15,18 +15,72 @@ import { serviceTickets as mockServiceTickets } from '../service-ticket-data';
 import { supportTickets as mockSupportTickets } from '../support-ticket-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
+import { getProducts } from './product-actions';
+import { getProductionLines } from './manufacturing-actions';
 
-export async function getServiceTickets(userId: string): Promise<ServiceTicket[]> {
+export async function getServiceTickets(
+  userId: string,
+  filters?: { productionLineId?: string },
+): Promise<ServiceTicket[]> {
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
-  // Admins and Service Providers can see all tickets for now in this mock.
-  if (user.roles.includes(UserRoles.ADMIN) || user.roles.includes(UserRoles.SERVICE_PROVIDER)) {
-    return Promise.resolve(mockServiceTickets);
+  let results = [...mockServiceTickets];
+
+  // Admins and Service Providers see all tickets
+  if (
+    user.roles.includes(UserRoles.ADMIN) ||
+    user.roles.includes(UserRoles.SERVICE_PROVIDER)
+  ) {
+    // No company filtering
+  } else if (user.roles.includes(UserRoles.MANUFACTURER)) {
+    // Manufacturers see tickets for their company's products/lines.
+    const companyProducts = (await getProducts(user.id)).map(p => p.id);
+    const companyLines = (await getProductionLines()).filter(
+      l => l.companyId === user.companyId,
+    ).map(l => l.id);
+
+    results = results.filter(
+      t =>
+        (t.productId && companyProducts.includes(t.productId)) ||
+        (t.productionLineId && companyLines.includes(t.productionLineId)),
+    );
+  } else {
+    // Other roles see no tickets by default.
+    return [];
   }
 
-  // Other roles see none by default
-  return Promise.resolve([]);
+  // Apply additional filters
+  if (filters?.productionLineId) {
+    results = results.filter(
+      t => t.productionLineId === filters.productionLineId,
+    );
+  }
+
+  return Promise.resolve(results);
+}
+
+
+export async function getServiceTicketById(
+  ticketId: string,
+  userId: string,
+): Promise<ServiceTicket | undefined> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  
+  // A simple check; in a real app, you'd check if the user's company
+  // owns the product/line associated with the ticket.
+  // For this mock, we allow broader access for relevant roles.
+  const canViewAll =
+    user.roles.includes(UserRoles.ADMIN) ||
+    user.roles.includes(UserRoles.SERVICE_PROVIDER) ||
+    user.roles.includes(UserRoles.MANUFACTURER);
+  
+  if (!canViewAll) {
+    throw new PermissionError('You do not have permission to view this ticket.');
+  }
+
+  return Promise.resolve(mockServiceTickets.find(t => t.id === ticketId));
 }
 
 export async function saveServiceTicket(

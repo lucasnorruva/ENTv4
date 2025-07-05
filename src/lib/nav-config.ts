@@ -103,6 +103,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
+        { title: 'Service Tickets', icon: Ticket, href: 'service-tickets'},
       ],
     },
     {
