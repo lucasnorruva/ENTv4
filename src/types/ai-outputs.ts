@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -60,6 +61,14 @@ import type {
   GeneratePcdsInput,
   PcdsOutput,
 } from '@/ai/flows/generate-pcds';
+import type {
+  ProductQuestionInput,
+  ProductQuestionOutput,
+} from '@/ai/flows/product-qa-flow';
+import type {
+  PredictLifecycleInput,
+  PredictLifecycleOutput,
+} from '@/ai/flows/predict-product-lifecycle';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -79,6 +88,8 @@ export type {
   GenerateComplianceRulesInput,
   GenerateProductDescriptionInput,
   GeneratePcdsInput,
+  ProductQuestionInput,
+  PredictLifecycleInput,
 };
 
 // Export Output types
@@ -97,4 +108,6 @@ export type {
   GenerateComplianceRulesOutput,
   GenerateProductDescriptionOutput,
   PcdsOutput,
+  ProductQuestionOutput,
+  PredictLifecycleOutput,
 };
