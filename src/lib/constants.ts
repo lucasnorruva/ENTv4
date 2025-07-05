@@ -16,7 +16,7 @@ export const Collections = {
   SERVICE_TICKETS: 'serviceTickets',
   SUPPORT_TICKETS: 'supportTickets',
   PRODUCTION_LINES: 'productionLines',
-} as const;
+};
 
 /**
  * Defines the standardized user roles within the Norruva platform.

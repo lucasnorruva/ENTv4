@@ -1,4 +1,4 @@
-
+// src/components/role-switcher.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -28,6 +28,10 @@ export default function RoleSwitcher({
     const slug = getRoleSlug(newRole);
     router.push(`/dashboard/${slug}`);
   };
+
+  if (roles.length <= 1) {
+    return null;
+  }
 
   return (
     <div className="w-48">

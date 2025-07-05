@@ -7,6 +7,9 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { getUserByEmail } from '@/lib/actions';
 import { Loader2 } from 'lucide-react';
+import type { Role } from '@/lib/constants';
+
+const getRoleSlug = (role: Role) => role.toLowerCase().replace(/ /g, '-');
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,7 +25,7 @@ export default function DashboardPage() {
               router.replace('/onboarding');
               return;
             }
-            const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
+            const roleSlug = getRoleSlug(user.roles[0]);
             router.replace(`/dashboard/${roleSlug}`);
           } else {
             // Fallback if user is in Firebase Auth but not our DB.

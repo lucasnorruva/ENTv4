@@ -3,7 +3,8 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { getProducts, getServiceTickets } from '@/lib/actions';
-import { UserRoles, hasRole } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
+import { hasRole } from '@/lib/auth-utils';
 import {
   Card,
   CardContent,
