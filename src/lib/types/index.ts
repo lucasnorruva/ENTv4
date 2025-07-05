@@ -7,6 +7,7 @@ import type {
   EsgScoreOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
+import type { TransitInfo } from './transit';
 
 export * from './transit';
 
@@ -179,17 +180,6 @@ export interface SubmissionChecklist {
   hasLifecycleData: boolean;
   hasCompliancePath: boolean;
   passesDataQuality: boolean;
-}
-
-/**
- * Represents a product's transit information.
- */
-export interface TransitInfo {
-  stage: string;
-  eta: string;
-  transport: 'Ship' | 'Plane' | 'Truck';
-  origin: string;
-  destination: string;
 }
 
 /**

@@ -1,5 +1,11 @@
 // src/types/transit.ts
-// Note: TransitProduct is obsolete as its properties are now merged into the main Product type.
+export interface TransitInfo {
+  stage: string;
+  eta: string;
+  transport: 'Ship' | 'Plane' | 'Truck';
+  origin: string;
+  destination: string;
+}
 
 export interface CustomsAlert {
   id: string;
