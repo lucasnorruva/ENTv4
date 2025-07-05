@@ -1,4 +1,3 @@
-
 // src/components/product-ai-chatbot.tsx
 'use client';
 
