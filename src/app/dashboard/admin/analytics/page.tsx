@@ -1,4 +1,6 @@
 
+'use server';
+
 // src/app/dashboard/admin/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
@@ -32,6 +34,7 @@ import {
   Globe,
   Wrench,
   Ticket,
+  BrainCircuit,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -143,6 +146,23 @@ export default async function AnalyticsPage() {
   const productMap = new Map(products.map(p => [p.id, p.productName]));
   const userMap = new Map(users.map(u => [u.id, u.fullName]));
 
+  // NEW: Calculate predictive stats
+  const predictedProducts = products.filter(
+    p => p.sustainability?.lifecyclePrediction,
+  );
+  const avgPredictedLifespan =
+    predictedProducts.length > 0
+      ? (
+          predictedProducts.reduce(
+            (sum, p) =>
+              sum +
+              (p.sustainability?.lifecyclePrediction?.predictedLifespanYears ??
+                0),
+            0,
+          ) / predictedProducts.length
+        ).toFixed(1)
+      : '0.0';
+
   return (
     <div className="space-y-6">
       <div>
@@ -151,7 +171,7 @@ export default async function AnalyticsPage() {
           An overview of platform activity and key metrics.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -211,6 +231,44 @@ export default async function AnalyticsPage() {
             <div className="text-2xl font-bold">{totalInspections}</div>
             <p className="text-xs text-muted-foreground">
               Customs events recorded
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Avg. Predicted Lifespan
+            </CardTitle>
+            <BrainCircuit className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{avgPredictedLifespan} yrs</div>
+            <p className="text-xs text-muted-foreground">
+              Across {predictedProducts.length} predicted products
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Audits</CardTitle>
+            <Hourglass className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{complianceData.pending}</div>
+            <p className="text-xs text-muted-foreground">Products in queue</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Failed Verifications
+            </CardTitle>
+            <ShieldX className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{complianceData.failed}</div>
+            <p className="text-xs text-muted-foreground">
+              Require compliance action
             </p>
           </CardContent>
         </Card>

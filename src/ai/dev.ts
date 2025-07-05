@@ -18,3 +18,4 @@ import "@/ai/flows/generate-compliance-rules.ts";
 import "@/ai/flows/generate-product-description.ts";
 import "@/ai/flows/product-qa-flow.ts";
 import "@/ai/flows/generate-pcds.ts";
+import "@/ai/flows/predict-product-lifecycle.ts";

@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -5,6 +6,7 @@ import type {
   ClassifyProductOutput,
   DataQualityWarning,
   EsgScoreOutput,
+  PredictLifecycleOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 
@@ -163,6 +165,7 @@ export interface CustomsStatus {
 export interface SustainabilityData extends EsgScoreOutput {
   classification?: ClassifyProductOutput;
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+  lifecyclePrediction?: PredictLifecycleOutput;
   isCompliant: boolean;
   complianceSummary: string;
   gaps?: ComplianceGap[];

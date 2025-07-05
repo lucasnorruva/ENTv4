@@ -1,3 +1,4 @@
+
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -23,6 +24,7 @@ import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
 import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
+import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 
 
 // --- AI Processing ---
@@ -485,4 +487,57 @@ export async function generatePcdsForProduct(
   await logAuditEvent('pcds.generated', productId, {}, userId);
 
   return pcdsData;
+}
+
+export async function runLifecyclePrediction(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  // TODO: Add specific permission for enterprise features like this
+  // checkPermission(user, 'product:run_prediction');
+
+  await logAuditEvent('product.prediction.started', productId, { type: 'lifecycle' }, userId);
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) {
+    throw new Error(`Company not found for product ${product.id}`);
+  }
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const predictionResult = await predictProductLifecycleFlow({ product: aiProductInput });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].sustainability = {
+    ...(mockProducts[productIndex].sustainability!),
+    lifecyclePrediction: predictionResult,
+  };
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent('product.prediction.success', productId, { type: 'lifecycle' }, userId);
+
+  return Promise.resolve(mockProducts[productIndex]);
 }

@@ -1,3 +1,4 @@
+
 // src/lib/data.ts
 import type { Product } from '@/types';
 
@@ -94,6 +95,12 @@ export let products: Product[] = [
       summary:
         'Excellent use of recycled materials and strong compliance record. Repairability score is high, contributing positively.',
       isCompliant: true,
+      lifecyclePrediction: {
+        predictedLifespanYears: 6.5,
+        keyFailurePoints: ['Battery degradation', 'Screen damage from drops'],
+        optimalReplacementTimeYears: 4,
+        confidenceScore: 0.85,
+      },
     },
     verificationStatus: 'Verified',
     lastVerificationDate: new Date(
@@ -249,7 +256,7 @@ export let products: Product[] = [
       gaps: [
         {
           regulation: 'EU Leather Goods Standard',
-          issue: "Contains banned material: 'Lead-based dye'",
+          issue: "Product contains a banned material: 'Lead-based dye'",
         },
       ],
     },

@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -33,6 +34,7 @@ import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import HistoryTab from './product-detail-tabs/history-tab';
 import CustomsInspectionForm from './customs-inspection-form';
+import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 
 export default function ProductDetailView({
   product: productProp,
@@ -207,6 +209,13 @@ export default function ProductDetailView({
             <SubmissionChecklist checklist={product.submissionChecklist} />
           )}
           <DppQrCodeWidget productId={product.id} />
+          <PredictiveAnalyticsWidget 
+            product={product} 
+            user={user} 
+            onPredictionComplete={(updatedProduct) => {
+              setProduct(updatedProduct);
+            }} 
+          />
           <AiActionsWidget
             product={product}
             user={user}
