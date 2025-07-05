@@ -69,4 +69,16 @@ export let auditLogs: AuditLog[] = [
     createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
   },
+  {
+    id: 'log-007',
+    userId: 'system',
+    action: 'credits.minted',
+    entityId: 'pp-001',
+    details: {
+      amount: 10,
+      recipient: 'user-recycler'
+    },
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+  },
 ];
