@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -230,7 +229,7 @@ export interface Product extends BaseEntity {
     explorerUrl: string;
     blockHeight: number;
   };
-  ebsiVcId?: string;
+  verifiableCredential?: string; // JSON string of the signed VC
 }
 
 /**
@@ -282,7 +281,6 @@ export interface SupportTicket extends BaseEntity {
   status: 'Open' | 'Closed';
   userId?: string; // Optional, for logged-in users
 }
-
 
 /**
  * Represents a physical production line for manufacturing.

@@ -1,6 +1,20 @@
 // src/lib/actions/product-actions.ts
 'use server';
 
+import {
+  collection,
+  doc,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
+  limit,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Product, User } from '@/types';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { getUserById, getCompanyById } from '@/lib/auth';
@@ -10,8 +24,9 @@ import { hasRole } from '@/lib/auth-utils';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { processProductAi } from './product-ai-actions';
-import { products as mockProducts } from '../data';
 import { runSubmissionValidation } from '@/services/validation';
+
+const PRODUCTS_COLLECTION = 'products';
 
 // --- Core CRUD Actions ---
 
@@ -29,38 +44,47 @@ export async function getProducts(
     if (!user) return [];
   }
 
-  let results: Product[] = [...mockProducts];
+  const productsRef = collection(db, PRODUCTS_COLLECTION);
+  let q;
+
+  const globalReadRoles: Role[] = [
+    UserRoles.ADMIN,
+    UserRoles.AUDITOR,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.RETAILER,
+    UserRoles.SERVICE_PROVIDER,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.DEVELOPER,
+    UserRoles.MANUFACTURER,
+    UserRoles.RECYCLER,
+  ];
 
   if (!userId) {
-    // Public access: only published products
-    results = results.filter(p => p.status === 'Published');
+    q = query(productsRef, where('status', '==', 'Published'), orderBy('lastUpdated', 'desc'));
+  } else if (globalReadRoles.some(role => hasRole(user!, role))) {
+    q = query(productsRef, orderBy('lastUpdated', 'desc'));
   } else {
-    const globalReadRoles: Role[] = [
-      UserRoles.ADMIN,
-      UserRoles.AUDITOR,
-      UserRoles.BUSINESS_ANALYST,
-      UserRoles.RETAILER,
-      UserRoles.SERVICE_PROVIDER,
-      UserRoles.COMPLIANCE_MANAGER,
-      UserRoles.DEVELOPER,
-      UserRoles.MANUFACTURER,
-      UserRoles.RECYCLER,
-    ];
-    const hasGlobalRead = globalReadRoles.some(role => hasRole(user!, role));
-    if (!hasGlobalRead) {
-      results = results.filter(p => p.companyId === user!.companyId);
-    }
+    q = query(
+      productsRef,
+      where('companyId', '==', user!.companyId),
+      orderBy('lastUpdated', 'desc'),
+    );
   }
+
+  const snapshot = await getDocs(q);
+  let results = snapshot.docs.map(
+    doc => ({ ...doc.data(), id: doc.id } as Product),
+  );
 
   // In-memory filtering after fetching
   if (filters?.searchQuery) {
-    const q = filters.searchQuery.toLowerCase();
+    const s = filters.searchQuery.toLowerCase();
     results = results.filter(
       p =>
-        p.productName.toLowerCase().includes(q) ||
-        p.supplier.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q) ||
-        p.gtin?.toLowerCase().includes(q),
+        p.productName.toLowerCase().includes(s) ||
+        p.supplier.toLowerCase().includes(s) ||
+        p.category.toLowerCase().includes(s) ||
+        p.gtin?.toLowerCase().includes(s),
     );
   }
   if (filters?.category) {
@@ -68,11 +92,10 @@ export async function getProducts(
   }
   if (filters?.verificationStatus) {
     results = results.filter(
-      p => (p.verificationStatus ?? 'Not Submitted') === filters.verificationStatus,
+      p =>
+        (p.verificationStatus ?? 'Not Submitted') === filters.verificationStatus,
     );
   }
-  
-  results.sort((a,b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
 
   return Promise.resolve(results);
 }
@@ -81,15 +104,22 @@ export async function getProductById(
   id: string,
   userId?: string,
 ): Promise<Product | undefined> {
-  const product = mockProducts.find(p => p.id === id);
-  if (!product) return undefined;
+  const docRef = doc(db, PRODUCTS_COLLECTION, id);
+  const docSnap = await getDoc(docRef);
 
+  if (!docSnap.exists()) {
+    return undefined;
+  }
+
+  const product = { ...docSnap.data(), id: docSnap.id } as Product;
+  
   if (!userId) {
     return product.status === 'Published' ? product : undefined;
   }
+
   const user = await getUserById(userId);
   if (!user) return undefined;
-
+  
   const globalReadRoles: Role[] = [
     UserRoles.ADMIN,
     UserRoles.AUDITOR,
@@ -102,9 +132,7 @@ export async function getProductById(
     UserRoles.RETAILER,
   ];
 
-  const hasGlobalReadAccess = globalReadRoles.some(role =>
-    hasRole(user, role),
-  );
+  const hasGlobalReadAccess = globalReadRoles.some(role => hasRole(user, role));
 
   if (hasGlobalReadAccess || user.companyId === product.companyId) {
     return product;
@@ -120,15 +148,33 @@ export async function getProductByGtin(
   const user = await getUserById(userId);
   if (!user) return undefined;
 
-  let results = mockProducts.filter(p => p.gtin === gtin);
+  const productsRef = collection(db, PRODUCTS_COLLECTION);
+  let gtinQuery;
 
-  // Admins and developers can search across all companies
-  if (!hasRole(user, UserRoles.ADMIN) && !hasRole(user, UserRoles.DEVELOPER)) {
-    results = results.filter(p => p.companyId === user.companyId);
+  if (hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.DEVELOPER)) {
+    gtinQuery = query(
+      productsRef,
+      where('gtin', '==', gtin),
+      limit(1),
+    );
+  } else {
+    gtinQuery = query(
+      productsRef,
+      where('gtin', '==', gtin),
+      where('companyId', '==', user.companyId),
+      limit(1),
+    );
+  }
+
+  const snapshot = await getDocs(gtinQuery);
+  if (snapshot.empty) {
+    return undefined;
   }
   
-  return Promise.resolve(results[0]);
+  const doc = snapshot.docs[0];
+  return { ...doc.data(), id: doc.id } as Product;
 }
+
 
 export async function saveProduct(
   values: ProductFormValues,
@@ -143,9 +189,10 @@ export async function saveProduct(
   let savedProduct: Product;
 
   if (productId) {
-    const productIndex = mockProducts.findIndex(p => p.id === productId);
-    if(productIndex === -1) throw new Error('Product not found');
-    const existingProduct = mockProducts[productIndex];
+    const productRef = doc(db, PRODUCTS_COLLECTION, productId);
+    const existingSnap = await getDoc(productRef);
+    const existingProduct = existingSnap.data() as Product | undefined;
+    if (!existingProduct) throw new Error('Product not found');
 
     checkPermission(user, 'product:edit', existingProduct);
 
@@ -155,7 +202,7 @@ export async function saveProduct(
     ) {
       checkPermission(user, 'product:archive', existingProduct);
     }
-
+    
     const updatedData: Partial<Product> = {
       ...validatedData,
       lastUpdated: now,
@@ -171,8 +218,8 @@ export async function saveProduct(
       isProcessing: true,
     };
     
-    savedProduct = { ...existingProduct, ...updatedData };
-    mockProducts[productIndex] = savedProduct;
+    await updateDoc(productRef, updatedData);
+    savedProduct = { ...existingProduct, ...updatedData, id: productId };
 
     await logAuditEvent(
       'product.updated',
@@ -205,49 +252,47 @@ export async function saveProduct(
         hasManufacturing: false,
         hasLifecycleData: false,
         hasCompliancePath: false,
-        passesDataQuality: true, // Default to true until a check is run
+        passesDataQuality: true,
       },
     };
-    const newIdVal = newId('pp');
-    savedProduct = { id: newIdVal, ...newProductData };
-    mockProducts.unshift(savedProduct);
-
+    const docRef = await addDoc(collection(db, PRODUCTS_COLLECTION), newProductData);
+    savedProduct = { id: docRef.id, ...newProductData };
+    
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
 
-  // Run validation and AI processing after saving
   const checklist = await runSubmissionValidation(savedProduct);
-  const finalProductIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
-  if (finalProductIndex !== -1) {
-    mockProducts[finalProductIndex].submissionChecklist = checklist;
-  }
+  await updateDoc(doc(db, PRODUCTS_COLLECTION, savedProduct.id), {
+    submissionChecklist: checklist,
+  });
   
   // Simulate background AI processing
   setTimeout(async () => {
     try {
       const { sustainability, qrLabelText, dataQualityWarnings } =
         await processProductAi(savedProduct);
-      const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
-      if (productIndex !== -1) {
-        mockProducts[productIndex].sustainability = sustainability;
-        mockProducts[productIndex].qrLabelText = qrLabelText;
-        mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
-        mockProducts[productIndex].isProcessing = false;
-        mockProducts[productIndex].lastUpdated = new Date().toISOString();
-        
-        // Re-run validation after AI processing is complete
-        const finalChecklist = await runSubmissionValidation(mockProducts[productIndex]);
-        mockProducts[productIndex].submissionChecklist = finalChecklist;
-      }
+      
+      const finalChecklist = await runSubmissionValidation({
+        ...savedProduct,
+        dataQualityWarnings,
+      });
+
+      await updateDoc(doc(db, PRODUCTS_COLLECTION, savedProduct.id), {
+        sustainability,
+        qrLabelText,
+        dataQualityWarnings,
+        submissionChecklist: finalChecklist,
+        isProcessing: false,
+        lastUpdated: new Date().toISOString(),
+      });
     } catch (e) {
       console.error(
         `Background AI processing failed for product ${savedProduct.id}`,
         e,
       );
-      const productIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
-      if (productIndex !== -1) {
-        mockProducts[productIndex].isProcessing = false;
-      }
+      await updateDoc(doc(db, PRODUCTS_COLLECTION, savedProduct.id), {
+        isProcessing: false,
+      });
     }
   }, 3000);
 
@@ -266,10 +311,7 @@ export async function deleteProduct(
 
   checkPermission(user, 'product:delete', product);
   
-  const index = mockProducts.findIndex(p => p.id === productId);
-  if (index > -1) {
-    mockProducts.splice(index, 1);
-  }
+  await deleteDoc(doc(db, PRODUCTS_COLLECTION, productId));
   
   await logAuditEvent('product.deleted', productId, {}, userId);
 }
