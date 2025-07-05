@@ -82,10 +82,10 @@ export default function CompanySettingsForm({
         await saveCompanySettings(company.id, values, adminUser.id);
         toast({
           title: 'Settings Saved',
-          description: `Settings for ${company.name} have been updated.`,
+          description: `Settings for ${company.name} have been updated. Page will reload to apply theme changes.`,
         });
-        // A page reload might be needed to see theme changes
-        window.location.reload();
+        // A page reload is needed to see theme changes
+        setTimeout(() => window.location.reload(), 1500);
       } catch (error: any) {
         toast({
           title: 'Error Saving Settings',
