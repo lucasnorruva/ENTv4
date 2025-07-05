@@ -1,10 +1,11 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating a Product Circularity Data Sheet (PCDS).
  *
  * - generatePcds - A function that generates PCDS data from product information.
  * - GeneratePcdsInput - The input type for the function.
- * - PcdsOutputSchema - The return type for the function.
+ * - PcdsOutput - The return type for the function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -22,7 +23,7 @@ const PcdsStatementSchema = z.object({
   methodology: z.string().optional().describe("The methodology used to determine the value (e.g., 'ISO 14021')."),
 });
 
-export const PcdsOutputSchema = z.object({
+const PcdsOutputSchema = z.object({
   header: z.object({
     dppId: z.string().describe("The Digital Product Passport ID."),
     productName: z.string().describe("The name of the product."),
@@ -49,7 +50,7 @@ const prompt = ai.definePrompt({
 - Key properties to look for:
   - Recycled Content: Calculate the average recycled content across all materials that have this value defined.
   - Repairability Score: Use the 'lifecycle.repairabilityScore'.
-  - Expected Lifespan: Use the 'lifecycle.expectedLifespan'.
+  - Expected Lifespan: Use 'lifecycle.expectedLifespan'.
   - Energy Efficiency Class: Use 'lifecycle.energyEfficiencyClass'.
   - Recyclability of Packaging: Use 'packaging.recyclable'.
   - Removability of Battery: Use 'battery.isRemovable'.
