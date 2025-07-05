@@ -5,7 +5,7 @@ import React, { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Save, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import Link from 'next/link';
 
@@ -16,9 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form } from '@/components/ui/form';
 
 import {
-  generateAndSaveProductImage,
   saveProduct,
   generateProductDescription,
+  generateAndSaveProductImage,
 } from '@/lib/actions';
 import { storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -39,15 +39,14 @@ export default function ProductEditView({
   compliancePaths: CompliancePath[];
 }) {
   const [product, setProduct] = useState(initialProduct);
-  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
-  const [contextImagePreview, setContextImagePreview] = useState<string | null>(
-    null,
-  );
   const [isSaving, startSavingTransition] = useTransition();
   const [isGeneratingDescription, startDescriptionGeneration] = useTransition();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
+  const [contextImageFile, setContextImageFile] = useState<File | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -91,26 +90,38 @@ export default function ProductEditView({
     });
   }, [initialProduct, form]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      form.setValue('productImage', URL.createObjectURL(file));
+    }
+  };
+
   const handleContextImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setContextImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    setContextImageFile(file);
   };
   
   const handleGenerateImage = () => {
     startImageGenerationTransition(async () => {
+      let contextImageDataUri: string | undefined = undefined;
+      if (contextImageFile) {
+        contextImageDataUri = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(contextImageFile);
+        });
+      }
+
       try {
         const updatedProduct = await generateAndSaveProductImage(
           product.id,
           user.id,
-          contextImagePreview ?? undefined,
+          contextImageDataUri,
         );
         setProduct(updatedProduct);
         form.setValue('productImage', updatedProduct.productImage);
@@ -231,15 +242,6 @@ export default function ProductEditView({
     });
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      form.setValue('productImage', URL.createObjectURL(file));
-    }
-  };
-
-
   const canEditProduct = can(user, 'product:edit', product);
   const roleSlug = user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
 
@@ -269,13 +271,13 @@ export default function ProductEditView({
                 Edit: {product.productName}
               </h1>
             </div>
-            <Button type="submit" disabled={isSaving || isUploading}>
-              {isSaving || isUploading ? (
+            <Button type="submit" disabled={isSaving || isUploading || isGeneratingImage}>
+              {isSaving || isUploading || isGeneratingImage ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isUploading ? 'Uploading...' : 'Save Changes'}
+              {isUploading ? 'Uploading...' : isGeneratingImage ? 'Generating...' : isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </header>
 
@@ -296,6 +298,9 @@ export default function ProductEditView({
                 uploadProgress={uploadProgress}
                 handleGenerateDescription={handleGenerateDescription}
                 isGeneratingDescription={isGeneratingDescription}
+                isGeneratingImage={isGeneratingImage}
+                handleContextImageChange={handleContextImageChange}
+                handleGenerateImage={handleGenerateImage}
               />
             </TabsContent>
             <TabsContent value="data">

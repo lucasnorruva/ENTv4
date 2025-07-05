@@ -1,7 +1,7 @@
 // src/components/product-detail-view.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Wrench, AlertTriangle, ArrowLeft, Landmark } from 'lucide-react';
@@ -14,11 +14,10 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import DppQrCodeWidget from './dpp-qr-code-widget';
 import SubmissionChecklist from './submission-checklist';
 import { AuditLogTimeline } from './audit-log-timeline';
-import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
-import { generateAndSaveProductImage, runSubmissionValidation } from '@/lib/actions';
+import { runSubmissionValidation } from '@/lib/actions';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -44,12 +43,7 @@ export default function ProductDetailView({
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isCustomsFormOpen, setIsCustomsFormOpen] = useState(false);
-  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
-  const [contextImagePreview, setContextImagePreview] = useState<string | null>(
-    null,
-  );
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     async function validate() {
@@ -58,7 +52,6 @@ export default function ProductDetailView({
     }
     validate();
   }, [productProp]);
-
 
   const canEditProduct = can(user, 'product:edit', product);
   const canRunComplianceCheck = can(user, 'product:run_compliance');
@@ -69,43 +62,6 @@ export default function ProductDetailView({
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
-
-  const handleContextImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setContextImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleGenerateImage = () => {
-    startImageGenerationTransition(async () => {
-      try {
-        const updatedProduct = await generateAndSaveProductImage(
-          product.id,
-          user.id,
-          contextImagePreview ?? undefined,
-        );
-        setProduct(updatedProduct);
-        toast({
-          title: 'Image Generated!',
-          description: 'A new AI-powered image has been generated and saved.',
-        });
-        router.refresh();
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to generate product image.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -173,13 +129,7 @@ export default function ProductDetailView({
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4">
-              <OverviewTab
-                product={product}
-                isGeneratingImage={isGeneratingImage}
-                contextImagePreview={contextImagePreview}
-                handleContextImageChange={handleContextImageChange}
-                handleGenerateImage={handleGenerateImage}
-              />
+              <OverviewTab product={product} />
             </TabsContent>
             <TabsContent value="sustainability" className="mt-4">
               <SustainabilityTab product={product} />

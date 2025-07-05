@@ -35,6 +35,9 @@ interface GeneralTabProps {
   uploadProgress: number;
   handleGenerateDescription: () => void;
   isGeneratingDescription: boolean;
+  isGeneratingImage: boolean;
+  handleContextImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleGenerateImage: () => void;
 }
 
 export default function GeneralTab({
@@ -46,6 +49,9 @@ export default function GeneralTab({
   uploadProgress,
   handleGenerateDescription,
   isGeneratingDescription,
+  isGeneratingImage,
+  handleContextImageChange,
+  handleGenerateImage,
 }: GeneralTabProps) {
   return (
     <div className="p-6 space-y-6">
@@ -94,7 +100,7 @@ export default function GeneralTab({
                 variant="ghost"
                 size="sm"
                 onClick={handleGenerateDescription}
-                disabled={isGeneratingDescription}
+                disabled={isGeneratingDescription || isSaving}
                 className="text-xs"
               >
                 {isGeneratingDescription ? (
@@ -112,30 +118,39 @@ export default function GeneralTab({
           </FormItem>
         )}
       />
-      <FormField
-        control={form.control}
-        name="productImage"
-        render={() => (
-          <FormItem>
-            <FormLabel>Product Image</FormLabel>
-            {imagePreview && (
+
+      <div className="space-y-4 rounded-lg border p-4">
+        <FormLabel>Product Image</FormLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <FormLabel className="text-xs font-normal text-muted-foreground">
+              Current Image
+            </FormLabel>
+            {imagePreview ? (
               <div className="mb-2">
                 <Image
                   src={imagePreview}
                   alt="Product image preview"
-                  width={100}
-                  height={100}
-                  className="rounded-md object-cover"
+                  width={150}
+                  height={150}
+                  className="rounded-md object-cover border"
                   data-ai-hint="product photo"
                 />
               </div>
+            ) : (
+              <div className="h-[150px] w-[150px] bg-muted rounded-md flex items-center justify-center">
+                <p className="text-xs text-muted-foreground">No image</p>
+              </div>
             )}
+            <FormLabel className="text-xs font-normal text-muted-foreground pt-2 block">
+              Upload New Image
+            </FormLabel>
             <FormControl>
               <Input
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                disabled={isUploading || isSaving}
+                disabled={isUploading || isSaving || isGeneratingImage}
               />
             </FormControl>
             {isUploading && (
@@ -146,10 +161,47 @@ export default function GeneralTab({
                 </span>
               </div>
             )}
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+          </div>
+          <div className="space-y-2">
+            <FormLabel className="text-xs font-normal text-muted-foreground">
+              Generate Image with AI
+            </FormLabel>
+            <div className="space-y-2">
+              <FormLabel
+                htmlFor="context-image"
+                className="text-xs text-muted-foreground"
+              >
+                Optional: Provide a reference image (e.g., a sketch)
+              </FormLabel>
+              <Input
+                id="context-image"
+                type="file"
+                accept="image/*"
+                className="text-xs h-9"
+                onChange={handleContextImageChange}
+                disabled={isGeneratingImage || isSaving}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage || isSaving}
+            >
+              {isGeneratingImage ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              {isGeneratingImage ? 'Generating...' : 'Generate New Image'}
+            </Button>
+          </div>
+        </div>
+        <FormMessage />
+      </div>
+
       <FormField
         control={form.control}
         name="category"
