@@ -93,11 +93,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:approve':
     case 'product:reject':
-      return hasRole(user, UserRoles.AUDITOR);
-    
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
-
+    
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
 

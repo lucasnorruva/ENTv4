@@ -66,7 +66,13 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
-        { title: 'Customs', icon: Globe, href: 'customs' },
+        { title: 'Customs Info', icon: FileText, href: 'customs' },
+      ],
+    },
+    {
+      label: 'Visualizations',
+      items: [
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],

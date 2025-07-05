@@ -97,6 +97,14 @@ export const submissionChecklistSchema = z.object({
     passesDataQuality: z.boolean(),
 });
 
+const transitInfoSchema = z.object({
+  stage: z.string(),
+  eta: z.string(),
+  transport: z.enum(['Ship', 'Plane', 'Truck']),
+  origin: z.string(),
+  destination: z.string(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -126,6 +134,7 @@ export const productFormSchema = z.object({
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
   customs: customsStatusSchema.optional(),
+  transit: transitInfoSchema.optional(),
   submissionChecklist: submissionChecklistSchema.optional(),
 });
 

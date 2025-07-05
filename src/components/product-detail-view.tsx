@@ -46,7 +46,6 @@ export default function ProductDetailView({
   compliancePath?: CompliancePath;
   auditLogs: AuditLog[];
   userMap: Map<string, string>;
-  compliancePaths: CompliancePath[];
 }) {
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);

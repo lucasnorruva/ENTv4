@@ -65,7 +65,7 @@ export let products: Product[] = [
       isRemovable: false,
     },
     transit: {
-      stage: 'Cleared - Inland Transit',
+      stage: 'Cleared - Inland Transit (DE)',
       eta: '2024-08-02',
       transport: 'Truck',
       origin: 'Port of Gdansk, Poland',
@@ -275,8 +275,8 @@ export let products: Product[] = [
         stage: 'Awaiting Customs Clearance (Antwerp, BE)',
         eta: '2024-08-01',
         transport: 'Ship',
-        origin: 'Ho Chi Minh City, Vietnam',
-        destination: 'Lyon, France',
+        origin: 'Newark, USA',
+        destination: 'Bremerhaven, Germany',
     },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(

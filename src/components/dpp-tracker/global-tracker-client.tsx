@@ -29,7 +29,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 
 import type { Product, CustomsAlert } from '@/types';
@@ -95,7 +94,7 @@ export default function GlobalTrackerClient({
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { theme } = useTheme();
+  const { theme } } from useTheme();
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);

@@ -46,7 +46,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -82,11 +81,6 @@ import { UserRoles } from "@/lib/constants";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
 import { useRouter } from "next/navigation";
-import {
-  deleteProduct,
-  submitForReview,
-  recalculateScore,
-} from "@/lib/actions";
 
 interface ProductTableProps {
   products: Product[];

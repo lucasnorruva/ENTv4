@@ -32,7 +32,7 @@ export default function PublicPassportView({
   product: Product;
   compliancePath?: CompliancePath;
 }) {
-  const getCustomsStatusVariant = (status: Product['customs']['status']) => {
+  const getCustomsStatusVariant = (status?: Product['customs']['status']) => {
     switch (status) {
       case 'Cleared':
         return 'default';
