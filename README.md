@@ -107,15 +107,15 @@ The platform includes a testing suite using Jest.
     ```
     
 ## Contributing
-We welcome contributions! Please see our [Contributor Guidelines](./docs/contributing.md) for more details on our branching strategy, coding standards, and pull request process.
+We welcome contributions! Please see our [Contributor Guidelines](./docs/contributing) for more details on our branching strategy, coding standards, and pull request process.
 
 ## Documentation
 This project includes detailed architectural and design documentation. You can find more information in the `/docs` directory, including:
 
--   [`docs/platform-architecture.md`](./docs/platform-architecture.md): High-level overview of the system architecture.
--   [`docs/api.md`](./docs/api.md): REST API and webhook specifications.
--   [`docs/blockchain.md`](./docs/blockchain.md): Details on the blockchain anchoring strategy.
--   [`docs/compliance-matrix.md`](./docs/compliance-matrix.md): A list of supported regulations.
+-   [`/docs`](./docs): High-level overview of the system architecture.
+-   [`/docs/api`](./docs/api): REST API and webhook specifications.
+-   [`/docs/blockchain`](./docs/blockchain): Details on the blockchain anchoring strategy.
+-   [`/docs/compliance-matrix`](./docs/compliance-matrix): A list of supported regulations.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.

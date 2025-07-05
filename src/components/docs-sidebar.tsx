@@ -97,10 +97,6 @@ const docsConfig = {
       title: 'Strategy',
       items: [
         {
-          title: 'Go-to-Market',
-          href: '/docs/go-to-market',
-        },
-        {
           title: 'Funding & Governance',
           href: '/docs/funding-and-governance',
         },
