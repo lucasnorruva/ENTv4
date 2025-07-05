@@ -60,6 +60,10 @@ import type {
   GeneratePcdsInput,
   PcdsOutput,
 } from '@/ai/flows/generate-pcds';
+import type {
+  ProductQuestionInput,
+  ProductQuestionOutput,
+} from '@/ai/flows/product-qa-flow';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -79,6 +83,7 @@ export type {
   GenerateComplianceRulesInput,
   GenerateProductDescriptionInput,
   GeneratePcdsInput,
+  ProductQuestionInput,
 };
 
 // Export Output types
@@ -97,4 +102,5 @@ export type {
   GenerateComplianceRulesOutput,
   GenerateProductDescriptionOutput,
   PcdsOutput,
+  ProductQuestionOutput,
 };

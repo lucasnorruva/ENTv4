@@ -9,7 +9,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AiProductSchema } from '../schemas';
+import { AiProductSchema } from '@/ai/schemas';
 
 const GeneratePcdsInputSchema = z.object({
   product: AiProductSchema,
@@ -46,7 +46,6 @@ const prompt = ai.definePrompt({
 
 - For the header, use the product's 'gtin' as the 'dppId'. Extract the product name, and supplier as the manufacturer. Use the provided current date for 'generationDate'.
 - Create a list of circularity 'statements' based on the product data provided in the 'product' object.
-- For each statement, determine the property, value, and methodology (if available).
 - Key properties to look for:
   - Recycled Content: Calculate the average recycled content percentage across all materials that have this value defined.
   - Repairability Score: Use the 'lifecycle.repairabilityScore'.

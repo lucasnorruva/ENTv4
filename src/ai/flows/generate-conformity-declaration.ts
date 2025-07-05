@@ -10,7 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AiProductSchema } from '../schemas';
+import { AiProductSchema } from '@/ai/schemas';
 
 const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,

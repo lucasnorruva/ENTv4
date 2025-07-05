@@ -30,9 +30,9 @@ const ProductQuestionOutputSchema = z.object({
 });
 export type ProductQuestionOutput = z.infer<typeof ProductQuestionOutputSchema>;
 
-// This is the main function that will be called by the server action.
+// This is the main function that will be called by the client component.
 // It orchestrates fetching the data and then calling the flow.
-export async function askQuestionAboutProductFlow(
+export async function askQuestionAboutProduct(
   productId: string,
   question: string,
 ): Promise<ProductQuestionOutput> {
@@ -41,7 +41,7 @@ export async function askQuestionAboutProductFlow(
     throw new Error('Product not found.');
   }
 
-  // Map the full Product type to the AiProduct schema
+  // Map the full Product type to the AiProduct schema for the AI
   const productContext: AiProduct = {
     gtin: product.gtin,
     productName: product.productName,
