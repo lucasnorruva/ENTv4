@@ -40,7 +40,6 @@ export default function ProductDetailView({
   compliancePath,
   auditLogs,
   userMap,
-  compliancePaths,
 }: {
   product: Product;
   user: User;
