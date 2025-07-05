@@ -520,7 +520,7 @@ export default function GlobalTrackerClient({
   };
 
   return (
-    <div className="relative h-[calc(100vh-10rem)] w-full">
+    <div className="relative h-[calc(100vh-10rem)] w-full" ref={containerRef}>
       <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div className='bg-background/80 p-2 rounded-lg backdrop-blur-sm'>
         <ProductTrackerSelector
