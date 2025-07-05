@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
+import ReactMarkdown from 'react-markdown';
 
 function InfoRow({
   icon: Icon,
@@ -247,6 +248,23 @@ export default function ComplianceTab({
                 )}
               </AccordionContent>
             </AccordionItem>
+            {product.declarationOfConformity && (
+              <AccordionItem value="doc">
+                <AccordionTrigger>
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <FileText />
+                    Declaration of Conformity
+                  </h4>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <div className="prose prose-sm dark:prose-invert max-w-none rounded-md border bg-muted p-4">
+                    <ReactMarkdown>
+                      {product.declarationOfConformity}
+                    </ReactMarkdown>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )}
             {product.verifiableCredential && (
                  <AccordionItem value="vc">
                  <AccordionTrigger>
