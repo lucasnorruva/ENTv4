@@ -80,6 +80,7 @@ export async function processProductAi(product: Product): Promise<{
       product.sustainability?.complianceSummary ||
       'Awaiting compliance analysis.',
     gaps: product.sustainability?.gaps,
+    lifecyclePrediction: product.sustainability?.lifecyclePrediction,
   };
 
   return {
