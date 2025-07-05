@@ -464,7 +464,7 @@ export async function generatePcdsForProduct(
     category: product.category,
     supplier: product.supplier,
     materials: product.materials,
-    gtin: product.id, // Use product ID as the DPP ID for PCDS
+    gtin: product.gtin || product.id,
     manufacturing: product.manufacturing,
     certifications: product.certifications,
     packaging: product.packaging,
