@@ -12,12 +12,12 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '../schemas';
 
-export const PredictLifecycleInputSchema = z.object({
+const PredictLifecycleInputSchema = z.object({
   product: AiProductSchema,
 });
 export type PredictLifecycleInput = z.infer<typeof PredictLifecycleInputSchema>;
 
-export const PredictLifecycleOutputSchema = z.object({
+const PredictLifecycleOutputSchema = z.object({
   predictedLifespanYears: z
     .number()
     .describe('The AI-predicted operational lifespan of the product in years.'),
