@@ -20,9 +20,12 @@ export async function saveCompany(
   companyId?: string,
 ): Promise<Company> {
   const validatedData = companyFormSchema.parse(values);
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  checkPermission(user, 'company:manage');
+
+  if (userId !== 'system') {
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+    checkPermission(user, 'company:manage');
+  }
 
   const now = new Date().toISOString();
   let savedCompany: Company;
@@ -47,6 +50,10 @@ export async function saveCompany(
         aiEnabled: true,
         apiAccess: false,
         brandingCustomization: false,
+        theme: {
+          light: { primary: '', accent: ''},
+          dark: { primary: '', accent: ''}
+        }
       },
     };
     mockCompanies.push(savedCompany);

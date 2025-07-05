@@ -1,7 +1,7 @@
 // src/lib/actions/user-actions.ts
 'use server';
 
-import type { Company, User } from '@/types';
+import type { User } from '@/types';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   userFormSchema,
@@ -12,10 +12,10 @@ import {
 import { getUserById, getUserByEmail } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
-import { companies as mockCompanies } from '@/lib/company-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { adminAuth } from '@/lib/firebase-admin';
+import { saveCompany } from './company-actions';
 
 export async function saveUser(
   values: UserFormValues,
@@ -89,16 +89,11 @@ export async function createUserAndCompany(
   email: string,
   userId: string,
 ) {
-  const now = new Date().toISOString();
-  const newCompany: Company = {
-    id: newId('comp'),
+  const newCompany = await saveCompany({
     name: `${name}'s Company`,
     ownerId: userId,
     industry: '',
-    createdAt: now,
-    updatedAt: now,
-  };
-  mockCompanies.push(newCompany);
+  }, 'system');
 
   const newUser: User = {
     id: userId,
@@ -106,8 +101,8 @@ export async function createUserAndCompany(
     email: email,
     companyId: newCompany.id,
     roles: [UserRoles.SUPPLIER],
-    createdAt: now,
-    updatedAt: now,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     onboardingComplete: false,
     isMfaEnabled: false,
     readNotificationIds: [],
@@ -123,17 +118,15 @@ export async function completeOnboarding(
   const userIndex = mockUsers.findIndex(u => u.id === userId);
   if (userIndex === -1) throw new Error('User not found');
 
-  const companyIndex = mockCompanies.findIndex(
-    c => c.id === mockUsers[userIndex].companyId,
-  );
-  if (companyIndex === -1) throw new Error('Company not found');
+  // Update company with onboarding data
+  await saveCompany({
+    name: values.companyName,
+    ownerId: userId,
+    industry: values.industry
+  }, 'system', mockUsers[userIndex].companyId);
 
   mockUsers[userIndex].onboardingComplete = true;
   mockUsers[userIndex].updatedAt = new Date().toISOString();
-
-  mockCompanies[companyIndex].name = values.companyName;
-  mockCompanies[companyIndex].industry = values.industry;
-  mockCompanies[companyIndex].updatedAt = new Date().toISOString();
 
   await logAuditEvent(
     'user.onboarded',
