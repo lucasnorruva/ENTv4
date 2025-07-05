@@ -31,6 +31,7 @@ export type Action =
   | 'product:run_compliance'
   | 'product:customs_inspect'
   | 'product:export_data'
+  | 'product:run_prediction'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -95,13 +96,13 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:reject':
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
-    
+
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
 
     case 'product:add_service_record':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
-      
+
     case 'product:export_data':
       return (
         hasRole(user, UserRoles.ADMIN) ||
@@ -109,6 +110,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
         hasRole(user, UserRoles.RETAILER) ||
         isOwner
       );
+    
+    case 'product:run_prediction':
+      return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
     case 'compliance:manage':
       return (

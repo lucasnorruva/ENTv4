@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -71,6 +70,7 @@ export default function ProductDetailView({
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
   const canExportData = can(user, 'product:export_data', product);
+  const canRunPrediction = can(user, 'product:run_prediction');
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -209,13 +209,15 @@ export default function ProductDetailView({
             <SubmissionChecklist checklist={product.submissionChecklist} />
           )}
           <DppQrCodeWidget productId={product.id} />
-          <PredictiveAnalyticsWidget
-            product={product}
-            user={user}
-            onPredictionComplete={updatedProduct => {
-              setProduct(updatedProduct);
-            }}
-          />
+          {canRunPrediction && (
+            <PredictiveAnalyticsWidget
+              product={product}
+              user={user}
+              onPredictionComplete={updatedProduct => {
+                setProduct(updatedProduct);
+              }}
+            />
+          )}
           <AiActionsWidget
             product={product}
             user={user}

@@ -1,4 +1,3 @@
-
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -500,8 +499,7 @@ export async function runLifecyclePrediction(
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found or permission denied.');
 
-  // TODO: Add specific permission for enterprise features like this
-  // checkPermission(user, 'product:run_prediction');
+  checkPermission(user, 'product:run_prediction');
 
   await logAuditEvent('product.prediction.started', productId, { type: 'lifecycle' }, userId);
 
