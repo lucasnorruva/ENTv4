@@ -10,7 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const ExplainErrorInputSchema = z.object({
+const ExplainErrorInputSchema = z.object({
   errorMessage: z.string().describe('The technical error message or code.'),
   context: z
     .string()
@@ -21,7 +21,7 @@ export const ExplainErrorInputSchema = z.object({
 });
 export type ExplainErrorInput = z.infer<typeof ExplainErrorInputSchema>;
 
-export const ExplainErrorOutputSchema = z.object({
+const ExplainErrorOutputSchema = z.object({
   title: z.string().describe('A short, user-friendly title for the error.'),
   description: z
     .string()
