@@ -3,7 +3,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
 import {
   FileText,
   AlertTriangle,
@@ -16,6 +15,7 @@ import {
   Recycle,
   Leaf,
   CalendarDays,
+  ListTree,
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification } from '@/types';
 import {
@@ -33,6 +33,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { format } from 'date-fns';
+import { ScrollArea } from '../ui/scroll-area';
 
 function InfoRow({
   icon: Icon,
@@ -202,78 +203,91 @@ export default function ComplianceTab({
 
       <Card>
         <CardHeader>
-          <CardTitle>Documents & Certifications</CardTitle>
+          <CardTitle>Documents & Credentials</CardTitle>
         </CardHeader>
         <CardContent>
-          <InfoRow icon={FileText} label="Certifications">
-            {product.certifications && product.certifications.length > 0 ? (
-              <div className="space-y-3 mt-1">
-                {product.certifications.map((cert: Certification, index: number) => (
-                   <div key={index} className="text-sm p-3 border rounded-md bg-muted/50">
-                    <p className="font-semibold text-foreground">{cert.name}</p>
-                    <p className="text-xs text-muted-foreground">Issued by: {cert.issuer}</p>
-                    {cert.validUntil && (
-                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                            <CalendarDays className="h-3 w-3" />
-                            Valid until: {format(new Date(cert.validUntil), 'PPP')}
-                        </p>
-                    )}
-                    {cert.documentUrl && (
-                         <Link
-                            href={cert.documentUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline mt-2 flex items-center gap-1"
-                        >
-                            View Document <LinkIcon className="h-3 w-3" />
-                        </Link>
-                    )}
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="certs">
+              <AccordionTrigger>
+                <h4 className="flex items-center gap-2 font-semibold">
+                  <ListTree />
+                  Certifications ({product.certifications?.length || 0})
+                </h4>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                {product.certifications && product.certifications.length > 0 ? (
+                  <div className="space-y-3 mt-1">
+                    {product.certifications.map((cert: Certification, index: number) => (
+                      <div key={index} className="text-sm p-3 border rounded-md bg-muted/50">
+                        <p className="font-semibold text-foreground">{cert.name}</p>
+                        <p className="text-xs text-muted-foreground">Issued by: {cert.issuer}</p>
+                        {cert.validUntil && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <CalendarDays className="h-3 w-3" />
+                                Valid until: {format(new Date(cert.validUntil), 'PPP')}
+                            </p>
+                        )}
+                        {cert.documentUrl && (
+                             <Link
+                                href={cert.documentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-primary hover:underline mt-2 flex items-center gap-1"
+                            >
+                                View Document <LinkIcon className="h-3 w-3" />
+                            </Link>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                No certifications listed.
-              </p>
+                ) : (
+                  <p className="text-muted-foreground text-sm py-4">
+                    No certifications listed.
+                  </p>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+            {product.verifiableCredential && (
+                 <AccordionItem value="vc">
+                 <AccordionTrigger>
+                   <h4 className="flex items-center gap-2 font-semibold">
+                     <FileText />
+                     W3C Verifiable Credential
+                   </h4>
+                 </AccordionTrigger>
+                 <AccordionContent className="pt-2">
+                  <ScrollArea className="h-72 w-full rounded-md border bg-muted p-4">
+                    <pre className="text-xs break-all whitespace-pre-wrap">
+                        {product.verifiableCredential}
+                    </pre>
+                  </ScrollArea>
+                 </AccordionContent>
+               </AccordionItem>
             )}
-          </InfoRow>
-          {product.declarationOfConformity && (
-            <InfoRow
-              icon={FileText}
-              label="Generated Declaration of Conformity"
-            >
-              <Card className="mt-2 bg-muted/50">
-                <CardContent className="p-4 prose prose-sm dark:prose-invert max-w-none text-xs">
-                  <ReactMarkdown>
-                    {product.declarationOfConformity}
-                  </ReactMarkdown>
-                </CardContent>
-              </Card>
-            </InfoRow>
-          )}
+            {product.blockchainProof && (
+              <AccordionItem value="blockchain">
+                <AccordionTrigger>
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <Fingerprint />
+                    On-Chain Proof
+                  </h4>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                   <Link
+                    href={product.blockchainProof.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline text-sm flex items-center gap-1"
+                  >
+                    View Polygon Transaction
+                    <LinkIcon className="h-3 w-3" />
+                  </Link>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+          </Accordion>
         </CardContent>
       </Card>
-
-      {product.blockchainProof && (
-        <Card>
-          <CardHeader>
-            <CardTitle>On-Chain Proof</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <InfoRow icon={Fingerprint} label="Polygon Transaction">
-              <Link
-                href={product.blockchainProof.explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline text-sm flex items-center gap-1"
-              >
-                View Transaction
-                <LinkIcon className="h-3 w-3" />
-              </Link>
-            </InfoRow>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import type {
   ClassifyProductOutput,
   DataQualityWarning,
   EsgScoreOutput,
+  PredictLifecycleOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 
@@ -163,6 +164,7 @@ export interface CustomsStatus {
 export interface SustainabilityData extends EsgScoreOutput {
   classification?: ClassifyProductOutput;
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+  lifecyclePrediction?: PredictLifecycleOutput;
   isCompliant: boolean;
   complianceSummary: string;
   gaps?: ComplianceGap[];
@@ -228,6 +230,7 @@ export interface Product extends BaseEntity {
     blockHeight: number;
   };
   ebsiVcId?: string;
+  verifiableCredential?: string; // JSON string of the signed VC
 }
 
 /**
@@ -279,7 +282,6 @@ export interface SupportTicket extends BaseEntity {
   status: 'Open' | 'Closed';
   userId?: string; // Optional, for logged-in users
 }
-
 
 /**
  * Represents a physical production line for manufacturing.

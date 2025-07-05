@@ -1,4 +1,4 @@
-
+// src/services/blockchain.ts
 "use server";
 
 import { createHash } from "crypto";
@@ -141,28 +141,4 @@ export async function anchorToPolygon(
       blockHeight: 0,
     };
   }
-}
-
-/**
- * Generates a mock Verifiable Credential ID on the EBSI network.
- * In a real implementation, this would involve using EBSI's APIs to issue
- * a W3C Verifiable Credential containing the product data hash.
- *
- * @param productId The ID of the product for which to generate the credential.
- * @returns A promise that resolves to a mock EBSI DID string.
- */
-export async function generateEbsiCredential(
-  productId: string,
-): Promise<string> {
-  console.log(
-    `Generating EBSI Verifiable Credential for product ${productId}...`,
-  );
-
-  // This remains a mock as EBSI integration is a separate, complex task.
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  const mockEbsiId = `did:ebsi:z${[...Array(22)].map(() => Math.floor(Math.random() * 36).toString(36)).join("")}`;
-
-  console.log(`Generated EBSI Credential ID: ${mockEbsiId}`);
-
-  return mockEbsiId;
 }

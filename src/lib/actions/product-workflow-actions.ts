@@ -12,8 +12,8 @@ import { sendWebhook } from '@/services/webhooks';
 import {
   hashProductData,
   anchorToPolygon,
-  generateEbsiCredential,
 } from '@/services/blockchain';
+import { createVerifiableCredential } from '@/services/credential';
 import { bulkProductImportSchema, customsInspectionFormSchema, type CustomsInspectionFormValues } from '../schemas';
 import { runSubmissionValidation, isChecklistComplete } from '@/services/validation';
 
@@ -61,7 +61,8 @@ export async function approvePassport(
   const product = mockProducts[productIndex];
   const productHash = await hashProductData(product);
   const blockchainProof = await anchorToPolygon(product.id, productHash);
-  const ebsiVcId = await generateEbsiCredential(product.id);
+  const verifiableCredential = await createVerifiableCredential(product, user);
+
 
   const updatedProduct = {
     ...product,
@@ -69,7 +70,8 @@ export async function approvePassport(
     status: 'Published' as const,
     lastVerificationDate: new Date().toISOString(),
     blockchainProof,
-    ebsiVcId,
+    ebsiVcId: verifiableCredential.id,
+    verifiableCredential: JSON.stringify(verifiableCredential, null, 2),
   };
 
   mockProducts[productIndex] = updatedProduct;
@@ -77,7 +79,7 @@ export async function approvePassport(
   await logAuditEvent(
     'passport.approved',
     productId,
-    { txHash: blockchainProof.txHash },
+    { txHash: blockchainProof.txHash, vcId: verifiableCredential.id },
     userId,
   );
 
