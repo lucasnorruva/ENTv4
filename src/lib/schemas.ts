@@ -115,6 +115,8 @@ export const productFormSchema = z.object({
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
+  manualFileName: z.string().optional(),
+  manualFileSize: z.number().optional(),
   declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),

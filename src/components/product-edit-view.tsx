@@ -48,6 +48,10 @@ export default function ProductEditView({
   const [isGeneratingImage, startImageGenerationTransition] = useTransition();
   const [contextImageFile, setContextImageFile] = useState<File | null>(null);
 
+  const [manualFile, setManualFile] = useState<File | null>(null);
+  const [isUploadingManual, setIsUploadingManual] = useState(false);
+  const [manualUploadProgress, setManualUploadProgress] = useState(0);
+
   const router = useRouter();
   const { toast } = useToast();
 
@@ -98,13 +102,26 @@ export default function ProductEditView({
     }
   };
 
+  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setManualFile(file);
+    } else if (file) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please upload a PDF file for the manual.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleContextImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const file = e.target.files?.[0];
     setContextImageFile(file);
   };
-  
+
   const handleGenerateImage = () => {
     startImageGenerationTransition(async () => {
       let contextImageDataUri: string | undefined = undefined;
@@ -142,6 +159,9 @@ export default function ProductEditView({
   const onSubmit = (values: ProductFormValues) => {
     startSavingTransition(async () => {
       let imageUrl = product?.productImage;
+      let manualUrl = product?.manualUrl;
+      let manualFileName = product?.manualFileName;
+      let manualFileSize = product?.manualFileSize;
 
       if (imageFile) {
         setIsUploading(true);
@@ -185,16 +205,62 @@ export default function ProductEditView({
         }
       }
 
+      if (manualFile) {
+        setIsUploadingManual(true);
+        setManualUploadProgress(0);
+        const storageRef = ref(
+          storage,
+          `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, manualFile);
+
+        try {
+          manualUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setManualUploadProgress(progress);
+              },
+              error => {
+                setIsUploadingManual(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploadingManual(false);
+                resolve(downloadURL);
+              },
+            );
+          });
+          manualFileName = manualFile.name;
+          manualFileSize = manualFile.size;
+        } catch (error) {
+          toast({
+            title: 'Manual Upload Failed',
+            description:
+              'There was an error uploading your manual. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
+      const finalValues = {
+        ...values,
+        productImage: imageUrl,
+        manualUrl,
+        manualFileName,
+        manualFileSize,
+      };
+
       try {
-        const saved = await saveProduct(
-          { ...values, productImage: imageUrl },
-          user.id,
-          product.id,
-        );
+        const saved = await saveProduct(finalValues, user.id, product.id);
         toast({ title: 'Success!', description: 'Product passport updated.' });
-        router.push(
-          `/dashboard/${roleSlug}/products/${saved.id}`,
-        );
+        router.push(`/dashboard/${roleSlug}/products/${saved.id}`);
         router.refresh();
       } catch (error) {
         toast({
@@ -243,7 +309,8 @@ export default function ProductEditView({
   };
 
   const canEditProduct = can(user, 'product:edit', product);
-  const roleSlug = user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
+  const roleSlug =
+    user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
 
   if (!canEditProduct) {
     return (
@@ -271,13 +338,26 @@ export default function ProductEditView({
                 Edit: {product.productName}
               </h1>
             </div>
-            <Button type="submit" disabled={isSaving || isUploading || isGeneratingImage}>
-              {isSaving || isUploading || isGeneratingImage ? (
+            <Button
+              type="submit"
+              disabled={
+                isSaving || isUploading || isGeneratingImage || isUploadingManual
+              }
+            >
+              {isSaving || isUploading || isGeneratingImage || isUploadingManual ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isUploading ? 'Uploading...' : isGeneratingImage ? 'Generating...' : isSaving ? 'Saving...' : 'Save Changes'}
+              {isUploading
+                ? 'Uploading Image...'
+                : isUploadingManual
+                ? 'Uploading Manual...'
+                : isGeneratingImage
+                ? 'Generating Image...'
+                : isSaving
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           </header>
 
@@ -315,7 +395,13 @@ export default function ProductEditView({
               />
             </TabsContent>
             <TabsContent value="lifecycle">
-              <LifecycleTab form={form} />
+              <LifecycleTab
+                form={form}
+                handleManualChange={handleManualChange}
+                isUploadingManual={isUploadingManual}
+                manualUploadProgress={manualUploadProgress}
+                isSaving={isSaving}
+              />
             </TabsContent>
             <TabsContent value="compliance">
               <ComplianceTab form={form} compliancePaths={compliancePaths} />

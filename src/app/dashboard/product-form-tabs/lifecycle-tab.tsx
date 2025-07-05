@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
-import { BatteryCharging } from 'lucide-react';
+import { BatteryCharging, Paperclip } from 'lucide-react';
 import {
   FormControl,
   FormDescription,
@@ -28,12 +28,23 @@ import {
   AccordionTrigger,
 } from '../../components/ui/accordion';
 import { Switch } from '../../components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 
 interface LifecycleTabProps {
   form: UseFormReturn<ProductFormValues>;
+  handleManualChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploadingManual: boolean;
+  manualUploadProgress: number;
+  isSaving: boolean;
 }
 
-export default function LifecycleTab({ form }: LifecycleTabProps) {
+export default function LifecycleTab({
+  form,
+  handleManualChange,
+  isUploadingManual,
+  manualUploadProgress,
+  isSaving,
+}: LifecycleTabProps) {
   return (
     <div className="p-6 space-y-6">
       <FormField
@@ -132,6 +143,34 @@ export default function LifecycleTab({ form }: LifecycleTabProps) {
           )}
         />
       </div>
+
+      <div className="space-y-2">
+        <FormLabel>Service Manual (PDF)</FormLabel>
+        <FormDescription>
+          Upload a PDF of the product's service or repair manual.
+        </FormDescription>
+        <Input
+          type="file"
+          accept="application/pdf"
+          onChange={handleManualChange}
+          disabled={isUploadingManual || isSaving}
+        />
+        {isUploadingManual && (
+          <div className="flex items-center gap-2 mt-2">
+            <Progress value={manualUploadProgress} className="w-full h-2" />
+            <span className="text-xs text-muted-foreground">
+              {Math.round(manualUploadProgress)}%
+            </span>
+          </div>
+        )}
+        {form.watch('manualUrl') && (
+          <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+            <Paperclip className="h-4 w-4" />
+            <span>Current file: {form.watch('manualFileName')}</span>
+          </div>
+        )}
+      </div>
+
       <FormField
         control={form.control}
         name="lifecycle.recyclingInstructions"

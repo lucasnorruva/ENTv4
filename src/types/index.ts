@@ -196,6 +196,8 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
+  manualFileName?: string;
+  manualFileSize?: number;
   declarationOfConformity?: string;
 
   // Structured Data Fields
@@ -205,7 +207,6 @@ export interface Product extends BaseEntity {
   packaging?: Packaging;
   lifecycle?: Lifecycle;
   battery?: Battery;
-  compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
 
