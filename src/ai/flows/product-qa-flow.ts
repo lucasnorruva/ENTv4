@@ -3,17 +3,15 @@
 /**
  * @fileOverview An AI agent that answers questions about a product based on its passport data.
  *
- * - askQuestionAboutProduct - A function that handles the Q&A process.
- * - ProductQuestionInput - The input type for the function.
- * - ProductQuestionOutput - The return type for the function.
+ * This file defines the Genkit flow and prompt for the Product Q&A feature.
+ * The main server action that calls this flow is located in `src/lib/actions/product-ai-actions.ts`.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getProductById } from '@/lib/actions';
-import { AiProduct, AiProductSchema } from '../schemas';
+import { AiProductSchema } from '../schemas';
 
-const ProductQuestionInputSchema = z.object({
+export const ProductQuestionInputSchema = z.object({
   productContext: AiProductSchema.describe(
     'The full data context of the product.',
   ),
@@ -21,7 +19,7 @@ const ProductQuestionInputSchema = z.object({
 });
 export type ProductQuestionInput = z.infer<typeof ProductQuestionInputSchema>;
 
-const ProductQuestionOutputSchema = z.object({
+export const ProductQuestionOutputSchema = z.object({
   answer: z
     .string()
     .describe(
@@ -29,38 +27,6 @@ const ProductQuestionOutputSchema = z.object({
     ),
 });
 export type ProductQuestionOutput = z.infer<typeof ProductQuestionOutputSchema>;
-
-// This is the main function that will be called by the client component.
-// It orchestrates fetching the data and then calling the flow.
-export async function askQuestionAboutProduct(
-  productId: string,
-  question: string,
-): Promise<ProductQuestionOutput> {
-  const product = await getProductById(productId);
-  if (!product) {
-    throw new Error('Product not found.');
-  }
-
-  // Map the full Product type to the AiProduct schema for the AI
-  const productContext: AiProduct = {
-    gtin: product.gtin,
-    productName: product.productName,
-    productDescription: product.productDescription,
-    category: product.category,
-    supplier: product.supplier,
-    materials: product.materials,
-    manufacturing: product.manufacturing,
-    certifications: product.certifications,
-    packaging: product.packaging,
-    lifecycle: product.lifecycle,
-    battery: product.battery,
-    compliance: product.compliance,
-    verificationStatus: product.verificationStatus,
-    complianceSummary: product.sustainability?.complianceSummary,
-  };
-
-  return await productQaFlow({ productContext, question });
-}
 
 const prompt = ai.definePrompt({
   name: 'productQaPrompt',
@@ -86,7 +52,8 @@ Your goal is to answer user questions about a specific product based *only* on t
 `,
 });
 
-const productQaFlow = ai.defineFlow(
+// The defineFlow registers the flow with Genkit, making it callable by other server actions.
+export const productQaFlow = ai.defineFlow(
   {
     name: 'productQaFlow',
     inputSchema: ProductQuestionInputSchema,

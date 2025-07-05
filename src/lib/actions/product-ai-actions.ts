@@ -14,7 +14,8 @@ import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { validateProductData } from '@/ai/flows/validate-product-data';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { askQuestionAboutProduct as askQuestionAboutProductFlow } from '@/ai/flows/product-qa-flow';
+import { productQaFlow } from '@/ai/flows/product-qa-flow';
+import type { ProductQuestionOutput } from '@/ai/flows/product-qa-flow';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission, PermissionError } from '@/lib/permissions';
 import { getProductById, getCompliancePathById } from '@/lib/actions/index';
@@ -24,7 +25,6 @@ import { generateProductDescription as generateProductDescriptionFlow } from '@/
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
-
 
 // --- AI Processing ---
 
@@ -438,20 +438,13 @@ export async function suggestImprovements(input: {
   return await suggestImprovementsFlow(input);
 }
 
-export async function askQuestionAboutProduct(
-  productId: string,
-  question: string,
-): Promise<{ answer: string }> {
-  return askQuestionAboutProductFlow(productId, question);
-}
-
 export async function generateProductDescription(input: {
-    productName: string;
-    category: string;
-    materials: { name: string }[];
-  }) {
-    return generateProductDescriptionFlow(input);
-  }
+  productName: string;
+  category: string;
+  materials: { name: string }[];
+}) {
+  return generateProductDescriptionFlow(input);
+}
 
 export async function generatePcdsForProduct(
   productId: string,
@@ -501,7 +494,12 @@ export async function runLifecyclePrediction(
 
   checkPermission(user, 'product:run_prediction');
 
-  await logAuditEvent('product.prediction.started', productId, { type: 'lifecycle' }, userId);
+  await logAuditEvent(
+    'product.prediction.started',
+    productId,
+    { type: 'lifecycle' },
+    userId,
+  );
 
   const company = await getCompanyById(product.companyId);
   if (!company) {
@@ -525,18 +523,57 @@ export async function runLifecyclePrediction(
     complianceSummary: product.sustainability?.complianceSummary,
   };
 
-  const predictionResult = await predictProductLifecycleFlow({ product: aiProductInput });
+  const predictionResult = await predictProductLifecycleFlow({
+    product: aiProductInput,
+  });
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found in mock data');
 
   mockProducts[productIndex].sustainability = {
-    ...(mockProducts[productIndex].sustainability!),
+    ...mockProducts[productIndex].sustainability!,
     lifecyclePrediction: predictionResult,
   };
   mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  await logAuditEvent('product.prediction.success', productId, { type: 'lifecycle' }, userId);
+  await logAuditEvent(
+    'product.prediction.success',
+    productId,
+    { type: 'lifecycle' },
+    userId,
+  );
 
   return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function askQuestionAboutProduct(
+  productId: string,
+  question: string,
+): Promise<ProductQuestionOutput> {
+  await logAuditEvent('product.qa.asked', productId, { question }, 'guest');
+
+  const product = await getProductById(productId);
+  if (!product) {
+    throw new Error('Product not found.');
+  }
+
+  // Map the full Product type to the AiProduct schema for the AI
+  const productContext: AiProduct = {
+    gtin: product.gtin,
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus,
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  return await productQaFlow({ productContext, question });
 }
