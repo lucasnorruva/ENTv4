@@ -519,6 +519,10 @@ export default function GlobalTrackerClient({
     router.push(newPath, { scroll: false });
   };
 
+  const destinationCountry = selectedProduct?.transit
+  ? getCountryFromLocationString(selectedProduct.transit.destination)
+  : null;
+
   return (
     <div className="relative h-[calc(100vh-10rem)] w-full" ref={containerRef}>
       <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -588,6 +592,7 @@ export default function GlobalTrackerClient({
               product={selectedProduct}
               alerts={selectedProductAlerts}
               onDismiss={() => handleProductSelect(null)}
+              destinationCountry={destinationCountry}
             />
           )}
           {clickedCountryInfo && (

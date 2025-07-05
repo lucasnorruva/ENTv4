@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   CalendarDays,
   ExternalLink,
+  Globe,
 } from 'lucide-react';
 import type { Product, CustomsAlert } from '@/types';
 import { cn } from '@/lib/utils';
@@ -35,12 +36,14 @@ interface SelectedProductCustomsInfoCardProps {
   product: Product;
   alerts: CustomsAlert[];
   onDismiss: () => void;
+  destinationCountry?: string | null;
 }
 
 export default function SelectedProductCustomsInfoCard({
   product,
   alerts,
   onDismiss,
+  destinationCountry,
 }: SelectedProductCustomsInfoCardProps) {
   const { transit, customs } = product;
 
@@ -197,21 +200,38 @@ export default function SelectedProductCustomsInfoCard({
               </ul>
             </div>
           )}
-
-          <Button
-            variant="link"
-            size="sm"
-            className="p-0 h-auto text-primary mt-2 text-xs"
-            asChild
-          >
-            <Link
-              href={`/products/${product.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
+          <div className="flex flex-wrap gap-2 mt-2">
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 h-auto text-primary text-xs"
+              asChild
             >
-              View Full DPP <ExternalLink className="ml-1 h-3 w-3" />
-            </Link>
-          </Button>
+              <Link
+                href={`/products/${product.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View Full DPP <ExternalLink className="ml-1 h-3 w-3" />
+              </Link>
+            </Button>
+            {destinationCountry && (
+                <Button
+                    variant="link"
+                    size="sm"
+                    className="p-0 h-auto text-primary text-xs"
+                    asChild
+                >
+                    <Link
+                    href={`/dashboard/admin/customs?q=${destinationCountry}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >
+                    View Customs Rules <Globe className="ml-1 h-3 w-3" />
+                    </Link>
+                </Button>
+            )}
+          </div>
         </CardContent>
       </ScrollArea>
     </Card>

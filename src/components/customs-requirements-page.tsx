@@ -1,8 +1,9 @@
 // src/components/customs-requirements-page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -89,6 +90,7 @@ const MOCK_CUSTOMS_DATA = [
       'htsus',
       'isf',
       'cbp',
+      'america',
     ],
   },
   {
@@ -171,7 +173,13 @@ const RiskLevelBadge = ({
 };
 
 export default function CustomsRequirementsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams.get('q') || '';
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+
+  useEffect(() => {
+    setSearchTerm(initialSearch);
+  }, [initialSearch]);
 
   const filteredData = MOCK_CUSTOMS_DATA.filter(item => {
     const lowerSearchTerm = searchTerm.toLowerCase();

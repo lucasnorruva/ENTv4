@@ -1,4 +1,5 @@
 // src/types/transit.ts
+
 export interface TransitInfo {
   stage: string;
   eta: string;

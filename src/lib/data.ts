@@ -128,6 +128,13 @@ export let products: Product[] = [
     lastUpdated: new Date(
       new Date(now).setDate(now.getDate() - 3),
     ).toISOString(),
+    transit: {
+        stage: 'Awaiting Port Departure',
+        eta: '2024-08-20',
+        transport: 'Ship',
+        origin: 'Shenzhen, China',
+        destination: 'Los Angeles, USA',
+    },
     verificationStatus: 'Not Submitted',
     endOfLifeStatus: 'Active',
     dataQualityWarnings: [
@@ -172,11 +179,11 @@ export let products: Product[] = [
       isCompliant: true,
     },
     transit: {
-        stage: 'At Customs',
+        stage: 'At Customs (Rotterdam, NL)',
         eta: '2024-08-05',
         transport: 'Ship',
         origin: 'Mumbai, India',
-        destination: 'Rotterdam, Netherlands',
+        destination: 'Paris, France',
     },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 10),
@@ -242,7 +249,7 @@ export let products: Product[] = [
       gaps: [
         {
           regulation: 'EU Leather Goods Standard',
-          issue: 'Contains banned material: Lead-based dye',
+          issue: "Contains banned material: 'Lead-based dye'",
         },
       ],
     },

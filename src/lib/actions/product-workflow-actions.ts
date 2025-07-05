@@ -234,8 +234,25 @@ export async function performCustomsInspection(
   }
 
   // Set the new event as the latest status
-  mockProducts[productIndex].customs = { ...newCustomsEvent, history: currentHistory };
-  mockProducts[productIndex].lastUpdated = now;
+  product.customs = { ...newCustomsEvent, history: currentHistory };
+  product.lastUpdated = now;
+
+  // Update transit stage based on customs status
+  if (product.transit) {
+    switch (validatedData.status) {
+        case 'Cleared':
+            product.transit.stage = `Cleared - Inland Transit (${validatedData.location})`;
+            break;
+        case 'Detained':
+            product.transit.stage = `Detained at Customs (${validatedData.location})`;
+            break;
+        case 'Rejected':
+            product.transit.stage = `Shipment Rejected at (${validatedData.location})`;
+            break;
+    }
+  }
+
+  mockProducts[productIndex] = product;
 
   await logAuditEvent('customs.inspected', productId, { ...newCustomsEvent }, userId);
 
