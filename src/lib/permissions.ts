@@ -30,6 +30,7 @@ export type Action =
   | 'product:validate_data'
   | 'product:run_compliance'
   | 'product:customs_inspect'
+  | 'product:export_data'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -105,6 +106,14 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:add_service_record':
       return hasRole(user, UserRoles.SERVICE_PROVIDER);
+      
+    case 'product:export_data':
+      return (
+        hasRole(user, UserRoles.ADMIN) ||
+        hasRole(user, UserRoles.BUSINESS_ANALYST) ||
+        hasRole(user, UserRoles.RETAILER) ||
+        isOwner
+      );
 
     case 'compliance:manage':
       return (

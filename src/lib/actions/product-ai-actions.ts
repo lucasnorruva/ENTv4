@@ -22,6 +22,8 @@ import { getProductById, getCompliancePathById } from '@/lib/actions/index';
 import { logAuditEvent } from './audit-actions';
 import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
 import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
+import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
+import type { PcdsOutput } from '@/types/ai-outputs';
 
 
 // --- AI Processing ---
@@ -454,3 +456,39 @@ export async function generateProductDescription(input: {
   }) {
     return generateProductDescriptionFlow(input);
   }
+
+export async function generatePcdsForProduct(
+  productId: string,
+  userId: string,
+): Promise<PcdsOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:export_data', product);
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: product.supplier,
+    materials: product.materials,
+    gtin: product.id, // Use product ID as the DPP ID for PCDS
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const pcdsData = await generatePcdsFlow({ product: aiProductInput });
+
+  await logAuditEvent('pcds.generated', productId, {}, userId);
+
+  return pcdsData;
+}
