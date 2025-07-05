@@ -4,7 +4,7 @@
 import React, { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Wrench, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Wrench, AlertTriangle, ArrowLeft, Landmark } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import OverviewTab from './product-detail-tabs/overview-tab';
 import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
+import CustomsInspectionForm from './customs-inspection-form';
 
 export default function ProductDetailView({
   product: productProp,
@@ -42,6 +43,7 @@ export default function ProductDetailView({
 }) {
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
+  const [isCustomsFormOpen, setIsCustomsFormOpen] = useState(false);
   const [isGeneratingImage, startImageGenerationTransition] = useTransition();
   const [contextImagePreview, setContextImagePreview] = useState<string | null>(
     null,
@@ -58,6 +60,7 @@ export default function ProductDetailView({
   const canValidateData = can(user, 'product:validate_data', product);
   const canAddServiceRecord = can(user, 'product:add_service_record');
   const canGenerateDoc = can(user, 'product:edit', product);
+  const canLogInspection = can(user, 'product:customs_inspect');
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -125,6 +128,15 @@ export default function ProductDetailView({
               onClick={() => setIsServiceDialogOpen(true)}
             >
               <Wrench className="mr-2 h-4 w-4" /> Add Service
+            </Button>
+          )}
+          {canLogInspection && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCustomsFormOpen(true)}
+            >
+              <Landmark className="mr-2 h-4 w-4" /> Log Inspection
             </Button>
           )}
         </div>
@@ -203,6 +215,18 @@ export default function ProductDetailView({
           router.refresh();
         }}
       />
+
+      <CustomsInspectionForm
+        isOpen={isCustomsFormOpen}
+        onOpenChange={setIsCustomsFormOpen}
+        product={product}
+        user={user}
+        onSave={(updatedProduct) => {
+          setProduct(updatedProduct);
+          router.refresh();
+        }}
+       />
+
     </div>
   );
 }
