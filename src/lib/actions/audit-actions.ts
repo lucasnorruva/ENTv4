@@ -4,8 +4,6 @@
 import type { AuditLog, User } from '@/types';
 import { auditLogs as mockAuditLogs } from '@/lib/audit-log-data';
 import { getUserById, getUsers } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { UserRoles } from '@/lib/constants';
 import { newId } from './utils';
 
 export async function logAuditEvent(
