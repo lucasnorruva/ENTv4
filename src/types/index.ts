@@ -179,6 +179,18 @@ export interface SustainabilityData extends EsgScoreOutput {
 }
 
 /**
+ * Defines the completion status of various passport sections.
+ */
+export interface SubmissionChecklist {
+  hasBaseInfo: boolean;
+  hasMaterials: boolean;
+  hasManufacturing: boolean;
+  hasLifecycleData: boolean;
+  hasCompliancePath: boolean;
+  passesDataQuality: boolean;
+}
+
+/**
  * The core Digital Product Passport entity.
  */
 export interface Product extends BaseEntity {
@@ -211,6 +223,7 @@ export interface Product extends BaseEntity {
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
+  submissionChecklist?: SubmissionChecklist;
   isProcessing?: boolean;
 
   // Lifecycle & Verification

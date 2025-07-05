@@ -12,13 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 import DppQrCodeWidget from './dpp-qr-code-widget';
-import DppCompletenessWidget from './dpp-completeness-widget';
+import SubmissionChecklist from './submission-checklist';
 import { AuditLogTimeline } from './audit-log-timeline';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
-import { generateAndSaveProductImage } from '@/lib/actions';
+import { generateAndSaveProductImage, runSubmissionValidation } from '@/lib/actions';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -52,8 +52,13 @@ export default function ProductDetailView({
   const { toast } = useToast();
 
   useEffect(() => {
-    setProduct(productProp);
+    async function validate() {
+      const checklist = await runSubmissionValidation(productProp);
+      setProduct(p => ({ ...p, submissionChecklist: checklist }));
+    }
+    validate();
   }, [productProp]);
+
 
   const canEditProduct = can(user, 'product:edit', product);
   const canRunComplianceCheck = can(user, 'product:run_compliance');
@@ -191,7 +196,9 @@ export default function ProductDetailView({
           </Tabs>
         </div>
         <div className="space-y-6">
-          <DppCompletenessWidget product={product} />
+          {product.submissionChecklist && (
+            <SubmissionChecklist checklist={product.submissionChecklist} />
+          )}
           <DppQrCodeWidget productId={product.id} />
           <AiActionsWidget
             product={product}

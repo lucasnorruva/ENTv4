@@ -88,6 +88,15 @@ const customsStatusSchema = customsInspectionFormSchema.extend({
   history: z.array(z.lazy(() => customsStatusSchema.omit({ history: true }))).optional(),
 });
 
+export const submissionChecklistSchema = z.object({
+    hasBaseInfo: z.boolean(),
+    hasMaterials: z.boolean(),
+    hasManufacturing: z.boolean(),
+    hasLifecycleData: z.boolean(),
+    hasCompliancePath: z.boolean(),
+    passesDataQuality: z.boolean(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -115,6 +124,7 @@ export const productFormSchema = z.object({
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
   customs: customsStatusSchema.optional(),
+  submissionChecklist: submissionChecklistSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

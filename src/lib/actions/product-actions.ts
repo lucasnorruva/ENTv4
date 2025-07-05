@@ -11,6 +11,7 @@ import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { processProductAi } from './product-ai-actions';
 import { products as mockProducts } from '../data';
+import { runSubmissionValidation } from '@/services/validation';
 
 
 // --- Core CRUD Actions ---
@@ -141,7 +142,6 @@ export async function saveProduct(
 
   const now = new Date().toISOString();
   let savedProduct: Product;
-  let productRef: string; // Using ID as ref for mock data
 
   if (productId) {
     const productIndex = mockProducts.findIndex(p => p.id === productId);
@@ -174,7 +174,6 @@ export async function saveProduct(
     
     savedProduct = { ...existingProduct, ...updatedData };
     mockProducts[productIndex] = savedProduct;
-    productRef = productId;
 
     await logAuditEvent(
       'product.updated',
@@ -201,15 +200,29 @@ export async function saveProduct(
       verificationStatus: 'Not Submitted',
       materials: validatedData.materials || [],
       isProcessing: true,
+      submissionChecklist: {
+        hasBaseInfo: false,
+        hasMaterials: false,
+        hasManufacturing: false,
+        hasLifecycleData: false,
+        hasCompliancePath: false,
+        passesDataQuality: true, // Default to true until a check is run
+      },
     };
     const newIdVal = newId('pp');
     savedProduct = { id: newIdVal, ...newProductData };
-    productRef = newIdVal;
     mockProducts.unshift(savedProduct);
 
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
 
+  // Run validation and AI processing after saving
+  const checklist = await runSubmissionValidation(savedProduct);
+  const finalProductIndex = mockProducts.findIndex(p => p.id === savedProduct.id);
+  if (finalProductIndex !== -1) {
+    mockProducts[finalProductIndex].submissionChecklist = checklist;
+  }
+  
   // Simulate background AI processing
   setTimeout(async () => {
     try {
@@ -222,6 +235,10 @@ export async function saveProduct(
         mockProducts[productIndex].dataQualityWarnings = dataQualityWarnings;
         mockProducts[productIndex].isProcessing = false;
         mockProducts[productIndex].lastUpdated = new Date().toISOString();
+        
+        // Re-run validation after AI processing is complete
+        const finalChecklist = await runSubmissionValidation(mockProducts[productIndex]);
+        mockProducts[productIndex].submissionChecklist = finalChecklist;
       }
     } catch (e) {
       console.error(

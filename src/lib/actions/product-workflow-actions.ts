@@ -15,6 +15,7 @@ import {
   generateEbsiCredential,
 } from '@/services/blockchain';
 import { bulkProductImportSchema, customsInspectionFormSchema, type CustomsInspectionFormValues } from '../schemas';
+import { runSubmissionValidation, isChecklistComplete } from '@/services/validation';
 
 // --- Workflow Actions ---
 
@@ -29,6 +30,11 @@ export async function submitForReview(
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:submit', product);
+
+  const checklist = await runSubmissionValidation(product);
+  if (!isChecklistComplete(checklist)) {
+    throw new Error('Submission checklist is not complete. Please fill in all required fields.');
+  }
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
