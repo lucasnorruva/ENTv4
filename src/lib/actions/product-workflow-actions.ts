@@ -3,9 +3,9 @@
 
 import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus } from '@/types';
 import { products as mockProducts } from '@/lib/data';
-import { getWebhooks, getProductById, deleteProduct } from '@/lib/actions/index';
+import { getWebhooks, getProductById } from '@/lib/actions/index';
 import { logAuditEvent } from './audit-actions';
-import { getUserById, getCompanyById } from '../auth';
+import { getUserById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
 import { newId } from './utils';
 import { sendWebhook } from '@/services/webhooks';
@@ -270,7 +270,7 @@ export async function bulkDeleteProducts(
 
   const deletedIds: string[] = [];
   for (const productId of productIds) {
-    const product = await getProductById(productId, userId);
+    const product = await getProductById(productId, user.id);
     if (!product) continue;
 
     try {
@@ -336,7 +336,7 @@ export async function bulkCreateProducts(
   if (!user) throw new Error('User not found');
   checkPermission(user, 'product:create');
 
-  const company = await getCompanyById(user.companyId);
+  const company = await getUserById(user.companyId);
   if (!company) throw new Error('Company not found');
 
   const createdCount = productsToImport.length;

@@ -209,6 +209,7 @@ export interface Product extends BaseEntity {
   battery?: Battery;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
+  transit?: TransitInfo;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -278,6 +279,7 @@ export interface SupportTicket extends BaseEntity {
   status: 'Open' | 'Closed';
   userId?: string; // Optional, for logged-in users
 }
+
 
 /**
  * Represents a physical production line for manufacturing.
