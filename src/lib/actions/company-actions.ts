@@ -51,9 +51,9 @@ export async function saveCompany(
         apiAccess: false,
         brandingCustomization: false,
         theme: {
-          light: { primary: '', accent: ''},
-          dark: { primary: '', accent: ''}
-        }
+          light: { primary: '', accent: '' },
+          dark: { primary: '', accent: '' },
+        },
       },
     };
     mockCompanies.push(savedCompany);
