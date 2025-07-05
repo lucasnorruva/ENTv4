@@ -13,7 +13,6 @@ export * from './transit';
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
 
-
 /**
  * A base interface for all Firestore documents, ensuring consistent
  * ID and timestamp fields.
@@ -155,6 +154,7 @@ export interface CustomsStatus {
   location: string;
   date: string; // ISO 8601 format
   notes?: string;
+  history?: Omit<CustomsStatus, 'history'>[];
 }
 
 /**
@@ -167,6 +167,18 @@ export interface SustainabilityData extends EsgScoreOutput {
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
+}
+
+/**
+ * Represents the checklist for submission readiness.
+ */
+export interface SubmissionChecklist {
+  hasBaseInfo: boolean;
+  hasMaterials: boolean;
+  hasManufacturing: boolean;
+  hasLifecycleData: boolean;
+  hasCompliancePath: boolean;
+  passesDataQuality: boolean;
 }
 
 /**
@@ -202,6 +214,7 @@ export interface Product extends BaseEntity {
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
   isProcessing?: boolean;
+  submissionChecklist?: SubmissionChecklist;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
