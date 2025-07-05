@@ -70,7 +70,6 @@ export async function approvePassport(
     status: 'Published' as const,
     lastVerificationDate: new Date().toISOString(),
     blockchainProof,
-    ebsiVcId: verifiableCredential.id,
     verifiableCredential: JSON.stringify(verifiableCredential, null, 2),
   };
 
