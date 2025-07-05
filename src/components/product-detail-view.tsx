@@ -20,7 +20,6 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
 import DppQrCodeWidget from './dpp-qr-code-widget';
 import SubmissionChecklist from './submission-checklist';
-import { AuditLogTimeline } from './audit-log-timeline';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
@@ -32,6 +31,7 @@ import OverviewTab from './product-detail-tabs/overview-tab';
 import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
+import HistoryTab from './product-detail-tabs/history-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 
 export default function ProductDetailView({
@@ -175,11 +175,12 @@ export default function ProductDetailView({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4">
               <OverviewTab product={product} />
@@ -195,6 +196,9 @@ export default function ProductDetailView({
                 product={product}
                 compliancePath={compliancePath}
               />
+            </TabsContent>
+            <TabsContent value="history" className="mt-4">
+              <HistoryTab product={product} />
             </TabsContent>
           </Tabs>
         </div>
@@ -212,8 +216,6 @@ export default function ProductDetailView({
           />
         </div>
       </div>
-
-      <AuditLogTimeline logs={auditLogs} userMap={userMap} />
 
       <AddServiceRecordDialog
         isOpen={isServiceDialogOpen}
