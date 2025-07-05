@@ -11,7 +11,7 @@ import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { processProductAi } from './product-ai-actions';
 import { products as mockProducts } from '../data';
-import { runSubmissionValidation } from '@/services/validation';
+import { runSubmissionValidation, isChecklistComplete } from '@/services/validation';
 
 // --- Core CRUD Actions ---
 
