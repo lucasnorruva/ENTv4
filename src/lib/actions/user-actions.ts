@@ -9,7 +9,7 @@ import {
   onboardingFormSchema,
   type OnboardingFormValues,
 } from '@/lib/schemas';
-import { getUserById, getUsers } from '@/lib/auth';
+import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
 import { logAuditEvent } from './audit-actions';
@@ -44,10 +44,6 @@ export async function saveUser(
     savedUser = {
       ...mockUsers[userIndex],
       ...userData,
-      onboardingComplete: mockUsers[userIndex].onboardingComplete,
-      isMfaEnabled: mockUsers[userIndex].isMfaEnabled,
-      readNotificationIds: mockUsers[userIndex].readNotificationIds,
-      createdAt: mockUsers[userIndex].createdAt,
     };
     mockUsers[userIndex] = savedUser;
     await logAuditEvent('user.updated', userId, {}, adminId);
@@ -56,7 +52,7 @@ export async function saveUser(
       id: newId('user'),
       ...userData,
       createdAt: now,
-      onboardingComplete: true, 
+      onboardingComplete: true,
       isMfaEnabled: false,
       readNotificationIds: [],
     };
