@@ -4,9 +4,8 @@ import {
   getCompliancePathById,
   getAuditLogsForEntity,
   getUsers,
-  getCompliancePaths,
 } from '@/lib/actions';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, getCompanyById } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductDetailView from '@/components/product-detail-view';
 import { notFound } from 'next/navigation';
@@ -26,13 +25,13 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const [compliancePath, auditLogs, allUsers, compliancePaths] = await Promise.all([
+  const [compliancePath, auditLogs, allUsers, company] = await Promise.all([
     product.compliancePathId
       ? getCompliancePathById(product.compliancePathId)
       : undefined,
     getAuditLogsForEntity(product.id),
     getUsers(),
-    getCompliancePaths(),
+    getCompanyById(product.companyId),
   ]);
 
   const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
@@ -44,7 +43,7 @@ export default async function ProductDetailPage({
       compliancePath={compliancePath}
       auditLogs={auditLogs}
       userMap={userMap}
-      compliancePaths={compliancePaths}
+      company={company}
     />
   );
 }

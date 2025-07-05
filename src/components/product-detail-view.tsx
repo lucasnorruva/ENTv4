@@ -13,7 +13,7 @@ import {
   Loader2,
 } from 'lucide-react';
 
-import type { Product, User, CompliancePath, AuditLog } from '@/types';
+import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
@@ -41,12 +41,14 @@ export default function ProductDetailView({
   compliancePath,
   auditLogs,
   userMap,
+  company,
 }: {
   product: Product;
   user: User;
   compliancePath?: CompliancePath;
   auditLogs: AuditLog[];
   userMap: Map<string, string>;
+  company?: Company;
 }) {
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
@@ -185,7 +187,7 @@ export default function ProductDetailView({
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4">
-              <OverviewTab product={product} />
+              <OverviewTab product={product} customFields={company?.settings?.customFields} />
             </TabsContent>
             <TabsContent value="sustainability" className="mt-4">
               <SustainabilityTab product={product} />

@@ -15,7 +15,7 @@ import {
   MapPin,
   ListPlus,
 } from 'lucide-react';
-import type { Product } from '@/types';
+import type { Product, CustomFieldDefinition } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Accordion,
@@ -49,11 +49,15 @@ function InfoRow({
 
 interface OverviewTabProps {
   product: Product;
+  customFields?: CustomFieldDefinition[];
 }
 
-export default function OverviewTab({ product }: OverviewTabProps) {
+export default function OverviewTab({ product, customFields }: OverviewTabProps) {
   const hasCustomData =
-    product.customData && Object.keys(product.customData).length > 0;
+    product.customData &&
+    Object.keys(product.customData).length > 0 &&
+    customFields &&
+    customFields.length > 0;
   return (
     <div className="space-y-6">
       <Card>
@@ -171,16 +175,19 @@ export default function OverviewTab({ product }: OverviewTabProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {Object.entries(product.customData!).map(([key, value]) => (
-              <InfoRow
-                key={key}
-                icon={ListPlus} // Re-using icon, fine for now
-                label={key
-                  .replace(/_/g, ' ')
-                  .replace(/\b\w/g, c => c.toUpperCase())}
-                value={String(value)}
-              />
-            ))}
+            {customFields.map(field => {
+              const value = product.customData?.[field.id];
+              if (value === undefined || value === null) return null;
+
+              return (
+                <InfoRow
+                  key={field.id}
+                  icon={ListPlus}
+                  label={field.label}
+                  value={String(value)}
+                />
+              );
+            })}
           </CardContent>
         </Card>
       )}

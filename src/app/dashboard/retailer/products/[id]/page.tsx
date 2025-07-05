@@ -5,7 +5,7 @@ import {
   getAuditLogsForEntity,
   getUsers,
 } from '@/lib/actions';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, getCompanyById } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductDetailView from '@/components/product-detail-view';
 import { notFound } from 'next/navigation';
@@ -28,12 +28,13 @@ export default async function ProductDetailPage({
   }
 
   // Fetch audit logs and compliance path for the full detail view
-  const [compliancePath, auditLogs, allUsers] = await Promise.all([
+  const [compliancePath, auditLogs, allUsers, company] = await Promise.all([
     product.compliancePathId
       ? getCompliancePathById(product.compliancePathId)
       : undefined,
     getAuditLogsForEntity(product.id),
     getUsers(),
+    getCompanyById(product.companyId),
   ]);
 
   const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
@@ -53,6 +54,7 @@ export default async function ProductDetailPage({
         compliancePath={compliancePath}
         auditLogs={auditLogs}
         userMap={userMap}
+        company={company}
       />
     </div>
   );
