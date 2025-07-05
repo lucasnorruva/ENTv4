@@ -2,7 +2,7 @@
 import { getProducts, getProductById, saveProduct, deleteProduct } from './actions';
 import { products as mockProductsData } from './data';
 import { users as mockUsersData } from './user-data';
-import * as admin from 'firebase-admin';
+import { adminDb } from './firebase-admin';
 import { checkPermission, PermissionError } from './permissions';
 import { UserRoles } from './constants';
 
@@ -38,7 +38,6 @@ jest.mock('./firebase-admin', () => ({
   },
 }));
 
-const { adminDb } = require('./firebase-admin');
 const mockedCheckPermission = checkPermission as jest.Mock;
 
 
@@ -60,6 +59,7 @@ describe('Product Actions (Firestore)', () => {
       adminDb.collection().doc().get.mockResolvedValue({
         exists: true,
         data: () => product,
+        id: product.id,
       });
 
       const result = await getProductById(product.id, 'user-admin');
@@ -90,7 +90,7 @@ describe('Product Actions (Firestore)', () => {
     it('should return only published products for unauthenticated access', async () => {
         const published = products.filter(p => p.status === 'Published');
         adminDb.collection().where().get.mockResolvedValue({
-            docs: published.map((p: any) => ({ data: () => p })),
+            docs: published.map((p: any) => ({ data: () => p, id: p.id })),
         });
 
         const result = await getProducts();
@@ -102,7 +102,7 @@ describe('Product Actions (Firestore)', () => {
 
     it('should return all products for an admin user', async () => {
         adminDb.collection().orderBy().get.mockResolvedValue({
-            docs: products.map((p: any) => ({ data: () => p })),
+            docs: products.map((p: any) => ({ data: () => p, id: p.id })),
         });
         
         const result = await getProducts('user-admin');
@@ -116,7 +116,7 @@ describe('Product Actions (Firestore)', () => {
         const companyProducts = products.filter(p => p.companyId === supplier.companyId);
 
         adminDb.collection().where().orderBy().get.mockResolvedValue({
-            docs: companyProducts.map((p: any) => ({ data: () => p })),
+            docs: companyProducts.map((p: any) => ({ data: () => p, id: p.id })),
         });
 
         const result = await getProducts(supplier.id);
@@ -138,6 +138,7 @@ describe('Product Actions (Firestore)', () => {
       adminDb.collection().doc('new-id').get.mockResolvedValue({
         exists: true,
         data: () => ({ id: 'new-id', ...newProductData }),
+        id: 'new-id'
       });
 
       const result = await saveProduct(newProductData as any, supplier.id);
@@ -156,6 +157,7 @@ describe('Product Actions (Firestore)', () => {
       adminDb.collection().doc().get.mockResolvedValue({
         exists: true,
         data: () => productToUpdate,
+        id: productToUpdate.id,
       });
 
       await saveProduct(updatedData, supplier.id, productToUpdate.id);
@@ -179,6 +181,7 @@ describe('Product Actions (Firestore)', () => {
         adminDb.collection().doc().get.mockResolvedValue({
             exists: true,
             data: () => productToUpdate,
+            id: productToUpdate.id,
           });
 
         await expect(saveProduct(productToUpdate, supplierFromDifferentCompany.id, productToUpdate.id)).rejects.toThrow(PermissionError);
@@ -194,6 +197,7 @@ describe('Product Actions (Firestore)', () => {
         adminDb.collection().doc().get.mockResolvedValue({
             exists: true,
             data: () => productToDelete,
+            id: productToDelete.id
         });
 
         await deleteProduct(productToDelete.id, owner.id);
@@ -215,6 +219,7 @@ describe('Product Actions (Firestore)', () => {
         adminDb.collection().doc().get.mockResolvedValue({
             exists: true,
             data: () => productToDelete,
+            id: productToDelete.id
         });
 
         await expect(deleteProduct(productToDelete.id, nonOwner.id)).rejects.toThrow(PermissionError);
