@@ -39,6 +39,7 @@ export let auditLogs: AuditLog[] = [
       statusCode: 200,
       productId: 'pp-001',
       url: 'https://api.example.com/v1/norruva-hooks',
+      payload: '{"event":"product.published","payload":{"id":"pp-001", "name":"Eco-Friendly Smart Watch"}}'
     },
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 5000).toISOString(),
     updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 5000).toISOString(),
@@ -54,6 +55,7 @@ export let auditLogs: AuditLog[] = [
       error: 'Service Unavailable',
       productId: 'pp-004',
       url: 'https://alerts.example.com/dpp-compliance-failures',
+      payload: '{"event":"compliance.failed","payload":{"id":"pp-004", "name":"Leather Handbag"}}'
     },
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
