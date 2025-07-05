@@ -1,3 +1,4 @@
+
 // src/app/dashboard/manufacturer/tickets/[id]/page.tsx
 import {
   getServiceTicketById,

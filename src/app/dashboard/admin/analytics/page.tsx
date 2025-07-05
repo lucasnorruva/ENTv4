@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
@@ -84,16 +85,7 @@ const generateComplianceRateData = (products: Product[]) => {
 export default async function AnalyticsPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
-  const allowedRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.RECYCLER,
-    UserRoles.SERVICE_PROVIDER,
-    UserRoles.RETAILER,
-    UserRoles.AUDITOR,
-  ];
-
-  if (!allowedRoles.some(role => hasRole(user, role))) {
+  if (!hasRole(user, UserRoles.ADMIN)) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 

@@ -1,9 +1,10 @@
+
 // src/app/dashboard/manufacturer/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import { getProducts, getProductionLines, getServiceTickets } from '@/lib/actions';
-import { UserRoles, type Role } from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -17,22 +18,18 @@ import {
   Factory,
   Clock,
   Wrench,
-  Power,
-  PowerOff,
   Gauge,
 } from 'lucide-react';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product, ProductionLine } from '@/types';
+import type { Product, ProductionLine } from '@/types';
 import ProductionOutputChart from '@/components/charts/production-output-chart';
 import ProductionLineStatusChart from '@/components/charts/production-line-status-chart';
 
 export default async function AnalyticsPage() {
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
 
-  const allowedRoles: Role[] = [UserRoles.MANUFACTURER, UserRoles.ADMIN];
-
-  if (!allowedRoles.some(role => hasRole(user, role))) {
+  if (!hasRole(user, UserRoles.MANUFACTURER)) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
