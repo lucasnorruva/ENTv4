@@ -30,6 +30,7 @@ import type { User, Product, CompliancePath, Company } from '@/types';
 // Helper to check for authenticated user in context.
 const checkAuth = (context: MyContext): User => {
   if (!context.user) {
+    // This check is a safeguard, but the context factory should already have thrown.
     throw new GraphQLError('User is not authenticated', {
       extensions: {
         code: 'UNAUTHENTICATED',
@@ -44,20 +45,11 @@ export const resolvers = {
   Query: {
     products: async (
       _: any,
-      args: { limit?: number; offset?: number, filter?: Record<string, string> },
+      args: { limit?: number; offset?: number; filter?: Record<string, any> },
       context: MyContext,
     ) => {
       const user = checkAuth(context);
-      let products = await getProducts(user.id);
-      
-      // Filtering
-      if (args.filter) {
-        products = products.filter(p => {
-          return Object.entries(args.filter!).every(([key, value]) => {
-            return (p as any)[key] === value;
-          });
-        });
-      }
+      let products = await getProducts(user.id, args.filter || {});
 
       // Pagination
       const offset = args.offset || 0;
@@ -66,7 +58,13 @@ export const resolvers = {
     },
     product: async (_: any, { id }: { id: string }, context: MyContext) => {
       const user = checkAuth(context);
-      return getProductById(id, user.id);
+      const product = await getProductById(id, user.id);
+      if (!product) {
+        throw new GraphQLError('Product not found', {
+          extensions: { code: 'NOT_FOUND' },
+        });
+      }
+      return product;
     },
     users: async (
       _: any,
@@ -167,7 +165,11 @@ export const resolvers = {
       const adminUser = checkAuth(context);
       return saveCompany(input, adminUser.id, id);
     },
-    deleteCompany: async (_: any, { id }: { id: string }, context: MyContext) => {
+    deleteCompany: async (
+      _: any,
+      { id }: { id: string },
+      context: MyContext,
+    ) => {
       const adminUser = checkAuth(context);
       await deleteCompany(id, adminUser.id);
       return id;

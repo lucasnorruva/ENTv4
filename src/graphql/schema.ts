@@ -8,6 +8,7 @@ export const typeDefs = gql`
     status: String
     category: String
     supplier: String
+    searchQuery: String
   }
 
   input ProductInput {
@@ -46,6 +47,7 @@ export const typeDefs = gql`
     name: String!
     issuer: String!
     validUntil: String
+    documentUrl: String
   }
 
   input PackagingInput {
@@ -226,7 +228,7 @@ export const typeDefs = gql`
     registered: Boolean
     registrationNumber: String
   }
-  
+
   type EudrCompliance {
     compliant: Boolean
     diligenceId: String
