@@ -32,6 +32,7 @@ import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import HistoryTab from './product-detail-tabs/history-tab';
+import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 
@@ -179,12 +180,13 @@ export default function ProductDetailView({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="mt-4">
               <OverviewTab product={product} customFields={company?.settings?.customFields} />
@@ -203,6 +205,9 @@ export default function ProductDetailView({
             </TabsContent>
             <TabsContent value="history" className="mt-4">
               <HistoryTab product={product} />
+            </TabsContent>
+            <TabsContent value="supply_chain" className="mt-4">
+              <SupplyChainTab product={product} />
             </TabsContent>
           </Tabs>
         </div>
