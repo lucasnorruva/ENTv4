@@ -209,12 +209,12 @@ export default function ProductDetailView({
             <SubmissionChecklist checklist={product.submissionChecklist} />
           )}
           <DppQrCodeWidget productId={product.id} />
-          <PredictiveAnalyticsWidget 
-            product={product} 
-            user={user} 
-            onPredictionComplete={(updatedProduct) => {
+          <PredictiveAnalyticsWidget
+            product={product}
+            user={user}
+            onPredictionComplete={updatedProduct => {
               setProduct(updatedProduct);
-            }} 
+            }}
           />
           <AiActionsWidget
             product={product}
