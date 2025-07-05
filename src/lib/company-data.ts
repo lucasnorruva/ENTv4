@@ -25,6 +25,10 @@ export let companies: Company[] = [
           accent: '45 93% 20%',
         },
       },
+      customFields: [
+        { id: 'internal_sku', label: 'Internal SKU', type: 'text' },
+        { id: 'is_fragile', label: 'Fragile Shipment', type: 'boolean' },
+      ],
     },
   },
   {

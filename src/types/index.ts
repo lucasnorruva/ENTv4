@@ -37,6 +37,12 @@ export interface User extends BaseEntity {
   readNotificationIds?: string[];
 }
 
+export interface CustomFieldDefinition {
+  id: string; // e.g., 'internal_sku'
+  label: string; // e.g., 'Internal SKU'
+  type: 'text' | 'number' | 'boolean';
+}
+
 /**
  * Represents a company or organization in the multi-tenant system.
  */
@@ -58,6 +64,7 @@ export interface Company extends BaseEntity {
         accent?: string;
       };
     };
+    customFields?: CustomFieldDefinition[];
   };
 }
 
@@ -212,6 +219,7 @@ export interface Product extends BaseEntity {
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
   transit?: TransitInfo;
+  customData?: Record<string, string | number | boolean>;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

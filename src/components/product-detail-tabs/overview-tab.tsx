@@ -13,6 +13,7 @@ import {
   Percent,
   Recycle,
   MapPin,
+  ListPlus,
 } from 'lucide-react';
 import type { Product } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,111 +52,138 @@ interface OverviewTabProps {
 }
 
 export default function OverviewTab({ product }: OverviewTabProps) {
+  const hasCustomData =
+    product.customData && Object.keys(product.customData).length > 0;
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Product Information</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 space-y-2">
-            <Image
-              src={product.productImage}
-              alt={product.productName}
-              width={600}
-              height={400}
-              className="rounded-lg border object-cover aspect-[3/2]"
-              data-ai-hint="product photo"
-            />
-          </div>
-          <div className="md:col-span-2 space-y-3 text-sm">
-            <InfoRow
-              icon={Quote}
-              label="Description"
-              value={product.productDescription}
-            />
-            {product.gtin && (
-              <InfoRow
-                icon={Fingerprint}
-                label="GTIN"
-                value={<span className="font-mono">{product.gtin}</span>}
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Product Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-1 space-y-2">
+              <Image
+                src={product.productImage}
+                alt={product.productName}
+                width={600}
+                height={400}
+                className="rounded-lg border object-cover aspect-[3/2]"
+                data-ai-hint="product photo"
               />
-            )}
-            <InfoRow icon={Tag} label="Category" value={product.category} />
-            <InfoRow
-              icon={Landmark}
-              label="Manufacturer"
-              value={product.supplier}
-            />
+            </div>
+            <div className="md:col-span-2 space-y-3 text-sm">
+              <InfoRow
+                icon={Quote}
+                label="Description"
+                value={product.productDescription}
+              />
+              {product.gtin && (
+                <InfoRow
+                  icon={Fingerprint}
+                  label="GTIN"
+                  value={<span className="font-mono">{product.gtin}</span>}
+                />
+              )}
+              <InfoRow icon={Tag} label="Category" value={product.category} />
+              <InfoRow
+                icon={Landmark}
+                label="Manufacturer"
+                value={product.supplier}
+              />
+            </div>
           </div>
-        </div>
-        <Accordion
-          type="single"
-          collapsible
-          defaultValue="data"
-          className="w-full mt-4"
-        >
-          <AccordionItem value="data">
-            <AccordionTrigger>
-              Materials, Manufacturing & Packaging
-            </AccordionTrigger>
-            <AccordionContent>
-              <InfoRow icon={Factory} label="Manufacturing">
-                <p className="text-sm text-muted-foreground">
-                  {product.manufacturing?.facility} in{' '}
-                  {product.manufacturing?.country}
-                </p>
-              </InfoRow>
-              <InfoRow icon={Scale} label="Material Composition">
-                {product.materials.length > 0 ? (
-                  <div className="space-y-3 mt-2">
-                    {product.materials.map((mat, index) => (
-                      <div key={index} className="text-sm">
-                        <p className="font-medium text-foreground">
-                          {mat.name}
-                        </p>
-                        <div className="flex gap-4 text-muted-foreground text-xs">
-                          {mat.percentage !== undefined && (
-                            <span className="flex items-center gap-1">
-                              <Percent className="h-3 w-3" /> {mat.percentage}%
-                              of total
-                            </span>
-                          )}
-                          {mat.recycledContent !== undefined && (
-                            <span className="flex items-center gap-1">
-                              <Recycle className="h-3 w-3" />{' '}
-                              {mat.recycledContent}% recycled
-                            </span>
-                          )}
-                          {mat.origin && (
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> Origin:{' '}
-                              {mat.origin}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">
-                    No material data provided.
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="data"
+            className="w-full mt-4"
+          >
+            <AccordionItem value="data">
+              <AccordionTrigger>
+                Materials, Manufacturing & Packaging
+              </AccordionTrigger>
+              <AccordionContent>
+                <InfoRow icon={Factory} label="Manufacturing">
+                  <p className="text-sm text-muted-foreground">
+                    {product.manufacturing?.facility} in{' '}
+                    {product.manufacturing?.country}
                   </p>
-                )}
-              </InfoRow>
-              <InfoRow icon={Package} label="Packaging">
-                <p className="text-sm text-muted-foreground">
-                  {product.packaging?.type}
-                  {product.packaging?.weight &&
-                    ` (${product.packaging.weight}g)`}
-                  . Recyclable:{' '}
-                  {product.packaging?.recyclable ? 'Yes' : 'No'}.
-                </p>
-              </InfoRow>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </CardContent>
-    </Card>
+                </InfoRow>
+                <InfoRow icon={Scale} label="Material Composition">
+                  {product.materials.length > 0 ? (
+                    <div className="space-y-3 mt-2">
+                      {product.materials.map((mat, index) => (
+                        <div key={index} className="text-sm">
+                          <p className="font-medium text-foreground">
+                            {mat.name}
+                          </p>
+                          <div className="flex gap-4 text-muted-foreground text-xs">
+                            {mat.percentage !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Percent className="h-3 w-3" />{' '}
+                                {mat.percentage}% of total
+                              </span>
+                            )}
+                            {mat.recycledContent !== undefined && (
+                              <span className="flex items-center gap-1">
+                                <Recycle className="h-3 w-3" />{' '}
+                                {mat.recycledContent}% recycled
+                              </span>
+                            )}
+                            {mat.origin && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" /> Origin:{' '}
+                                {mat.origin}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">
+                      No material data provided.
+                    </p>
+                  )}
+                </InfoRow>
+                <InfoRow icon={Package} label="Packaging">
+                  <p className="text-sm text-muted-foreground">
+                    {product.packaging?.type}
+                    {product.packaging?.weight &&
+                      ` (${product.packaging.weight}g)`}
+                    . Recyclable:{' '}
+                    {product.packaging?.recyclable ? 'Yes' : 'No'}.
+                  </p>
+                </InfoRow>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
+      </Card>
+
+      {hasCustomData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ListPlus />
+              Additional Data
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {Object.entries(product.customData!).map(([key, value]) => (
+              <InfoRow
+                key={key}
+                icon={ListPlus} // Re-using icon, fine for now
+                label={key
+                  .replace(/_/g, ' ')
+                  .replace(/\b\w/g, c => c.toUpperCase())}
+                value={String(value)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

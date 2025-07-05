@@ -13,7 +13,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Product, User, CompliancePath } from '@/types';
+import type {
+  Product,
+  User,
+  CompliancePath,
+  CustomFieldDefinition,
+} from '@/types';
 import {
   saveProduct,
   generateProductDescription,
@@ -22,11 +27,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';
+import { cn } from '@/lib/utils';
+import { getCompanyById } from '@/lib/auth';
 
 import GeneralTab from './product-form-tabs/general-tab';
 import DataTab from './product-form-tabs/data-tab';
 import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
+import CustomDataTab from './product-form-tabs/custom-data-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -57,6 +65,8 @@ export default function ProductForm({
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
+  const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([]);
+
   const isEditMode = !!initialData?.id;
 
   const defaultNewValues = {
@@ -76,6 +86,7 @@ export default function ProductForm({
     manualUrl: '',
     declarationOfConformity: '',
     compliancePathId: '',
+    customData: {},
   };
 
   const form = useForm<ProductFormValues>({
@@ -85,6 +96,16 @@ export default function ProductForm({
       ...initialData,
     },
   });
+
+  useEffect(() => {
+    async function fetchCompanySettings() {
+      const company = await getCompanyById(user.companyId);
+      if (company?.settings?.customFields) {
+        setCustomFields(company.settings.customFields);
+      }
+    }
+    fetchCompanySettings();
+  }, [user.companyId]);
 
   const {
     fields: materialFields,
@@ -385,11 +406,19 @@ export default function ProductForm({
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList
+              className={cn(
+                'grid w-full',
+                customFields.length > 0 ? 'grid-cols-5' : 'grid-cols-4',
+              )}
+            >
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
+              {customFields.length > 0 && (
+                <TabsTrigger value="custom">Custom Data</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="general">
               <GeneralTab
@@ -429,6 +458,11 @@ export default function ProductForm({
             <TabsContent value="compliance">
               <ComplianceTab form={form} compliancePaths={compliancePaths} />
             </TabsContent>
+            {customFields.length > 0 && (
+              <TabsContent value="custom">
+                <CustomDataTab form={form} customFields={customFields} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </form>

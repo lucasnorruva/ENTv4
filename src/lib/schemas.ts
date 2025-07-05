@@ -137,6 +137,7 @@ export const productFormSchema = z.object({
   customs: customsStatusSchema.optional(),
   transit: transitInfoSchema.optional(),
   submissionChecklist: submissionChecklistSchema.optional(),
+  customData: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -160,6 +161,12 @@ export const companyFormSchema = z.object({
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
+const customFieldDefinitionSchema = z.object({
+  id: z.string().min(1, 'ID is required').regex(/^[a-z0-9_]+$/, 'ID must be lowercase with underscores.'),
+  label: z.string().min(1, 'Label is required.'),
+  type: z.enum(['text', 'number', 'boolean']),
+});
+
 export const companySettingsSchema = z.object({
   aiEnabled: z.boolean().optional(),
   apiAccess: z.boolean().optional(),
@@ -180,6 +187,7 @@ export const companySettingsSchema = z.object({
         .optional(),
     })
     .optional(),
+  customFields: z.array(customFieldDefinitionSchema).optional(),
 });
 export type CompanySettingsFormValues = z.infer<typeof companySettingsSchema>;
 

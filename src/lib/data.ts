@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import type { Product } from '@/types';
 
@@ -101,6 +100,10 @@ export let products: Product[] = [
         optimalReplacementTimeYears: 4,
         confidenceScore: 0.85,
       },
+    },
+    customData: {
+      internal_sku: 'ECO-SW-S5-BLK',
+      is_fragile: true,
     },
     verificationStatus: 'Verified',
     lastVerificationDate: new Date(
