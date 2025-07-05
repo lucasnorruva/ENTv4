@@ -20,6 +20,7 @@ import {
   Users,
   Webhook,
   ShoppingBag,
+  Globe,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -64,6 +65,7 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
+        { title: 'Customs', icon: Globe, href: 'customs' },
       ],
     },
   ],
@@ -135,6 +137,7 @@ export const navConfig: NavConfig = {
           href: 'compliance',
         },
         { title: 'Reports', icon: FileText, href: 'reports' },
+        { title: 'Customs Info', icon: Globe, href: 'customs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
