@@ -1,4 +1,3 @@
-
 // src/components/charts/service-tickets-by-category-chart.tsx
 "use client";
 
