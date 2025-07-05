@@ -21,6 +21,7 @@ import {
   Webhook,
   ShoppingBag,
   Globe,
+  LifeBuoy,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -186,7 +187,12 @@ export const navConfig: NavConfig = {
   [UserRoles.BUSINESS_ANALYST]: [
     {
       label: 'Analysis',
-      items: [{ title: 'Analytics', icon: BarChart3, href: 'analytics' }],
+      items: [
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Sustainability', icon: Recycle, href: 'sustainability' },
+        { title: 'Composition', icon: Package, href: 'composition' },
+        { title: 'Data Export', icon: FileText, href: 'export' },
+      ],
     },
   ],
   [UserRoles.DEVELOPER]: [

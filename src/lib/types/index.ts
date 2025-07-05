@@ -5,9 +5,9 @@ import type {
   ClassifyProductOutput,
   DataQualityWarning,
   EsgScoreOutput,
+  PcdsOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo } from './transit';
 
 export * from './transit';
 
@@ -209,7 +209,6 @@ export interface Product extends BaseEntity {
   lifecycle?: Lifecycle;
   battery?: Battery;
   serviceHistory?: ServiceRecord[];
-  transit?: TransitInfo;
   customs?: CustomsStatus;
 
   // AI-Generated & Compliance Data
@@ -280,6 +279,7 @@ export interface SupportTicket extends BaseEntity {
   status: 'Open' | 'Closed';
   userId?: string; // Optional, for logged-in users
 }
+
 
 /**
  * Represents a physical production line for manufacturing.
