@@ -12,7 +12,6 @@ import Link from 'next/link';
 import type { Product, User, CompliancePath } from '@/types';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form } from '@/components/ui/form';
 
 import {
@@ -23,11 +22,7 @@ import {
 import { storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
-
-import GeneralTab from '../app/dashboard/product-form-tabs/general-tab';
-import DataTab from '../app/dashboard/product-form-tabs/data-tab';
-import LifecycleTab from '../app/dashboard/product-form-tabs/lifecycle-tab';
-import ComplianceTab from '../app/dashboard/product-form-tabs/compliance-tab';
+import ProductFormBody from './product-form-body';
 
 export default function ProductEditView({
   product: initialProduct,
@@ -361,52 +356,29 @@ export default function ProductEditView({
             </Button>
           </header>
 
-          <Tabs defaultValue="general">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="data">Data</TabsTrigger>
-              <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-            </TabsList>
-            <TabsContent value="general">
-              <GeneralTab
-                form={form}
-                isUploading={isUploading}
-                isSaving={isSaving}
-                imagePreview={form.watch('productImage') || null}
-                handleImageChange={handleImageChange}
-                uploadProgress={uploadProgress}
-                handleGenerateDescription={handleGenerateDescription}
-                isGeneratingDescription={isGeneratingDescription}
-                isGeneratingImage={isGeneratingImage}
-                handleContextImageChange={handleContextImageChange}
-                handleGenerateImage={handleGenerateImage}
-              />
-            </TabsContent>
-            <TabsContent value="data">
-              <DataTab
-                form={form}
-                materialFields={materialFields}
-                appendMaterial={appendMaterial}
-                removeMaterial={removeMaterial}
-                certFields={certFields}
-                appendCert={appendCert}
-                removeCert={removeCert}
-              />
-            </TabsContent>
-            <TabsContent value="lifecycle">
-              <LifecycleTab
-                form={form}
-                handleManualChange={handleManualChange}
-                isUploadingManual={isUploadingManual}
-                manualUploadProgress={manualUploadProgress}
-                isSaving={isSaving}
-              />
-            </TabsContent>
-            <TabsContent value="compliance">
-              <ComplianceTab form={form} compliancePaths={compliancePaths} />
-            </TabsContent>
-          </Tabs>
+          <ProductFormBody
+            form={form}
+            isUploading={isUploading}
+            isSaving={isSaving}
+            imagePreview={form.watch('productImage') || null}
+            handleImageChange={handleImageChange}
+            uploadProgress={uploadProgress}
+            handleGenerateDescription={handleGenerateDescription}
+            isGeneratingDescription={isGeneratingDescription}
+            isGeneratingImage={isGeneratingImage}
+            handleContextImageChange={handleContextImageChange}
+            handleGenerateImage={handleGenerateImage}
+            materialFields={materialFields}
+            appendMaterial={appendMaterial}
+            removeMaterial={removeMaterial}
+            certFields={certFields}
+            appendCert={appendCert}
+            removeCert={removeCert}
+            handleManualChange={handleManualChange}
+            isUploadingManual={isUploadingManual}
+            manualUploadProgress={manualUploadProgress}
+            compliancePaths={compliancePaths}
+          />
         </div>
       </form>
     </Form>
