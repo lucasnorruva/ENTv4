@@ -18,8 +18,35 @@ import {
   Quote,
 } from "lucide-react";
 import Logo from "./logo";
+import { promises as fs } from "fs";
+import path from "path";
+import { Progress } from "./ui/progress";
+import { Badge } from "./ui/badge";
 
-export default function LandingPage() {
+// Function to calculate roadmap progress
+async function getRoadmapProgress() {
+  try {
+    const filePath = path.join(process.cwd(), "docs", "roadmap.md");
+    const content = await fs.readFile(filePath, "utf-8");
+
+    const totalTasks = (content.match(/^- \[[ x]\]/gm) || []).length;
+    const completedTasks = (content.match(/^- \[x\]/gm) || []).length;
+
+    if (totalTasks === 0) {
+      return { percentage: 0, completed: 0, total: 0 };
+    }
+
+    const percentage = Math.round((completedTasks / totalTasks) * 100);
+    return { percentage, completed: completedTasks, total: totalTasks };
+  } catch (error) {
+    console.error("Failed to read or parse roadmap.md:", error);
+    return { percentage: 0, completed: 0, total: 0 };
+  }
+}
+
+export default async function LandingPage() {
+  const roadmapProgress = await getRoadmapProgress();
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <header className="px-4 lg:px-6 h-16 flex items-center border-b sticky top-0 bg-background/95 backdrop-blur-sm z-50">
@@ -43,6 +70,9 @@ export default function LandingPage() {
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12">
               <div className="flex flex-col justify-center space-y-6">
                 <div className="space-y-4">
+                  <Badge variant="outline" className="text-sm py-1 px-3 mb-4">
+                    Project Status: {roadmapProgress.percentage}% Complete
+                  </Badge>
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl xl:text-7xl/none">
                     Unlock Product Trust with Digital Passports
                   </h1>
@@ -52,6 +82,16 @@ export default function LandingPage() {
                     Drive transparency, ensure compliance, and build unshakable
                     customer trust.
                   </p>
+                  <div className="pt-2">
+                    <Progress
+                      value={roadmapProgress.percentage}
+                      className="w-full h-2"
+                    />
+                    <p className="text-xs text-muted-foreground mt-2 text-right">
+                      {roadmapProgress.completed} / {roadmapProgress.total}{" "}
+                      tasks complete
+                    </p>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Button asChild size="lg">
@@ -64,7 +104,7 @@ export default function LandingPage() {
                     <Link href="/demo">Explore Features</Link>
                   </Button>
                   <Button asChild size="lg" variant="secondary">
-                    <Link href="/dashboard">Go to Dashboard</Link>
+                    <Link href="/dashboard/admin">Go to Dashboard</Link>
                   </Button>
                 </div>
               </div>
@@ -266,10 +306,10 @@ export default function LandingPage() {
                     How does the AI-powered compliance work?
                   </AccordionTrigger>
                   <AccordionContent>
-                    We use Genkit AI trained on EU regulations
-                    like ESPR and CSRD. Our system analyzes your product data
-                    against these regulations, provides a compliance score, and
-                    offers actionable suggestions to improve your product's
+                    We use Genkit AI trained on EU regulations like ESPR and
+                    CSRD. Our system analyzes your product data against these
+                    regulations, provides a compliance score, and offers
+                    actionable suggestions to improve your product's
                     sustainability and data accuracy.
                   </AccordionContent>
                 </AccordionItem>
