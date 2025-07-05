@@ -23,6 +23,7 @@ import {
   saveProduct,
   generateProductDescription,
   generateAndSaveProductImage,
+  getFriendlyError,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
@@ -330,10 +331,15 @@ export default function ProductForm({
         });
         router.push(`/dashboard/${roleSlug}/products/${saved.id}`);
         router.refresh(); // Refresh server-side props for the target page
-      } catch (error) {
+      } catch (error: any) {
+        const friendlyError = await getFriendlyError(
+          error,
+          'saving the product passport',
+          user,
+        );
         toast({
-          title: 'Error',
-          description: 'Failed to save the passport.',
+          title: friendlyError.title,
+          description: friendlyError.description,
           variant: 'destructive',
         });
       }
