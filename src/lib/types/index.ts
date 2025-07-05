@@ -229,6 +229,7 @@ export interface Product extends BaseEntity {
     explorerUrl: string;
     blockHeight: number;
   };
+  ebsiVcId?: string;
   verifiableCredential?: string; // JSON string of the signed VC
 }
 
