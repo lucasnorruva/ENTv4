@@ -98,9 +98,6 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
 
-    case 'product:resolve':
-      return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);
 

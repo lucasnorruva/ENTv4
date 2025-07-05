@@ -246,7 +246,6 @@ export type ProductionLineFormValues = z.infer<
   typeof productionLineFormSchema
 >;
 
-// Schema for validating a single product record from a CSV import
 export const bulkProductImportSchema = z.object({
   productName: z.string().min(3, 'productName must be at least 3 characters.'),
   productDescription: z
