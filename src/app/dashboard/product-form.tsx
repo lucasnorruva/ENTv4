@@ -28,8 +28,12 @@ import {
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, User, CompliancePath } from '@/types';
-import { saveProduct, suggestImprovements } from '@/lib/actions';
-import { generateProductDescription } from '@/ai/flows/generate-product-description';
+import {
+  saveProduct,
+  suggestImprovements,
+  generateProductDescription,
+  generateAndSaveProductImage,
+} from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
@@ -66,9 +70,15 @@ export default function ProductForm({
   const { toast } = useToast();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  const [isGeneratingImage, startImageGenerationTransition] = useTransition();
+  const [contextImageFile, setContextImageFile] = useState<File | null>(null);
+
+  const [manualFile, setManualFile] = useState<File | null>(null);
+  const [isUploadingManual, setIsUploadingManual] = useState(false);
+  const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -120,8 +130,70 @@ export default function ProductForm({
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      form.setValue('productImage', URL.createObjectURL(file));
     }
+  };
+
+  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'application/pdf') {
+      setManualFile(file);
+    } else if (file) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please upload a PDF file for the manual.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleContextImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    setContextImageFile(file);
+  };
+
+  const handleGenerateImage = () => {
+    if (!product) {
+      toast({
+        title: 'Save Required',
+        description:
+          'Please save the product first before generating an image.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    startImageGenerationTransition(async () => {
+      let contextImageDataUri: string | undefined = undefined;
+      if (contextImageFile) {
+        contextImageDataUri = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(contextImageFile);
+        });
+      }
+
+      try {
+        const updatedProduct = await generateAndSaveProductImage(
+          product.id,
+          user.id,
+          contextImageDataUri,
+        );
+        form.setValue('productImage', updatedProduct.productImage);
+        toast({
+          title: 'Image Generated!',
+          description: 'A new AI-powered image has been generated and saved.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate product image.',
+          variant: 'destructive',
+        });
+      }
+    });
   };
 
   useEffect(() => {
@@ -132,6 +204,7 @@ export default function ProductForm({
               ...product,
               gtin: product.gtin ?? '',
               productImage: product.productImage ?? '',
+              manualUrl: product.manualUrl ?? '',
               manufacturing: product.manufacturing || {
                 facility: '',
                 country: '',
@@ -161,15 +234,20 @@ export default function ProductForm({
             },
       );
       setImageFile(null);
-      setImagePreview(product?.productImage ?? null);
       setUploadProgress(0);
       setIsUploading(false);
+      setManualFile(null);
+      setManualUploadProgress(0);
+      setIsUploadingManual(false);
     }
   }, [product, isOpen, form]);
 
   const onSubmit = (values: ProductFormValues) => {
     startSavingTransition(async () => {
       let imageUrl = product?.productImage;
+      let manualUrl = product?.manualUrl;
+      let manualFileName = product?.manualFileName;
+      let manualFileSize = product?.manualFileSize;
 
       if (imageFile) {
         setIsUploading(true);
@@ -213,10 +291,57 @@ export default function ProductForm({
         }
       }
 
+      if (manualFile) {
+        setIsUploadingManual(true);
+        setManualUploadProgress(0);
+        const storageRef = ref(
+          storage,
+          `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, manualFile);
+
+        try {
+          manualUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setManualUploadProgress(progress);
+              },
+              error => {
+                setIsUploadingManual(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploadingManual(false);
+                resolve(downloadURL);
+              },
+            );
+          });
+          manualFileName = manualFile.name;
+          manualFileSize = manualFile.size;
+        } catch (error) {
+          toast({
+            title: 'Manual Upload Failed',
+            description:
+              'There was an error uploading your manual. Please try again.',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+
       try {
         const productData = {
           ...values,
           productImage: imageUrl ?? 'https://placehold.co/100x100.png',
+          manualUrl,
+          manualFileName,
+          manualFileSize,
         };
 
         const saved = await saveProduct(productData, user.id, product?.id);
@@ -337,11 +462,14 @@ export default function ProductForm({
                       form={form}
                       isUploading={isUploading}
                       isSaving={isSaving}
-                      imagePreview={imagePreview}
+                      imagePreview={form.watch('productImage')}
                       handleImageChange={handleImageChange}
                       uploadProgress={uploadProgress}
                       handleGenerateDescription={handleGenerateDescription}
                       isGeneratingDescription={isGeneratingDescription}
+                      isGeneratingImage={isGeneratingImage}
+                      handleContextImageChange={handleContextImageChange}
+                      handleGenerateImage={handleGenerateImage}
                     />
                   </TabsContent>
 
@@ -358,7 +486,13 @@ export default function ProductForm({
                   </TabsContent>
 
                   <TabsContent value="lifecycle">
-                    <LifecycleTab form={form} />
+                    <LifecycleTab
+                      form={form}
+                      handleManualChange={handleManualChange}
+                      isUploadingManual={isUploadingManual}
+                      manualUploadProgress={manualUploadProgress}
+                      isSaving={isSaving}
+                    />
                   </TabsContent>
 
                   <TabsContent value="compliance">
@@ -394,12 +528,16 @@ export default function ProductForm({
                     Cancel
                   </Button>
                 </SheetClose>
-                <Button type="submit" disabled={isSaving || isUploading}>
-                  {(isSaving || isUploading) && (
+                <Button type="submit" disabled={isSaving || isUploading || isUploadingManual || isGeneratingImage}>
+                  {(isSaving || isUploading || isUploadingManual || isGeneratingImage) && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   {isUploading
-                    ? 'Uploading...'
+                    ? 'Uploading Image...'
+                    : isUploadingManual
+                    ? 'Uploading Manual...'
+                    : isGeneratingImage
+                    ? 'Generating...'
                     : isSaving
                     ? 'Saving...'
                     : 'Save Passport'}
