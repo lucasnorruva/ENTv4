@@ -18,7 +18,6 @@ import { apiKeys as mockApiKeys } from '@/lib/api-key-data';
 import { apiSettings as mockApiSettings } from '@/lib/api-settings-data';
 import { webhooks as mockWebhooks } from '@/lib/webhook-data';
 import { getAuditLogById, logAuditEvent } from './audit-actions';
-import { getProductById } from './product-actions';
 import { sendWebhook } from '@/services/webhooks';
 import { newId } from './utils';
 
