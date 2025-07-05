@@ -131,11 +131,11 @@ export default async function AdminDashboard({ user }: { user: User }) {
     webhooks,
   ] = await Promise.all([
     getUsers(),
-    getProducts(),
+    getProducts(user.id),
     getAuditLogs(),
     getCompanies(),
-    getServiceTickets(),
-    getWebhooks(),
+    getServiceTickets(user.id),
+    getWebhooks(user.id),
   ]);
 
   const stats = {
