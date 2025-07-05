@@ -4,64 +4,48 @@
 import React, { useEffect, useState, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetClose,
-} from '@/components/ui/sheet';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Product, User, CompliancePath } from '@/types';
 import {
   saveProduct,
-  suggestImprovements,
   generateProductDescription,
   generateAndSaveProductImage,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
-import ProductFormBody from './product-form-body';
+import { can } from '@/lib/permissions';
+
+// Import the new tab components
+import GeneralTab from './product-form-tabs/general-tab';
+import DataTab from './product-form-tabs/data-tab';
+import LifecycleTab from './product-form-tabs/lifecycle-tab';
+import ComplianceTab from './product-form-tabs/compliance-tab';
+import { useRouter } from 'next/navigation';
 
 interface ProductFormProps {
-  isOpen: boolean;
-  onOpenChange: (isOpen: boolean) => void;
-  product: Product | null;
-  onSave: (product: Product) => void;
+  initialData?: Product;
   user: User;
   compliancePaths: CompliancePath[];
+  roleSlug: string;
 }
 
 export default function ProductForm({
-  isOpen,
-  onOpenChange,
-  product,
-  onSave,
+  initialData,
   user,
   compliancePaths,
+  roleSlug,
 }: ProductFormProps) {
   const [isSaving, startSavingTransition] = useTransition();
-  const [isSuggesting, startSuggestionTransition] = useTransition();
   const [isGeneratingDescription, startDescriptionGeneration] = useTransition();
-  const [recommendations, setRecommendations] =
-    useState<SuggestImprovementsOutput | null>(null);
-  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -74,22 +58,34 @@ export default function ProductForm({
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
+  const isEditMode = !!initialData;
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
-    defaultValues: product
+    defaultValues: initialData
       ? {
-          ...product,
-          manufacturing: product.manufacturing || { facility: '', country: '' },
-          packaging: product.packaging || { type: '', recyclable: false },
-          lifecycle: product.lifecycle || {},
-          battery: product.battery || {},
-          compliance: product.compliance || {},
+          ...initialData,
+          gtin: initialData.gtin ?? '',
+          productImage: initialData.productImage ?? '',
+          manualUrl: initialData.manualUrl ?? '',
+          declarationOfConformity: initialData.declarationOfConformity ?? '',
+          compliancePathId: initialData.compliancePathId ?? '',
+          materials: initialData.materials || [],
+          manufacturing: initialData.manufacturing || {
+            facility: '',
+            country: '',
+          },
+          certifications: initialData.certifications || [],
+          packaging: initialData.packaging || { type: '', recyclable: false },
+          lifecycle: initialData.lifecycle || {},
+          battery: initialData.battery || {},
+          compliance: initialData.compliance || {},
         }
       : {
           gtin: '',
           productName: '',
           productDescription: '',
-          productImage: undefined,
+          productImage: '',
           category: 'Electronics',
           status: 'Draft',
           materials: [],
@@ -106,19 +102,13 @@ export default function ProductForm({
     fields: materialFields,
     append: appendMaterial,
     remove: removeMaterial,
-  } = useFieldArray({
-    control: form.control,
-    name: 'materials',
-  });
+  } = useFieldArray({ control: form.control, name: 'materials' });
 
   const {
     fields: certFields,
     append: appendCert,
     remove: removeCert,
-  } = useFieldArray({
-    control: form.control,
-    name: 'certifications',
-  });
+  } = useFieldArray({ control: form.control, name: 'certifications' });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,7 +139,7 @@ export default function ProductForm({
   };
 
   const handleGenerateImage = () => {
-    if (!product) {
+    if (!initialData) {
       toast({
         title: 'Save Required',
         description:
@@ -171,7 +161,7 @@ export default function ProductForm({
 
       try {
         const updatedProduct = await generateAndSaveProductImage(
-          product.id,
+          initialData.id,
           user.id,
           contextImageDataUri,
         );
@@ -184,201 +174,6 @@ export default function ProductForm({
         toast({
           title: 'Error',
           description: 'Failed to generate product image.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      form.reset(
-        product
-          ? {
-              ...product,
-              gtin: product.gtin ?? '',
-              productImage: product.productImage ?? '',
-              manualUrl: product.manualUrl ?? '',
-              manufacturing: product.manufacturing || {
-                facility: '',
-                country: '',
-              },
-              packaging: product.packaging || {
-                type: '',
-                recyclable: false,
-              },
-              lifecycle: product.lifecycle || {},
-              battery: product.battery || {},
-              compliance: product.compliance || {},
-            }
-          : {
-              gtin: '',
-              productName: '',
-              productDescription: '',
-              productImage: '',
-              category: 'Electronics',
-              status: 'Draft',
-              materials: [],
-              manufacturing: { facility: '', country: '' },
-              certifications: [],
-              packaging: { type: '', recyclable: false },
-              lifecycle: {},
-              battery: {},
-              compliance: {},
-            },
-      );
-      setImageFile(null);
-      setUploadProgress(0);
-      setIsUploading(false);
-      setManualFile(null);
-      setManualUploadProgress(0);
-      setIsUploadingManual(false);
-    }
-  }, [product, isOpen, form]);
-
-  const onSubmit = (values: ProductFormValues) => {
-    startSavingTransition(async () => {
-      let imageUrl = product?.productImage;
-      let manualUrl = product?.manualUrl;
-      let manualFileName = product?.manualFileName;
-      let manualFileSize = product?.manualFileSize;
-
-      if (imageFile) {
-        setIsUploading(true);
-        setUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `products/${user.id}/${Date.now()}-${imageFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
-
-        try {
-          imageUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-              },
-              error => {
-                setIsUploading(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploading(false);
-                resolve(downloadURL);
-              },
-            );
-          });
-        } catch (error) {
-          toast({
-            title: 'Image Upload Failed',
-            description:
-              'There was an error uploading your image. Please try again.',
-            variant: 'destructive',
-          });
-          return;
-        }
-      }
-
-      if (manualFile) {
-        setIsUploadingManual(true);
-        setManualUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, manualFile);
-
-        try {
-          manualUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setManualUploadProgress(progress);
-              },
-              error => {
-                setIsUploadingManual(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploadingManual(false);
-                resolve(downloadURL);
-              },
-            );
-          });
-          manualFileName = manualFile.name;
-          manualFileSize = manualFile.size;
-        } catch (error) {
-          toast({
-            title: 'Manual Upload Failed',
-            description:
-              'There was an error uploading your manual. Please try again.',
-            variant: 'destructive',
-          });
-          return;
-        }
-      }
-
-      try {
-        const productData = {
-          ...values,
-          productImage: imageUrl ?? 'https://placehold.co/100x100.png',
-          manualUrl,
-          manualFileName,
-          manualFileSize,
-        };
-
-        const saved = await saveProduct(productData, user.id, product?.id);
-
-        toast({
-          title: 'Success!',
-          description: `Passport for "${saved.productName}" has been saved.`,
-        });
-        onSave(saved);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the passport.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
-  const handleGetSuggestions = () => {
-    const { productName, productDescription } = form.getValues();
-    if (!productName || !productDescription) {
-      toast({
-        title: 'Missing Information',
-        description: 'Please provide a product name and description first.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    startSuggestionTransition(async () => {
-      try {
-        const result = await suggestImprovements({
-          productName,
-          productDescription,
-        });
-        setRecommendations(result);
-        setIsSuggestionsOpen(true);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to get AI suggestions.',
           variant: 'destructive',
         });
       }
@@ -421,26 +216,154 @@ export default function ProductForm({
     });
   };
 
+  const onSubmit = (values: ProductFormValues) => {
+    startSavingTransition(async () => {
+      let imageUrl = initialData?.productImage;
+      let manualUrl = initialData?.manualUrl;
+      let manualFileName = initialData?.manualFileName;
+      let manualFileSize = initialData?.manualFileSize;
+
+      if (imageFile) {
+        setIsUploading(true);
+        setUploadProgress(0);
+        const storageRef = ref(
+          storage,
+          `products/${user.id}/${Date.now()}-${imageFile.name}`,
+        );
+        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+        try {
+          imageUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              snapshot => {
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setUploadProgress(progress);
+              },
+              error => {
+                setIsUploading(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
+                setIsUploading(false);
+                resolve(downloadURL);
+              },
+            );
+          });
+        } catch (error) {
+          toast({
+            title: 'Image Upload Failed',
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
+      
+      if (manualFile) {
+        setIsUploadingManual(true);
+        setManualUploadProgress(0);
+        const storageRef = ref(storage, `manuals/${user.id}/${Date.now()}-${manualFile.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, manualFile);
+
+        try {
+          manualUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on('state_changed', snapshot => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setManualUploadProgress(progress);
+            }, error => {
+              setIsUploadingManual(false);
+              reject(error);
+            }, async () => {
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              setIsUploadingManual(false);
+              resolve(downloadURL);
+            });
+          });
+          manualFileName = manualFile.name;
+          manualFileSize = manualFile.size;
+        } catch (error) {
+          toast({ title: "Manual Upload Failed", variant: 'destructive' });
+          return;
+        }
+      }
+
+      try {
+        const productData = { ...values, productImage: imageUrl ?? 'https://placehold.co/100x100.png', manualUrl, manualFileName, manualFileSize };
+        const saved = await saveProduct(productData, user.id, initialData?.id);
+        toast({
+          title: 'Success!',
+          description: `Passport for "${saved.productName}" has been saved.`,
+        });
+        router.push(`/dashboard/${roleSlug}/products/${saved.id}`);
+        router.refresh(); // Refresh server-side props for the target page
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to save the passport.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+  
+  const canEdit = isEditMode ? can(user, 'product:edit', initialData) : can(user, 'product:create');
+
+  if (!canEdit) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-destructive">
+          You do not have permission to perform this action.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <>
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent className="w-full flex flex-col p-0 sm:max-w-3xl">
-          <SheetHeader className="p-6 pb-2">
-            <SheetTitle>
-              {product ? 'Edit Product Passport' : 'Create Product Passport'}
-            </SheetTitle>
-            <SheetDescription>
-              {product
-                ? 'Update the details for this product passport.'
-                : 'Fill in the details for the new product passport.'}
-            </SheetDescription>
-          </SheetHeader>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="flex-1 overflow-y-auto"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        <div className="space-y-6">
+          <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              {isEditMode && (
+                 <Button asChild variant="outline" size="sm" className="mb-4">
+                 <Link href={`/dashboard/${roleSlug}/products/${initialData.id}`}>
+                   <ArrowLeft className="mr-2 h-4 w-4" />
+                   Back to Product
+                 </Link>
+               </Button>
+              )}
+              <h1 className="text-2xl font-bold tracking-tight">
+                {isEditMode
+                  ? `Edit: ${initialData.productName}`
+                  : 'Create New Product Passport'}
+              </h1>
+            </div>
+            <Button
+              type="submit"
+              disabled={isSaving || isUploading || isGeneratingImage || isUploadingManual}
             >
-              <ProductFormBody
+              {isSaving || isUploading || isGeneratingImage || isUploadingManual ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
+              )}
+              {isUploading ? 'Uploading Image...' : isUploadingManual ? 'Uploading Manual...' : isGeneratingImage ? 'Generating...' : isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </header>
+
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="data">Data</TabsTrigger>
+              <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+              <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general">
+              <GeneralTab
                 form={form}
                 isUploading={isUploading}
                 isSaving={isSaving}
@@ -452,88 +375,34 @@ export default function ProductForm({
                 isGeneratingImage={isGeneratingImage}
                 handleContextImageChange={handleContextImageChange}
                 handleGenerateImage={handleGenerateImage}
+              />
+            </TabsContent>
+            <TabsContent value="data">
+              <DataTab
+                form={form}
                 materialFields={materialFields}
                 appendMaterial={appendMaterial}
                 removeMaterial={removeMaterial}
                 certFields={certFields}
                 appendCert={appendCert}
                 removeCert={removeCert}
+              />
+            </TabsContent>
+            <TabsContent value="lifecycle">
+              <LifecycleTab
+                form={form}
                 handleManualChange={handleManualChange}
                 isUploadingManual={isUploadingManual}
                 manualUploadProgress={manualUploadProgress}
-                compliancePaths={compliancePaths}
+                isSaving={isSaving}
               />
-              {/* Footer with actions */}
-              <div className="flex justify-end gap-2 p-6 mt-auto border-t bg-background sticky bottom-0">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGetSuggestions}
-                  disabled={isSuggesting || isSaving || isUploading}
-                >
-                  {isSuggesting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-2 h-4 w-4" />
-                  )}
-                  AI Suggestions
-                </Button>
-                <div className="flex-grow" />
-                <SheetClose asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={isSaving || isUploading}
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
-                <Button type="submit" disabled={isSaving || isUploading || isUploadingManual || isGeneratingImage}>
-                  {(isSaving || isUploading || isUploadingManual || isGeneratingImage) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isUploading
-                    ? 'Uploading Image...'
-                    : isUploadingManual
-                    ? 'Uploading Manual...'
-                    : isGeneratingImage
-                    ? 'Generating...'
-                    : isSaving
-                    ? 'Saving...'
-                    : 'Save Passport'}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </SheetContent>
-      </Sheet>
-
-      <Dialog open={isSuggestionsOpen} onOpenChange={setIsSuggestionsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>AI Recommendations</DialogTitle>
-            <DialogDescription>
-              Here are some suggestions to improve this product's passport and
-              sustainability profile.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="prose prose-sm dark:prose-invert max-h-[60vh] overflow-y-auto">
-            {recommendations?.recommendations.map((rec, index) => (
-              <div key={index} className="mb-4 last:mb-0">
-                <p className="font-semibold">
-                  <strong>{rec.type}:</strong> {rec.text}
-                </p>
-              </div>
-            ))}
-            {!recommendations?.recommendations && (
-              <p>No recommendations generated.</p>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setIsSuggestionsOpen(false)}>Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+            </TabsContent>
+            <TabsContent value="compliance">
+              <ComplianceTab form={form} compliancePaths={compliancePaths} />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </form>
+    </Form>
   );
 }

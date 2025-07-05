@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useTransition, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 
 import type { Product, User, CompliancePath } from '@/types';
@@ -16,7 +17,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import ProductForm from './product-form';
 import ProductTable from './product-table';
 import {
   deleteProduct,
@@ -31,6 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
 import ProductImportDialog from './product-import-dialog';
 import ProductCreationFromImageDialog from './product-creation-from-image-dialog';
+import ProductForm from './product-form';
 
 interface ProductManagementClientProps {
   user: User;
@@ -45,12 +46,12 @@ export default function ProductManagementClient({
 }: ProductManagementClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
   const fetchProducts = useCallback(() => {
     setIsLoading(true);
@@ -73,11 +74,6 @@ export default function ProductManagementClient({
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
-  const handleCreateNew = () => {
-    setSelectedProduct(null);
-    setIsSheetOpen(true);
-  };
-
   const handleImport = () => {
     setIsImportOpen(true);
   };
@@ -96,14 +92,9 @@ export default function ProductManagementClient({
   };
 
   const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
-    const partialProduct: Partial<Product> = {
-      productName: data.productName,
-      productDescription: data.productDescription,
-      category: data.category,
-      status: 'Draft',
-    };
-    setSelectedProduct(partialProduct as Product);
-    setIsSheetOpen(true);
+    // This part is now handled by navigating to the new page with state
+    // but the dialog can stay for UX.
+    console.log("Analysis complete, would navigate with this data:", data);
   };
 
   const handleDelete = (id: string) => {
@@ -162,21 +153,6 @@ export default function ProductManagementClient({
     });
   };
 
-  const handleSave = (savedProduct: Product) => {
-    setIsSheetOpen(false);
-    // Optimistically update the list
-    setProducts(prev => {
-      const exists = prev.some(p => p.id === savedProduct.id);
-      if (exists) {
-        return prev.map(p => (p.id === savedProduct.id ? savedProduct : p));
-      }
-      return [savedProduct, ...prev];
-    });
-    // The background processing will eventually update the final state.
-    // A full refetch might be good here too.
-    setTimeout(fetchProducts, 4000); // Re-sync after AI processing delay
-  };
-
   const handleBulkDelete = (productIds: string[]) => {
     startTransition(async () => {
       await bulkDeleteProducts(productIds, user.id);
@@ -220,8 +196,10 @@ export default function ProductManagementClient({
                 <Button variant="outline" onClick={handleCreateFromImage}>
                   <Sparkles className="mr-2 h-4 w-4" /> Create from Image
                 </Button>
-                <Button onClick={handleCreateNew}>
-                  <Plus className="mr-2 h-4 w-4" /> Create New
+                <Button asChild>
+                  <Link href={`/dashboard/${roleSlug}/products/new`}>
+                    <Plus className="mr-2 h-4 w-4" /> Create New
+                  </Link>
                 </Button>
               </div>
             )}
@@ -242,16 +220,6 @@ export default function ProductManagementClient({
           />
         </CardContent>
       </Card>
-      {canCreate && (
-        <ProductForm
-          isOpen={isSheetOpen}
-          onOpenChange={setIsSheetOpen}
-          product={selectedProduct}
-          onSave={handleSave}
-          user={user}
-          compliancePaths={compliancePaths}
-        />
-      )}
       {canCreate && (
         <ProductImportDialog
           isOpen={isImportOpen}

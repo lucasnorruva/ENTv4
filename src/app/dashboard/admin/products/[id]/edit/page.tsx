@@ -5,7 +5,7 @@ import {
 } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
-import ProductEditView from '@/components/product-edit-view';
+import ProductForm from '@/components/product-form';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -24,12 +24,13 @@ export default async function ProductEditPage({
   if (!product) {
     notFound();
   }
-  
+
   return (
-    <ProductEditView
-      product={product}
+    <ProductForm
+      initialData={product}
       user={user}
       compliancePaths={compliancePaths}
+      roleSlug="admin"
     />
   );
 }
