@@ -3,6 +3,7 @@
 
 import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus } from '@/types';
 import { products as mockProducts } from '@/lib/data';
+import { users as mockUsers } from '@/lib/user-data';
 import { getWebhooks, getProductById } from '@/lib/actions/index';
 import { logAuditEvent } from './audit-actions';
 import { getUserById } from '../auth';
@@ -146,6 +147,14 @@ export async function markAsRecycled(
   mockProducts[productIndex].endOfLifeStatus = 'Recycled';
   mockProducts[productIndex].lastUpdated = new Date().toISOString();
   await logAuditEvent('product.recycled', productId, {}, userId);
+  
+  // Grant circularity credits
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if(userIndex > -1) {
+    const creditsToGrant = 10;
+    mockUsers[userIndex].circularityCredits = (mockUsers[userIndex].circularityCredits || 0) + creditsToGrant;
+    await logAuditEvent('credits.minted', productId, { amount: creditsToGrant, newBalance: mockUsers[userIndex].circularityCredits, recipient: userId }, 'system');
+  }
 
   return Promise.resolve(mockProducts[productIndex]);
 }

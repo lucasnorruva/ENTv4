@@ -22,6 +22,7 @@ import {
   ShoppingBag,
   Globe,
   LifeBuoy,
+  Award,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -231,7 +232,10 @@ export const navConfig: NavConfig = {
   [UserRoles.RECYCLER]: [
     {
       label: 'Operations',
-      items: [{ title: 'EOL Products', icon: Recycle, href: 'eol' }],
+      items: [
+        { title: 'EOL Products', icon: Recycle, href: 'eol' },
+        { title: 'Credit History', icon: Award, href: 'credits' },
+      ],
     },
     {
       label: 'Analysis',

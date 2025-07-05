@@ -35,6 +35,7 @@ export interface User extends BaseEntity {
   onboardingComplete: boolean;
   isMfaEnabled: boolean;
   readNotificationIds?: string[];
+  circularityCredits?: number;
 }
 
 export interface CustomFieldDefinition {

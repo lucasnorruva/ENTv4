@@ -16,6 +16,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 5,
   },
   {
     id: 'user-supplier',
@@ -28,6 +29,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-auditor',
@@ -40,6 +42,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-compliance',
@@ -52,6 +55,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-manufacturer',
@@ -64,6 +68,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-service',
@@ -76,6 +81,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-recycler',
@@ -88,6 +94,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-retailer',
@@ -100,6 +107,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-developer',
@@ -112,6 +120,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
   {
     id: 'user-analyst',
@@ -124,5 +133,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
+    circularityCredits: 0,
   },
 ];

@@ -40,6 +40,7 @@ import {
   Webhook as WebhookIcon,
   KeyRound,
   History,
+  Award,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
@@ -67,6 +68,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'system.sync.reference_data': Cog,
   'cron.start': Clock,
   'cron.end': History,
+  'credits.minted': Award,
   default: Clock,
 };
 
@@ -87,7 +89,11 @@ interface EntityMaps {
 const getLogDescription = (log: AuditLog, maps: EntityMaps): string => {
   const { action, entityId, details } = log;
 
-  if (action.startsWith('product.') || action.startsWith('passport.')) {
+  if (
+    action.startsWith('product.') ||
+    action.startsWith('passport.') ||
+    action.startsWith('credits.')
+  ) {
     return `Product: ${maps.products.get(entityId) || entityId}`;
   }
   if (action.startsWith('user.')) {
@@ -145,6 +151,10 @@ export default async function AdminDashboard({ user }: { user: User }) {
       p => p.verificationStatus === 'Failed',
     ).length,
     openServiceTickets: serviceTickets.filter(t => t.status === 'Open').length,
+    totalCreditsIssued: allUsers.reduce(
+      (sum, u) => sum + (u.circularityCredits ?? 0),
+      0,
+    ),
   };
 
   const complianceChartData = {
@@ -172,7 +182,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -261,6 +271,20 @@ export default async function AdminDashboard({ user }: { user: User }) {
               {stats.openServiceTickets}
             </div>
             <p className="text-xs text-muted-foreground">Awaiting response</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Circularity Credits
+            </CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats.totalCreditsIssued}
+            </div>
+            <p className="text-xs text-muted-foreground">Total issued</p>
           </CardContent>
         </Card>
       </div>
