@@ -144,7 +144,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
       return hasRole(user, UserRoles.MANUFACTURER);
 
     case 'integration:sync':
-      return hasRole(user, UserRoles.DEVELOPER)
+      return hasRole(user, UserRoles.DEVELOPER);
 
     default:
       return false;
