@@ -25,7 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
-import BomAnalysisWidget from '../bom-analysis-widget';
+import BomAnalysisWidget from '../../components/bom-analysis-widget';
 
 interface DataTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -296,7 +296,14 @@ export default function DataTab({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => appendCert({ name: '', issuer: '' })}
+                onClick={() =>
+                  appendCert({
+                    name: '',
+                    issuer: '',
+                    validUntil: '',
+                    documentUrl: '',
+                  })
+                }
               >
                 <Plus className="mr-2 h-4 w-4" /> Add Certificate
               </Button>
@@ -305,28 +312,60 @@ export default function DataTab({
               {certFields.map((field, index) => (
                 <div
                   key={field.id}
-                  className="grid grid-cols-2 gap-2 border p-4 rounded-md relative"
+                  className="grid grid-cols-1 sm:grid-cols-2 gap-4 border p-4 rounded-md relative"
                 >
-                  <FormItem>
-                    <FormLabel>Certificate Name</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...form.register(`certifications.${index}.name`)}
-                        placeholder="e.g. EcoCert"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                  <FormItem>
-                    <FormLabel>Issuer</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...form.register(`certifications.${index}.issuer`)}
-                        placeholder="e.g. EcoCert Group"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormField
+                    control={form.control}
+                    name={`certifications.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Certificate Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. EcoCert" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name={`certifications.${index}.issuer`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Issuer</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. EcoCert Group" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name={`certifications.${index}.validUntil`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Valid Until (YYYY-MM-DD)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g. 2025-12-31" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name={`certifications.${index}.documentUrl`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Document URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://example.com/cert.pdf" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <Button
                     type="button"
                     variant="ghost"

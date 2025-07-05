@@ -15,8 +15,9 @@ import {
   Utensils,
   Recycle,
   Leaf,
+  CalendarDays,
 } from 'lucide-react';
-import type { Product, CompliancePath } from '@/types';
+import type { Product, CompliancePath, Certification } from '@/types';
 import {
   Accordion,
   AccordionContent,
@@ -31,6 +32,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 function InfoRow({
   icon: Icon,
@@ -205,13 +207,30 @@ export default function ComplianceTab({
         <CardContent>
           <InfoRow icon={FileText} label="Certifications">
             {product.certifications && product.certifications.length > 0 ? (
-              <ul className="list-disc list-inside text-sm text-muted-foreground">
-                {product.certifications.map((cert: any, index: number) => (
-                  <li key={index}>
-                    {cert.name} (by {cert.issuer})
-                  </li>
+              <div className="space-y-3 mt-1">
+                {product.certifications.map((cert: Certification, index: number) => (
+                   <div key={index} className="text-sm p-3 border rounded-md bg-muted/50">
+                    <p className="font-semibold text-foreground">{cert.name}</p>
+                    <p className="text-xs text-muted-foreground">Issued by: {cert.issuer}</p>
+                    {cert.validUntil && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <CalendarDays className="h-3 w-3" />
+                            Valid until: {format(new Date(cert.validUntil), 'PPP')}
+                        </p>
+                    )}
+                    {cert.documentUrl && (
+                         <Link
+                            href={cert.documentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline mt-2 flex items-center gap-1"
+                        >
+                            View Document <LinkIcon className="h-3 w-3" />
+                        </Link>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             ) : (
               <p className="text-muted-foreground text-sm">
                 No certifications listed.
