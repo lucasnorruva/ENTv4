@@ -5,7 +5,6 @@ import type {
   ClassifyProductOutput,
   DataQualityWarning,
   EsgScoreOutput,
-  PcdsOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 

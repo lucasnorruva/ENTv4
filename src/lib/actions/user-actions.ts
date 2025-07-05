@@ -9,7 +9,7 @@ import {
   onboardingFormSchema,
   type OnboardingFormValues,
 } from '@/lib/schemas';
-import { getUserById, getUserByEmail } from '@/lib/auth';
+import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
 import { logAuditEvent } from './audit-actions';
@@ -208,7 +208,7 @@ export async function signInWithMockUser(email: string, pass: string) {
     if (pass !== 'password123') {
         return { success: false, error: "Invalid credentials" };
     }
-    const user = await getUserByEmail(email);
+    const user = mockUsers.find(user => user.email === email);
     if (user) {
         try {
         const customToken = await adminAuth.createCustomToken(user.id);
