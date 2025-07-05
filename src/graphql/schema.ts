@@ -2,25 +2,13 @@
 import { gql } from 'graphql-tag';
 
 export const typeDefs = gql`
-  # The basic query operations
-  type Query {
-    products: [Product!]
-    product(id: ID!): Product
-    users: [User!]
-    user(id: ID!): User
-    companies: [Company!]
-    company(id: ID!): Company
-    compliancePaths: [CompliancePath!]
-  }
-
-  # The basic mutation operations
-  type Mutation {
-    createProduct(input: ProductInput!): Product
-    updateProduct(id: ID!, input: ProductInput!): Product
-    deleteProduct(id: ID!): ID
-  }
-
   # --- INPUTS --- #
+
+  input ProductFilterInput {
+    status: String
+    category: String
+    supplier: String
+  }
 
   input ProductInput {
     productName: String!
@@ -124,6 +112,19 @@ export const typeDefs = gql`
   input FoodContactInput {
     safe: Boolean
     standard: String
+  }
+
+  input UserInput {
+    fullName: String!
+    email: String!
+    companyId: String!
+    roles: [String!]!
+  }
+
+  input CompanyInput {
+    name: String!
+    ownerId: String!
+    industry: String
   }
 
   # --- OUTPUTS --- #
@@ -299,5 +300,31 @@ export const typeDefs = gql`
     minSustainabilityScore: Int
     requiredKeywords: [String!]
     bannedKeywords: [String!]
+  }
+
+  # The basic query operations
+  type Query {
+    products(limit: Int, offset: Int, filter: ProductFilterInput): [Product!]
+    product(id: ID!): Product
+    users(limit: Int, offset: Int): [User!]
+    user(id: ID!): User
+    companies(limit: Int, offset: Int): [Company!]
+    company(id: ID!): Company
+    compliancePaths: [CompliancePath!]
+  }
+
+  # The basic mutation operations
+  type Mutation {
+    createProduct(input: ProductInput!): Product
+    updateProduct(id: ID!, input: ProductInput!): Product
+    deleteProduct(id: ID!): ID
+
+    createUser(input: UserInput!): User
+    updateUser(id: ID!, input: UserInput!): User
+    deleteUser(id: ID!): ID
+
+    createCompany(input: CompanyInput!): Company
+    updateCompany(id: ID!, input: CompanyInput!): Company
+    deleteCompany(id: ID!): ID
   }
 `;

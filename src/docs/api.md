@@ -19,20 +19,20 @@ For complex data retrieval and mutations, our GraphQL API is the most powerful a
 
 Our GraphQL endpoint supports introspection, so you can explore the full schema using tools like Postman, Apollo Studio, or Insomnia.
 
-### Example Query: Fetch Products with Company Info
+### Example Query: Fetch Filtered & Paginated Products
 
-This query retrieves all products and, for each product, fetches details about its parent company.
+This query retrieves the first 10 'Electronics' products, including their company details.
 
 ```graphql
-query GetProductsWithCompany {
-  products {
+query GetElectronicsProducts {
+  products(limit: 10, offset: 0, filter: { category: "Electronics" }) {
     id
     productName
     status
+    category
     company {
       id
       name
-      industry
     }
   }
 }
@@ -56,10 +56,42 @@ query GetCompanyUsers($companyId: ID!) {
   }
 }
 ```
+
 **Variables:**
 ```json
 {
   "companyId": "comp-eco"
+}
+```
+
+### Example Mutation: Create a User
+
+This mutation creates a new user and assigns them to a company.
+
+```graphql
+mutation CreateNewUser($input: UserInput!) {
+  createUser(input: $input) {
+    id
+    fullName
+    email
+    roles
+    company {
+      id
+      name
+    }
+  }
+}
+```
+
+**Variables:**
+```json
+{
+  "input": {
+    "fullName": "API User",
+    "email": "api.user@example.com",
+    "companyId": "comp-eco",
+    "roles": ["Supplier"]
+  }
 }
 ```
 
@@ -95,6 +127,7 @@ mutation CreateNewProduct($input: ProductInput!) {
   }
 }
 ```
+
 ---
 
 ## REST API v2 (Current)
