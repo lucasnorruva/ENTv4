@@ -155,15 +155,6 @@ export interface CustomsStatus {
   location: string;
   date: string; // ISO 8601 format
   notes?: string;
-  history?: Omit<CustomsStatus, 'history'>[];
-}
-
-export interface TransitInfo {
-    stage: string;
-    eta: string; // ISO date string
-    transport: 'Ship' | 'Truck' | 'Plane';
-    origin: string;
-    destination: string;
 }
 
 /**
@@ -176,18 +167,6 @@ export interface SustainabilityData extends EsgScoreOutput {
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
-}
-
-/**
- * Defines the completion status of various passport sections.
- */
-export interface SubmissionChecklist {
-  hasBaseInfo: boolean;
-  hasMaterials: boolean;
-  hasManufacturing: boolean;
-  hasLifecycleData: boolean;
-  hasCompliancePath: boolean;
-  passesDataQuality: boolean;
 }
 
 /**
@@ -217,13 +196,11 @@ export interface Product extends BaseEntity {
   compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
-  transit?: TransitInfo;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
-  submissionChecklist?: SubmissionChecklist;
   isProcessing?: boolean;
 
   // Lifecycle & Verification

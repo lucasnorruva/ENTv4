@@ -8,76 +8,25 @@ import {
   supportTicketFormSchema,
   type SupportTicketFormValues,
 } from '../schemas';
-import { getUserById, getProducts } from '../auth';
-import { hasRole } from '../auth-utils';
+import { getUserById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
 import { UserRoles } from '../constants';
 import { serviceTickets as mockServiceTickets } from '../service-ticket-data';
 import { supportTickets as mockSupportTickets } from '../support-ticket-data';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
-import { getProductionLines } from './manufacturing-actions';
 
-export async function getServiceTickets(
-  userId?: string,
-  filters?: { productionLineId?: string },
-): Promise<ServiceTicket[]> {
-  if (!userId) return Promise.resolve(mockServiceTickets);
-
+export async function getServiceTickets(userId: string): Promise<ServiceTicket[]> {
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
-  const allProducts = await getProducts(user.id);
-  const allLines = await getProductionLines();
-
-  const companyProductIds = allProducts
-    .filter(p => p.companyId === user.companyId)
-    .map(p => p.id);
-  const companyLineIds = allLines
-    .filter(l => l.companyId === user.companyId)
-    .map(l => l.id);
-
-  const canViewAll = hasRole(user, UserRoles.ADMIN);
-
-  let results = [...mockServiceTickets];
-
-  if (filters?.productionLineId) {
-    results = results.filter(
-      t => t.productionLineId === filters.productionLineId,
-    );
+  // Admins and Service Providers can see all tickets for now in this mock.
+  if (user.roles.includes(UserRoles.ADMIN) || user.roles.includes(UserRoles.SERVICE_PROVIDER)) {
+    return Promise.resolve(mockServiceTickets);
   }
 
-  if (canViewAll) {
-    // Admin sees all
-    return Promise.resolve(
-      results.sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      ),
-    );
-  }
-
-  if (hasRole(user, UserRoles.MANUFACTURER)) {
-    // Manufacturer sees tickets for their products or lines
-    results = results.filter(
-      t =>
-        (t.productId && companyProductIds.includes(t.productId)) ||
-        (t.productionLineId &&
-          companyLineIds.includes(t.productionLineId)),
-    );
-  } else if (hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-    // Service Provider sees tickets they created/are assigned to
-    results = results.filter(t => t.userId === user.id);
-  } else {
-    // Other roles see no tickets by default unless they have global read
-    return Promise.resolve([]);
-  }
-
-  return Promise.resolve(
-    results.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-    ),
-  );
+  // Other roles see none by default
+  return Promise.resolve([]);
 }
 
 export async function saveServiceTicket(
@@ -93,22 +42,13 @@ export async function saveServiceTicket(
   const now = new Date().toISOString();
   let savedTicket: ServiceTicket;
 
-  const ticketData = {
-    productId: validatedData.productId,
-    productionLineId: validatedData.productionLineId,
-    customerName: validatedData.customerName,
-    issue: validatedData.issue,
-    status: validatedData.status,
-    imageUrl: validatedData.imageUrl,
-    userId,
-  };
-
   if (ticketId) {
     const ticketIndex = mockServiceTickets.findIndex(t => t.id === ticketId);
     if (ticketIndex === -1) throw new Error('Ticket not found');
     savedTicket = {
       ...mockServiceTickets[ticketIndex],
-      ...ticketData,
+      ...validatedData,
+      userId,
       updatedAt: now,
     };
     mockServiceTickets[ticketIndex] = savedTicket;
@@ -116,7 +56,8 @@ export async function saveServiceTicket(
   } else {
     savedTicket = {
       id: newId('tkt'),
-      ...ticketData,
+      ...validatedData,
+      userId,
       createdAt: now,
       updatedAt: now,
     };
@@ -192,27 +133,4 @@ export async function saveSupportTicket(
     userId || 'guest',
   );
   return newTicket;
-}
-
-export async function getServiceTicketById(
-  ticketId: string,
-  userId: string,
-): Promise<ServiceTicket | undefined> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const ticket = mockServiceTickets.find(t => t.id === ticketId);
-  if (!ticket) return undefined;
-
-  const canViewAll =
-    hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.MANUFACTURER);
-  if (canViewAll) {
-    return ticket;
-  }
-
-  if (hasRole(user, UserRoles.SERVICE_PROVIDER) && ticket.userId === user.id) {
-    return ticket;
-  }
-
-  return undefined;
 }

@@ -1,4 +1,3 @@
-
 // src/lib/permissions.ts
 import type { User, Product } from '@/types';
 import { hasRole } from './auth-utils';
@@ -30,7 +29,6 @@ export type Action =
   | 'product:add_service_record'
   | 'product:validate_data'
   | 'product:run_compliance'
-  | 'product:customs_inspect'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -42,8 +40,7 @@ export type Action =
   | 'ticket:manage'
   | 'ticket:view_all'
   | 'support:manage'
-  | 'manufacturer:manage_lines'
-  | 'integration:sync';
+  | 'manufacturer:manage_lines';
 
 /**
  * Checks if a user has permission to perform a specific action.
@@ -93,7 +90,6 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'product:approve':
     case 'product:reject':
-    case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
 
     case 'product:resolve':
@@ -127,22 +123,16 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'ticket:create':
     case 'ticket:manage':
-      return (
-        hasRole(user, UserRoles.SERVICE_PROVIDER) ||
-        hasRole(user, UserRoles.MANUFACTURER)
-      );
-
+      return hasRole(user, UserRoles.SERVICE_PROVIDER);
+      
     case 'ticket:view_all':
       return hasRole(user, UserRoles.ADMIN);
 
     case 'support:manage':
       return hasRole(user, UserRoles.ADMIN);
-
+      
     case 'manufacturer:manage_lines':
       return hasRole(user, UserRoles.MANUFACTURER);
-    
-    case 'integration:sync':
-        return hasRole(user, UserRoles.DEVELOPER);
 
     default:
       return false;

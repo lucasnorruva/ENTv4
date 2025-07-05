@@ -18,13 +18,8 @@ import {
   ShieldAlert,
   ListChecks,
   Users,
-  FileDown,
-  History,
-  Search as SearchIcon,
   Webhook,
   ShoppingBag,
-  Globe,
-  Landmark,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -55,11 +50,8 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
-        { title: 'Customs Requirements', icon: Landmark, href: 'customs' },
-        { title: 'Platform Logs', icon: History, href: 'logs' },
+        { title: 'Platform Logs', icon: Clock, href: 'logs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
-        { title: 'Service Tickets', icon: Wrench, href: 'service-tickets' },
         { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
@@ -111,7 +103,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
-        { title: 'Service Tickets', icon: Wrench, href: 'service-tickets' },
       ],
     },
     {
@@ -131,7 +122,6 @@ export const navConfig: NavConfig = {
       label: 'Auditing',
       items: [
         { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
-        { title: 'Customs Requirements', icon: Landmark, href: 'customs' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
       ],
     },
@@ -191,21 +181,8 @@ export const navConfig: NavConfig = {
   ],
   [UserRoles.BUSINESS_ANALYST]: [
     {
-      label: 'Analytics',
-      items: [
-        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
-        {
-          title: 'Sustainability Metrics',
-          icon: Recycle,
-          href: 'sustainability',
-        },
-        {
-          title: 'Material Composition',
-          icon: Package,
-          href: 'composition',
-        },
-        { title: 'Data Export', icon: FileDown, href: 'export' },
-      ],
+      label: 'Analysis',
+      items: [{ title: 'Analytics', icon: BarChart3, href: 'analytics' }],
     },
   ],
   [UserRoles.DEVELOPER]: [
@@ -257,7 +234,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
         { title: 'Browse Products', icon: BookCopy, href: 'products' },
-        { title: 'Browse Lines', icon: Factory, href: 'lines' },
       ],
     },
     {

@@ -155,15 +155,6 @@ export interface CustomsStatus {
   location: string;
   date: string; // ISO 8601 format
   notes?: string;
-  history?: Omit<CustomsStatus, 'history'>[];
-}
-
-export interface TransitInfo {
-    stage: string;
-    eta: string; // ISO date string
-    transport: 'Ship' | 'Truck' | 'Plane';
-    origin: string;
-    destination: string;
 }
 
 /**
@@ -205,7 +196,6 @@ export interface Product extends BaseEntity {
   compliance?: Compliance;
   serviceHistory?: ServiceRecord[];
   customs?: CustomsStatus;
-  transit?: TransitInfo;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
