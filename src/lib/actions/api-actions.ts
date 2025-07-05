@@ -1,7 +1,7 @@
 // src/lib/actions/api-actions.ts
 'use server';
 
-import type { ApiKey, ApiSettings, Webhook } from '@/types';
+import type { ApiKey, ApiSettings, Product, Webhook } from '@/types';
 import {
   apiSettingsSchema,
   type ApiSettingsFormValues,
@@ -121,13 +121,16 @@ export async function replayWebhook(
   }
 
   const webhook = await getWebhookById(log.entityId, user.id);
-  const product = await getProductById(log.details.productId, user.id);
+  const webhookBodyString = log.details.payload;
 
-  if (!webhook || !product) {
-    throw new Error('Could not find original webhook or product for replay.');
+  if (!webhook || !webhookBodyString) {
+    throw new Error('Could not find original webhook or payload for replay.');
   }
 
-  sendWebhook(webhook, log.details.event, product);
+  const webhookBody = JSON.parse(webhookBodyString);
+  const productPayload: Product = webhookBody.payload;
+
+  sendWebhook(webhook, log.details.event, productPayload);
 
   await logAuditEvent(
     'webhook.replay.initiated',
@@ -136,7 +139,6 @@ export async function replayWebhook(
     userId,
   );
 }
-
 
 export async function getApiKeys(userId: string): Promise<ApiKey[]> {
   const user = await getUserById(userId);
@@ -204,7 +206,6 @@ export async function saveApiKey(
   }
 }
 
-
 export async function revokeApiKey(
   keyId: string,
   userId: string,
@@ -223,7 +224,6 @@ export async function revokeApiKey(
   await logAuditEvent('api_key.revoked', keyId, {}, userId);
   return Promise.resolve(mockApiKeys[keyIndex]);
 }
-
 
 export async function deleteApiKey(
   keyId: string,

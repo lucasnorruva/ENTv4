@@ -31,11 +31,13 @@ import type { Webhook, AuditLog, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { replayWebhook, getAuditLogsForEntity } from '@/lib/actions';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ScrollArea } from './ui/scroll-area';
 
 interface WebhookDeliveriesClientProps {
   webhook: Webhook;
@@ -51,6 +53,7 @@ export default function WebhookDeliveriesClient({
   const [replayingId, setReplayingId] = useState<string | null>(null);
   const [isReplaying, startReplayTransition] = useTransition();
   const { toast } = useToast();
+  const [viewingPayload, setViewingPayload] = useState<string | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
@@ -106,103 +109,136 @@ export default function WebhookDeliveriesClient({
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Webhook Delivery Logs</CardTitle>
-          <CardDescription>
-            A history of recent delivery attempts for the endpoint:{' '}
-            <span className="font-mono text-sm bg-muted p-1 rounded">
-              {webhook.url}
-            </span>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Product ID</TableHead>
-                  <TableHead>Timestamp</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {logs.map(log => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(log.details.statusCode)}>
-                        {log.details.statusCode}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-center gap-2">
-                              {log.action.includes('success') ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <AlertCircle className="h-4 w-4 text-destructive" />
-                              )}
-                              <span className="font-mono text-xs">
-                                {log.details.event}
-                              </span>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Event ID: {log.id}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {log.details.productId}
-                    </TableCell>
-                    <TableCell>{format(new Date(log.createdAt), 'PPpp')}</TableCell>
-                    <TableCell className="text-right">
-                      {log.action.includes('failure') && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleReplay(log)}
-                          disabled={isReplaying}
-                        >
-                          {isReplaying && replayingId === log.id ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : (
-                            <RefreshCw className="mr-2 h-4 w-4" />
-                          )}
-                          Replay
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {logs.length === 0 && (
+    <>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Webhook Delivery Logs</CardTitle>
+            <CardDescription>
+              A history of recent delivery attempts for the endpoint:{' '}
+              <span className="font-mono text-sm bg-muted p-1 rounded">
+                {webhook.url}
+              </span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-48">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <WebhookIcon className="h-8 w-8 text-muted-foreground" />
-                        <p>
-                          No delivery attempts have been logged for this webhook
-                          yet.
-                        </p>
-                      </div>
-                    </TableCell>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Event</TableHead>
+                    <TableHead>Product ID</TableHead>
+                    <TableHead>Payload</TableHead>
+                    <TableHead>Timestamp</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {logs.map(log => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <Badge
+                          variant={getStatusVariant(log.details.statusCode)}
+                        >
+                          {log.details.statusCode}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {log.action.includes('success') ? (
+                            <CheckCircle className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-destructive" />
+                          )}
+                          <span className="font-mono text-xs">
+                            {log.details.event}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {log.details.productId}
+                      </TableCell>
+                      <TableCell>
+                        {log.details.payload ? (
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0"
+                            onClick={() => setViewingPayload(log.details.payload)}
+                          >
+                            View Payload
+                          </Button>
+                        ) : (
+                          'N/A'
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(log.createdAt), 'PPpp')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {log.action.includes('failure') && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReplay(log)}
+                            disabled={isReplaying}
+                          >
+                            {isReplaying && replayingId === log.id ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="mr-2 h-4 w-4" />
+                            )}
+                            Replay
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {logs.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <WebhookIcon className="h-8 w-8 text-muted-foreground" />
+                          <p>
+                            No delivery attempts have been logged for this
+                            webhook yet.
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </>
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={!!viewingPayload}
+        onOpenChange={() => setViewingPayload(null)}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Webhook Payload</DialogTitle>
+            <DialogDescription>
+              The exact JSON payload sent to the endpoint.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96 w-full rounded-md border bg-muted p-4">
+            <pre className="text-xs">
+              {viewingPayload
+                ? JSON.stringify(JSON.parse(viewingPayload), null, 2)
+                : ''}
+            </pre>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

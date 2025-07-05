@@ -52,6 +52,7 @@ export async function sendWebhook(
         statusCode: response.status,
         productId: payload.id,
         url,
+        payload: body, // Store the sent payload
       },
       userId,
     );
@@ -74,6 +75,7 @@ export async function sendWebhook(
         error: (error as Error).message,
         productId: payload.id,
         url,
+        payload: body, // Store the payload even on network failure
       },
       userId,
     );
