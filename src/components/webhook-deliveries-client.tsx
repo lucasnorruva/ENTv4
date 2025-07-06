@@ -214,31 +214,31 @@ export default function WebhookDeliveriesClient({
                   )}
                 </TableBody>
               </Table>
-            </>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
 
-      <Dialog
-        open={!!viewingPayload}
-        onOpenChange={() => setViewingPayload(null)}
-      >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Webhook Payload</DialogTitle>
-            <DialogDescription>
-              The exact JSON payload sent to the endpoint.
-            </DialogDescription>
-          </DialogHeader>
-          <ScrollArea className="h-96 w-full rounded-md border bg-muted p-4">
-            <pre className="text-xs">
-              {viewingPayload
-                ? JSON.stringify(JSON.parse(viewingPayload), null, 2)
-                : ''}
-            </pre>
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-    </div>
+        <Dialog
+          open={!!viewingPayload}
+          onOpenChange={() => setViewingPayload(null)}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Webhook Payload</DialogTitle>
+              <DialogDescription>
+                The exact JSON payload sent to the endpoint.
+              </DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="h-96 w-full rounded-md border bg-muted p-4">
+              <pre className="text-xs">
+                {viewingPayload
+                  ? JSON.stringify(JSON.parse(viewingPayload), null, 2)
+                  : ''}
+              </pre>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
   );
 }
