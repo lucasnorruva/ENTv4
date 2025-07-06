@@ -11,8 +11,8 @@ import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { productQa } from '@/ai/flows/product-qa-flow';
 import type { ProductQuestionOutput } from '@/ai/flows/product-qa-flow';
-import { getUserById, getCompanyById } from '@/lib/auth';
-import { checkPermission, PermissionError } from '@/lib/permissions';
+import { getUserById, getCompanyById } from '../auth';
+import { checkPermission, PermissionError } from '../permissions';
 import { getProductById } from './product-actions';
 import { getCompliancePathById } from './compliance-actions';
 import { logAuditEvent } from './audit-actions';
@@ -23,7 +23,6 @@ import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
-// `processProductAi` and its specific imports have been moved to `product-actions.ts` to resolve a circular dependency.
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 

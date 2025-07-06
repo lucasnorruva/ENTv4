@@ -1,7 +1,7 @@
 // src/services/credential.ts
 "use server";
 
-import type { Product, User, Company } from '@/types';
+import type { Product, Company } from '@/types';
 import { hashData } from './blockchain';
 import { privateKeyToAccount } from 'viem/accounts';
 import type { Hex } from 'viem';

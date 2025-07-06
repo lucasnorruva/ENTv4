@@ -1,13 +1,13 @@
 // src/lib/actions/product-workflow-actions.ts
 'use server';
 
-import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus, BlockchainProof } from '@/types';
+import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus, BlockchainProof, ZkProof } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { getWebhooks } from './api-actions';
 import { getProductById } from './product-actions';
 import { logAuditEvent } from './audit-actions';
-import { getUserById } from '../auth';
+import { getUserById, getCompanyById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
 import { newId } from './utils';
 import { sendWebhook } from '@/services/webhooks';
@@ -16,6 +16,7 @@ import {
   anchorToPolygon,
 } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
+import { generateComplianceProof } from '@/services/zkp-service';
 import { customsInspectionFormSchema, type CustomsInspectionFormValues } from '../schemas';
 import { runSubmissionValidation, isChecklistComplete } from '@/services/validation';
 
@@ -62,8 +63,12 @@ export async function approvePassport(
 
   const product = mockProducts[productIndex];
   
+  // Fetch the company to pass to the credential service for revocation info
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company associated with product not found.');
+
   // 1. Create the full Verifiable Credential first.
-  const verifiableCredential = await createVerifiableCredential(product, user);
+  const verifiableCredential = await createVerifiableCredential(product, company);
 
   // 2. Hash the claims (credentialSubject) to get the Merkle root for anchoring.
   const dataHash = await hashData(verifiableCredential.credentialSubject);
@@ -132,8 +137,8 @@ export async function rejectPassport(
     environmental: 0,
     social: 0,
     governance: 0,
-    summary: '',
     isCompliant: false,
+    summary: '',
     complianceSummary: '',
   };
 
@@ -330,6 +335,38 @@ export async function performCustomsInspection(
 
   return Promise.resolve(mockProducts[productIndex]);
 }
+
+export async function generateZkProofForProduct(
+    productId: string,
+    userId: string,
+  ): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+  
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error('Product not found or permission denied.');
+  
+    checkPermission(user, 'product:generate_zkp', product);
+  
+    await logAuditEvent('zkp.generation.started', productId, {}, userId);
+  
+    const proof = await generateComplianceProof(product);
+  
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found in mock data');
+  
+    mockProducts[productIndex].zkProof = proof;
+    mockProducts[productIndex].lastUpdated = new Date().toISOString();
+  
+    await logAuditEvent(
+      'zkp.generation.success',
+      productId,
+      { proofData: proof.proofData.substring(0, 20) + '...' }, // log a snippet
+      userId,
+    );
+  
+    return Promise.resolve(mockProducts[productIndex]);
+  }
 
 // --- Bulk Actions ---
 
