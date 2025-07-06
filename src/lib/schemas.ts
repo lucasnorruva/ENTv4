@@ -240,11 +240,13 @@ export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
 export const serviceTicketFormSchema = z.object({
   productId: z.string().optional(),
+  productionLineId: z.string().optional(),
   customerName: z.string().min(2, 'Customer name is required.'),
   issue: z
     .string()
     .min(10, 'Issue description must be at least 10 characters.'),
   status: z.enum(['Open', 'In Progress', 'Closed']),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
 
