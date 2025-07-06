@@ -68,7 +68,7 @@ function IntegrationCard({
           />
           <Label htmlFor={`${integration.id}-switch`}>Enable</Label>
         </div>
-        {canSync && (
+        {canSync && integration.type === 'ERP' && (
           <Button
             variant="outline"
             size="sm"
@@ -240,3 +240,5 @@ export default function IntegrationManagementClient({
     </div>
   );
 }
+
+    
