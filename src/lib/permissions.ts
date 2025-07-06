@@ -74,7 +74,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
       return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
 
     case 'product:delete':
-      // Suppliers can only delete their own drafts. Admins can delete anything (handled above).
+      // Suppliers can only delete their own draft products. Admins can delete anything (handled above).
       return product
         ? isOwner &&
             hasRole(user, UserRoles.SUPPLIER) &&
