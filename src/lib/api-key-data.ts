@@ -19,6 +19,7 @@ export let apiKeys: ApiKey[] = [
   {
     id: 'key-002',
     label: 'Old Integration (Revoked)',
+    rawToken: 'nor_rev_0987654321_zyxwvu', // MOCK ONLY
     token: 'nor_rev_******************5678',
     status: 'Revoked',
     userId: 'user-developer',

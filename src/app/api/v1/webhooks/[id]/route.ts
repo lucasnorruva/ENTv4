@@ -4,7 +4,7 @@ import {
   getWebhookById,
   saveWebhook,
   deleteWebhook,
-} from '@/lib/actions/api-actions';
+} from '@/lib/actions/webhook-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';

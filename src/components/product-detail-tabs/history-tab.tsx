@@ -177,3 +177,5 @@ const HistoryTab = ({ product }: { product: Product }) => {
     </Card>
   );
 };
+
+export default HistoryTab;
