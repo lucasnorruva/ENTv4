@@ -437,46 +437,79 @@ export default function ProductTable({
           {selectedRowCount > 0 ? (
             <>
               {canBulkSubmit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    onBulkSubmit(
-                      table.getFilteredSelectedRowModel().rows.map(r => r.original.id),
-                    )
-                  }
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit ({selectedRowCount})
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Send className="mr-2 h-4 w-4" />
+                      Submit ({selectedRowCount})
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Submit for Review?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will submit {selectedRowCount} product(s) to the audit queue for verification.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onBulkSubmit(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
+                        Submit
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               {canBulkArchive && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    onBulkArchive(
-                      table.getFilteredSelectedRowModel().rows.map(r => r.original.id),
-                    )
-                  }
-                >
-                  <Archive className="mr-2 h-4 w-4" />
-                  Archive ({selectedRowCount})
-                </Button>
+                 <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Archive className="mr-2 h-4 w-4" />
+                      Archive ({selectedRowCount})
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Archive Products?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will archive {selectedRowCount} product(s). They will be hidden from most views but not deleted.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => onBulkArchive(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}>
+                        Archive
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
               {canBulkDelete && (
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() =>
-                    onBulkDelete(
-                      table.getFilteredSelectedRowModel().rows.map(r => r.original.id),
-                    )
-                  }
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete ({selectedRowCount})
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete ({selectedRowCount})
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete {selectedRowCount} product(s). This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                        onClick={() => onBulkDelete(table.getFilteredSelectedRowModel().rows.map(r => r.original.id))}
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </>
           ) : (
