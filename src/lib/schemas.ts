@@ -46,6 +46,14 @@ const batterySchema = z.object({
   isRemovable: z.boolean().optional(),
 });
 
+const eprSchemeSchema = z.object({
+  schemeId: z.string().min(1, 'Scheme ID is required.'),
+  producerRegistrationNumber: z
+    .string()
+    .min(1, 'Producer Registration Number is required.'),
+  wasteCategory: z.string().optional(),
+});
+
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -87,6 +95,7 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
+  epr: eprSchemeSchema.optional(),
   battery: z
     .object({
       compliant: z.boolean().optional(),
@@ -112,27 +121,37 @@ const complianceSchema = z.object({
     .optional(),
 });
 
+export const greenClaimSchema = z.object({
+  claim: z.string().min(3, 'Claim text must be at least 3 characters.'),
+  substantiation: z.string().min(3, 'Substantiation is required.'),
+});
 
 export const customsInspectionFormSchema = z.object({
-    status: z.enum(['Cleared', 'Detained', 'Rejected']),
-    authority: z.string().min(3, 'Authority name is required.'),
-    location: z.string().min(3, 'Inspection location is required.'),
-    notes: z.string().optional(),
-  });
-export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
+  status: z.enum(['Cleared', 'Detained', 'Rejected']),
+  authority: z.string().min(3, 'Authority name is required.'),
+  location: z.string().min(3, 'Inspection location is required.'),
+  notes: z.string().optional(),
+});
+export type CustomsInspectionFormValues = z.infer<
+  typeof customsInspectionFormSchema
+>;
 
 const customsStatusSchema = customsInspectionFormSchema.extend({
-  date: z.string().refine(val => !isNaN(Date.parse(val)), { message: "Invalid date" }),
-  history: z.array(z.lazy(() => customsStatusSchema.omit({ history: true }))).optional(),
+  date: z.string().refine(val => !isNaN(Date.parse(val)), {
+    message: 'Invalid date',
+  }),
+  history: z
+    .array(z.lazy(() => customsStatusSchema.omit({ history: true })))
+    .optional(),
 });
 
 export const submissionChecklistSchema = z.object({
-    hasBaseInfo: z.boolean(),
-    hasMaterials: z.boolean(),
-    hasManufacturing: z.boolean(),
-    hasLifecycleData: z.boolean(),
-    hasCompliancePath: z.boolean(),
-    passesDataQuality: z.boolean(),
+  hasBaseInfo: z.boolean(),
+  hasMaterials: z.boolean(),
+  hasManufacturing: z.boolean(),
+  hasLifecycleData: z.boolean(),
+  hasCompliancePath: z.boolean(),
+  passesDataQuality: z.boolean(),
 });
 
 const transitInfoSchema = z.object({
@@ -144,16 +163,20 @@ const transitInfoSchema = z.object({
 });
 
 const verificationOverrideSchema = z.object({
-    reason: z.string(),
-    userId: z.string(),
-    date: z.string(),
+  reason: z.string(),
+  userId: z.string(),
+  date: z.string(),
 });
 
 export const textileDataSchema = z.object({
-  fiberComposition: z.array(z.object({
-    name: z.string().min(1, 'Fiber name is required.'),
-    percentage: z.coerce.number().min(0).max(100),
-  })).optional(),
+  fiberComposition: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Fiber name is required.'),
+        percentage: z.coerce.number().min(0).max(100),
+      }),
+    )
+    .optional(),
   dyeProcess: z.string().optional(),
   weaveType: z.string().optional(),
 });
@@ -205,10 +228,13 @@ export const productFormSchema = z.object({
   customs: customsStatusSchema.optional(),
   transit: transitInfoSchema.optional(),
   submissionChecklist: submissionChecklistSchema.optional(),
-  customData: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+  customData: z
+    .record(z.union([z.string(), z.number(), z.boolean()]))
+    .optional(),
   verificationOverride: verificationOverrideSchema.optional(),
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
   blockchainProof: blockchainProofSchema.optional(),
   zkProof: zkProofSchema.optional(),
   ebsiVcId: z.string().optional(),
@@ -222,11 +248,9 @@ export const userFormSchema = z.object({
   fullName: z.string().min(2, 'Full name is required.'),
   email: z.string().email('Invalid email address.'),
   companyId: z.string().min(1, 'Company ID is required.'),
-  roles: z
-    .array(z.string())
-    .refine(value => value.some(item => item), {
-      message: 'You have to select at least one role.',
-    }),
+  roles: z.array(z.string()).refine(value => value.some(item => item), {
+    message: 'You have to select at least one role.',
+  }),
 });
 export type UserFormValues = z.infer<typeof userFormSchema>;
 
@@ -236,12 +260,19 @@ export const companyFormSchema = z.object({
   industry: z.string().optional(),
   tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
   isTrustedIssuer: z.boolean().optional(),
-  revocationListUrl: z.string().url({ message: 'Please enter a valid URL' }).optional().or(z.literal('')),
+  revocationListUrl: z
+    .string()
+    .url({ message: 'Please enter a valid URL' })
+    .optional()
+    .or(z.literal('')),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
 const customFieldDefinitionSchema = z.object({
-  id: z.string().min(1, 'ID is required').regex(/^[a-z0-9_]+$/, 'ID must be lowercase with underscores.'),
+  id: z
+    .string()
+    .min(1, 'ID is required')
+    .regex(/^[a-z0-9_]+$/, 'ID must be lowercase with underscores.'),
   label: z.string().min(1, 'Label is required.'),
   type: z.enum(['text', 'number', 'boolean']),
 });
@@ -274,7 +305,9 @@ export const compliancePathFormSchema = z.object({
   name: z.string().min(3, 'Path name is required.'),
   description: z.string().min(10, 'Description is required.'),
   category: z.string().min(1, 'Category is required.'),
-  regulations: z.array(z.object({ value: z.string().min(1, "Regulation cannot be empty.") })).min(1, "At least one regulation is required."),
+  regulations: z
+    .array(z.object({ value: z.string().min(1, 'Regulation cannot be empty.') }))
+    .min(1, 'At least one regulation is required.'),
   minSustainabilityScore: z.coerce.number().min(0).max(100).optional(),
   requiredKeywords: z.array(z.object({ value: z.string() })).optional(),
   bannedKeywords: z.array(z.object({ value: z.string() })).optional(),
@@ -375,20 +408,23 @@ export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
 export const bulkUserImportSchema = z.object({
   fullName: z.string().min(2, 'fullName is required.'),
   email: z.string().email('Invalid email address.'),
-  roles: z.string().min(1, 'At least one role is required.').transform((val, ctx) => {
-    const roles = val.split(',').map(r => r.trim());
-    const validRoles = Object.values(UserRoles);
-    for (const role of roles) {
+  roles: z
+    .string()
+    .min(1, 'At least one role is required.')
+    .transform((val, ctx) => {
+      const roles = val.split(',').map(r => r.trim());
+      const validRoles = Object.values(UserRoles);
+      for (const role of roles) {
         if (!validRoles.includes(role as Role)) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: `Invalid role: ${role}`,
-            });
-            return z.NEVER;
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Invalid role: ${role}`,
+          });
+          return z.NEVER;
         }
-    }
-    return roles as Role[];
-  }),
+      }
+      return roles as Role[];
+    }),
 });
 
 export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
@@ -413,6 +449,12 @@ export const apiSettingsSchema = z.object({
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
 
 export const overrideVerificationSchema = z.object({
-  reason: z.string().min(10, { message: "A justification reason is required (min 10 characters)." }),
+  reason: z
+    .string()
+    .min(10, {
+      message: 'A justification reason is required (min 10 characters).',
+    }),
 });
-export type OverrideVerificationFormValues = z.infer<typeof overrideVerificationSchema>;
+export type OverrideVerificationFormValues = z.infer<
+  typeof overrideVerificationSchema
+>;

@@ -80,6 +80,13 @@ import {
 import { UserRoles } from "@/lib/constants";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
+import { recalculateScore } from "@/lib/actions/product-ai-actions";
+import {
+  submitForReview,
+  bulkDeleteProducts,
+  bulkSubmitForReview,
+  bulkArchiveProducts,
+} from "@/lib/actions/product-actions";
 
 interface ProductTableProps {
   products: Product[];

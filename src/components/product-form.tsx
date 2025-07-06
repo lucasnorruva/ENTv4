@@ -66,7 +66,7 @@ export default function ProductForm({
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
-  
+
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [modelUploadProgress, setModelUploadProgress] = useState(0);
@@ -76,7 +76,7 @@ export default function ProductForm({
 
   const isEditMode = !!initialData?.id;
 
-  const defaultNewValues = {
+  const defaultNewValues: ProductFormValues = {
     gtin: '',
     productName: '',
     productDescription: '',
@@ -89,7 +89,21 @@ export default function ProductForm({
     packaging: { type: '', recyclable: false },
     lifecycle: {},
     battery: {},
-    compliance: {},
+    compliance: {
+      rohs: { compliant: false },
+      reach: { svhcDeclared: false },
+      weee: { registered: false },
+      eudr: { compliant: false },
+      ce: { marked: false },
+      prop65: { warningRequired: false },
+      foodContact: { safe: false },
+      epr: { schemeId: '', producerRegistrationNumber: '', wasteCategory: '' },
+      battery: { compliant: false },
+      pfas: { declared: false },
+      conflictMinerals: { compliant: false },
+      espr: { compliant: false },
+    },
+    greenClaims: [],
     manualUrl: '',
     manualFileName: '',
     manualFileSize: 0,
@@ -106,6 +120,12 @@ export default function ProductForm({
     defaultValues: {
       ...defaultNewValues,
       ...initialData,
+      // Ensure nested objects are not undefined
+      compliance: {
+        ...defaultNewValues.compliance,
+        ...initialData?.compliance,
+      },
+      greenClaims: initialData?.greenClaims || [],
     },
   });
 
@@ -133,6 +153,12 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
+  
+  const {
+    fields: greenClaimFields,
+    append: appendGreenClaim,
+    remove: removeGreenClaim,
+  } = useFieldArray({ control: form.control, name: 'greenClaims' });
 
   const {
     fields: fiberFields,
@@ -163,7 +189,7 @@ export default function ProductForm({
       });
     }
   };
-  
+
   const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
@@ -349,18 +375,23 @@ export default function ProductForm({
           return;
         }
       }
-      
+
       if (modelFile) {
         setIsUploadingModel(true);
         setModelUploadProgress(0);
-        const storageRef = ref(storage, `models/${user.id}/${Date.now()}-${modelFile.name}`);
+        const storageRef = ref(
+          storage,
+          `models/${user.id}/${Date.now()}-${modelFile.name}`,
+        );
         const uploadTask = uploadBytesResumable(storageRef, modelFile);
 
         try {
           model3dUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on('state_changed',
+            uploadTask.on(
+              'state_changed',
               snapshot => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 setModelUploadProgress(progress);
               },
               error => {
@@ -368,10 +399,12 @@ export default function ProductForm({
                 reject(error);
               },
               async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
                 setIsUploadingModel(false);
                 resolve(downloadURL);
-              }
+              },
             );
           });
           model3dFileName = modelFile.name;
@@ -478,14 +511,14 @@ export default function ProductForm({
               {isUploading
                 ? 'Uploading Image...'
                 : isUploadingManual
-                  ? 'Uploading Manual...'
-                  : isUploadingModel
-                    ? 'Uploading Model...'
-                    : isGeneratingImage
-                      ? 'Generating...'
-                      : isSaving
-                        ? 'Saving...'
-                        : 'Save Changes'}
+                ? 'Uploading Manual...'
+                : isUploadingModel
+                ? 'Uploading Model...'
+                : isGeneratingImage
+                ? 'Generating...'
+                : isSaving
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           </header>
 
@@ -493,7 +526,9 @@ export default function ProductForm({
             <TabsList className="w-full h-auto flex-wrap justify-start">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
-              {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+              {showTextileTab && (
+                <TabsTrigger value="textile">Textile</TabsTrigger>
+              )}
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
               {hasCustomFields && (
@@ -528,7 +563,7 @@ export default function ProductForm({
                 isAiEnabled={isAiEnabled}
               />
             </TabsContent>
-             {showTextileTab && (
+            {showTextileTab && (
               <TabsContent value="textile">
                 <TextileTab
                   form={form}
@@ -554,7 +589,13 @@ export default function ProductForm({
               />
             </TabsContent>
             <TabsContent value="compliance">
-              <ComplianceTab form={form} compliancePaths={compliancePaths} />
+              <ComplianceTab
+                form={form}
+                compliancePaths={compliancePaths}
+                greenClaimFields={greenClaimFields}
+                appendGreenClaim={appendGreenClaim}
+                removeGreenClaim={removeGreenClaim}
+              />
             </TabsContent>
             {hasCustomFields && (
               <TabsContent value="custom">

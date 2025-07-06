@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useToast } from '@/hooks/use-toast';
-import { addServiceRecord } from '@/lib/actions/product-workflow-actions';
+import { addServiceRecord } from '@/lib/actions/product-actions';
 import type { Product, User } from '@/types';
 
 import {

@@ -128,6 +128,12 @@ export interface TextileData {
 
 export interface TextileAnalysis extends AnalyzeTextileOutput {}
 
+export interface EprScheme {
+  schemeId: string;
+  producerRegistrationNumber: string;
+  wasteCategory?: string;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -155,6 +161,7 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
+  epr?: EprScheme;
   battery?: {
     compliant?: boolean;
     passportId?: string;
@@ -170,6 +177,11 @@ export interface Compliance {
     compliant?: boolean;
     delegatedActUrl?: string;
   };
+}
+
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
 }
 
 export interface ComplianceGap {
@@ -269,6 +281,7 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   compliance?: Compliance;
+  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

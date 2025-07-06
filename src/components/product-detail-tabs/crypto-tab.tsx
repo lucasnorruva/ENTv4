@@ -26,7 +26,7 @@ import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
-import { generateZkProofForProduct } from '@/lib/actions/product-workflow-actions';
+import { generateZkProofForProduct } from '@/lib/actions/product-actions';
 
 function InfoRow({
   icon: Icon,

@@ -19,7 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import PublicPassportView from './public-passport-view';
 import type { Product, User } from '@/types';
 import { Loader2, AlertTriangle } from 'lucide-react';
-import { approvePassport, rejectPassport } from '@/lib/actions';
+import { approvePassport, rejectPassport } from '@/lib/actions/product-actions';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuditReviewDialogProps {
