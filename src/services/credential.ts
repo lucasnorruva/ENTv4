@@ -3,7 +3,7 @@
 
 import type { Product, User } from '@/types';
 import { hashData } from './blockchain';
-import { createWalletClient, http, Hex } from 'viem';
+import { createWalletClient, http, Hex, publicActions } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
 

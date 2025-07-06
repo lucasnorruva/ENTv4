@@ -172,6 +172,7 @@ export const typeDefs = gql`
     manualUrl: String
     model3dUrl: String
     declarationOfConformity: String
+    isProcessing: Boolean
 
     materials: [Material!]
     manufacturing: Manufacturing

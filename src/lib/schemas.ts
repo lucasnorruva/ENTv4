@@ -49,64 +49,64 @@ const batterySchema = z.object({
 const complianceSchema = z.object({
   rohs: z
     .object({
-      compliant: z.boolean().default(false),
+      compliant: z.boolean().optional(),
       exemption: z.string().optional(),
     })
     .optional(),
   reach: z
     .object({
-      svhcDeclared: z.boolean().default(false),
+      svhcDeclared: z.boolean().optional(),
       scipReference: z.string().optional(),
     })
     .optional(),
   weee: z
     .object({
-      registered: z.boolean().default(false),
+      registered: z.boolean().optional(),
       registrationNumber: z.string().optional(),
     })
     .optional(),
   eudr: z
     .object({
-      compliant: z.boolean().default(false),
+      compliant: z.boolean().optional(),
       diligenceId: z.string().optional(),
     })
     .optional(),
   ce: z
     .object({
-      marked: z.boolean().default(false),
+      marked: z.boolean().optional(),
     })
     .optional(),
   prop65: z
     .object({
-      warningRequired: z.boolean().default(false),
+      warningRequired: z.boolean().optional(),
     })
     .optional(),
   foodContact: z
     .object({
-      safe: z.boolean().default(false),
+      safe: z.boolean().optional(),
       standard: z.string().optional(),
     })
     .optional(),
   battery: z
     .object({
-      compliant: z.boolean().default(false),
+      compliant: z.boolean().optional(),
       passportId: z.string().optional(),
     })
     .optional(),
   pfas: z
     .object({
-      declared: z.boolean().default(false),
+      declared: z.boolean().optional(),
     })
     .optional(),
   conflictMinerals: z
     .object({
-      compliant: z.boolean().default(false),
+      compliant: z.boolean().optional(),
       reportUrl: z.string().url().optional().or(z.literal('')),
     })
     .optional(),
   espr: z
     .object({
-      compliant: z.boolean().default(false),
+      compliant: z.boolean().optional(),
       delegatedActUrl: z.string().url().optional().or(z.literal('')),
     })
     .optional(),
@@ -206,6 +206,7 @@ export const productFormSchema = z.object({
   blockchainProof: blockchainProofSchema.optional(),
   ebsiVcId: z.string().optional(),
   verifiableCredential: z.string().optional(),
+  isProcessing: z.boolean().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -261,6 +261,7 @@ export interface Product extends BaseEntity {
   transit?: TransitInfo;
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  compliance?: Compliance;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -282,7 +283,6 @@ export interface Product extends BaseEntity {
   blockchainProof?: BlockchainProof;
   ebsiVcId?: string;
   verifiableCredential?: string; // JSON string of the signed VC
-  compliance?: Compliance;
 }
 
 /**
