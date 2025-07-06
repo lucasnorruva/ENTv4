@@ -6,7 +6,6 @@ import type { Product, BlockchainProof } from "@/types";
 import {
   createWalletClient,
   http,
-  publicActions,
   Hex,
   Address,
 } from "viem";
@@ -16,23 +15,29 @@ import { polygonAmoy } from "viem/chains";
 // --- HASHING ---
 
 /**
- * Creates a deterministic SHA-256 hash of a product's core passport data.
- * This function only hashes data that is deterministic and user-controlled,
- * excluding AI-generated or system-updated fields.
+ * Creates a deterministic SHA-256 hash of an object.
+ * In a real-world scenario, this would involve a proper JSON-LD
+ * canonicalization algorithm (e.g., RDF Dataset Canonicalization) to ensure
+ * the hash is based on the semantic graph, not the specific JSON formatting.
+ * For this mock, we'll stringify with sorted keys.
  *
- * @param product The product object to hash.
+ * @param data The object to hash.
  * @returns A SHA-256 hash of the key product data.
  */
-export async function hashProductData(product: Product): Promise<string> {
-  const dataToHash = {
-    productName: product.productName,
-    category: product.category,
-    supplier: product.supplier,
-    materials: product.materials,
-    manufacturing: product.manufacturing,
-    certifications: product.certifications,
+export async function hashData(data: object): Promise<string> {
+  // A simple but effective way to make the stringify deterministic
+  const stableStringify = (obj: any): string => {
+    if (obj === null) return 'null';
+    if (typeof obj !== 'object') return JSON.stringify(obj);
+    if (Array.isArray(obj)) {
+      return `[${obj.map(stableStringify).join(',')}]`;
+    }
+    const keys = Object.keys(obj).sort();
+    const kvPairs = keys.map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
+    return `{${kvPairs.join(',')}}`;
   };
-  const dataString = JSON.stringify(dataToHash);
+
+  const dataString = stableStringify(data);
   return createHash("sha256").update(dataString).digest("hex");
 }
 

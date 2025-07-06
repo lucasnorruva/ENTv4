@@ -2,7 +2,7 @@
 "use server";
 
 import type { Product, User } from '@/types';
-import { hashProductData } from './blockchain';
+import { hashData } from './blockchain';
 import { createWalletClient, http, Hex } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { mainnet } from 'viem/chains';
@@ -15,9 +15,11 @@ const account = privateKeyToAccount(SIGNING_KEY);
 
 /**
  * Creates a W3C Verifiable Credential for a given product.
+ * In a real implementation, the signing process would conform to
+ * JSON-LD Signatures, which involves canonicalizing the document before hashing and signing.
  *
  * @param product The product data to include in the credential.
- * @param user The user issuing the credential.
+ * @param user The user issuing the credential (though the platform is the issuer).
  * @returns A signed Verifiable Credential object.
  */
 export async function createVerifiableCredential(
@@ -25,8 +27,8 @@ export async function createVerifiableCredential(
   user: User,
 ) {
   const issuanceDate = new Date().toISOString();
-  const dataHash = await hashProductData(product);
 
+  // The claims being attested to in the credential.
   const credentialSubject = {
     id: `did:dpp:product:${product.id}`,
     type: "Product",
@@ -34,9 +36,6 @@ export async function createVerifiableCredential(
     gtin: product.gtin,
     category: product.category,
     manufacturer: product.supplier,
-    dataHash: dataHash,
-    materials: product.materials,
-    manufacturing: product.manufacturing,
     compliance: product.compliance,
   };
 
@@ -57,9 +56,11 @@ export async function createVerifiableCredential(
   };
 
   // For this mock, we'll sign the stringified payload.
-  // A real implementation would use a more robust signing mechanism like JWS.
+  // A real implementation would use a proper JWS/JSON-LD Signature library.
+  // The signature is created over the hash of the canonicalized payload.
+  const payloadHash = await hashData(credentialPayload);
   const signature = await account.signMessage({
-    message: JSON.stringify(credentialPayload),
+    message: payloadHash,
   });
 
   const vc = {
@@ -69,7 +70,7 @@ export async function createVerifiableCredential(
       created: issuanceDate,
       proofPurpose: 'assertionMethod',
       verificationMethod: `${ISSUER_DID}#keys-1`,
-      jws: signature, // Using jws for clarity as per some specs
+      jws: signature, // JWS would typically be a structured token, but using the raw signature here.
     },
   };
 

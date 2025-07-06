@@ -11,7 +11,7 @@ import { checkPermission, PermissionError } from '../permissions';
 import { newId } from './utils';
 import { sendWebhook } from '@/services/webhooks';
 import {
-  hashProductData,
+  hashData,
   anchorToPolygon,
 } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
@@ -60,15 +60,20 @@ export async function approvePassport(
   if (productIndex === -1) throw new Error('Product not found');
 
   const product = mockProducts[productIndex];
-  const productHash = await hashProductData(product);
-  // For now, we treat the single hash as the Merkle root of a batch of one.
-  const anchorResult = await anchorToPolygon(productHash);
+  
+  // 1. Create the full Verifiable Credential first.
   const verifiableCredential = await createVerifiableCredential(product, user);
+
+  // 2. Hash the claims (credentialSubject) to get the Merkle root for anchoring.
+  const dataHash = await hashData(verifiableCredential.credentialSubject);
+
+  // 3. Anchor this hash on the blockchain.
+  const anchorResult = await anchorToPolygon(dataHash);
 
   const blockchainProof: BlockchainProof = {
     type: 'SINGLE_HASH',
     ...anchorResult,
-    merkleRoot: productHash,
+    merkleRoot: dataHash,
   };
 
   const updatedProduct = {
