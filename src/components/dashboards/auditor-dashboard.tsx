@@ -11,7 +11,7 @@ import type { User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle, Hourglass } from 'lucide-react';
 import Link from 'next/link';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { formatDistanceToNow } from 'date-fns';
 
 export default async function AuditorDashboard({ user }: { user: User }) {

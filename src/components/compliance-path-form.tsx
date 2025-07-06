@@ -27,8 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Bot, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveCompliancePath } from '@/lib/actions/compliance-actions';
-import { generateCompliancePathRules } from '@/lib/actions/product-ai-actions';
+import { saveCompliancePath, generateCompliancePathRules } from '@/lib/actions/compliance-actions';
 import {
   compliancePathFormSchema,
   type CompliancePathFormValues,

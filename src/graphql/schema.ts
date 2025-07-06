@@ -1,3 +1,4 @@
+
 // src/graphql/schema.ts
 import { gql } from 'graphql-tag';
 
@@ -165,6 +166,8 @@ export const typeDefs = gql`
     ownerId: String!
     industry: String
     tier: String
+    isTrustedIssuer: Boolean
+    revocationListUrl: String
   }
 
   # --- OUTPUTS --- #
@@ -199,6 +202,7 @@ export const typeDefs = gql`
     blockchainProof: BlockchainProof
     ebsiVcId: String
     verifiableCredential: String
+    zkProof: ZkProof
     compliancePath: CompliancePath
     company: Company
   }
@@ -226,6 +230,7 @@ export const typeDefs = gql`
   type Packaging {
     type: String
     recycledContent: Float
+    recyclable: Boolean
     recyclable: Boolean
     weight: Float
   }
@@ -348,6 +353,12 @@ export const typeDefs = gql`
     merkleRoot: String
     proof: [String!]
   }
+  
+  type ZkProof {
+    proofData: String!
+    isVerified: Boolean!
+    verifiedAt: String
+  }
 
   type User {
     id: ID!
@@ -366,6 +377,8 @@ export const typeDefs = gql`
     ownerId: ID!
     industry: String
     tier: String
+    isTrustedIssuer: Boolean
+    revocationListUrl: String
     users: [User!]
     products: [Product!]
   }

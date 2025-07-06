@@ -4,7 +4,7 @@
 import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { saveApiSettings } from '@/lib/actions';
+import { saveApiSettings } from '@/lib/actions/settings-actions';
 import { useToast } from '@/hooks/use-toast';
 import type { ApiSettings, User } from '@/types';
 import {

@@ -8,7 +8,8 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getProductionLines, getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 import { Button } from '../ui/button';
 import Link from 'next/link';
 import { ArrowRight, BookCopy, Factory, Activity, Wrench } from 'lucide-react';

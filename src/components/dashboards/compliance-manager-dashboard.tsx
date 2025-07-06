@@ -12,7 +12,7 @@ import type { User } from '@/types';
 import { AlertTriangle, ArrowRight, ShieldX } from 'lucide-react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { Badge } from '@/components/ui/badge';
 
 export default async function ComplianceManagerDashboard({

@@ -3,7 +3,9 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getAuditLogs, getProducts, getWebhooks } from '@/lib/actions';
+import { getAuditLogs } from '@/lib/actions/audit-actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getWebhooks } from '@/lib/actions/webhook-actions';
 import { UserRoles } from '@/lib/constants';
 import PlatformLogsClient from '@/components/platform-logs-client';
 

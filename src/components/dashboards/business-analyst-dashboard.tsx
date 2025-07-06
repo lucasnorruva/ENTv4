@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { FileDown, ArrowRight } from "lucide-react";
 import SustainabilityByCategoryChart from "../charts/sustainability-by-category-chart";
 import Link from "next/link";
-import { getProducts } from "@/lib/actions";
+import { getProducts } from "@/lib/actions/product-actions";
 
 export default async function BusinessAnalystDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);

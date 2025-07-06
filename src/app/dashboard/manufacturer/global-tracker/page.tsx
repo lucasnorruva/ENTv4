@@ -1,5 +1,5 @@
 // src/app/dashboard/manufacturer/global-tracker/page.tsx
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';

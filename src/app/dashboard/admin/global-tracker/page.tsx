@@ -1,5 +1,5 @@
 // src/app/dashboard/admin/global-tracker/page.tsx
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
 import type { Product } from '@/types';

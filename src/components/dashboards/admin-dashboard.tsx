@@ -10,10 +10,10 @@ import {
 import type { AuditLog, Company, Product, User, Webhook } from '@/types';
 import {
   getProducts,
-  getAuditLogs,
   getServiceTickets,
-  getWebhooks,
-} from '@/lib/actions';
+} from '@/lib/actions/product-actions';
+import { getAuditLogs } from '@/lib/actions/audit-actions';
+import { getWebhooks } from '@/lib/actions/webhook-actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import { Button } from '../ui/button';
 import {

@@ -7,7 +7,7 @@ import {
   updateUserPassword,
   saveNotificationPreferences,
   setMfaStatus,
-} from '@/lib/actions';
+} from '@/lib/actions/user-actions';
 import {
   Card,
   CardContent,

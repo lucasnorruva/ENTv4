@@ -1,5 +1,5 @@
 // src/app/dashboard/developer/webhooks/[id]/page.tsx
-import { getWebhookById } from '@/lib/actions';
+import { getWebhookById } from '@/lib/actions/webhook-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import WebhookDeliveriesClient from '@/components/webhook-deliveries-client';

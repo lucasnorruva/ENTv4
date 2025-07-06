@@ -25,7 +25,7 @@ import {
 import { Badge } from './ui/badge';
 import { bulkProductImportSchema } from '@/lib/schemas';
 import type { User } from '@/types';
-import { bulkCreateProducts } from '@/lib/actions';
+import { bulkCreateProducts } from '@/lib/actions/product-actions';
 import { Loader2, Upload } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -129,9 +129,6 @@ export default function ProductImportDialog({
     onOpenChange(false);
   };
 
-  const validRows = validatedData.filter(row => row.isValid).length;
-  const invalidRows = validatedData.length - validRows;
-
   const getTemplate = () => {
     const headers =
       'productName,productDescription,gtin,category,productImage,manualUrl,materials';
@@ -147,6 +144,9 @@ export default function ProductImportDialog({
     link.click();
     document.body.removeChild(link);
   };
+
+  const validRows = validatedData.filter(row => row.isValid).length;
+  const invalidRows = validatedData.length - validRows;
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

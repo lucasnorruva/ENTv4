@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import type { User } from '@/types';
 import { ArrowRight, CheckCircle, Recycle, Award } from 'lucide-react';
 import Link from 'next/link';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 
 export default async function RecyclerDashboard({ user }: { user: User }) {
   const products = await getProducts(user.id);

@@ -67,7 +67,7 @@ import {
 
 import type { User, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteUser } from '@/lib/actions';
+import { deleteUser } from '@/lib/actions/user-actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import UserForm from './user-form';
 import UserImportDialog from './user-import-dialog';

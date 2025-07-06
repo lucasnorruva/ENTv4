@@ -1,6 +1,6 @@
 // src/app/dashboard/supplier/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import {

@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveComplianceIssue } from '@/lib/actions';
+import { resolveComplianceIssue } from '@/lib/actions/product-actions';
 import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {

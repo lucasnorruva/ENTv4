@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveWebhook } from '@/lib/actions';
+import { saveWebhook } from '@/lib/actions/webhook-actions';
 import { webhookFormSchema, type WebhookFormValues } from '@/lib/schemas';
 import type { Webhook, User } from '@/types';
 

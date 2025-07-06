@@ -55,7 +55,7 @@ import {
 
 import type { Webhook, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteWebhook } from '@/lib/actions';
+import { deleteWebhook } from '@/lib/actions/webhook-actions';
 import WebhookForm from './webhook-form';
 
 interface WebhookManagementClientProps {

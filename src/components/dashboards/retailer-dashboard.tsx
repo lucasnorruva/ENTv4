@@ -8,7 +8,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, BarChart3, Search, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';

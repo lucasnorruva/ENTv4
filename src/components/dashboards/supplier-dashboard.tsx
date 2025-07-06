@@ -19,7 +19,7 @@ import {
   AlertTriangle,
   ListChecks,
 } from 'lucide-react';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
 
 export default async function SupplierDashboard({ user }: { user: User }) {

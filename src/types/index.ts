@@ -12,6 +12,8 @@ import type {
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert } from './transit';
 
+export * from './transit';
+
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
 
