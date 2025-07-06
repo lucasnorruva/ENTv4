@@ -14,6 +14,6 @@ export default async function WebhooksPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Webhooks are now fetched on the client side
+  // Webhooks are now fetched on the client side with a real-time listener.
   return <WebhookManagementClient user={user} />;
 }

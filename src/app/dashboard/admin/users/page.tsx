@@ -14,6 +14,6 @@ export default async function UsersPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Initial users are now fetched on the client side with a real-time listener.
+  // The client component will now handle fetching users in real-time.
   return <UserManagementClient user={user} />;
 }

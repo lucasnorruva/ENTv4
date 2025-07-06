@@ -1,7 +1,7 @@
 // src/components/company-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -27,6 +27,9 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -68,7 +71,6 @@ import { Input } from '@/components/ui/input';
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteCompany } from '@/lib/actions';
-import { getCompanies } from '@/lib/auth';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
@@ -95,24 +97,32 @@ export default function CompanyManagementClient({
   );
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const fetchCompanies = useCallback(() => {
+  useEffect(() => {
     setIsLoading(true);
-    getCompanies()
-      .then(setCompanies)
-      .catch(() => {
+    const q = query(collection(db, Collections.COMPANIES), orderBy('createdAt', 'desc'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const companiesData = querySnapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() } as Company),
+        );
+        setCompanies(companiesData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching companies:', error);
         toast({
           title: 'Error loading companies',
+          description: 'Could not fetch company data in real-time.',
           variant: 'destructive',
         });
-      })
-      .finally(() => {
         setIsLoading(false);
-      });
-  }, [toast]);
+      },
+    );
 
-  useEffect(() => {
-    fetchCompanies();
-  }, [fetchCompanies]);
+    return () => unsubscribe();
+  }, [toast]);
 
   const handleCreateNew = () => {
     setSelectedCompany(null);
@@ -128,7 +138,6 @@ export default function CompanyManagementClient({
     startTransition(async () => {
       try {
         await deleteCompany(company.id, adminUser.id);
-        setCompanies(prev => prev.filter(c => c.id !== company.id));
         toast({
           title: 'Company Deleted',
           description: `Company "${company.name}" has been successfully deleted.`,
@@ -144,17 +153,11 @@ export default function CompanyManagementClient({
   };
 
   const handleSave = (savedCompany: Company) => {
-    setCompanies(prev => {
-        const exists = prev.some(c => c.id === savedCompany.id);
-        if (exists) {
-            return prev.map(c => c.id === savedCompany.id ? savedCompany : c);
-        }
-        return [savedCompany, ...prev];
-    });
+    // No need to update state manually, the listener will do it.
     setIsFormOpen(false);
   };
 
-  const columns: ColumnDef<Company>[] = useMemo(
+  const columns: ColumnDef<Company>[] = React.useMemo(
     () => [
       {
         accessorKey: 'name',

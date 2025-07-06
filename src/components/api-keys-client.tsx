@@ -13,9 +13,12 @@ import {
   MoreHorizontal,
   Edit,
 } from 'lucide-react';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getApiKeys, revokeApiKey, deleteApiKey } from '@/lib/actions';
+import { revokeApiKey, deleteApiKey } from '@/lib/actions';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -73,12 +76,34 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const [hasCopied, setHasCopied] = useState(false);
 
   useEffect(() => {
-    getApiKeys(user.id)
-      .then(setApiKeys)
-      .catch(() =>
-        toast({ title: 'Error loading keys', variant: 'destructive' }),
-      )
-      .finally(() => setIsLoading(false));
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.API_KEYS),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const keysData = querySnapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() } as ApiKey),
+        );
+        setApiKeys(keysData);
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching API keys:', error);
+        toast({
+          title: 'Error loading keys',
+          description: 'Could not fetch API keys in real-time.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, [user.id, toast]);
 
   const handleCreateNew = () => {
@@ -92,14 +117,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   };
 
   const handleSave = (result: { key: ApiKey; rawToken?: string }) => {
-    setApiKeys(prev => {
-      const exists = prev.some(k => k.id === result.key.id);
-      if (exists) {
-        return prev.map(k => (k.id === result.key.id ? result.key : k));
-      }
-      return [result.key, ...prev];
-    });
-
+    // No need to manually update state, listener will do it.
     if (result.rawToken) {
       setNewlyCreatedKey(result.rawToken);
       setIsViewKeyDialogOpen(true);
@@ -110,8 +128,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const handleRevokeKey = (id: string) => {
     startTransition(async () => {
       try {
-        const revokedKey = await revokeApiKey(id, user.id);
-        setApiKeys(prev => prev.map(k => (k.id === id ? revokedKey : k)));
+        await revokeApiKey(id, user.id);
         toast({ title: 'API Key Revoked' });
       } catch (error) {
         toast({
@@ -127,7 +144,6 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
     startTransition(async () => {
       try {
         await deleteApiKey(id, user.id);
-        setApiKeys(prev => prev.filter(k => k.id !== id));
         toast({ title: 'API Key Deleted' });
       } catch (error) {
         toast({
