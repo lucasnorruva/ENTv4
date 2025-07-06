@@ -34,6 +34,7 @@ import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
+import OverrideVerificationDialog from './override-verification-dialog';
 
 export default function ProductDetailView({
   product: productProp,
@@ -76,6 +77,11 @@ export default function ProductDetailView({
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
+
+  const handleUpdateAndRefresh = (updatedProduct: Product) => {
+    setProduct(updatedProduct);
+    router.refresh();
+  };
 
   return (
     <>
@@ -204,7 +210,7 @@ export default function ProductDetailView({
               <PredictiveAnalyticsWidget
                 product={product}
                 user={user}
-                onPredictionComplete={(updatedProduct) => { setProduct(updatedProduct) }}
+                onPredictionComplete={handleUpdateAndRefresh}
               />
             )}
             <AiActionsWidget
@@ -224,20 +230,21 @@ export default function ProductDetailView({
         onOpenChange={setIsServiceDialogOpen}
         product={product}
         user={user}
-        onSave={updatedProduct => {
-          setProduct(updatedProduct);
-          router.refresh();
-        }}
+        onSave={handleUpdateAndRefresh}
       />
       <CustomsInspectionForm
         isOpen={isCustomsFormOpen}
         onOpenChange={setIsCustomsFormOpen}
         product={product}
         user={user}
-        onSave={updatedProduct => {
-          setProduct(updatedProduct);
-          router.refresh();
-        }}
+        onSave={handleUpdateAndRefresh}
+      />
+      <OverrideVerificationDialog
+        isOpen={isOverrideOpen}
+        onOpenChange={setIsOverrideOpen}
+        product={product}
+        user={user}
+        onSuccess={handleUpdateAndRefresh}
       />
     </>
   );
