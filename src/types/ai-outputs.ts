@@ -1,4 +1,3 @@
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -95,7 +94,7 @@ export type {
   GeneratePcdsInput,
   ProductQuestionInput,
   PredictLifecycleInput,
-  ExplainErrorInput,
+  ExplainErrorOutput,
 };
 
 // Export Output types
