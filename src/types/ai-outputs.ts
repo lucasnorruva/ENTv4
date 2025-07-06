@@ -68,6 +68,14 @@ import type {
   PredictLifecycleInput,
   PredictLifecycleOutput,
 } from '@/ai/flows/predict-product-lifecycle';
+import type {
+  ExplainErrorInput,
+  ExplainErrorOutput,
+} from '@/ai/flows/explain-error';
+import type {
+  AnalyzeTextileInput,
+  AnalyzeTextileOutput,
+} from '@/ai/flows/analyze-textile-composition';
 
 
 // Re-export AI Product Schema
@@ -90,6 +98,8 @@ export type {
   GeneratePcdsInput,
   ProductQuestionInput,
   PredictLifecycleInput,
+  ExplainErrorInput,
+  AnalyzeTextileInput,
 };
 
 // Export Output types
@@ -110,4 +120,6 @@ export type {
   PcdsOutput,
   ProductQuestionOutput,
   PredictLifecycleOutput,
+  ExplainErrorOutput,
+  AnalyzeTextileOutput,
 };

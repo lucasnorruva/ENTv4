@@ -35,6 +35,8 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
+import TextileTab from './product-detail-tabs/textile-tab';
+import { cn } from '@/lib/utils';
 
 export default function ProductDetailView({
   product: productProp,
@@ -74,6 +76,7 @@ export default function ProductDetailView({
   const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
+  const showTextileTab = product.category === 'Fashion';
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -81,6 +84,12 @@ export default function ProductDetailView({
   const handleUpdateAndRefresh = (updatedProduct: Product) => {
     setProduct(updatedProduct);
     router.refresh();
+  };
+
+  const tabListGridCols = () => {
+    let cols = 5; // overview, sustainability, lifecycle, compliance, history, supply chain
+    if (showTextileTab) cols++;
+    return `grid-cols-${cols}`;
   };
 
   return (
@@ -167,8 +176,9 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className={cn('grid w-full', tabListGridCols())}>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -181,6 +191,11 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
+              {showTextileTab && (
+                <TabsContent value="textile" className="mt-4">
+                  <TextileTab product={product} />
+                </TabsContent>
+              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
