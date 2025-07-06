@@ -15,3 +15,36 @@ In practical terms, our sales and marketing strategy will have tailored material
 - **For IT:** Emphasize ease of implementation and future-proof tech, e.g., “We integrated [Platform] with our SAP and PLM in 6 weeks” or “The solution’s adherence to open standards meant no vendor lock-in and easy extension.”
 
 Each stakeholder also has different buying triggers: compliance is often mandatory (budget appears to avoid fines), sustainability might need ROI argument (better brand loyalty, avoiding future compliance, etc.), IT might need TCO (total cost of ownership) comparison (cheaper to buy than build, plus ongoing support). We’ll prepare those arguments accordingly. By aligning our messaging to these stakeholders, we ensure during the sales process that each hears the aspects of the DPP platform that resonate with their concerns. Often the decision to adopt will involve all of them (e.g., a compliance officer says “we need this”, IT says “it fits our architecture”, sustainability says “it adds value to our goals”, and CFO signs off because each of those provided rationale). Hence a holistic but tailored GTM is key.
+
+## Feature Mapping to Stakeholder Personas
+
+To make the value proposition more concrete, this section maps specific platform features to the needs of each key stakeholder.
+
+### For the Compliance Officer & Auditor
+This persona requires tools for risk mitigation, verification, and reporting.
+- **Compliance Paths Dashboard**: Define and manage rule sets for different regulations and product categories.
+- **Automated Validation Engine**: The AI-powered `summarizeComplianceGaps` flow automatically checks products against assigned paths.
+- **Flagged Products Queue**: A dedicated dashboard to view and manage all products that have failed verification.
+- **Immutable Audit Logs**: A complete, verifiable history of every action taken on a product passport, crucial for regulatory inquiries.
+- **AI-Generated Declaration of Conformity**: The `generateConformityDeclaration` flow creates standardized, formal compliance documents with one click.
+- **Data Export Center**: Generate CSV reports of compliance status across all products for internal or external auditing.
+- **Role-Based Access Control (RBAC)**: Ensures a clear separation of duties between data entry (Suppliers) and verification (Auditors).
+
+### For the Sustainability & CSR Lead
+This persona is focused on data-driven sustainability, transparency, and reporting.
+- **ESG Scoring Dashboard**: The `calculateSustainability` flow provides a quantitative score (0-100) for each product's Environmental, Social, and Governance profile.
+- **Material Composition Analytics**: A dedicated dashboard to visualize material usage, track recycled content percentages, and identify opportunities for more sustainable sourcing.
+- **AI-Powered Lifecycle Analysis**: The `analyzeProductLifecycle` flow provides insights into a product's carbon footprint and highlights stages with the highest environmental impact.
+- **Public Passport Page**: A consumer-facing page generated for each product, allowing the company to transparently share sustainability credentials with customers.
+- **Verifiable Credentials (VCs)**: The ability to cryptographically link sustainability claims (e.g., "GOTS Certified Organic Cotton") to a trusted third-party issuer (e.g., a certification body).
+
+### For the IT Integrator & CIO/CTO
+This persona values robust APIs, security, scalability, and ease of integration.
+- **GraphQL & REST v2 APIs**: Comprehensive APIs for programmatic access to all platform features, allowing seamless integration with existing systems.
+- **Webhook Management System**: A full-featured webhook system with delivery logs, automatic retries, and HMAC signature verification for real-time data synchronization.
+- **Enterprise Integration Connectors**: Pre-built (or easily configurable) modules for integrating with major ERP and PLM systems like SAP and Oracle.
+- **Multi-Tenant Architecture**: A secure, scalable architecture that ensures data isolation and performance for each client.
+- **Developer Portal**: A dedicated dashboard for managing API keys, webhooks, and viewing API logs and analytics.
+- **Advanced Security Features**: Includes Zero-Trust principles, support for SSO/SAML, and end-to-end data encryption.
+- **On-Prem/Hybrid Deployment Options**: Flexibility to deploy the platform in a private cloud or on-premises to meet enterprise data governance policies.
+- **Blockchain Anchoring Service**: A modular service that provides an immutable, auditable proof of data integrity without requiring deep blockchain expertise from the IT team.
