@@ -11,7 +11,6 @@ import type {
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert } from './transit';
 
-
 export * from './transit';
 
 // Re-exporting for easy access elsewhere
@@ -56,6 +55,7 @@ export interface Company extends BaseEntity {
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
   isTrustedIssuer?: boolean;
+  revocationListUrl?: string;
   settings?: {
     aiEnabled?: boolean;
     apiAccess?: boolean;
@@ -127,33 +127,60 @@ export interface TextileData {
 
 export interface TextileAnalysis extends AnalyzeTextileOutput {}
 
+export interface EprScheme {
+  schemeId: string;
+  producerRegistrationNumber: string;
+  wasteCategory?: string;
+}
+
 export interface Compliance {
   rohs?: {
-    compliant: boolean;
+    compliant?: boolean;
     exemption?: string;
   };
   reach?: {
-    svhcDeclared: boolean;
+    svhcDeclared?: boolean;
     scipReference?: string;
   };
   weee?: {
-    registered: boolean;
+    registered?: boolean;
     registrationNumber?: string;
   };
   eudr?: {
-    compliant: boolean;
+    compliant?: boolean;
     diligenceId?: string;
   };
   ce?: {
-    marked: boolean;
+    marked?: boolean;
   };
   prop65?: {
-    warningRequired: boolean;
+    warningRequired?: boolean;
   };
   foodContact?: {
-    safe: boolean;
+    safe?: boolean;
     standard?: string;
   };
+  epr?: EprScheme;
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
+  };
+}
+
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
 }
 
 export interface ComplianceGap {
@@ -204,6 +231,21 @@ export interface SubmissionChecklist {
   passesDataQuality: boolean;
 }
 
+export interface BlockchainProof {
+  type: 'SINGLE_HASH' | 'MERKLE_PROOF';
+  txHash: string;
+  explorerUrl: string;
+  blockHeight: number;
+  merkleRoot?: string;
+  proof?: string[]; // Array of hashes for Merkle proof
+}
+
+export interface ZkProof {
+  proofData: string; // Mock proof data
+  isVerified: boolean;
+  verifiedAt: string; // ISO 8601
+}
+
 /**
  * The core Digital Product Passport entity.
  */
@@ -221,6 +263,8 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
+  model3dUrl?: string;
+  model3dFileName?: string;
   declarationOfConformity?: string;
 
   // Structured Data Fields
@@ -235,6 +279,8 @@ export interface Product extends BaseEntity {
   transit?: TransitInfo;
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  compliance?: Compliance;
+  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -253,13 +299,10 @@ export interface Product extends BaseEntity {
     date: string;
   };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
-  blockchainProof?: {
-    txHash: string;
-    explorerUrl: string;
-    blockHeight: number;
-  };
+  blockchainProof?: BlockchainProof;
+  zkProof?: ZkProof;
+  verifiableCredential?: any; // The signed VC object
   ebsiVcId?: string;
-  verifiableCredential?: string; // JSON string of the signed VC
 }
 
 /**
@@ -382,3 +425,5 @@ export interface ApiRateLimit {
   count: number;
   windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }
+
+export type { TransitInfo, CustomsAlert };

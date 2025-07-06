@@ -1,4 +1,3 @@
-
 // src/lib/company-data.ts
 import type { Company } from '@/types';
 
@@ -42,6 +41,7 @@ export let companies: Company[] = [
     industry: 'Fashion',
     tier: 'free',
     isTrustedIssuer: false,
+    revocationListUrl: '',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     settings: {
@@ -62,6 +62,7 @@ export let companies: Company[] = [
     industry: 'Technology',
     tier: 'enterprise',
     isTrustedIssuer: true,
+    revocationListUrl: 'https://api.norruva.com/vc/status/norruva/1',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     settings: {

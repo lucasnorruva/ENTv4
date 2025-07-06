@@ -1,4 +1,3 @@
-
 // src/components/company-form.tsx
 'use client';
 
