@@ -1,7 +1,7 @@
 // src/components/dpp-tracker/SelectedProductCustomsInfoCard.tsx
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Card,
@@ -46,6 +46,11 @@ export default function SelectedProductCustomsInfoCard({
   destinationCountry,
 }: SelectedProductCustomsInfoCardProps) {
   const { transit, customs } = product;
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   if (!transit) {
     return (
@@ -84,10 +89,38 @@ export default function SelectedProductCustomsInfoCard({
       : Plane;
 
   const etaDate = new Date(transit.eta);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isEtaPast = etaDate < today;
-  const isEtaToday = etaDate.toDateString() === today.toDateString();
+
+  const renderEta = () => {
+    if (!isMounted) {
+      // Render a static, non-relative date on the server and during hydration
+      return etaDate.toLocaleDateString();
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isEtaPast = etaDate < today;
+    const isEtaToday = etaDate.toDateString() === today.toDateString();
+
+    if (isEtaPast) {
+      return (
+        <Badge variant="destructive" className="text-xs">
+          <AlertTriangle className="mr-1 h-3 w-3" />
+          Overdue: {etaDate.toLocaleDateString()}
+        </Badge>
+      );
+    }
+    if (isEtaToday) {
+      return (
+        <Badge
+          variant="outline"
+          className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700"
+        >
+          <CalendarDays className="mr-1 h-3 w-3" />
+          Due Today: {etaDate.toLocaleDateString()}
+        </Badge>
+      );
+    }
+    return etaDate.toLocaleDateString();
+  };
 
   const DppStatusIcon = getStatusIcon(product.verificationStatus);
   const dppStatusBadgeVariant = getStatusBadgeVariant(
@@ -145,22 +178,7 @@ export default function SelectedProductCustomsInfoCard({
             </p>
             <div className="flex items-center">
               <strong className="text-muted-foreground mr-1">ETA:</strong>
-              {isEtaPast ? (
-                <Badge variant="destructive" className="text-xs">
-                  <AlertTriangle className="mr-1 h-3 w-3" />
-                  Overdue: {etaDate.toLocaleDateString()}
-                </Badge>
-              ) : isEtaToday ? (
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700"
-                >
-                  <CalendarDays className="mr-1 h-3 w-3" />
-                  Due Today: {etaDate.toLocaleDateString()}
-                </Badge>
-              ) : (
-                etaDate.toLocaleDateString()
-              )}
+              {renderEta()}
             </div>
             <p className="flex items-center">
               <strong className="text-muted-foreground mr-1">
