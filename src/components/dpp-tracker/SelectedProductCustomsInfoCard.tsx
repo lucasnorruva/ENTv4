@@ -153,7 +153,7 @@ export default function SelectedProductCustomsInfoCard({
               ) : isEtaToday ? (
                 <Badge
                   variant="outline"
-                  className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300"
+                  className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700"
                 >
                   <CalendarDays className="mr-1 h-3 w-3" />
                   Due Today: {etaDate.toLocaleDateString()}
