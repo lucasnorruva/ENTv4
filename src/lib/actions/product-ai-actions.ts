@@ -25,7 +25,6 @@ import { generateProductDescription as generateProductDescriptionFlow } from '@/
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
-import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 
 // --- AI Processing ---
 
@@ -577,22 +576,4 @@ export async function askQuestionAboutProduct(
   };
 
   return await productQa({ productContext, question });
-}
-
-export async function getFriendlyError(error: Error, context: string, user: User): Promise<{ title: string, description: string }> {
-  try {
-      const explanation = await explainErrorFlow({
-          errorMessage: error.message,
-          context,
-          userRole: user.roles.join(', '),
-      });
-      return explanation;
-  } catch (aiError) {
-      console.error("AI error explanation failed:", aiError);
-      // Fallback to a generic message if the AI fails
-      return {
-          title: 'An Unexpected Error Occurred',
-          description: `We encountered an issue while trying to ${context}. Please try again later. Original error: ${error.message}`,
-      };
-  }
 }

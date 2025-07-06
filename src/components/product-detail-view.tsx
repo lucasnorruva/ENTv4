@@ -1,7 +1,7 @@
 // src/components/product-detail-view.tsx
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -9,8 +9,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
-  Download,
-  Loader2,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
@@ -23,8 +21,7 @@ import SubmissionChecklist from './submission-checklist';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
-import { runSubmissionValidation, generatePcdsForProduct } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
+import { runSubmissionValidation } from '@/lib/actions';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -54,9 +51,7 @@ export default function ProductDetailView({
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isCustomsFormOpen, setIsCustomsFormOpen] = useState(false);
-  const [isGeneratingPcds, startPcdsGeneration] = useTransition();
   const router = useRouter();
-  const { toast } = useToast();
 
   useEffect(() => {
     async function validate() {
@@ -72,39 +67,10 @@ export default function ProductDetailView({
   const canAddServiceRecord = can(user, 'product:add_service_record');
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
-  const canExportData = can(user, 'product:export_data', product);
   const canRunPrediction = can(user, 'product:run_prediction');
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
-
-  const handleDownloadPcds = () => {
-    startPcdsGeneration(async () => {
-      try {
-        const pcdsData = await generatePcdsForProduct(product.id, user.id);
-        const jsonString = JSON.stringify(pcdsData, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `PCDS-${product.gtin || product.id}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        toast({
-          title: 'PCDS Generated',
-          description: 'Your PCDS JSON file has been downloaded.',
-        });
-      } catch (error: any) {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to generate PCDS.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -118,21 +84,6 @@ export default function ProductDetailView({
           </Button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {canExportData && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleDownloadPcds}
-              disabled={isGeneratingPcds}
-            >
-              {isGeneratingPcds ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Download className="mr-2 h-4 w-4" />
-              )}
-              Download PCDS
-            </Button>
-          )}
           {canEditProduct && (
             <Button asChild>
               <Link href={`/dashboard/${roleSlug}/products/${product.id}/edit`}>
