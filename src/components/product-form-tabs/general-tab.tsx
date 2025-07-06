@@ -167,12 +167,12 @@ export default function GeneralTab({
               Generate Image with AI
             </FormLabel>
             <div className="space-y-2">
-              <FormLabel
+              <Label
                 htmlFor="context-image"
                 className="text-xs text-muted-foreground"
               >
                 Optional: Provide a reference image (e.g., a sketch)
-              </FormLabel>
+              </Label>
               <Input
                 id="context-image"
                 type="file"
