@@ -24,6 +24,11 @@ The platform must bridge multiple regulatory schemes. This section outlines the 
 - **Platform Alignment**: The generic EPR fields in the DPP data model are flexible enough to accommodate the specific requirements of various APAC nations.
 - **GTM Focus**: Offer a future-proof solution for multinational companies that need to manage compliance across a fragmented but growing regulatory landscape in Asia.
 
+### Construction & Building Materials
+- **Mandate**: The EU is phasing in DPP requirements for construction products starting in 2024 to address the sector's substantial environmental footprint.
+- **Platform Alignment**: Our data model supports key metrics for building materials, such as embodied carbon, recycled content, and end-of-life options. The platform is designed to integrate with industry standards like BIMobject or RIBA data, allowing Building Information Models (BIM) to automatically populate the DPP.
+- **GTM Focus**: Collaborate with construction industry groups and circular economy initiatives (e.g., EU BAMB project) to provide tools for manufacturers of cement, steel, and insulation to generate compliant passports.
+
 ## Data Interoperability Strategy
 
 To enable global traceability and cross-certification, the platform uses common metadata standards.

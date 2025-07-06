@@ -7,6 +7,7 @@ import type {
   EsgScoreOutput,
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
+  AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert } from './transit';
@@ -289,6 +290,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: TextileAnalysis;
+  constructionAnalysis?: AnalyzeConstructionMaterialOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;

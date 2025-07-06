@@ -210,7 +210,7 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  category: z.string().min(1, 'Category is required.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),

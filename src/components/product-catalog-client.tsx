@@ -109,6 +109,7 @@ export default function ProductCatalogClient({
             <SelectItem value="Electronics">Electronics</SelectItem>
             <SelectItem value="Fashion">Fashion</SelectItem>
             <SelectItem value="Home Goods">Home Goods</SelectItem>
+            <SelectItem value="Construction">Construction</SelectItem>
           </SelectContent>
         </Select>
         <Select
