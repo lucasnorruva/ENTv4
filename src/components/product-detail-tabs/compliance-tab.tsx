@@ -213,7 +213,7 @@ export default function ComplianceTab({
                         rel="noopener noreferrer"
                         className="text-xs"
                     >
-                        View Report <ExternalLink className="ml-1 h-3 w-3" />
+                        View Report <LinkIcon className="ml-1 h-3 w-3" />
                     </a>
                 </Button>
               )}
