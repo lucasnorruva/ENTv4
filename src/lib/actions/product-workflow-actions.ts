@@ -129,6 +129,45 @@ export async function rejectPassport(
   return Promise.resolve(mockProducts[productIndex]);
 }
 
+export async function overrideVerification(
+    productId: string,
+    reason: string,
+    userId: string,
+  ): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+    checkPermission(user, 'product:override_verification');
+  
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found');
+  
+    const now = new Date().toISOString();
+  
+    const overrideDetails = {
+      reason,
+      userId,
+      date: now,
+    };
+  
+    mockProducts[productIndex] = {
+      ...mockProducts[productIndex],
+      verificationStatus: 'Verified',
+      status: 'Published',
+      lastUpdated: now,
+      lastVerificationDate: now,
+      verificationOverride: overrideDetails,
+    };
+  
+    await logAuditEvent(
+      'product.verification.overridden',
+      productId,
+      { reason },
+      userId,
+    );
+  
+    return Promise.resolve(mockProducts[productIndex]);
+  }
+
 export async function markAsRecycled(
   productId: string,
   userId: string,

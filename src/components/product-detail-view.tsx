@@ -9,7 +9,9 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
+  ShieldAlert,
 } from 'lucide-react';
+import { format } from 'date-fns';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -32,6 +34,7 @@ import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
+import OverrideVerificationDialog from './override-verification-dialog';
 
 export default function ProductDetailView({
   product: productProp,
@@ -51,6 +54,7 @@ export default function ProductDetailView({
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isCustomsFormOpen, setIsCustomsFormOpen] = useState(false);
+  const [isOverrideOpen, setIsOverrideOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -69,125 +73,154 @@ export default function ProductDetailView({
   const canLogInspection = can(user, 'product:customs_inspect');
   const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
+  const canOverride = can(user, 'product:override_verification');
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <Button asChild variant="outline" size="sm" className="mb-4">
-            <Link href={`/dashboard/${roleSlug}/products`}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Products
-            </Link>
-          </Button>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {canEditProduct && (
-            <Button asChild>
-              <Link href={`/dashboard/${roleSlug}/products/${product.id}/edit`}>
-                Edit Passport
+    <>
+      <div className="space-y-6">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <Button asChild variant="outline" size="sm" className="mb-4">
+              <Link href={`/dashboard/${roleSlug}/products`}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Products
               </Link>
             </Button>
-          )}
-          {canAddServiceRecord && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsServiceDialogOpen(true)}
-            >
-              <Wrench className="mr-2 h-4 w-4" /> Add Service
-            </Button>
-          )}
-          {canLogInspection && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsCustomsFormOpen(true)}
-            >
-              <Landmark className="mr-2 h-4 w-4" /> Log Inspection
-            </Button>
-          )}
-        </div>
-      </header>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {canOverride && product.verificationStatus === 'Failed' && (
+              <Button
+                variant="destructive"
+                onClick={() => setIsOverrideOpen(true)}
+              >
+                <ShieldAlert className="mr-2 h-4 w-4" />
+                Override Verification
+              </Button>
+            )}
+            {canEditProduct && (
+              <Button asChild>
+                <Link
+                  href={`/dashboard/${roleSlug}/products/${product.id}/edit`}
+                >
+                  Edit Passport
+                </Link>
+              </Button>
+            )}
+            {canAddServiceRecord && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsServiceDialogOpen(true)}
+              >
+                <Wrench className="mr-2 h-4 w-4" /> Add Service
+              </Button>
+            )}
+            {canLogInspection && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCustomsFormOpen(true)}
+              >
+                <Landmark className="mr-2 h-4 w-4" /> Log Inspection
+              </Button>
+            )}
+          </div>
+        </header>
 
-      {product.dataQualityWarnings && product.dataQualityWarnings.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Data Quality Warnings</AlertTitle>
-          <AlertDescription>
-            <ul className="list-disc list-inside mt-2 text-xs">
-              {product.dataQualityWarnings.map((warning, index) => (
-                <li key={index}>
-                  <strong>{warning.field}:</strong> {warning.warning}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
+        {product.verificationOverride && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Verification Manually Overridden</AlertTitle>
+            <AlertDescription>
+              This product was manually approved by an administrator on{' '}
+              {format(new Date(product.verificationOverride.date), 'PPP')}.
+              Reason: "{product.verificationOverride.reason}"
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
-              <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview" className="mt-4">
-              <OverviewTab product={product} customFields={company?.settings?.customFields} />
-            </TabsContent>
-            <TabsContent value="sustainability" className="mt-4">
-              <SustainabilityTab product={product} />
-            </TabsContent>
-            <TabsContent value="lifecycle" className="mt-4">
-              <LifecycleTab product={product} />
-            </TabsContent>
-            <TabsContent value="compliance" className="mt-4">
-              <ComplianceTab
+        {product.dataQualityWarnings &&
+          product.dataQualityWarnings.length > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Data Quality Warnings</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc list-inside mt-2 text-xs">
+                  {product.dataQualityWarnings.map((warning, index) => (
+                    <li key={index}>
+                      <strong>{warning.field}:</strong> {warning.warning}
+                    </li>
+                  ))}
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+                <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                <TabsTrigger value="history">History</TabsTrigger>
+                <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
+              </TabsList>
+              <TabsContent value="overview" className="mt-4">
+                <OverviewTab
+                  product={product}
+                  customFields={company?.settings?.customFields}
+                />
+              </TabsContent>
+              <TabsContent value="sustainability" className="mt-4">
+                <SustainabilityTab product={product} />
+              </TabsContent>
+              <TabsContent value="lifecycle" className="mt-4">
+                <LifecycleTab product={product} />
+              </TabsContent>
+              <TabsContent value="compliance" className="mt-4">
+                <ComplianceTab
+                  product={product}
+                  compliancePath={compliancePath}
+                />
+              </TabsContent>
+              <TabsContent value="history" className="mt-4">
+                <HistoryTab product={product} />
+              </TabsContent>
+              <TabsContent value="supply_chain" className="mt-4">
+                <SupplyChainTab product={product} />
+              </TabsContent>
+            </Tabs>
+          </div>
+          <div className="space-y-6">
+            {product.submissionChecklist && (
+              <SubmissionChecklist checklist={product.submissionChecklist} />
+            )}
+            <DppQrCodeWidget productId={product.id} />
+            {canRunPrediction && (
+              <PredictiveAnalyticsWidget
                 product={product}
-                compliancePath={compliancePath}
+                user={user}
+                onPredictionComplete={updatedProduct => {
+                  setProduct(updatedProduct);
+                }}
               />
-            </TabsContent>
-            <TabsContent value="history" className="mt-4">
-              <HistoryTab product={product} />
-            </TabsContent>
-            <TabsContent value="supply_chain" className="mt-4">
-              <SupplyChainTab product={product} />
-            </TabsContent>
-          </Tabs>
-        </div>
-        <div className="space-y-6">
-          {product.submissionChecklist && (
-            <SubmissionChecklist checklist={product.submissionChecklist} />
-          )}
-          <DppQrCodeWidget productId={product.id} />
-          {canRunPrediction && (
-            <PredictiveAnalyticsWidget
+            )}
+            <AiActionsWidget
               product={product}
               user={user}
-              onPredictionComplete={updatedProduct => {
-                setProduct(updatedProduct);
-              }}
+              canRunComplianceCheck={canRunComplianceCheck}
+              canValidateData={canValidateData}
+              canGenerateDoc={canGenerateDoc}
+              canExportData={canExportData}
             />
-          )}
-          <AiActionsWidget
-            product={product}
-            user={user}
-            canRunComplianceCheck={canRunComplianceCheck}
-            canValidateData={canValidateData}
-            canGenerateDoc={canGenerateDoc}
-            canExportData={canExportData}
-          />
+          </div>
         </div>
       </div>
-
       <AddServiceRecordDialog
         isOpen={isServiceDialogOpen}
         onOpenChange={setIsServiceDialogOpen}
@@ -198,7 +231,6 @@ export default function ProductDetailView({
           router.refresh();
         }}
       />
-
       <CustomsInspectionForm
         isOpen={isCustomsFormOpen}
         onOpenChange={setIsCustomsFormOpen}
@@ -209,6 +241,15 @@ export default function ProductDetailView({
           router.refresh();
         }}
       />
-    </div>
+      <OverrideVerificationDialog
+        isOpen={isOverrideOpen}
+        onOpenChange={setIsOverrideOpen}
+        product={product}
+        user={user}
+        onSuccess={updatedProduct => {
+          setProduct(updatedProduct);
+        }}
+      />
+    </>
   );
 }

@@ -232,6 +232,11 @@ export interface Product extends BaseEntity {
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
+  verificationOverride?: {
+    reason: string;
+    userId: string;
+    date: string;
+  };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: {
     txHash: string;

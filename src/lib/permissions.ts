@@ -32,6 +32,7 @@ export type Action =
   | 'product:customs_inspect'
   | 'product:export_data'
   | 'product:run_prediction'
+  | 'product:override_verification'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -73,6 +74,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
       return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
 
     case 'product:delete':
+      // Suppliers can only delete their own drafts. Admins can delete anything (handled above).
       return product
         ? isOwner &&
             hasRole(user, UserRoles.SUPPLIER) &&
@@ -96,6 +98,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:reject':
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
+    
+    case 'product:override_verification':
+        return hasRole(user, UserRoles.ADMIN); // Explicitly defined for clarity, though covered by global admin check
 
     case 'product:recycle':
       return hasRole(user, UserRoles.RECYCLER);

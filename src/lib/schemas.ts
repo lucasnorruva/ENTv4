@@ -106,6 +106,12 @@ const transitInfoSchema = z.object({
   destination: z.string(),
 });
 
+const verificationOverrideSchema = z.object({
+    reason: z.string(),
+    userId: z.string(),
+    date: z.string(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -138,6 +144,7 @@ export const productFormSchema = z.object({
   transit: transitInfoSchema.optional(),
   submissionChecklist: submissionChecklistSchema.optional(),
   customData: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
+  verificationOverride: verificationOverrideSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -217,7 +224,7 @@ export const apiKeyFormSchema = z.object({
   label: z.string().min(3, 'Label must be at least 3 characters.'),
   scopes: z
     .array(z.string())
-    .min(1, 'You must select at least one scope.'),
+    .min(1, { message: 'You must select at least one scope.' }),
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
@@ -317,3 +324,8 @@ export const apiSettingsSchema = z.object({
   isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
+
+export const overrideVerificationSchema = z.object({
+  reason: z.string().min(10, { message: "A justification reason is required (min 10 characters)." }),
+});
+export type OverrideVerificationFormValues = z.infer<typeof overrideVerificationSchema>;
