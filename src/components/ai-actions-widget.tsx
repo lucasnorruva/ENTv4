@@ -31,7 +31,7 @@ import {
   generatePcdsForProduct,
   runDataValidationCheck,
   runComplianceCheck,
-} from '@/lib/actions/product-ai-actions';
+} from '@/lib/actions/product-actions';
 import {
   Dialog,
   DialogContent,

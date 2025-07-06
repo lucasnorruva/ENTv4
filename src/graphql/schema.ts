@@ -29,6 +29,7 @@ export const typeDefs = gql`
     lifecycle: LifecycleInput
     battery: BatteryInput
     compliance: ComplianceInput
+    greenClaims: [GreenClaimInput!]
   }
 
   input MaterialInput {
@@ -74,6 +75,12 @@ export const typeDefs = gql`
     isRemovable: Boolean
   }
 
+  input EprSchemeInput {
+    schemeId: String!
+    producerRegistrationNumber: String!
+    wasteCategory: String
+  }
+
   input ComplianceInput {
     rohs: RohsInput
     reach: ReachInput
@@ -82,6 +89,7 @@ export const typeDefs = gql`
     ce: CeInput
     prop65: Prop65Input
     foodContact: FoodContactInput
+    epr: EprSchemeInput
     battery: BatteryComplianceInput
     pfas: PfasComplianceInput
     conflictMinerals: ConflictMineralsComplianceInput
@@ -119,6 +127,11 @@ export const typeDefs = gql`
   input FoodContactInput {
     safe: Boolean
     standard: String
+  }
+
+  input GreenClaimInput {
+    claim: String!
+    substantiation: String!
   }
 
   input BatteryComplianceInput {
@@ -181,6 +194,7 @@ export const typeDefs = gql`
     lifecycle: Lifecycle
     battery: Battery
     compliance: Compliance
+    greenClaims: [GreenClaim!]
     sustainability: SustainabilityData
     blockchainProof: BlockchainProof
     ebsiVcId: String
@@ -232,6 +246,12 @@ export const typeDefs = gql`
     isRemovable: Boolean
   }
 
+  type EprScheme {
+    schemeId: String!
+    producerRegistrationNumber: String!
+    wasteCategory: String
+  }
+
   type Compliance {
     rohs: RohsCompliance
     reach: ReachCompliance
@@ -240,6 +260,7 @@ export const typeDefs = gql`
     ce: CeCompliance
     prop65: Prop65Compliance
     foodContact: FoodContactCompliance
+    epr: EprScheme
     battery: BatteryCompliance
     pfas: PfasCompliance
     conflictMinerals: ConflictMineralsCompliance
@@ -277,6 +298,11 @@ export const typeDefs = gql`
   type FoodContactCompliance {
     safe: Boolean
     standard: String
+  }
+
+  type GreenClaim {
+    claim: String!
+    substantiation: String!
   }
 
   type BatteryCompliance {

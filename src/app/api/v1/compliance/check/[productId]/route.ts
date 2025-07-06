@@ -1,7 +1,6 @@
 // src/app/api/v1/compliance/check/[productId]/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import { getProductById } from '@/lib/actions/product-actions';
-import { runComplianceCheck } from '@/lib/actions/product-ai-actions';
+import { getProductById, runComplianceCheck } from '@/lib/actions/product-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';

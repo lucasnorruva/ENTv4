@@ -19,12 +19,12 @@ import type {
   CompliancePath,
   CustomFieldDefinition,
 } from '@/types';
-import { saveProduct } from '@/lib/actions/product-actions';
 import {
+  saveProduct,
   generateProductDescription,
   generateAndSaveProductImage,
   getFriendlyError,
-} from '@/lib/actions/product-ai-actions';
+} from '@/lib/actions/product-actions';
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';

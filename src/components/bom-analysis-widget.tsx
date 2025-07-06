@@ -1,4 +1,3 @@
-
 // src/components/bom-analysis-widget.tsx
 'use client';
 
@@ -13,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeBillOfMaterials } from '@/lib/actions/product-ai-actions';
+import { analyzeBillOfMaterials } from '@/lib/actions/product-actions';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { AnalyzeBomOutput } from '@/types/ai-outputs';
 import {

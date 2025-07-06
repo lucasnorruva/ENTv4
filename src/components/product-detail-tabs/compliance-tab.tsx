@@ -20,8 +20,10 @@ import {
   Battery,
   TestTube2,
   Diamond,
+  Megaphone,
+  Briefcase,
 } from 'lucide-react';
-import type { Product, CompliancePath, Certification } from '@/types';
+import type { Product, CompliancePath, Certification, GreenClaim } from '@/types';
 import {
   Accordion,
   AccordionContent,
@@ -75,7 +77,7 @@ export default function ComplianceTab({
   product,
   compliancePath,
 }: ComplianceTabProps) {
-  const { sustainability, compliance } = product;
+  const { sustainability, compliance, greenClaims } = product;
 
   return (
     <div className="space-y-6">
@@ -177,6 +179,13 @@ export default function ComplianceTab({
               )}
             </div>
           </InfoRow>
+           <InfoRow icon={Briefcase} label="Extended Producer Responsibility (EPR)">
+            <div className="text-sm text-muted-foreground">
+                Scheme ID: {compliance?.epr?.schemeId || 'N/A'}<br/>
+                Producer No: {compliance?.epr?.producerRegistrationNumber || 'N/A'}<br/>
+                Waste Category: {compliance?.epr?.wasteCategory || 'N/A'}
+            </div>
+          </InfoRow>
           <InfoRow icon={Leaf} label="EUDR Compliant">
             <div className="text-sm text-muted-foreground">
               {compliance?.eudr?.compliant ? 'Yes' : 'No'}
@@ -261,7 +270,27 @@ export default function ComplianceTab({
           <CardTitle>Documents & Credentials</CardTitle>
         </CardHeader>
         <CardContent>
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion type="multiple" collapsible className="w-full">
+             {greenClaims && greenClaims.length > 0 && (
+                <AccordionItem value="green-claims">
+                  <AccordionTrigger>
+                    <h4 className="flex items-center gap-2 font-semibold">
+                      <Megaphone />
+                      Green Claims ({greenClaims.length})
+                    </h4>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-2">
+                    <div className="space-y-3 mt-1">
+                      {greenClaims.map((claim: GreenClaim, index: number) => (
+                        <div key={index} className="text-sm p-3 border rounded-md bg-muted/50">
+                          <p className="font-semibold text-foreground">{claim.claim}</p>
+                          <p className="text-xs text-muted-foreground">Substantiation: {claim.substantiation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+            )}
             <AccordionItem value="certs">
               <AccordionTrigger>
                 <h4 className="flex items-center gap-2 font-semibold">

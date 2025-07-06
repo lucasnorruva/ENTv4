@@ -85,11 +85,16 @@ export let products: Product[] = [
       rohs: { compliant: true },
       ce: { marked: true },
       weee: { registered: true, registrationNumber: 'DE 12345678' },
+      epr: { schemeId: 'DE-EPR-01', producerRegistrationNumber: 'WEEE-DE-12345', wasteCategory: 'Small EEE' },
       battery: { compliant: true, passportId: 'urn:uuid:bpr-001' },
       pfas: { declared: true },
       conflictMinerals: { compliant: true, reportUrl: 'https://example.com/cmr.pdf' },
       espr: { compliant: true, delegatedActUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022R2554' },
     },
+    greenClaims: [
+        { claim: 'Carbon Neutral', substantiation: 'Offsets purchased from certified provider. See report at example.com/cn-report.pdf' },
+        { claim: '100% Recyclable Packaging', substantiation: 'Packaging is made from mono-material corrugated cardboard, widely recyclable.' }
+    ],
     sustainability: {
       score: 85,
       environmental: 90,
@@ -330,7 +335,7 @@ export let products: Product[] = [
         eta: '2024-08-15',
         transport: 'Ship',
         origin: 'Newark, USA',
-        destination: 'Bremerhaven, Germany',
+        destination: 'Stuttgart, Germany',
     },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(

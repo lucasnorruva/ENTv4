@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
-import { askQuestionAboutProduct } from '@/lib/actions/product-ai-actions';
+import { askQuestionAboutProduct } from '@/lib/actions/product-actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
