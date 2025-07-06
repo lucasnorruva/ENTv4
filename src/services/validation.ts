@@ -40,6 +40,8 @@ export async function runSubmissionValidation(
  * @param checklist The checklist object to evaluate.
  * @returns True if all checks have passed, false otherwise.
  */
-export function isChecklistComplete(checklist: SubmissionChecklist): boolean {
-    return Object.values(checklist).every(Boolean);
+export async function isChecklistComplete(
+  checklist: SubmissionChecklist,
+): Promise<boolean> {
+  return Object.values(checklist).every(Boolean);
 }

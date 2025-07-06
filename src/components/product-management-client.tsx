@@ -1,3 +1,4 @@
+
 // src/components/product-management-client.tsx
 'use client';
 

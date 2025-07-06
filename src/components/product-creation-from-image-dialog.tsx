@@ -1,3 +1,4 @@
+
 // src/components/product-creation-from-image-dialog.tsx
 'use client';
 

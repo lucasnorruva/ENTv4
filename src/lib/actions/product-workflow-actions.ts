@@ -1,7 +1,7 @@
 // src/lib/actions/product-workflow-actions.ts
 'use server';
 
-import type { Product, User, ComplianceGap, ServiceRecord } from '@/types';
+import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { getWebhooks, getProductById } from '@/lib/actions/index';
@@ -33,7 +33,7 @@ export async function submitForReview(
   checkPermission(user, 'product:submit', product);
 
   const checklist = await runSubmissionValidation(product);
-  if (!isChecklistComplete(checklist)) {
+  if (!(await isChecklistComplete(checklist))) {
     throw new Error('Submission checklist is not complete. Please fill in all required fields.');
   }
 

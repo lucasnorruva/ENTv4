@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for creating a base product passport from an image.
