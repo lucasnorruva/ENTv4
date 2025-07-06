@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,9 @@ import {
   FileCog,
   Share2,
   Quote,
+  Lock,
+  Coins,
+  Bot,
 } from "lucide-react";
 import Logo from "./logo";
 import { promises as fs } from "fs";
@@ -154,38 +158,88 @@ export default async function LandingPage() {
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-3 lg:max-w-none mt-12">
               <div className="grid gap-2 text-center items-center justify-items-center p-4 rounded-lg hover:bg-card transition-all">
-                <Box className="h-10 w-10 text-primary" />
+                <ShieldCheck className="h-10 w-10 text-primary" />
                 <h3 className="text-xl font-bold">
                   Immutable Blockchain Anchoring
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Secure your product data on Polygon or EBSI for unparalleled
-                  trust and data integrity.
+                  Secure your product data on public ledgers like Polygon or compliant networks like EBSI for unparalleled trust and data integrity.
                 </p>
               </div>
               <div className="grid gap-2 text-center items-center justify-items-center p-4 rounded-lg hover:bg-card transition-all">
                 <Sparkles className="h-10 w-10 text-primary" />
-                <h3 className="text-xl font-bold">AI-Powered Compliance</h3>
+                <h3 className="text-xl font-bold">AI-Powered Compliance & ESG Scoring</h3>
                 <p className="text-sm text-muted-foreground">
-                  Leverage Genkit AI for automated ESG scoring and regulatory
-                  analysis, ensuring your products meet EU standards
-                  effortlessly.
+                  Leverage Genkit AI for automated ESG scoring, compliance analysis, and risk assessment against global regulations.
                 </p>
               </div>
               <div className="grid gap-2 text-center items-center justify-items-center p-4 rounded-lg hover:bg-card transition-all">
                 <Globe className="h-10 w-10 text-primary" />
-                <h3 className="text-xl font-bold">Global Interoperability</h3>
+                <h3 className="text-xl font-bold">Universal Interoperability</h3>
                 <p className="text-sm text-muted-foreground">
-                  Built-in support for GS1 Digital Link, UN/CEFACT, and W3C
-                  Verifiable Credentials for seamless global data exchange.
+                  Built with GS1 Digital Link and W3C Verifiable Credentials at its core for seamless global data exchange and integration.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        {/* Innovation Showcase Section */}
+        <section id="innovation" className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-10 lg:grid-cols-2 items-center">
+              <div className="space-y-4">
+                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium">
+                  Future-Ready
+                </div>
+                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                  Building the Next Generation of Trust
+                </h2>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed">
+                  Our platform is not just built for today's regulations but architected for tomorrow's challenges. We are actively developing and researching next-generation solutions to ensure your data remains secure and compliant for decades to come.
+                </p>
+                <Link
+                  href="/docs/innovations"
+                  className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                >
+                  Explore Our Innovations
+                </Link>
+              </div>
+              <div className="flex flex-col gap-6">
+                <div className="grid gap-1">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-primary" />
+                    Quantum-Resistant Cryptography
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Preparing for the next era of security with post-quantum cryptographic algorithms to protect your data against future threats.
+                  </p>
+                </div>
+                <div className="grid gap-1">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-primary" />
+                    Circular Economy Tokenization
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Designing incentive systems using on-chain tokens to reward recycling, repair, and reuse, creating a truly circular economy.
+                  </p>
+                </div>
+                <div className="grid gap-1">
+                  <h3 className="text-lg font-bold flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-primary" />
+                    Autonomous Compliance
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Developing self-updating systems that automatically adapt to regulatory changes, ensuring continuous compliance with zero manual intervention.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* How It Works Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -243,7 +297,7 @@ export default async function LandingPage() {
         </section>
 
         {/* Testimonial Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+        <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <div className="mx-auto max-w-3xl text-center">
               <Quote className="h-10 w-10 text-primary mx-auto mb-4" />
@@ -263,7 +317,7 @@ export default async function LandingPage() {
         </section>
 
         {/* FAQ Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -325,29 +379,6 @@ export default async function LandingPage() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </div>
-          </div>
-        </section>
-
-        {/* Pricing Section Placeholder */}
-        <section
-          id="pricing"
-          className="w-full py-12 md:py-24 lg:py-32 bg-muted"
-        >
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm font-medium">
-                  Pricing
-                </div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">
-                  Coming Soon
-                </h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  We are currently finalizing our pricing plans. Stay tuned for
-                  simple, transparent pricing.
-                </p>
-              </div>
             </div>
           </div>
         </section>
