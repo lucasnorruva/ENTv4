@@ -11,7 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const AnalyzeTextileInputSchema = z.object({
+const AnalyzeTextileInputSchema = z.object({
   fiberComposition: z
     .array(z.object({ name: z.string(), percentage: z.number() }))
     .describe('The fiber composition of the textile product.'),
@@ -19,7 +19,7 @@ export const AnalyzeTextileInputSchema = z.object({
 });
 export type AnalyzeTextileInput = z.infer<typeof AnalyzeTextileInputSchema>;
 
-export const AnalyzeTextileOutputSchema = z.object({
+const AnalyzeTextileOutputSchema = z.object({
   identifiedFibers: z.array(z.object({
       fiber: z.string(),
       type: z.enum(['Natural', 'Synthetic', 'Semi-Synthetic']),

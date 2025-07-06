@@ -6,7 +6,7 @@
  *
  * - analyzeProductLifecycle - A function that handles the lifecycle analysis.
  * - AnalyzeProductLifecycleInput - The input type for the function.
- * - AnalyzeProductLifecycleOutputSchema - The return type for the function.
+ * - AnalyzeProductLifecycleOutput - The return type for the function.
  */
 
 import { ai } from "@/ai/genkit";
