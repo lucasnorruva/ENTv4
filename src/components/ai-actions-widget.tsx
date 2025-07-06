@@ -1,3 +1,4 @@
+
 // src/components/ai-actions-widget.tsx
 'use client';
 
