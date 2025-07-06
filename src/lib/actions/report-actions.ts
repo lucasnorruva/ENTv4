@@ -4,6 +4,7 @@
 import { products as mockProducts } from '../data';
 import { auditLogs as mockAuditLogs } from '../audit-log-data';
 import { users as mockUsers } from '../user-data';
+import Papa from 'papaparse';
 
 const flattenObject = (
   obj: any,
@@ -51,37 +52,11 @@ export async function exportProducts(
     return JSON.stringify(products, null, 2);
   }
 
+  // Flatten for CSV
   const flatProducts = products.map(flattenObject);
-
-  const allHeaders = Array.from(
-    flatProducts.reduce((acc, product) => {
-      Object.keys(product).forEach(key => acc.add(key));
-      return acc;
-    }, new Set<string>()),
-  ).sort();
-
-  const csvRows = [allHeaders.join(',')];
-
-  for (const product of flatProducts) {
-    const values = allHeaders.map(header => {
-      const value = product[header];
-
-      if (value === undefined || value === null) {
-        return '';
-      }
-
-      let stringValue =
-        typeof value === 'object' ? JSON.stringify(value) : String(value);
-
-      if (/[",\n]/.test(stringValue)) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    });
-    csvRows.push(values.join(','));
-  }
-
-  return csvRows.join('\n');
+  
+  // Unparse to CSV using papaparse
+  return Papa.unparse(flatProducts);
 }
 
 export async function exportComplianceReport(
@@ -116,25 +91,8 @@ export async function exportComplianceReport(
       : '[]',
     lastUpdated: p.updatedAt,
   }));
-
-  const headers = Object.keys(complianceData[0]).join(',');
-  const csvRows = [headers];
-
-  for (const item of complianceData) {
-    const values = Object.values(item).map(value => {
-      if (value === undefined || value === null) {
-        return '';
-      }
-      let stringValue = String(value);
-      if (/[",\n]/.test(stringValue)) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    });
-    csvRows.push(values.join(','));
-  }
-
-  return csvRows.join('\n');
+  
+  return Papa.unparse(complianceData);
 }
 
 export async function exportFullAuditTrail(dateRange?: {
@@ -170,21 +128,5 @@ export async function exportFullAuditTrail(dateRange?: {
     details: JSON.stringify(log.details),
   }));
 
-  const headers = Object.keys(auditData[0]).join(',');
-  const csvRows = [headers];
-
-  for (const item of auditData) {
-    const values = Object.values(item).map(value => {
-      if (value === undefined || value === null) {
-        return '';
-      }
-      let stringValue = String(value);
-      if (/[",\n]/.test(stringValue)) {
-        return `"${stringValue.replace(/"/g, '""')}"`;
-      }
-      return stringValue;
-    });
-    csvRows.push(values.join(','));
-  }
-  return csvRows.join('\n');
+  return Papa.unparse(auditData);
 }

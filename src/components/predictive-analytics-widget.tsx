@@ -20,7 +20,6 @@ interface PredictiveAnalyticsWidgetProps {
   product: Product;
   user: User;
   onPredictionComplete: (updatedProduct: Product) => void;
-  isAiEnabled: boolean;
 }
 
 const InfoItem = ({ label, value }: { label: string; value: string | number }) => (
@@ -30,7 +29,7 @@ const InfoItem = ({ label, value }: { label: string; value: string | number }) =
     </div>
 );
 
-export default function PredictiveAnalyticsWidget({ product, user, onPredictionComplete, isAiEnabled }: PredictiveAnalyticsWidgetProps) {
+export default function PredictiveAnalyticsWidget({ product, user, onPredictionComplete }: PredictiveAnalyticsWidgetProps) {
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
@@ -54,10 +53,6 @@ export default function PredictiveAnalyticsWidget({ product, user, onPredictionC
   }
 
   const prediction = product.sustainability?.lifecyclePrediction;
-
-  if (!isAiEnabled) {
-    return null;
-  }
 
   return (
     <Card>
@@ -90,7 +85,7 @@ export default function PredictiveAnalyticsWidget({ product, user, onPredictionC
         )}
       </CardContent>
       <CardFooter>
-        <Button onClick={handleRunPrediction} disabled={!isAiEnabled || isPending} className="w-full">
+        <Button onClick={handleRunPrediction} disabled={isPending} className="w-full">
           {isPending ? (
              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (

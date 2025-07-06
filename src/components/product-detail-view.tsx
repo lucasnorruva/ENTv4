@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Landmark,
   ShieldAlert,
-  Shirt,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -35,9 +34,6 @@ import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
-import OverrideVerificationDialog from './override-verification-dialog';
-import TextileTab from './product-detail-tabs/textile-tab';
-import { cn } from '@/lib/utils';
 
 export default function ProductDetailView({
   product: productProp,
@@ -76,13 +72,9 @@ export default function ProductDetailView({
   const canLogInspection = can(user, 'product:customs_inspect');
   const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
-  const canOverride = can(user, 'product:override_verification');
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
-  
-  const isFashionProduct = product.category === 'Fashion';
-  const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
   return (
     <>
@@ -97,7 +89,7 @@ export default function ProductDetailView({
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {canOverride && product.verificationStatus === 'Failed' && (
+            {can(user, 'product:override_verification') && product.verificationStatus === 'Failed' && (
               <Button
                 variant="destructive"
                 onClick={() => setIsOverrideOpen(true)}
@@ -168,9 +160,8 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className={cn("grid w-full", isFashionProduct ? "grid-cols-7" : "grid-cols-6")}>
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                {isFashionProduct && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -183,11 +174,6 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
-               {isFashionProduct && (
-                <TabsContent value="textile" className="mt-4">
-                  <TextileTab product={product} />
-                </TabsContent>
-              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
@@ -213,14 +199,11 @@ export default function ProductDetailView({
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
             <DppQrCodeWidget productId={product.id} />
-            {canRunPrediction && (
+             {canRunPrediction && (
               <PredictiveAnalyticsWidget
                 product={product}
                 user={user}
-                onPredictionComplete={updatedProduct => {
-                  setProduct(updatedProduct);
-                }}
-                isAiEnabled={isAiEnabled}
+                onPredictionComplete={(updatedProduct) => { setProduct(updatedProduct) }}
               />
             )}
             <AiActionsWidget
@@ -230,7 +213,6 @@ export default function ProductDetailView({
               canValidateData={canValidateData}
               canGenerateDoc={canGenerateDoc}
               canExportData={canExportData}
-              isAiEnabled={isAiEnabled}
             />
           </div>
         </div>
@@ -253,15 +235,6 @@ export default function ProductDetailView({
         onSave={updatedProduct => {
           setProduct(updatedProduct);
           router.refresh();
-        }}
-      />
-      <OverrideVerificationDialog
-        isOpen={isOverrideOpen}
-        onOpenChange={setIsOverrideOpen}
-        product={product}
-        user={user}
-        onSuccess={updatedProduct => {
-          setProduct(updatedProduct);
         }}
       />
     </>
