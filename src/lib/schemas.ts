@@ -158,6 +158,15 @@ export const textileDataSchema = z.object({
   weaveType: z.string().optional(),
 });
 
+const blockchainProofSchema = z.object({
+  type: z.enum(['SINGLE_HASH', 'MERKLE_PROOF']),
+  txHash: z.string(),
+  explorerUrl: z.string().url(),
+  blockHeight: z.number(),
+  merkleRoot: z.string().optional(),
+  proof: z.array(z.string()).optional(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -192,6 +201,9 @@ export const productFormSchema = z.object({
   verificationOverride: verificationOverrideSchema.optional(),
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
+  blockchainProof: blockchainProofSchema.optional(),
+  ebsiVcId: z.string().optional(),
+  verifiableCredential: z.string().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -129,44 +129,44 @@ export interface TextileAnalysis extends AnalyzeTextileOutput {}
 
 export interface Compliance {
   rohs?: {
-    compliant: boolean;
+    compliant?: boolean;
     exemption?: string;
   };
   reach?: {
-    svhcDeclared: boolean;
+    svhcDeclared?: boolean;
     scipReference?: string;
   };
   weee?: {
-    registered: boolean;
+    registered?: boolean;
     registrationNumber?: string;
   };
   eudr?: {
-    compliant: boolean;
+    compliant?: boolean;
     diligenceId?: string;
   };
   ce?: {
-    marked: boolean;
+    marked?: boolean;
   };
   prop65?: {
-    warningRequired: boolean;
+    warningRequired?: boolean;
   };
   foodContact?: {
-    safe: boolean;
+    safe?: boolean;
     standard?: string;
   };
   battery?: {
-    compliant: boolean;
+    compliant?: boolean;
     passportId?: string;
   };
   pfas?: {
-    declared: boolean;
+    declared?: boolean;
   };
   conflictMinerals?: {
-    compliant: boolean;
+    compliant?: boolean;
     reportUrl?: string;
   };
   espr?: {
-    compliant: boolean;
+    compliant?: boolean;
     delegatedActUrl?: string;
   };
 }
