@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveCompany } from '@/lib/actions';
+import { saveCompany } from '@/lib/actions/company-actions';
 import { companyFormSchema, type CompanyFormValues } from '@/lib/schemas';
 import type { Company, User } from '@/types';
 import {

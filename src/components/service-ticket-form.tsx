@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveServiceTicket } from '@/lib/actions';
+import { saveServiceTicket } from '@/lib/actions/ticket-actions';
 import {
   serviceTicketFormSchema,
   type ServiceTicketFormValues,

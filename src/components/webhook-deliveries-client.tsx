@@ -29,7 +29,8 @@ import {
 } from 'lucide-react';
 import type { Webhook, AuditLog, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { replayWebhook, getAuditLogsForEntity } from '@/lib/actions';
+import { replayWebhook } from '@/lib/actions/webhook-actions';
+import { getAuditLogsForEntity } from '@/lib/actions/audit-actions';
 import {
   Dialog,
   DialogContent,

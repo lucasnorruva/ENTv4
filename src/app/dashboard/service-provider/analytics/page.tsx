@@ -1,7 +1,8 @@
 // src/app/dashboard/service-provider/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { getProducts, getServiceTickets } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
 import {

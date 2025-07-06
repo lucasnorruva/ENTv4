@@ -5,7 +5,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getAuditLogs, getServiceTickets } from '@/lib/actions';
+import { getProducts, getAuditLogs, getServiceTickets } from '@/lib/actions/product-actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,

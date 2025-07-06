@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/popover';
 
 import { useToast } from '@/hooks/use-toast';
-import { exportProducts, exportComplianceReport, exportFullAuditTrail } from '@/lib/actions';
+import { exportProducts, exportComplianceReport, exportFullAuditTrail } from '@/lib/actions/report-actions';
 import { cn } from '@/lib/utils';
 
 export default function DataExportClient() {

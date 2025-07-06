@@ -18,7 +18,7 @@ import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants';
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { revokeApiKey, deleteApiKey } from '@/lib/actions';
+import { revokeApiKey, deleteApiKey } from '@/lib/actions/api-key-actions';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

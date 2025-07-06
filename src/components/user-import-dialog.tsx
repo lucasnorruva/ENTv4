@@ -25,7 +25,7 @@ import {
 import { Badge } from './ui/badge';
 import { bulkUserImportSchema } from '@/lib/schemas';
 import type { User } from '@/types';
-import { bulkCreateUsers } from '@/lib/actions';
+import { bulkCreateUsers } from '@/lib/actions/user-actions';
 import { Loader2, Upload } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 

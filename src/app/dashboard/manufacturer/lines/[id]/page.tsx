@@ -1,8 +1,8 @@
 // src/app/dashboard/manufacturer/lines/[id]/page.tsx
 import {
   getProductionLineById,
-  getServiceTickets,
-} from '@/lib/actions';
+} from '@/lib/actions/manufacturing-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductionLineDetailView from '@/components/production-line-detail-view';

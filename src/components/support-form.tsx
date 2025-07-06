@@ -9,7 +9,7 @@ import {
   supportTicketFormSchema,
   type SupportTicketFormValues,
 } from '@/lib/schemas';
-import { saveSupportTicket } from '@/lib/actions';
+import { saveSupportTicket } from '@/lib/actions/ticket-actions';
 import type { User } from '@/types';
 
 import { Button } from '@/components/ui/button';

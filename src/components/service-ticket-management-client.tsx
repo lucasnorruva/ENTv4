@@ -62,9 +62,9 @@ import { useToast } from '@/hooks/use-toast';
 import {
   getServiceTickets,
   updateServiceTicketStatus,
-  getProducts,
-  getProductionLines,
-} from '@/lib/actions';
+} from '@/lib/actions/ticket-actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';

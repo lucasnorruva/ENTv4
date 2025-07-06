@@ -49,11 +49,11 @@ import {
 
 import type { ProductionLine, User, Product } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { getProducts } from '@/lib/actions/product-actions';
 import {
   getProductionLines,
   deleteProductionLine,
-  getProducts,
-} from '@/lib/actions';
+} from '@/lib/actions/manufacturing-actions';
 import ProductionLineForm from './production-line-form';
 
 interface ProductionLineManagementClientProps {

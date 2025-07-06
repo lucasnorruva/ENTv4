@@ -70,7 +70,7 @@ import { Input } from '@/components/ui/input';
 
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompany } from '@/lib/actions';
+import { deleteCompany } from '@/lib/actions/company-actions';
 import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {

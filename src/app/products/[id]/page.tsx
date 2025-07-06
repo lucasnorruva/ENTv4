@@ -1,5 +1,6 @@
 // src/app/products/[id]/page.tsx
-import { getProductById, getCompliancePathById } from "@/lib/actions";
+import { getProductById } from "@/lib/actions/product-actions";
+import { getCompliancePathById } from "@/lib/actions/compliance-actions";
 import { getCompanyById } from "@/lib/auth";
 import PublicPassportView from "@/components/public-passport-view";
 import { notFound } from "next/navigation";

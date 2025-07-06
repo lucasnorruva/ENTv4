@@ -1,8 +1,6 @@
 // src/app/dashboard/admin/products/[id]/edit/page.tsx
-import {
-  getProductById,
-  getCompliancePaths,
-} from '@/lib/actions';
+import { getProductById } from '@/lib/actions/product-actions';
+import { getCompliancePaths } from '@/lib/actions/compliance-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductForm from '@/components/product-form';

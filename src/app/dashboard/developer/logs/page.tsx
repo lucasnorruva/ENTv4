@@ -1,6 +1,6 @@
 // src/app/dashboard/developer/logs/page.tsx
 import { redirect } from 'next/navigation';
-import { getAuditLogs } from '@/lib/actions';
+import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import {

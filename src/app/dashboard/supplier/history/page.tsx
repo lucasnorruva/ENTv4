@@ -7,7 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { getAuditLogsForUser, getProducts } from '@/lib/actions';
+import { getAuditLogsForUser } from '@/lib/actions/audit-actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import {

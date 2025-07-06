@@ -20,7 +20,7 @@ import { useRouter } from "next/navigation";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { createUserAndCompany } from "@/lib/actions";
+import { createUserAndCompany } from "@/lib/actions/user-actions";
 
 const formSchema = z
   .object({

@@ -19,15 +19,14 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import ProductTable from './product-table';
+import { deleteProduct, getProducts } from '@/lib/actions/product-actions';
 import {
-  deleteProduct,
-  getProducts,
   submitForReview,
   recalculateScore,
   bulkDeleteProducts,
   bulkSubmitForReview,
   bulkArchiveProducts,
-} from '@/lib/actions';
+} from '@/lib/actions/product-workflow-actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
 import ProductImportDialog from './product-import-dialog';

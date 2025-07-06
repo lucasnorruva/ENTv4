@@ -22,7 +22,8 @@ import {
   AlertTriangle,
   Camera,
 } from 'lucide-react';
-import { getProductById, markAsRecycled } from '@/lib/actions';
+import { getProductById } from '@/lib/actions/product-actions';
+import { markAsRecycled } from '@/lib/actions/product-workflow-actions';
 import type { Product, User } from '@/types';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';

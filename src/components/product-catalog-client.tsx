@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import type { Product, User } from '@/types';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Loader2, Search, ShoppingBag } from 'lucide-react';

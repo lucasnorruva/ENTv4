@@ -1,9 +1,7 @@
 // src/app/dashboard/compliance-manager/products/[id]/page.tsx
-import {
-  getProductById,
-  getCompliancePathById,
-  getAuditLogsForEntity,
-} from '@/lib/actions';
+import { getProductById } from '@/lib/actions/product-actions';
+import { getCompliancePathById } from '@/lib/actions/compliance-actions';
+import { getAuditLogsForEntity } from '@/lib/actions/audit-actions';
 import { getCurrentUser, getCompanyById, getUsers } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductDetailView from '@/components/product-detail-view';

@@ -18,7 +18,7 @@ import type { ProductFormValues } from '@/lib/schemas';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { useTransition } from 'react';
-import { analyzeTextileData } from '@/lib/actions';
+import { analyzeTextileData } from '@/lib/actions/product-ai-actions';
 
 interface TextileTabProps {
   form: UseFormReturn<ProductFormValues>;

@@ -2,7 +2,7 @@
 // src/app/dashboard/admin/products/new/page.tsx
 import ProductForm from '@/components/product-form';
 import { getCurrentUser } from '@/lib/auth';
-import { getCompliancePaths } from '@/lib/actions';
+import { getCompliancePaths } from '@/lib/actions/compliance-actions';
 import { UserRoles } from '@/lib/constants';
 
 export default async function NewProductPage({

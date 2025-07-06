@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { getAuditLogsForUser, getProducts } from '@/lib/actions';
+import { getAuditLogsForUser } from '@/lib/actions/audit-actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { Award, Package } from 'lucide-react';

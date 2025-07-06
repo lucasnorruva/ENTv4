@@ -32,7 +32,8 @@ import {
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import type { User, AuditLog } from '@/types';
-import { markAllNotificationsAsRead, getAuditLogs } from '@/lib/actions';
+import { markAllNotificationsAsRead } from '@/lib/actions/user-actions';
+import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { getUsers } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
 

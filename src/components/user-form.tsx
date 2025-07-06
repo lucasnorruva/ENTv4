@@ -34,7 +34,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveUser } from '@/lib/actions';
+import { saveUser } from '@/lib/actions/user-actions';
 import { userFormSchema, type UserFormValues } from '@/lib/schemas';
 import type { User, Company } from '@/types';
 import { UserRoles } from '@/lib/constants';

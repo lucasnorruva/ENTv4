@@ -40,7 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   getSupportTickets,
   updateSupportTicketStatus,
-} from '@/lib/actions';
+} from '@/lib/actions/ticket-actions';
 import {
   Accordion,
   AccordionContent,

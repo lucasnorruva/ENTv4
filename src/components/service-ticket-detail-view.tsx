@@ -39,7 +39,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Loader2 } from 'lucide-react';
-import { updateServiceTicketStatus } from '@/lib/actions';
+import { updateServiceTicketStatus } from '@/lib/actions/ticket-actions';
 import { useToast } from '@/hooks/use-toast';
 import ServiceTicketForm from './service-ticket-form';
 

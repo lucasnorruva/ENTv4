@@ -1,6 +1,6 @@
 // src/app/dashboard/admin/api-settings/page.tsx
 import { redirect } from 'next/navigation';
-import { getApiSettings } from '@/lib/actions';
+import { getApiSettings } from '@/lib/actions/settings-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import ApiSettingsClient from '@/components/api-settings-client';

@@ -1,7 +1,7 @@
 // src/app/dashboard/admin/products/page.tsx
 import { redirect } from 'next/navigation';
 import ProductManagementClient from '@/components/product-management-client';
-import { getCompliancePaths } from '@/lib/actions';
+import { getCompliancePaths } from '@/lib/actions/compliance-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';

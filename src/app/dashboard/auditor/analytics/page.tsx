@@ -3,7 +3,8 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getAuditLogs } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   Card,

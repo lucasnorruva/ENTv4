@@ -20,7 +20,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
-import { globalSearch } from '@/lib/actions';
+import { globalSearch } from '@/lib/actions/search-actions';
 import type { Product, User, CompliancePath, Role } from '@/types';
 import { cn } from '@/lib/utils';
 import { UserRoles } from '@/lib/constants';

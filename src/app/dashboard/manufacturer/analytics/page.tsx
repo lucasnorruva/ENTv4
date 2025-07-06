@@ -2,7 +2,9 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getProductionLines, getServiceTickets } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { UserRoles } from '@/lib/constants';
 import {
   Card,

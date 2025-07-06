@@ -15,7 +15,7 @@ import {
 import type { CompliancePath, User } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions';
+import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions/compliance-actions';
 import { hasRole } from '@/lib/auth-utils';
 
 import {

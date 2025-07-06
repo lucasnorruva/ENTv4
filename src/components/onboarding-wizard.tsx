@@ -12,7 +12,7 @@ import {
   onboardingFormSchema,
   type OnboardingFormValues,
 } from '@/lib/schemas';
-import { completeOnboarding } from '@/lib/actions';
+import { completeOnboarding } from '@/lib/actions/user-actions';
 import type { User } from '@/types';
 
 import { Button } from '@/components/ui/button';

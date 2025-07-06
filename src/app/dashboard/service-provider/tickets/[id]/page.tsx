@@ -1,9 +1,9 @@
 // src/app/dashboard/service-provider/tickets/[id]/page.tsx
 import {
   getServiceTicketById,
-  getProducts,
-  getProductionLines,
-} from '@/lib/actions';
+} from '@/lib/actions/ticket-actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ServiceTicketDetailView from '@/components/service-ticket-detail-view';
