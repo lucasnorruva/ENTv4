@@ -2,8 +2,8 @@
 'use server';
 
 import type { Product, Webhook } from '@/types';
-import { getApiSettings } from '@/lib/actions';
-import { logAuditEvent } from '@/lib/actions';
+import { getApiSettings } from '@/lib/actions/api-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { createHmac } from 'crypto';
 
 const WEBHOOK_SECRET =

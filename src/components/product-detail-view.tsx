@@ -89,13 +89,6 @@ export default function ProductDetailView({
     router.refresh();
   };
 
-  const getTabListGridCols = () => {
-    let cols = 7;
-    if (showTextileTab) cols++;
-    if (product.model3dUrl) cols++;
-    return `grid-cols-${cols}`;
-  };
-
   return (
     <>
       <div className="space-y-6">
@@ -180,7 +173,7 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className={cn('grid w-full', getTabListGridCols())}>
+              <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>

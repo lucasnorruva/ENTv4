@@ -3,7 +3,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { Collections } from '@/lib/constants';
-import { getApiSettings } from '@/lib/actions';
+import { getApiSettings } from '@/lib/actions/api-actions';
 import type { ApiRateLimit } from '@/types';
 
 export class RateLimitError extends Error {

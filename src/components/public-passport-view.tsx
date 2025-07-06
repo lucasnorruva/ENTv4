@@ -175,7 +175,7 @@ export default function PublicPassportView({
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className={`grid w-full ${showTextileTab ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
