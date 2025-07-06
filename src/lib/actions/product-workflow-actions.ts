@@ -4,7 +4,8 @@
 import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus, BlockchainProof } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
-import { getWebhooks, getProductById } from '@/lib/actions/index';
+import { getWebhooks } from './api-actions';
+import { getProductById } from './product-actions';
 import { logAuditEvent } from './audit-actions';
 import { getUserById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';

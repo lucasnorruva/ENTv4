@@ -64,6 +64,7 @@ export default function CompanyForm({
       industry: '',
       tier: 'free',
       isTrustedIssuer: false,
+      revocationListUrl: '',
     },
   });
 
@@ -76,6 +77,7 @@ export default function CompanyForm({
           industry: company.industry || '',
           tier: company.tier || 'free',
           isTrustedIssuer: company.isTrustedIssuer || false,
+          revocationListUrl: company.revocationListUrl || '',
         });
       } else {
         form.reset({
@@ -84,6 +86,7 @@ export default function CompanyForm({
           industry: '',
           tier: 'free',
           isTrustedIssuer: false,
+          revocationListUrl: '',
         });
       }
     }
@@ -131,6 +134,20 @@ export default function CompanyForm({
                   <FormControl>
                     <Input placeholder="e.g., Acme Corporation" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="revocationListUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>VC Revocation List URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/status/1.json" {...field} />
+                  </FormControl>
+                  <FormDescription>The URL for this company's W3C Status List 2021.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

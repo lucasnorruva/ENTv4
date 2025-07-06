@@ -33,6 +33,7 @@ export type Action =
   | 'product:export_data'
   | 'product:run_prediction'
   | 'product:override_verification'
+  | 'product:generate_zkp'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -92,6 +93,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:recalculate':
     case 'product:validate_data':
     case 'product:run_compliance':
+    case 'product:generate_zkp':
       return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
 
     case 'product:approve':

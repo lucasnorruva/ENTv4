@@ -56,6 +56,7 @@ export interface Company extends BaseEntity {
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
   isTrustedIssuer?: boolean;
+  revocationListUrl?: string;
   settings?: {
     aiEnabled?: boolean;
     apiAccess?: boolean;
@@ -228,6 +229,12 @@ export interface BlockchainProof {
   proof?: string[]; // Array of hashes for Merkle proof
 }
 
+export interface ZkProof {
+  proofData: string; // Mock proof data
+  isVerified: boolean;
+  verifiedAt: string; // ISO 8601
+}
+
 /**
  * The core Digital Product Passport entity.
  */
@@ -281,127 +288,7 @@ export interface Product extends BaseEntity {
   };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: BlockchainProof;
+  zkProof?: ZkProof;
+  verifiableCredential?: any; // The signed VC object
   ebsiVcId?: string;
-  verifiableCredential?: string; // JSON string of the signed VC
-}
-
-/**
- * Defines a set of compliance rules and regulations.
- */
-export interface CompliancePath extends BaseEntity {
-  name: string;
-  description: string;
-  regulations: string[];
-  category: string;
-  rules: {
-    minSustainabilityScore?: number;
-    requiredKeywords?: string[];
-    bannedKeywords?: string[];
-  };
-}
-
-/**
- * Represents a single audit trail event in the system.
- */
-export interface AuditLog extends BaseEntity {
-  userId: string;
-  action: string;
-  entityId: string;
-  details: Record<string, any>;
-}
-
-/**
- * Represents a service ticket for product repair or issues.
- */
-export interface ServiceTicket extends BaseEntity {
-  productId?: string;
-  productionLineId?: string;
-  userId: string;
-  customerName: string;
-  issue: string;
-  status: 'Open' | 'In Progress' | 'Closed';
-  imageUrl?: string;
-}
-
-/**
- * Represents a platform support ticket submitted by a user.
- */
-export interface SupportTicket extends BaseEntity {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  status: 'Open' | 'Closed';
-  userId?: string; // Optional, for logged-in users
-}
-
-/**
- * Represents a physical production line for manufacturing.
- */
-export interface ProductionLine extends BaseEntity {
-  name: string;
-  location: string;
-  status: 'Active' | 'Idle' | 'Maintenance';
-  outputPerHour: number;
-  currentProduct: string;
-  lastMaintenance: string;
-  productId?: string;
-  companyId: string; // Foreign key to the Company
-}
-
-/**
- * Represents a developer API key for integrations.
- */
-export interface ApiKey extends BaseEntity {
-  label: string;
-  token: string; // This is a truncated, non-sensitive version for display
-  rawToken?: string; // MOCK ONLY: In a real app, this would be hashed.
-  status: 'Active' | 'Revoked';
-  userId: string;
-  scopes: string[];
-  lastUsed?: string;
-}
-
-/**
- * Represents a configurable webhook endpoint for integrations.
- */
-export interface Webhook extends BaseEntity {
-  url: string;
-  events: string[]; // e.g., ['product.published', 'product.updated']
-  status: 'active' | 'inactive';
-  userId: string;
-}
-
-/**
- * Represents the global settings for the Norruva API.
- */
-export interface ApiSettings {
-  isPublicApiEnabled: boolean;
-  rateLimits: {
-    free: number;
-    pro: number;
-    enterprise: number;
-  };
-  isWebhookSigningEnabled: boolean;
-}
-
-/**
- * Represents a configurable integration with an external system.
- */
-export interface Integration extends BaseEntity {
-  name: string;
-  type: 'ERP' | 'PLM' | 'E-commerce';
-  logo: string;
-  dataAiHint: string;
-  description: string;
-  enabled: boolean;
-  config?: Record<string, any>;
-}
-
-/**
- * Represents a document in Firestore used for API rate limiting.
- */
-export interface ApiRateLimit {
-  count: number;
-  windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }

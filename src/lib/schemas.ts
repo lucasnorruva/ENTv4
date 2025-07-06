@@ -167,6 +167,12 @@ const blockchainProofSchema = z.object({
   proof: z.array(z.string()).optional(),
 });
 
+const zkProofSchema = z.object({
+  proofData: z.string(),
+  isVerified: z.boolean(),
+  verifiedAt: z.string(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -204,8 +210,9 @@ export const productFormSchema = z.object({
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
   blockchainProof: blockchainProofSchema.optional(),
+  zkProof: zkProofSchema.optional(),
   ebsiVcId: z.string().optional(),
-  verifiableCredential: z.string().optional(),
+  verifiableCredential: z.any().optional(),
   isProcessing: z.boolean().optional(),
 });
 
@@ -229,6 +236,7 @@ export const companyFormSchema = z.object({
   industry: z.string().optional(),
   tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
   isTrustedIssuer: z.boolean().optional(),
+  revocationListUrl: z.string().url({ message: 'Please enter a valid URL' }).optional().or(z.literal('')),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 

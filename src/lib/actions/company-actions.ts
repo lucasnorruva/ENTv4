@@ -45,6 +45,7 @@ export async function saveCompany(
       id: newId('comp'),
       ...validatedData,
       isTrustedIssuer: validatedData.isTrustedIssuer ?? false,
+      revocationListUrl: validatedData.revocationListUrl || '',
       createdAt: now,
       updatedAt: now,
       settings: {

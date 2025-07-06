@@ -1,11 +1,10 @@
 // src/services/credential.ts
 "use server";
 
-import type { Product, User } from '@/types';
+import type { Product, User, Company } from '@/types';
 import { hashData } from './blockchain';
-import { createWalletClient, http, Hex, publicActions } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { mainnet } from 'viem/chains';
+import type { Hex } from 'viem';
 
 const ISSUER_DID = 'did:web:norruva.com';
 const SIGNING_KEY = (process.env.WALLET_PRIVATE_KEY ||
@@ -15,49 +14,59 @@ const account = privateKeyToAccount(SIGNING_KEY);
 
 /**
  * Creates a W3C Verifiable Credential for a given product.
- * In a real implementation, the signing process would conform to
- * JSON-LD Signatures, which involves canonicalizing the document before hashing and signing.
+ * This mock now includes a bbs+ cryptosuite and a credentialStatus field
+ * to align with the advanced cryptographic infrastructure goals.
  *
  * @param product The product data to include in the credential.
- * @param user The user issuing the credential (though the platform is the issuer).
+ * @param company The company issuing the credential, used for revocation list.
  * @returns A signed Verifiable Credential object.
  */
 export async function createVerifiableCredential(
   product: Product,
-  user: User,
+  company: Company,
 ) {
   const issuanceDate = new Date().toISOString();
 
   // The claims being attested to in the credential.
   const credentialSubject = {
     id: `did:dpp:product:${product.id}`,
-    type: "Product",
-    productName: product.productName,
+    type: 'Product',
+    name: product.productName,
     gtin: product.gtin,
     category: product.category,
-    manufacturer: product.supplier,
+    manufacturer: company.name,
     compliance: product.compliance,
+    materials: product.materials,
   };
 
-  const credentialPayload = {
+  const credentialId = `urn:uuid:${crypto.randomUUID()}`;
+
+  const credentialPayload: any = {
     '@context': [
       'https://www.w3.org/2018/credentials/v1',
-      'https://schema.org', // Use schema.org for product-related terms
-      'https://w3id.org/dpp/v1', // Fictional DPP context
+      'https://schema.org',
+      'https://w3id.org/dpp/v1',
     ],
-    id: `urn:uuid:${crypto.randomUUID()}`,
+    id: credentialId,
     type: ['VerifiableCredential', 'DigitalProductPassport'],
     issuer: {
-        id: ISSUER_DID,
-        name: "Norruva Platform",
+      id: ISSUER_DID,
+      name: 'Norruva Platform',
     },
     issuanceDate: issuanceDate,
     credentialSubject,
   };
 
+  // Add credentialStatus for revocation, pointing to a hypothetical status list.
+  if (company.revocationListUrl) {
+    credentialPayload.credentialStatus = {
+      id: `${company.revocationListUrl}#${product.id}`, // Simplified index
+      type: 'StatusList2021Credential',
+    };
+  }
+  
   // For this mock, we'll sign the stringified payload.
   // A real implementation would use a proper JWS/JSON-LD Signature library.
-  // The signature is created over the hash of the canonicalized payload.
   const payloadHash = await hashData(credentialPayload);
   const signature = await account.signMessage({
     message: payloadHash,
@@ -65,12 +74,15 @@ export async function createVerifiableCredential(
 
   const vc = {
     ...credentialPayload,
+    // Using a DataIntegrityProof with a BBS+ cryptosuite to signal
+    // support for selective disclosure.
     proof: {
-      type: 'EcdsaSecp256k1Signature2019', // Example type
+      type: 'DataIntegrityProof',
+      cryptosuite: 'bbs-bls12381-sha-256',
       created: issuanceDate,
       proofPurpose: 'assertionMethod',
       verificationMethod: `${ISSUER_DID}#keys-1`,
-      jws: signature, // JWS would typically be a structured token, but using the raw signature here.
+      proofValue: signature, // In a real BBS+ proof, this would be a derived proof.
     },
   };
 
