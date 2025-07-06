@@ -114,6 +114,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:run_prediction':
       return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
+    case 'product:resolve':
+      return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
+
     case 'compliance:manage':
       return (
         hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
