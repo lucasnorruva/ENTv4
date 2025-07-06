@@ -68,6 +68,7 @@ export default function ProductDetailView({
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
   const canRunPrediction = can(user, 'product:run_prediction');
+  const canExportData = can(user, 'product:export_data', product);
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -182,6 +183,7 @@ export default function ProductDetailView({
             canRunComplianceCheck={canRunComplianceCheck}
             canValidateData={canValidateData}
             canGenerateDoc={canGenerateDoc}
+            canExportData={canExportData}
           />
         </div>
       </div>

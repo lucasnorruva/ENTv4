@@ -3,9 +3,12 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, Sparkles, ListChecks, FileText, Loader2 } from 'lucide-react';
+import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson } from 'lucide-react';
 import type { Product, User } from '@/types';
-import type { SuggestImprovementsOutput } from '@/types/ai-outputs';
+import type {
+  SuggestImprovementsOutput,
+  PcdsOutput,
+} from '@/types/ai-outputs';
 
 import {
   Card,
@@ -27,6 +30,7 @@ import {
   runDataValidationCheck,
   suggestImprovements,
   generateAndSaveConformityDeclaration,
+  generatePcdsForProduct,
 } from '@/lib/actions';
 import {
   Dialog,
@@ -36,6 +40,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog';
+import { ScrollArea } from './ui/scroll-area';
 
 interface AiActionsWidgetProps {
   product: Product;
@@ -43,6 +48,7 @@ interface AiActionsWidgetProps {
   canRunComplianceCheck: boolean;
   canValidateData: boolean;
   canGenerateDoc: boolean;
+  canExportData: boolean;
 }
 
 export default function AiActionsWidget({
@@ -51,12 +57,15 @@ export default function AiActionsWidget({
   canRunComplianceCheck,
   canValidateData,
   canGenerateDoc,
+  canExportData,
 }: AiActionsWidgetProps) {
   const [isPending, startTransition] = useTransition();
   const [activeAction, setActiveAction] = useState<string | null>(null);
   const [recommendations, setRecommendations] =
     useState<SuggestImprovementsOutput | null>(null);
   const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const [pcdsData, setPcdsData] = useState<PcdsOutput | null>(null);
+  const [isPcdsOpen, setIsPcdsOpen] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -115,6 +124,25 @@ export default function AiActionsWidget({
     });
   };
 
+  const handleGeneratePcds = () => {
+    setActiveAction('pcds');
+    startTransition(async () => {
+      try {
+        const result = await generatePcdsForProduct(product.id, user.id);
+        setPcdsData(result);
+        setIsPcdsOpen(true);
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to generate PCDS.',
+          variant: 'destructive',
+        });
+      } finally {
+        setActiveAction(null);
+      }
+    });
+  };
+
   return (
     <>
       <Card>
@@ -128,7 +156,10 @@ export default function AiActionsWidget({
         <CardContent>
           <Accordion type="multiple" className="w-full space-y-2">
             {canRunComplianceCheck && (
-              <AccordionItem value="compliance" className="border rounded-md px-3">
+              <AccordionItem
+                value="compliance"
+                className="border rounded-md px-3"
+              >
                 <AccordionTrigger className="py-3">
                   <div className="flex items-center gap-2">
                     <Bot className="h-4 w-4" />
@@ -204,7 +235,10 @@ export default function AiActionsWidget({
               </AccordionItem>
             )}
 
-            <AccordionItem value="suggestions" className="border rounded-md px-3">
+            <AccordionItem
+              value="suggestions"
+              className="border rounded-md px-3"
+            >
               <AccordionTrigger className="py-3">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4" />
@@ -233,7 +267,7 @@ export default function AiActionsWidget({
               </AccordionContent>
             </AccordionItem>
 
-            {canGenerateDoc && (
+            {(canGenerateDoc || canExportData) && (
               <AccordionItem value="docgen" className="border rounded-md px-3">
                 <AccordionTrigger className="py-3">
                   <div className="flex items-center gap-2">
@@ -246,32 +280,51 @@ export default function AiActionsWidget({
                     Use AI to generate compliance documents based on this
                     passport's data.
                   </p>
-                  <Button
-                    className="w-full"
-                    variant="outline"
-                    onClick={() =>
-                      handleAction(
-                        () =>
-                          generateAndSaveConformityDeclaration(
-                            product.id,
-                            user.id,
-                          ),
-                        'docgen',
-                        'Document Generated',
-                        'The Declaration of Conformity has been saved.',
-                      )
-                    }
-                    disabled={isPending}
-                  >
-                    {isPending && activeAction === 'docgen' ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="mr-2 h-4 w-4" />
-                    )}
-                    {isPending && activeAction === 'docgen'
-                      ? 'Generating...'
-                      : 'Generate Declaration of Conformity'}
-                  </Button>
+                  {canGenerateDoc && (
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      onClick={() =>
+                        handleAction(
+                          () =>
+                            generateAndSaveConformityDeclaration(
+                              product.id,
+                              user.id,
+                            ),
+                          'docgen',
+                          'Document Generated',
+                          'The Declaration of Conformity has been saved.',
+                        )
+                      }
+                      disabled={isPending}
+                    >
+                      {isPending && activeAction === 'docgen' ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileText className="mr-2 h-4 w-4" />
+                      )}
+                      {isPending && activeAction === 'docgen'
+                        ? 'Generating...'
+                        : 'Generate Declaration of Conformity'}
+                    </Button>
+                  )}
+                  {canExportData && (
+                    <Button
+                      className="w-full mt-2"
+                      variant="outline"
+                      onClick={handleGeneratePcds}
+                      disabled={isPending}
+                    >
+                      {isPending && activeAction === 'pcds' ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <FileJson className="mr-2 h-4 w-4" />
+                      )}
+                      {isPending && activeAction === 'pcds'
+                        ? 'Generating...'
+                        : 'Generate PCDS'}
+                    </Button>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             )}
@@ -304,6 +357,24 @@ export default function AiActionsWidget({
           </div>
           <DialogFooter>
             <Button onClick={() => setIsSuggestionsOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isPcdsOpen} onOpenChange={setIsPcdsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Product Circularity Data Sheet (PCDS)</DialogTitle>
+            <DialogDescription>
+              AI-generated circularity data in a standardized JSON format.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="h-96 w-full rounded-md border bg-muted p-4">
+            <pre className="text-xs">
+              {pcdsData ? JSON.stringify(pcdsData, null, 2) : ''}
+            </pre>
+          </ScrollArea>
+          <DialogFooter>
+            <Button onClick={() => setIsPcdsOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
