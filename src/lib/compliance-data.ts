@@ -1,3 +1,4 @@
+
 // src/lib/compliance-data.ts
 import type { CompliancePath } from '@/types';
 
@@ -6,10 +7,17 @@ const now = new Date();
 export let compliancePaths: CompliancePath[] = [
   {
     id: 'cp-electronics-01',
-    name: 'EU Electronics Sustainability Standard (ESPR, RoHS, WEEE)',
+    name: 'EU Electronics Sustainability Standard (ESPR, RoHS, WEEE, Battery)',
     description:
-      'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions and WEEE registration.',
-    regulations: ['ESPR', 'RoHS', 'WEEE'],
+      'Requires electronics to have a sustainability score above 60, be easily repairable, and comply with RoHS substance restrictions, WEEE registration, and EU Battery regulations.',
+    regulations: [
+      'ESPR',
+      'RoHS',
+      'WEEE',
+      'EU Battery Regulation',
+      'PFAS',
+      'Conflict Minerals',
+    ],
     category: 'Electronics',
     rules: {
       minSustainabilityScore: 60,

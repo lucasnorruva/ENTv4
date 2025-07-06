@@ -1,3 +1,4 @@
+
 // src/services/compliance.ts
 'use server';
 
@@ -101,6 +102,32 @@ export async function verifyProductAgainstPath(
             regulation: 'EUDR',
             issue:
               'Product does not have a valid EU Deforestation-Free Regulation declaration.',
+          });
+        }
+        break;
+      case 'eu battery regulation':
+        if (!compliance.battery?.compliant) {
+          gaps.push({
+            regulation: 'EU Battery Regulation',
+            issue:
+              'Product is not declared as compliant with the EU Battery Regulation.',
+          });
+        }
+        break;
+      case 'pfas':
+        if (!compliance.pfas?.declared) {
+          gaps.push({
+            regulation: 'PFAS',
+            issue: 'Product has not been declared for PFAS substances.',
+          });
+        }
+        break;
+      case 'conflict minerals':
+        if (!compliance.conflictMinerals?.compliant) {
+          gaps.push({
+            regulation: 'Conflict Minerals',
+            issue:
+              'Product is not declared as compliant with Conflict Minerals regulations.',
           });
         }
         break;

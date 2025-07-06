@@ -1,3 +1,4 @@
+
 // src/lib/data.ts
 import type { Product } from '@/types';
 
@@ -85,6 +86,9 @@ export let products: Product[] = [
       rohs: { compliant: true },
       ce: { marked: true },
       weee: { registered: true, registrationNumber: 'DE 12345678' },
+      battery: { compliant: true, passportId: 'urn:uuid:bpr-001' },
+      pfas: { declared: true },
+      conflictMinerals: { compliant: true, reportUrl: 'https://example.com/cmr.pdf' },
     },
     sustainability: {
       score: 85,
@@ -314,7 +318,7 @@ export let products: Product[] = [
     materials: [{ name: 'Lithium Battery', origin: 'USA' }, { name: 'Plastic Casing', origin: 'USA' }],
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },
     transit: {
-        stage: 'Pre-Arrival Notification Submitted',
+        stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
         eta: '2024-08-15',
         transport: 'Ship',
         origin: 'Newark, USA',
