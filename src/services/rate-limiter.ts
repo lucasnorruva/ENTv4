@@ -3,7 +3,7 @@
 
 import { adminDb } from '@/lib/firebase-admin';
 import { Collections } from '@/lib/constants';
-import { getApiSettings } from '@/lib/actions/api-actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 import type { ApiRateLimit } from '@/types';
 
 export class RateLimitError extends Error {
@@ -19,7 +19,7 @@ export async function checkRateLimit(
   keyId: string, // Can be a user ID or an API key ID
   tier: 'free' | 'pro' | 'enterprise' = 'pro', // Default to 'pro' for mock
 ): Promise<void> {
-  const settings = await getApiSettings();
+  const settings = await getApiSettingsData();
   const limit = settings.rateLimits[tier];
   
   // A limit of 0 means no limit is enforced

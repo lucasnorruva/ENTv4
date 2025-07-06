@@ -11,7 +11,7 @@ import { webhooks as mockWebhooks } from '@/lib/webhook-data';
 import { getAuditLogById, logAuditEvent } from './audit-actions';
 import { sendWebhook } from '@/services/webhooks';
 import { newId } from './utils';
-import { getApiSettings } from './settings-actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   if (userId) {
@@ -122,7 +122,7 @@ export async function replayWebhook(
   const productPayload: Product = webhookBody.payload;
 
   // Fetch settings to pass to sendWebhook
-  const settings = await getApiSettings();
+  const settings = await getApiSettingsData();
 
   sendWebhook(webhook, log.details.event, productPayload, settings);
 

@@ -8,12 +8,11 @@ import {
 } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
-import { apiSettings as mockApiSettings } from '@/lib/api-settings-data';
+// Import the data directly for modification
+import { apiSettings } from '@/lib/api-settings';
 import { logAuditEvent } from './audit-actions';
 
-export async function getApiSettings(): Promise<ApiSettings> {
-  return Promise.resolve(mockApiSettings);
-}
+// The get function is now in api-settings.ts to break circular deps.
 
 export async function saveApiSettings(
   values: ApiSettingsFormValues,
@@ -24,7 +23,10 @@ export async function saveApiSettings(
   checkPermission(user, 'admin:manage_settings');
 
   const validatedData = apiSettingsSchema.parse(values);
-  Object.assign(mockApiSettings, validatedData);
+  
+  // Directly modify the imported mock data object
+  Object.assign(apiSettings, validatedData);
+
   await logAuditEvent('settings.api.updated', 'global', { values }, userId);
-  return Promise.resolve(mockApiSettings);
+  return Promise.resolve(apiSettings);
 }

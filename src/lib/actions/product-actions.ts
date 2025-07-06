@@ -41,7 +41,7 @@ import { hashData, anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { generateComplianceProof } from '@/services/zkp-service';
 import { getWebhooks } from './webhook-actions';
-import { getApiSettings } from './settings-actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
@@ -492,7 +492,7 @@ export async function approvePassport(
     console.log(
       `Found ${subscribedWebhooks.length} webhook(s) for product.published event.`,
     );
-    const apiSettings = await getApiSettings();
+    const apiSettings = await getApiSettingsData();
     for (const webhook of subscribedWebhooks) {
       sendWebhook(webhook, 'product.published', updatedProduct, apiSettings);
     }
@@ -1343,6 +1343,6 @@ export async function analyzeTextileData(
     { result: analysisResult },
     userId,
   );
-
+  
   return Promise.resolve(mockProducts[productIndex]);
 }

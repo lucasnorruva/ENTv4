@@ -1,6 +1,6 @@
 // src/app/dashboard/admin/api-settings/page.tsx
 import { redirect } from 'next/navigation';
-import { getApiSettings } from '@/lib/actions/settings-actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import ApiSettingsClient from '@/components/api-settings-client';
@@ -17,7 +17,7 @@ export default async function ApiSettingsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  const settings = await getApiSettings();
+  const settings = await getApiSettingsData();
 
   return (
     <div className="space-y-6">
