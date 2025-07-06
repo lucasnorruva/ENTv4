@@ -127,6 +127,7 @@ export const typeDefs = gql`
     name: String!
     ownerId: String!
     industry: String
+    tier: String
   }
 
   # --- OUTPUTS --- #
@@ -286,6 +287,7 @@ export const typeDefs = gql`
     name: String!
     ownerId: ID!
     industry: String
+    tier: String
     users: [User!]
     products: [Product!]
   }

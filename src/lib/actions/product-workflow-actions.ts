@@ -72,6 +72,7 @@ export async function approvePassport(
     lastVerificationDate: new Date().toISOString(),
     blockchainProof,
     verifiableCredential: JSON.stringify(verifiableCredential, null, 2),
+    ebsiVcId: verifiableCredential.id,
   };
 
   mockProducts[productIndex] = updatedProduct;

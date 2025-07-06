@@ -304,6 +304,28 @@ export default function ComplianceTab({
                 </AccordionContent>
               </AccordionItem>
             )}
+             {product.ebsiVcId && (
+              <AccordionItem value="ebsi">
+                <AccordionTrigger>
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <Fingerprint />
+                    EBSI Credential ID
+                  </h4>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
+                  <p className="font-mono text-xs break-all">{product.ebsiVcId}</p>
+                  <Link
+                    href={`https://api.preprod.ebsi.eu/did-registry/v5/dids/${product.ebsiVcId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline text-sm flex items-center gap-1 mt-2"
+                  >
+                    View on EBSI Registry
+                    <LinkIcon className="h-3 w-3" />
+                  </Link>
+                </AccordionContent>
+              </AccordionItem>
+            )}
           </Accordion>
         </CardContent>
       </Card>
