@@ -8,24 +8,22 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import type { User } from '@/types';
-import { getProductionLines, getProducts, getServiceTickets } from '@/lib/actions';
+import { getProductionLines, getProducts } from '@/lib/actions';
 import { Button } from '../ui/button';
 import Link from 'next/link';
-import { ArrowRight, BookCopy, Factory, Activity, Wrench, Ticket } from 'lucide-react';
+import { ArrowRight, BookCopy, Factory, Activity, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
 
 export default async function ManufacturerDashboard({ user }: { user: User }) {
-  const [products, lines, serviceTickets] = await Promise.all([
+  const [products, lines] = await Promise.all([
     getProducts(user.id),
     getProductionLines(),
-    getServiceTickets(user.id),
   ]);
 
   const stats = {
     totalProducts: products.length,
     totalLines: lines.length,
-    openTickets: serviceTickets.filter(t => t.status === 'Open').length,
   };
 
   const getStatusVariant = (status: string) => {
@@ -52,7 +50,7 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
@@ -79,20 +77,6 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Open Service Tickets
-            </CardTitle>
-            <Ticket className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.openTickets}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting action or service
-            </p>
-          </CardContent>
-        </Card>
       </div>
 
       <Card>
@@ -109,17 +93,15 @@ export default async function ManufacturerDashboard({ user }: { user: User }) {
               className="flex flex-wrap items-center justify-between gap-4 p-3 border rounded-lg"
             >
               <div>
-                <div className="flex items-center gap-3">
-                  <h4 className="font-semibold">{line.name}</h4>
-                  <Badge variant={getStatusVariant(line.status)}>
-                    {line.status}
-                  </Badge>
-                </div>
+                <h4 className="font-semibold">{line.name}</h4>
                 <p className="text-sm text-muted-foreground">
                   Producing: {line.currentProduct}
                 </p>
               </div>
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <Badge variant={getStatusVariant(line.status)}>
+                  {line.status}
+                </Badge>
                 <div className="flex items-center gap-1">
                   <Activity className="h-3 w-3" />
                   <span>{line.outputPerHour} units/hr</span>

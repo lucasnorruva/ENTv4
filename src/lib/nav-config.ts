@@ -56,7 +56,6 @@ export const navConfig: NavConfig = {
         { title: 'Platform Logs', icon: Clock, href: 'logs' },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
         { title: 'Service Tickets', icon: Wrench, href: 'service-tickets' },
-        { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
@@ -114,7 +113,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
-        { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
@@ -126,7 +124,6 @@ export const navConfig: NavConfig = {
           href: 'composition',
         },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -195,7 +192,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -261,7 +257,6 @@ export const navConfig: NavConfig = {
       label: 'Operations',
       items: [
         { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
-        { title: 'Production Lines', icon: Factory, href: 'lines' },
         { title: 'Browse Products', icon: BookCopy, href: 'products' },
       ],
     },

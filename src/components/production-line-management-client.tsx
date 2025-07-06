@@ -11,7 +11,6 @@ import {
   Loader2,
   Factory,
 } from 'lucide-react';
-import Link from 'next/link';
 
 import {
   Card,
@@ -181,12 +180,7 @@ export default function ProductionLineManagementClient({
                 {lines.map(line => (
                   <TableRow key={line.id}>
                     <TableCell className="font-medium">
-                      <Link
-                        href={`/dashboard/manufacturer/lines/${line.id}`}
-                        className="hover:underline"
-                      >
-                        {line.name}
-                      </Link>
+                      {line.name}
                       <p className="text-xs text-muted-foreground font-normal">
                         {line.location}
                       </p>

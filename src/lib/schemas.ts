@@ -1,4 +1,3 @@
-
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
@@ -239,21 +238,14 @@ export const apiKeyFormSchema = z.object({
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
-export const serviceTicketFormSchema = z
-  .object({
-    productId: z.string().optional(),
-    productionLineId: z.string().optional(),
-    customerName: z.string().min(2, 'Customer name is required.'),
-    issue: z
-      .string()
-      .min(10, 'Issue description must be at least 10 characters.'),
-    status: z.enum(['Open', 'In Progress', 'Closed']),
-    imageUrl: z.string().url().optional().or(z.literal('')),
-  })
-  .refine(data => data.productId || data.productionLineId, {
-    message: 'Either a Product or a Production Line must be selected.',
-    path: ['productId'],
-  });
+export const serviceTicketFormSchema = z.object({
+  productId: z.string().optional(),
+  customerName: z.string().min(2, 'Customer name is required.'),
+  issue: z
+    .string()
+    .min(10, 'Issue description must be at least 10 characters.'),
+  status: z.enum(['Open', 'In Progress', 'Closed']),
+});
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
 
 export const supportTicketFormSchema = z.object({
