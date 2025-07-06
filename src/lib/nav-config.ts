@@ -126,6 +126,7 @@ export const navConfig: NavConfig = {
           href: 'composition',
         },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -194,6 +195,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
