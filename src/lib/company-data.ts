@@ -42,6 +42,11 @@ export let companies: Company[] = [
       aiEnabled: true,
       apiAccess: false,
       brandingCustomization: false,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
     },
   },
   {
@@ -55,6 +60,11 @@ export let companies: Company[] = [
       aiEnabled: true,
       apiAccess: true,
       brandingCustomization: true,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
     },
   },
 ];
