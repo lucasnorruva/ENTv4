@@ -1,6 +1,7 @@
 // src/components/charts/flagged-over-time-chart.tsx
 "use client";
 
+import * as React from "react";
 import { Line, LineChart, CartesianGrid, XAxis, Tooltip, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -25,6 +26,16 @@ export default function FlaggedOverTimeChart({
 }: {
   data: ChartData[];
 }) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return <div className="min-h-[300px] w-full" />;
+  }
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
       <LineChart

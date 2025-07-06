@@ -1,6 +1,7 @@
 // src/components/charts/api-usage-chart.tsx
 "use client";
 
+import * as React from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import {
   ChartContainer,
@@ -25,6 +26,16 @@ export default function ApiUsageChart({
 }: {
   data: ChartData[];
 }) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return <div className="min-h-[300px] w-full" />;
+  }
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
       <AreaChart

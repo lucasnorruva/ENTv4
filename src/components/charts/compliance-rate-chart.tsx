@@ -1,6 +1,7 @@
 // src/components/charts/compliance-rate-chart.tsx
 "use client";
 
+import * as React from "react";
 import { Line, LineChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import {
   ChartContainer,
@@ -21,6 +22,16 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export default function ComplianceRateChart({ data }: { data: ChartData[] }) {
+  const [isClient, setIsClient] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return <div className="min-h-[200px] w-full" />;
+  }
+  
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <LineChart
