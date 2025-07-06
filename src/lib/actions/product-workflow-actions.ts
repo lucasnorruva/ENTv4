@@ -126,18 +126,28 @@ export async function rejectPassport(
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
+  const currentSustainability = mockProducts[productIndex].sustainability || {
+    score: 0,
+    environmental: 0,
+    social: 0,
+    governance: 0,
+    summary: '',
+    isCompliant: false,
+    complianceSummary: '',
+  };
+
   mockProducts[productIndex] = {
     ...mockProducts[productIndex],
     verificationStatus: 'Failed',
     lastVerificationDate: new Date().toISOString(),
     sustainability: {
-      ...mockProducts[productIndex].sustainability!,
+      ...currentSustainability,
       complianceSummary: reason,
       gaps,
     },
   };
 
-  await logAuditEvent('passport.rejected', productId, { reason }, userId);
+  await logAuditEvent('passport.rejected', productId, { reason, gaps }, userId);
   return Promise.resolve(mockProducts[productIndex]);
 }
 

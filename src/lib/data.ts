@@ -98,6 +98,8 @@ export let products: Product[] = [
       summary:
         'Excellent use of recycled materials and strong compliance record. Repairability score is high, contributing positively.',
       isCompliant: true,
+      complianceSummary: 'This product is fully compliant with the assigned EU Electronics path.',
+      gaps: [],
       lifecyclePrediction: {
         predictedLifespanYears: 6.5,
         keyFailurePoints: ['Battery degradation', 'Screen damage from drops'],
@@ -196,6 +198,7 @@ export let products: Product[] = [
       summary:
         'Excellent sustainability profile due to GOTS and Fair Trade certifications. Material is fully biodegradable.',
       isCompliant: true,
+      complianceSummary: '',
     },
     transit: {
         stage: 'At Customs (Rotterdam, NL)',
@@ -264,10 +267,10 @@ export let products: Product[] = [
       social: 50,
       governance: 40,
       isCompliant: false,
-      summary: 'Product contains lead, which is a banned substance.',
+      complianceSummary: 'Product contains a banned material: \'Lead-based dye\'.',
       gaps: [
         {
-          regulation: 'EU Leather Goods Standard',
+          regulation: 'Global Organic Textile Standard',
           issue: "Product contains a banned material: 'Lead-based dye'",
         },
       ],
@@ -295,8 +298,8 @@ export let products: Product[] = [
         stage: 'Awaiting Customs Clearance (Antwerp, BE)',
         eta: '2024-08-01',
         transport: 'Ship',
-        origin: 'Newark, USA',
-        destination: 'Bremerhaven, Germany',
+        origin: 'Ho Chi Minh City, Vietnam',
+        destination: 'Lyon, France',
     },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
@@ -348,7 +351,7 @@ export let products: Product[] = [
       environmental: 35,
       social: 50,
       governance: 55,
-      summary: 'Product has multiple compliance failures.',
+      complianceSummary: 'Product has multiple compliance failures.',
       isCompliant: false,
       gaps: [],
     },
