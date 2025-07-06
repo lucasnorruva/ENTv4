@@ -16,6 +16,7 @@ import {
   Leaf,
   CalendarDays,
   ListTree,
+  FileJson, // Import new icon
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification } from '@/types';
 import {
@@ -269,7 +270,7 @@ export default function ComplianceTab({
                  <AccordionItem value="vc">
                  <AccordionTrigger>
                    <h4 className="flex items-center gap-2 font-semibold">
-                     <FileText />
+                     <FileJson />
                      W3C Verifiable Credential
                    </h4>
                  </AccordionTrigger>

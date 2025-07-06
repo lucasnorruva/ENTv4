@@ -1,5 +1,5 @@
 // src/services/credential.ts
-'use server';
+"use server";
 
 import type { Product, User } from '@/types';
 import { hashProductData } from './blockchain';
@@ -29,20 +29,29 @@ export async function createVerifiableCredential(
 
   const credentialSubject = {
     id: `did:dpp:product:${product.id}`,
+    type: "Product",
     productName: product.productName,
     gtin: product.gtin,
     category: product.category,
+    manufacturer: product.supplier,
     dataHash: dataHash,
+    materials: product.materials,
+    manufacturing: product.manufacturing,
+    compliance: product.compliance,
   };
 
   const credentialPayload = {
     '@context': [
       'https://www.w3.org/2018/credentials/v1',
-      'https://digitalproductpass.com/credentials/v1',
+      'https://schema.org', // Use schema.org for product-related terms
+      'https://w3id.org/dpp/v1', // Fictional DPP context
     ],
     id: `urn:uuid:${crypto.randomUUID()}`,
     type: ['VerifiableCredential', 'DigitalProductPassport'],
-    issuer: ISSUER_DID,
+    issuer: {
+        id: ISSUER_DID,
+        name: "Norruva Platform",
+    },
     issuanceDate: issuanceDate,
     credentialSubject,
   };
@@ -60,7 +69,7 @@ export async function createVerifiableCredential(
       created: issuanceDate,
       proofPurpose: 'assertionMethod',
       verificationMethod: `${ISSUER_DID}#keys-1`,
-      signatureValue: signature,
+      jws: signature, // Using jws for clarity as per some specs
     },
   };
 
