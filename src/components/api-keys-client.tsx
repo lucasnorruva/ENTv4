@@ -214,7 +214,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     {key.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right space-x-2">
+                <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" disabled={isPending}>
