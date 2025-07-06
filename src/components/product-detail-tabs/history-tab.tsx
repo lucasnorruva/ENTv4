@@ -96,7 +96,7 @@ const HistoryTab = ({ product }: { product: Product }) => {
     });
 
     // Latest Customs Event
-    if (product.customs?.date) {
+    if (product.customs && product.customs.date) {
         allEvents.push({
             date: new Date(product.customs.date),
             title: 'Customs Inspection',
@@ -177,5 +177,3 @@ const HistoryTab = ({ product }: { product: Product }) => {
     </Card>
   );
 };
-
-export default HistoryTab;

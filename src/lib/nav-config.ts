@@ -126,6 +126,12 @@ export const navConfig: NavConfig = {
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
+    {
+      label: 'Visualizations',
+      items: [
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+      ],
+    },
   ],
   [UserRoles.AUDITOR]: [
     {
@@ -192,6 +198,12 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
+      ],
+    },
+    {
+      label: 'Visualizations',
+      items: [
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],

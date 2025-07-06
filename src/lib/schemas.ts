@@ -148,7 +148,6 @@ export const productFormSchema = z.object({
   packaging: packagingSchema.optional(),
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
-  compliance: complianceSchema.optional(),
   customs: customsStatusSchema.optional(),
   transit: transitInfoSchema.optional(),
   submissionChecklist: submissionChecklistSchema.optional(),
