@@ -312,6 +312,7 @@ export interface ProductionLine extends BaseEntity {
 export interface ApiKey extends BaseEntity {
   label: string;
   token: string; // This is a truncated, non-sensitive version for display
+  rawToken?: string; // MOCK ONLY: In a real app, this would be hashed.
   status: 'Active' | 'Revoked';
   userId: string;
   scopes: string[];
@@ -352,4 +353,12 @@ export interface Integration extends BaseEntity {
   description: string;
   enabled: boolean;
   config?: Record<string, any>;
+}
+
+/**
+ * Represents a document in Firestore used for API rate limiting.
+ */
+export interface ApiRateLimit {
+  count: number;
+  windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }

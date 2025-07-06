@@ -1,23 +1,23 @@
 // src/lib/api-auth.ts
 import { headers } from 'next/headers';
-import { getCurrentUser } from '@/lib/auth';
-import { UserRoles } from '@/lib/constants';
-import type { User } from '@/types';
+import { getUserById, getApiKeyByRawToken } from '@/lib/auth';
+import type { User, ApiKey } from '@/types';
 import { PermissionError } from './permissions';
+import { checkRateLimit, RateLimitError } from '@/services/rate-limiter';
 
 /**
- * Mocks API key authentication for server-side API routes.
+ * Authenticates an API request using a Bearer token.
  *
- * In a real application, this function would:
- * 1. Extract the API key from the Authorization header.
- * 2. Look up the key in the database.
- * 3. Validate the key (e.g., check expiry, status, scopes).
- * 4. Return the user associated with the key.
+ * This function performs the following steps:
+ * 1. Extracts the token from the Authorization header.
+ * 2. Looks up the API key using the raw token (mock implementation).
+ * 3. Checks if the key is active.
+ * 4. Finds the user associated with the key.
+ * 5. Checks the rate limit for the API key.
+ * 6. Updates the `lastUsed` timestamp on the key.
  *
- * For this mock, it simply checks for the presence of any "Bearer" token
- * and returns a hardcoded 'Developer' user.
- *
- * @throws {PermissionError} if the Authorization header is missing or malformed.
+ * @throws {PermissionError} if authentication fails for any reason.
+ * @throws {RateLimitError} if the rate limit is exceeded.
  * @returns {Promise<User>} A promise that resolves to the authenticated user.
  */
 export async function authenticateApiRequest(): Promise<User> {
@@ -27,12 +27,29 @@ export async function authenticateApiRequest(): Promise<User> {
     throw new PermissionError('Missing or malformed Authorization header.');
   }
 
-  // In this mock, we don't validate the token itself. We just assume if it's
-  // present, the user is the generic 'Developer' user.
-  const user = await getCurrentUser(UserRoles.DEVELOPER);
-  if (!user) {
-    throw new PermissionError('Authenticated user could not be found.');
+  const token = authorization.split(' ')[1];
+  if (!token) {
+    throw new PermissionError('API token is missing.');
   }
+
+  const apiKey = await getApiKeyByRawToken(token);
+
+  if (!apiKey || apiKey.status !== 'Active') {
+    throw new PermissionError('Invalid or revoked API key.');
+  }
+
+  const user = await getUserById(apiKey.userId);
+  if (!user) {
+    throw new PermissionError('API key is not associated with a valid user.');
+  }
+
+  // Perform rate limiting check
+  // For mock purposes, we'll assume a 'pro' tier for the developer user.
+  // A real implementation might store the tier on the ApiKey or User object.
+  await checkRateLimit(apiKey.id, 'pro');
+
+  // Update lastUsed timestamp (fire-and-forget)
+  apiKey.lastUsed = new Date().toISOString();
 
   return user;
 }

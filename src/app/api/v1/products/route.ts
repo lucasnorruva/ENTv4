@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
+import { RateLimitError } from '@/services/rate-limiter';
 
 export async function GET(request: NextRequest) {
   let user;
@@ -24,6 +25,9 @@ export async function GET(request: NextRequest) {
     );
     return NextResponse.json(productsWithLinks);
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -49,6 +53,9 @@ export async function POST(request: NextRequest) {
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }

@@ -7,6 +7,8 @@ import { NextRequest } from 'next/server';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import type { User } from '@/types';
 import { GraphQLError } from 'graphql';
+import { PermissionError } from '@/lib/permissions';
+import { RateLimitError } from '@/services/rate-limiter';
 
 // Define the context interface for our Apollo Server
 export interface MyContext {
@@ -25,12 +27,24 @@ const handler = startServerAndCreateNextHandler<NextRequest, MyContext>(server, 
       const user = await authenticateApiRequest();
       return { user };
     } catch (error: any) {
-      // If authentication fails, we throw a specific GraphQL error.
-      // This ensures that no queries or mutations can proceed without a valid user context.
-      throw new GraphQLError(error.message || 'User is not authenticated', {
+      if (error instanceof RateLimitError) {
+        throw new GraphQLError(error.message, {
+            extensions: { code: 'TOO_MANY_REQUESTS', http: { status: 429 } },
+        });
+      }
+      if (error instanceof PermissionError) {
+        throw new GraphQLError(error.message || 'User is not authenticated', {
+            extensions: {
+              code: 'UNAUTHENTICATED',
+              http: { status: 401 },
+            },
+          });
+      }
+      // For any other errors during auth, treat as internal server error
+       throw new GraphQLError('Internal Server Error', {
         extensions: {
-          code: 'UNAUTHENTICATED',
-          http: { status: 401 },
+          code: 'INTERNAL_SERVER_ERROR',
+          http: { status: 500 },
         },
       });
     }

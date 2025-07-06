@@ -2,7 +2,8 @@
 import { users } from './user-data';
 import { companies } from './company-data';
 import { UserRoles, type Role } from './constants';
-import type { User, Company } from '@/types';
+import type { User, Company, ApiKey } from '@/types';
+import { apiKeys } from './api-key-data';
 
 /**
  * Fetches all users from the mock database.
@@ -47,6 +48,19 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
   return Promise.resolve(users.find(user => user.email === email));
 }
 
+
+/**
+ * Fetches an API key by its raw token string.
+ * NOTE: This is for mock purposes only. In production, tokens would be hashed.
+ * @param token The raw API token.
+ * @returns A promise that resolves to the ApiKey object or undefined.
+ */
+export async function getApiKeyByRawToken(
+  token: string,
+): Promise<ApiKey | undefined> {
+  // The type assertion is a bit of a hack for the mock scenario.
+  return Promise.resolve(apiKeys.find(key => key.rawToken === token));
+}
 
 /**
  * Fetches a company by its ID from the mock database.

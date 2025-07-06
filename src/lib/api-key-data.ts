@@ -7,7 +7,8 @@ export let apiKeys: ApiKey[] = [
   {
     id: 'key-001',
     label: 'My Production Server',
-    token: 'nor_prod_******************1234',
+    rawToken: 'nor_prod_1234567890_abcdefghijkl', // Added for mock auth
+    token: 'nor_prod_******************hijk',
     status: 'Active',
     userId: 'user-developer',
     scopes: ['product:read', 'product:write', 'compliance:read'],

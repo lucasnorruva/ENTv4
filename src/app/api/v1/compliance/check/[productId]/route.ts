@@ -7,6 +7,7 @@ import {
 } from '@/lib/actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
+import { RateLimitError } from '@/services/rate-limiter';
 
 export async function POST(
   request: NextRequest,
@@ -18,9 +19,10 @@ export async function POST(
   try {
     user = await authenticateApiRequest();
   } catch (error: any) {
+    if (error instanceof RateLimitError) {
+      return NextResponse.json({ error: error.message }, { status: 429 });
+    }
     if (error instanceof PermissionError) {
-      // Assuming no user context if auth fails, logging as 'system' or not at all.
-      // For this case, let's skip logging as we don't have a user context.
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
     return NextResponse.json(
