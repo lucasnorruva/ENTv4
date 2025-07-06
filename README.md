@@ -113,6 +113,7 @@ We welcome contributions! Please see our [Contributor Guidelines](./docs/contrib
 This project includes detailed architectural and design documentation. You can find more information in the `/docs` directory, including:
 
 -   [`/docs`](./docs): High-level overview of the system architecture.
+-   [`/docs/roadmap`](./docs/roadmap): The full development roadmap and project status.
 -   [`/docs/api`](./docs/api): REST API and webhook specifications.
 -   [`/docs/blockchain`](./docs/blockchain): Details on the blockchain anchoring strategy.
 -   [`/docs/compliance-matrix`](./docs/compliance-matrix): A list of supported regulations.
