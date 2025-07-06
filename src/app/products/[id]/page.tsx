@@ -1,5 +1,6 @@
 // src/app/products/[id]/page.tsx
 import { getProductById, getCompliancePathById } from "@/lib/actions";
+import { getCompanyById } from "@/lib/auth";
 import PublicPassportView from "@/components/public-passport-view";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -20,9 +21,12 @@ export default async function ProductPassportPage({
     notFound();
   }
 
-  const compliancePath = product.compliancePathId
-    ? await getCompliancePathById(product.compliancePathId)
-    : undefined;
+  const [compliancePath, company] = await Promise.all([
+    product.compliancePathId
+      ? getCompliancePathById(product.compliancePathId)
+      : undefined,
+    getCompanyById(product.companyId),
+  ]);
 
   return (
     <div className="bg-muted min-h-screen">
@@ -43,6 +47,7 @@ export default async function ProductPassportPage({
             <PublicPassportView
               product={product}
               compliancePath={compliancePath}
+              company={company}
             />
           </div>
           <div className="lg:col-span-1">

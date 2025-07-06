@@ -36,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import { Switch } from './ui/switch';
 
 interface CompanyFormProps {
   isOpen: boolean;
@@ -62,6 +63,7 @@ export default function CompanyForm({
       ownerId: '',
       industry: '',
       tier: 'free',
+      isTrustedIssuer: false,
     },
   });
 
@@ -73,6 +75,7 @@ export default function CompanyForm({
           ownerId: company.ownerId,
           industry: company.industry || '',
           tier: company.tier || 'free',
+          isTrustedIssuer: company.isTrustedIssuer || false,
         });
       } else {
         form.reset({
@@ -80,6 +83,7 @@ export default function CompanyForm({
           ownerId: '',
           industry: '',
           tier: 'free',
+          isTrustedIssuer: false,
         });
       }
     }
@@ -107,7 +111,7 @@ export default function CompanyForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
           <DialogTitle>{company ? 'Edit Company' : 'Create Company'}</DialogTitle>
           <DialogDescription>
@@ -182,6 +186,26 @@ export default function CompanyForm({
                     Determines the API rate limits for this company.
                   </FormDescription>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="isTrustedIssuer"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Trusted Issuer (EBSI)</FormLabel>
+                    <FormDescription>
+                      Mark this company as a verified issuer in the EBSI ecosystem.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />

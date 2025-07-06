@@ -1,5 +1,5 @@
 // src/components/public-passport-view.tsx
-import type { Product, CompliancePath } from '@/types';
+import type { Product, CompliancePath, Company } from '@/types';
 import Image from 'next/image';
 import {
   Card,
@@ -24,13 +24,16 @@ import OverviewTab from './product-detail-tabs/overview-tab';
 import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
+import TextileTab from './product-detail-tabs/textile-tab';
 
 export default function PublicPassportView({
   product,
   compliancePath,
+  company,
 }: {
   product: Product;
   compliancePath?: CompliancePath;
+  company?: Company;
 }) {
   const getCustomsStatusVariant = (status?: Product['customs']['status']) => {
     switch (status) {
@@ -44,6 +47,8 @@ export default function PublicPassportView({
         return 'outline';
     }
   };
+
+  const showTextileTab = product.category === 'Fashion';
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm bg-transparent md:bg-card">
@@ -72,9 +77,15 @@ export default function PublicPassportView({
               <span>{product.qrLabelText}</span>
             </blockquote>
           )}
-          <p className="text-sm text-muted-foreground mt-4">
+          <div className="text-sm text-muted-foreground mt-4 flex items-center gap-2">
             Supplied by: <strong>{product.supplier}</strong>
-          </p>
+            {company?.isTrustedIssuer && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-700">
+                    <ShieldCheck className="mr-1 h-3 w-3" />
+                    Trusted Issuer
+                </Badge>
+            )}
+          </div>
           {product.gtin && (
             <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
               <Fingerprint className="h-4 w-4" />
@@ -164,8 +175,9 @@ export default function PublicPassportView({
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${showTextileTab ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
             <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -173,6 +185,11 @@ export default function PublicPassportView({
           <TabsContent value="overview" className="mt-4">
             <OverviewTab product={product} />
           </TabsContent>
+          {showTextileTab && (
+            <TabsContent value="textile" className="mt-4">
+              <TextileTab product={product} />
+            </TabsContent>
+          )}
           <TabsContent value="sustainability" className="mt-4">
             <SustainabilityTab product={product} />
           </TabsContent>

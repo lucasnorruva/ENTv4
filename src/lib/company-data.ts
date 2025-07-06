@@ -10,6 +10,7 @@ export let companies: Company[] = [
     ownerId: 'user-supplier',
     industry: 'Electronics',
     tier: 'pro',
+    isTrustedIssuer: true,
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     settings: {
@@ -38,6 +39,7 @@ export let companies: Company[] = [
     ownerId: 'user-supplier', // Example, can be a different user
     industry: 'Fashion',
     tier: 'free',
+    isTrustedIssuer: false,
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     settings: {
@@ -57,6 +59,7 @@ export let companies: Company[] = [
     ownerId: 'user-admin',
     industry: 'Technology',
     tier: 'enterprise',
+    isTrustedIssuer: true,
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     settings: {

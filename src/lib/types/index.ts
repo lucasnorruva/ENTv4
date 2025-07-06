@@ -55,6 +55,7 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
+  isTrustedIssuer?: boolean;
   settings?: {
     aiEnabled?: boolean;
     apiAccess?: boolean;

@@ -44,6 +44,7 @@ export async function saveCompany(
     savedCompany = {
       id: newId('comp'),
       ...validatedData,
+      isTrustedIssuer: validatedData.isTrustedIssuer ?? false,
       createdAt: now,
       updatedAt: now,
       settings: {
