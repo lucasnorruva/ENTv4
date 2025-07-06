@@ -138,6 +138,7 @@ export let products: Product[] = [
       { name: 'Steel Screws', percentage: 5, recycledContent: 10, origin: 'Japan' },
     ],
     manufacturing: { facility: 'Shenzhen Plant', country: 'China' },
+    compliance: {},
     createdAt: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
     lastUpdated: new Date(
@@ -184,6 +185,7 @@ export let products: Product[] = [
       { name: 'GOTS', issuer: 'Control Union' },
       { name: 'Fair Trade', issuer: 'Fairtrade International' },
     ],
+    compliance: {},
     sustainability: {
       score: 92,
       environmental: 95,
@@ -286,6 +288,7 @@ export let products: Product[] = [
       { name: 'Lithium Battery', origin: 'China' },
     ],
     manufacturing: { facility: 'Aero Plant 1', country: 'USA' },
+    compliance: {},
     transit: {
         stage: 'Awaiting Customs Clearance (Antwerp, BE)',
         eta: '2024-08-01',

@@ -125,7 +125,7 @@ export default function DataExportClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Data Export</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Data Export Center</h1>
         <p className="text-muted-foreground">
           Generate and download reports for your products, compliance, and
           sustainability data for a specific period.
