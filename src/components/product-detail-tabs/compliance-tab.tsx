@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/compliance-tab.tsx
 'use client';
 
@@ -17,7 +16,7 @@ import {
   Leaf,
   CalendarDays,
   ListTree,
-  FileJson, // Import new icon
+  FileJson,
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification } from '@/types';
 import {
@@ -268,21 +267,21 @@ export default function ComplianceTab({
               </AccordionItem>
             )}
             {product.verifiableCredential && (
-                 <AccordionItem value="vc">
-                 <AccordionTrigger>
-                   <h4 className="flex items-center gap-2 font-semibold">
-                     <FileJson />
-                     W3C Verifiable Credential
-                   </h4>
-                 </AccordionTrigger>
-                 <AccordionContent className="pt-2">
+              <AccordionItem value="vc">
+                <AccordionTrigger>
+                  <h4 className="flex items-center gap-2 font-semibold">
+                    <FileJson />
+                    W3C Verifiable Credential
+                  </h4>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2">
                   <ScrollArea className="h-72 w-full rounded-md border bg-muted p-4">
                     <pre className="text-xs break-all whitespace-pre-wrap">
-                        {product.verifiableCredential}
+                      {product.verifiableCredential}
                     </pre>
                   </ScrollArea>
-                 </AccordionContent>
-               </AccordionItem>
+                </AccordionContent>
+              </AccordionItem>
             )}
             {product.blockchainProof && (
               <AccordionItem value="blockchain">

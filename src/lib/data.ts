@@ -116,6 +116,7 @@ export let products: Product[] = [
       blockHeight: 123456,
     },
     ebsiVcId: 'did:ebsi:z123456789abcdef',
+    verifiableCredential: `{\n  "@context": [\n    "https://www.w3.org/2018/credentials/v1",\n    "https://schema.org",\n    "https://w3id.org/dpp/v1"\n  ],\n  "id": "urn:uuid:mock-vc-id",\n  "type": ["VerifiableCredential", "DigitalProductPassport"],\n  "issuer": {\n    "id": "did:web:norruva.com",\n    "name": "Norruva Platform"\n  },\n  "issuanceDate": "2024-07-29T10:00:00Z",\n  "credentialSubject": {\n    "id": "did:dpp:product:pp-001",\n    "type": "Product",\n    "productName": "Eco-Friendly Smart Watch Series 5",\n    "dataHash": "mock-hash"\n  },\n  "proof": {\n    "type": "EcdsaSecp256k1Signature2019",\n    "created": "2024-07-29T10:00:00Z",\n    "proofPurpose": "assertionMethod",\n    "verificationMethod": "did:web:norruva.com#keys-1",\n    "jws": "mock-signature..."\n  }\n}`,
     isProcessing: false,
   },
   {
