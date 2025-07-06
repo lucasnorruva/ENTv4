@@ -275,6 +275,7 @@ export interface Product extends BaseEntity {
   };
   ebsiVcId?: string;
   verifiableCredential?: string; // JSON string of the signed VC
+  compliance?: Compliance;
 }
 
 /**
