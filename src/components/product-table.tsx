@@ -114,7 +114,6 @@ export default function ProductTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState(initialFilter ?? '');
   const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
@@ -380,24 +379,11 @@ export default function ProductTable({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase();
-      const productName = row.original.productName?.toLowerCase() ?? '';
-      const gtin = row.original.gtin?.toLowerCase() ?? '';
-      const supplier = row.original.supplier?.toLowerCase() ?? '';
-      return (
-        productName.includes(search) ||
-        gtin.includes(search) ||
-        supplier.includes(search)
-      );
-    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
     },
   });
 
@@ -417,26 +403,93 @@ export default function ProductTable({
   return (
     <div className="w-full">
       <div className="flex items-center justify-between py-4">
-        <div className="flex flex-1 items-center gap-2">
-          {selectedRowCount > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {selectedRowCount} of {table.getFilteredRowModel().rows.length}{" "}
-              row(s) selected.
-            </p>
-          ) : (
-            <Input
-              placeholder="Filter by name, GTIN, or supplier..."
-              value={globalFilter ?? ""}
-              onChange={(event) => setGlobalFilter(event.target.value)}
-              className="max-w-sm"
-            />
-          )}
-        </div>
+        <Input
+          placeholder="Filter by name, GTIN, or supplier..."
+          value={(table.getColumn('productName')?.getFilterValue() as string) ?? ''}
+          onChange={(event) =>
+            table.getColumn('productName')?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
 
         <div className="flex items-center gap-2">
-          {selectedRowCount > 0 ? (
-            <>
-              {canBulkSubmit && (
+            <Select
+                value={
+                  (table.getColumn("status")?.getFilterValue() as string) ??
+                  "all"
+                }
+                onValueChange={(value) =>
+                  table
+                    .getColumn("status")
+                    ?.setFilterValue(value === "all" ? "" : value)
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Published">Published</SelectItem>
+                  <SelectItem value="Draft">Draft</SelectItem>
+                  <SelectItem value="Archived">Archived</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={
+                  (table
+                    .getColumn("verificationStatus")
+                    ?.getFilterValue() as string) ?? "all"
+                }
+                onValueChange={(value) =>
+                  table
+                    .getColumn("verificationStatus")
+                    ?.setFilterValue(value === "all" ? "" : value)
+                }
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by verification..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Verification</SelectItem>
+                  <SelectItem value="Verified">Verified</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Failed">Failed</SelectItem>
+                  <SelectItem value="Not Submitted">Not Submitted</SelectItem>
+                </SelectContent>
+              </Select>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline">
+                    Columns <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {table
+                    .getAllColumns()
+                    .filter((column) => column.getCanHide())
+                    .map((column) => {
+                      return (
+                        <DropdownMenuCheckboxItem
+                          key={column.id}
+                          className="capitalize"
+                          checked={column.getIsVisible()}
+                          onCheckedChange={(value) =>
+                            column.toggleVisibility(!!value)
+                          }
+                        >
+                          {column.id.replace(/([A-Z])/g, " $1")}
+                        </DropdownMenuCheckboxItem>
+                      );
+                    })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+        </div>
+      </div>
+      {selectedRowCount > 0 && (
+         <div className="flex-1 text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2">
+                <span>{selectedRowCount} row(s) selected.</span>
+                {canBulkSubmit && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -511,83 +564,9 @@ export default function ProductTable({
                   </AlertDialogContent>
                 </AlertDialog>
               )}
-            </>
-          ) : (
-            <>
-              <Select
-                value={
-                  (table.getColumn("status")?.getFilterValue() as string) ??
-                  "all"
-                }
-                onValueChange={(value) =>
-                  table
-                    .getColumn("status")
-                    ?.setFilterValue(value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Published">Published</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={
-                  (table
-                    .getColumn("verificationStatus")
-                    ?.getFilterValue() as string) ?? "all"
-                }
-                onValueChange={(value) =>
-                  table
-                    .getColumn("verificationStatus")
-                    ?.setFilterValue(value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by verification..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Verification</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Failed">Failed</SelectItem>
-                  <SelectItem value="Not Submitted">Not Submitted</SelectItem>
-                </SelectContent>
-              </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    Columns <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id.replace(/([A-Z])/g, " $1")}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          )}
+              </div>
         </div>
-      </div>
+      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

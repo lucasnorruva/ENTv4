@@ -51,10 +51,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import {
-  Card,
-  CardContent,
-} from './ui/card';
+import { Card, CardContent } from './ui/card';
 
 interface PlatformLogsClientProps {
   logs: AuditLog[];
@@ -98,7 +95,6 @@ export default function PlatformLogsClient({
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const entityMaps = React.useMemo(
     () => ({
@@ -189,30 +185,11 @@ export default function PlatformLogsClient({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      globalFilter,
     },
-    filterFns: {
-      global: (row, columnId, filterValue) => {
-        const search = filterValue.toLowerCase();
-        
-        const log = row.original;
-        const user = entityMaps.users.get(log.userId) || log.userId;
-        const action = log.action;
-        const entity = log.entityId;
-
-        return (
-            user.toLowerCase().includes(search) ||
-            action.toLowerCase().includes(search) ||
-            entity.toLowerCase().includes(search)
-        );
-      },
-    },
-    globalFilterFn: 'global',
   });
 
   return (
@@ -220,9 +197,14 @@ export default function PlatformLogsClient({
       <CardContent className="pt-6">
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter logs by user, action, or entity ID..."
-            value={globalFilter ?? ''}
-            onChange={event => setGlobalFilter(event.target.value)}
+            placeholder="Filter by action or user email..."
+            value={
+              (table.getColumn('action')?.getFilterValue() as string) ?? ''
+            }
+            onChange={event => {
+                table.getColumn('action')?.setFilterValue(event.target.value)
+                table.getColumn('userId')?.setFilterValue(event.target.value)
+            }}
             className="max-w-sm"
           />
         </div>

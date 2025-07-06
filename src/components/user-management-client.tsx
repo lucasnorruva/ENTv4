@@ -96,8 +96,6 @@ export default function UserManagementClient({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const fetchInitialData = useCallback(() => {
     setIsLoading(true);
@@ -113,9 +111,7 @@ export default function UserManagementClient({
           variant: 'destructive',
         });
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .finally(() => setIsLoading(false));
   }, [toast]);
 
   useEffect(() => {
@@ -223,12 +219,17 @@ export default function UserManagementClient({
             ))}
           </div>
         ),
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id))
+        }
       },
       {
         accessorKey: 'companyId',
         header: 'Company',
         cell: ({ row }) => (
-          <span>{companyMap.get(row.original.companyId) || row.original.companyId}</span>
+          <span>
+            {companyMap.get(row.original.companyId) || row.original.companyId}
+          </span>
         ),
       },
       {
@@ -311,26 +312,10 @@ export default function UserManagementClient({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const search = filterValue.toLowerCase();
-
-      const user = row.original;
-      const companyName = companyMap.get(user.companyId) || '';
-
-      return (
-        user.fullName.toLowerCase().includes(search) ||
-        user.email.toLowerCase().includes(search) ||
-        companyName.toLowerCase().includes(search)
-      );
-    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
-      rowSelection,
-      globalFilter,
     },
   });
 
@@ -346,21 +331,25 @@ export default function UserManagementClient({
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={handleImport}>
-                    <Upload className="mr-2 h-4 w-4" /> Import Users
-                </Button>
-                <Button onClick={handleCreateNew}>
+              <Button variant="outline" onClick={handleImport}>
+                <Upload className="mr-2 h-4 w-4" /> Import Users
+              </Button>
+              <Button onClick={handleCreateNew}>
                 <Plus className="mr-2 h-4 w-4" /> Invite User
-                </Button>
+              </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter users by name, email, or company..."
-              value={globalFilter}
-              onChange={event => setGlobalFilter(event.target.value)}
+              placeholder="Filter by name, email, or company..."
+              value={
+                (table.getColumn('fullName')?.getFilterValue() as string) ?? ''
+              }
+              onChange={event =>
+                table.getColumn('fullName')?.setFilterValue(event.target.value)
+              }
               className="max-w-sm"
             />
             <DropdownMenu>
