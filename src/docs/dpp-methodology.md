@@ -37,7 +37,7 @@ One of the standout features is how the platform leverages Gemini AI to turn tec
 - **User Suggestions**: Beyond just explaining, the AI often suggests next steps: “Try editing the Materials section to include the composition details” or “Contact your compliance manager to provide the missing certificate.” These suggestions are context-aware.
 - **Multi-language Explanations**: In line with our i18n support, Gemini can output explanations in the user’s preferred language, using terminology that local users understand.
 - **Confidence and Accuracy**: Gemini's explanations are based on the rules and data in the system, so it is less likely to hallucinate information. It may include references to internal documentation for further help (e.g., link to a help article or internal policy if available).
-- **Admin vs User Messaging**: The system differentiates between end-user messages and admin messages. End-users (like a consumer scanning a passport) get very simple, action-oriented messages (“This passport is invalid, please try again later or contact support.”). Admin or power users get more detail (“Passport invalid: signature mismatch. Possible causes: data tampering or system error. You may override this if you have verified the physical documents.”).
+- **Admin vs User Messaging**: The system differentiates between end-user messages and admin messages by passing the `userRole` as context to the AI. End-users get simple, action-oriented messages, while Admins get more technical detail to help them debug.
 - **Logging**: All AI-provided explanations are logged, both for improvement (learning from common issues) and for compliance (keeping a record of what was communicated to users).
 
 A simplified sequence for an AI-assisted error might be:
