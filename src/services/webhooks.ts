@@ -1,8 +1,7 @@
 // src/services/webhooks.ts
 'use server';
 
-import type { Product, Webhook } from '@/types';
-import { getApiSettings } from '@/lib/actions/api-actions';
+import type { Product, Webhook, ApiSettings } from '@/types';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { createHmac } from 'crypto';
 
@@ -13,11 +12,11 @@ export async function sendWebhook(
   webhook: Webhook,
   event: string,
   payload: Product,
+  apiSettings: ApiSettings,
 ) {
   const { url, userId } = webhook;
   console.log(`Sending webhook for event '${event}' to URL: ${url}`);
 
-  const apiSettings = await getApiSettings();
   const body = JSON.stringify({
     event,
     createdAt: new Date().toISOString(),

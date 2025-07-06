@@ -20,6 +20,7 @@ import { webhooks as mockWebhooks } from '@/lib/webhook-data';
 import { getAuditLogById, logAuditEvent } from './audit-actions';
 import { sendWebhook } from '@/services/webhooks';
 import { newId } from './utils';
+import { getProductById } from './product-actions';
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   if (userId) {
@@ -129,7 +130,10 @@ export async function replayWebhook(
   const webhookBody = JSON.parse(webhookBodyString);
   const productPayload: Product = webhookBody.payload;
 
-  sendWebhook(webhook, log.details.event, productPayload);
+  // Fetch settings to pass to sendWebhook
+  const settings = await getApiSettings();
+
+  sendWebhook(webhook, log.details.event, productPayload, settings);
 
   await logAuditEvent(
     'webhook.replay.initiated',

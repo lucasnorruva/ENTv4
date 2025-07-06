@@ -4,7 +4,7 @@
 import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus, BlockchainProof, ZkProof } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
-import { getWebhooks } from './api-actions';
+import { getWebhooks, getApiSettings } from './api-actions';
 import { getProductById } from './product-actions';
 import { logAuditEvent } from './audit-actions';
 import { getUserById, getCompanyById } from '../auth';
@@ -110,8 +110,9 @@ export async function approvePassport(
     console.log(
       `Found ${subscribedWebhooks.length} webhook(s) for product.published event.`,
     );
+    const apiSettings = await getApiSettings();
     for (const webhook of subscribedWebhooks) {
-      sendWebhook(webhook, 'product.published', updatedProduct);
+      sendWebhook(webhook, 'product.published', updatedProduct, apiSettings);
     }
   }
 

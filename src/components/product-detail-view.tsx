@@ -24,7 +24,7 @@ import SubmissionChecklist from './submission-checklist';
 import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
-import { runSubmissionValidation } from '@/lib/actions';
+import { runSubmissionValidation } from '@/services/validation';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
