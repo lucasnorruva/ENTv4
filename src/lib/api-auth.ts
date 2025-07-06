@@ -1,6 +1,6 @@
 // src/lib/api-auth.ts
 import { headers } from 'next/headers';
-import { getUserById, getApiKeyByRawToken } from '@/lib/auth';
+import { getUserById, getApiKeyByRawToken, getCompanyById } from '@/lib/auth';
 import type { User, ApiKey } from '@/types';
 import { PermissionError } from './permissions';
 import { checkRateLimit, RateLimitError } from '@/services/rate-limiter';
@@ -43,10 +43,15 @@ export async function authenticateApiRequest(): Promise<User> {
     throw new PermissionError('API key is not associated with a valid user.');
   }
 
+  const company = await getCompanyById(user.companyId);
+  if (!company) {
+    throw new PermissionError('User is not associated with a valid company.');
+  }
+
+  const tier = company.tier || 'free';
+
   // Perform rate limiting check
-  // For mock purposes, we'll assume a 'pro' tier for the developer user.
-  // A real implementation might store the tier on the ApiKey or User object.
-  await checkRateLimit(apiKey.id, 'pro');
+  await checkRateLimit(apiKey.id, tier);
 
   // Update lastUsed timestamp (fire-and-forget)
   apiKey.lastUsed = new Date().toISOString();

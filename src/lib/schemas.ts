@@ -174,6 +174,7 @@ export const companyFormSchema = z.object({
   name: z.string().min(2, 'Company name must be at least 2 characters.'),
   ownerId: z.string().min(1, 'Owner ID is required.'),
   industry: z.string().optional(),
+  tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 

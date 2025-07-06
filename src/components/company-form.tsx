@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -28,6 +29,13 @@ import { useToast } from '@/hooks/use-toast';
 import { saveCompany } from '@/lib/actions';
 import { companyFormSchema, type CompanyFormValues } from '@/lib/schemas';
 import type { Company, User } from '@/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface CompanyFormProps {
   isOpen: boolean;
@@ -53,6 +61,7 @@ export default function CompanyForm({
       name: '',
       ownerId: '',
       industry: '',
+      tier: 'free',
     },
   });
 
@@ -63,12 +72,14 @@ export default function CompanyForm({
           name: company.name,
           ownerId: company.ownerId,
           industry: company.industry || '',
+          tier: company.tier || 'free',
         });
       } else {
         form.reset({
           name: '',
           ownerId: '',
           industry: '',
+          tier: 'free',
         });
       }
     }
@@ -133,7 +144,7 @@ export default function CompanyForm({
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="industry"
               render={({ field }) => (
@@ -142,6 +153,34 @@ export default function CompanyForm({
                   <FormControl>
                     <Input placeholder="e.g., Electronics" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="tier"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>API Tier</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an API tier" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="pro">Pro</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Determines the API rate limits for this company.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
