@@ -7,6 +7,7 @@ This is the central hub for developers, integrators, and partners building with 
 If you're new to Norruva, here are some great places to start:
 
 -   **[Platform Architecture](./platform-architecture):** Understand the core components of our multi-tenant SaaS platform.
+-   **[Business Logic Flows](./business-logic-flows):** See how data and users move through the system.
 -   **[User Roles & Permissions](./roles):** Learn about the different user roles and their capabilities within the system.
 -   **[Development Roadmap](./roadmap):** Explore our vision, strategic goals, and feature implementation plan.
 -   **[Contributing Guide](./contributing):** Learn how to contribute to the platform, including our Git workflow and coding standards.
@@ -18,7 +19,7 @@ Ready to build? Dive into our technical documentation.
 
 -   **[API Specification](./api):** Detailed reference for our GraphQL and REST APIs, including authentication and examples.
 -   **[Enterprise Integration](./integrations):** Guides for connecting Norruva with ERP, PLM, and other enterprise systems.
--   **[Blockchain Strategy](./blockchain):** Details on how we leverage blockchain for data anchoring and integrity.
+-   **[Blockchain Strategy](./blockchain):** Details on our advanced strategy for data anchoring, verifiable credentials, and ZKPs.
 
 ## Core Concepts
 
@@ -27,3 +28,4 @@ Explore the foundational concepts that power the Norruva platform.
 -   **[DPP Methodology](./dpp-methodology):** How our platform handles real-world complexities like partial or invalid data.
 -   **[Compliance Matrix](./compliance-matrix):** An overview of the regulations and standards our platform helps you comply with.
 -   **[AI Prompt Design](./ai-prompt-design):** A look under the hood at how we use AI to ensure predictable and reliable outputs.
+-   **[Internationalization](./internationalization):** Our strategy for multi-language support and regional compliance.

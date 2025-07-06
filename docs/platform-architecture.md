@@ -70,54 +70,28 @@ The platform is built as a multi-tenant system from the ground up, meaning multi
 
 ### Region-Specific Schema Toggles
 Different regions have different compliance requirements. The platform introduces region-specific toggles to dynamically adjust the DPP data schema and validation rules based on the regulatory context:
-- **Regional Mode Setting**: Each tenant (or even each product line) can be tagged with a primary region (e.g., EU, MENA, North America). This drives which compliance schemas and features are active. For instance, a European tenant will have EU-specific fields (like EU battery regulations, material provenance requirements) enabled by default, whereas a North American tenant might not see those unless they opt-in.
+- **Regional Mode Setting**: Each tenant (or even each product line) can be tagged with a primary region (e.g., EU, North America). This drives which compliance schemas and features are active. For instance, a European tenant will have EU-specific fields (like EU battery regulations, material provenance requirements) enabled by default, whereas a North American tenant might not see those unless they opt-in.
 - **Schema Variations**: Under the hood, the DPP data model is extensible. Fields can be marked as required, optional, or not applicable depending on region. For example, a “recycled material content” field might be mandatory for EU (due to legislation) but optional elsewhere. The compliance engine references the region toggles to apply correct validation rules.
-- **Regional Compliance Modules**: Entire modules can be toggled. An EU toggle might enable the forthcoming Ecodesign/ESPR module (see Ecodesign 2.0 and ESPR), or a Middle East toggle could prepare for any local standards. Toggling off a module hides its UI sections and skips its validations.
-- **Examples by Region**:
-  - **EU**: Enable Digital Product Passport core plus EU-specific additions (battery passport fields, extended producer responsibility info, CSRD reporting data). Use EU data formats (metric units, EU labeling conventions).
-  - **North America**: Core DPP enabled, but EU-specific fields off. Option to enable modules if the company exports to EU. Possibly include US-specific upcoming requirements (e.g., SEC climate disclosures) when relevant.
-  - **MENA**: Core DPP enabled; no specific regional compliance rules currently widely mandated, but flexible to incorporate any emerging regulations or to support companies exporting to EU (hence might still enable EU modules on demand).
+- **Regional Compliance Modules**: Entire modules can be toggled. An EU toggle might enable the forthcoming Ecodesign/ESPR module, or a North American toggle could enable modules for FTC Green Guides or state-level EPR laws. Toggling off a module hides its UI sections and skips its validations.
 - **Data Residency**: The region setting can also tie into hosting and data residency (e.g., EU tenants’ data stays in EU data centers by default, to comply with GDPR and local laws).
 
-Below is a table summarizing how regional toggles affect module activation:
+### EU Roadmap Frameworks
+The regulatory landscape is rapidly evolving, especially in the EU where new sustainability and circular economy directives are coming into force. The DPP platform is built to stay ahead by incorporating a roadmap of EU frameworks as modular components. We have structured placeholders and modules for upcoming regulations such as the CSRD, PCDS, and ESPR, each of which can be toggled on when relevant.
 
-| Region | Default Active Modules & Schema | Notes (Compliance Focus) |
-| --- | --- | --- |
-| European Union (EU) | Core DPP schema; EU Battery Passport fields; CSRD module (covering nearly 50,000 companies); PCDS (Circularity Data Sheet); Ecodesign/ESPR data. | Strong focus on sustainability metrics (e.g., recycled content, carbon footprint) and compliance reporting. Data is stored in EU-region cloud by default to meet GDPR and data sovereignty requirements. |
-| Middle East & North Africa (MENA) | Core DPP schema only by default; EU-specific fields off (enable on demand). | Fewer regional mandates yet; companies often comply with EU standards if exporting. Data center can be in-region or EU as needed. |
-| North America (NA) | Core DPP schema; EU modules off by default (optional enablement). | Focus on transparency and circular economy is emerging. Prepares for future US regulations; can incorporate EU modules for global companies. Data can be hosted in NA region if needed for latency or compliance. |
+#### CSRD Module
+The Corporate Sustainability Reporting Directive (CSRD) requires large companies to report on sustainability impacts.
+- **Data Fields**: The platform will extend the DPP schema with fields that can feed into ESRS (European Sustainability Reporting Standards) reports, such as product-level carbon footprints, water usage, and social impact metrics.
+- **AI Assistance**: Genkit can help summarize DPP data into narratives for CSRD reports or flag inconsistencies between product claims and corporate-level disclosures.
+- **Toggle**: A `CSRD_Compliance_Module` feature flag will be available for in-scope companies.
 
-Each region’s toggles can be adjusted as laws evolve. The platform’s configuration service updates schemas in near real-time if, say, the EU introduces a new required field or the US enacts a new passport rule, ensuring clients remain compliant without heavy development changes.
+#### PCDS Module
+The Product Circularity Data Sheet (PCDS) is a standardized format for communicating circularity properties.
+- **Functionality**: When enabled, the platform will capture data according to the PCDS standard, including material reuse, recycled content, and disassembly information.
+- **Interoperability**: The platform will be able to export a product's circularity data as a standardized PCDS file or API payload, ensuring interoperability with other systems.
+- **Toggle**: The `Circularity_DataSheet_Module` flag will enable PCDS features.
 
-## EU Roadmap Frameworks
-The regulatory landscape is rapidly evolving, especially in the EU where new sustainability and circular economy directives are coming into force. The DPP platform is built to stay ahead by incorporating a roadmap of EU frameworks as modular components. We have structured placeholders and modules for upcoming regulations such as the CSRD, CRSD, Circular Economy Data Sheets, and Ecodesign 2.0, each of which can be toggled on when relevant. These modules often work in tandem with our Gemini AI for extended functionality, such as automatically interpreting requirements or populating reports.
-### CSRD Module
-CSRD (Corporate Sustainability Reporting Directive) is a major EU directive requiring companies to report extensively on sustainability metrics and impacts. The platform’s CSRD module is a future rollout component designed to collect and manage the data needed for CSRD compliance:
-- Data Fields: The module extends the DPP schema with fields required by CSRD, such as greenhouse gas emissions (Scope 1-3), resource usage, social impact metrics, and governance indicators. It aligns with the European Sustainability Reporting Standards (ESRS) so that DPP data can feed directly into a company’s CSRD reports.
-- AI Assistance: The Genkit AI extension for CSRD can help automatically summarize DPP data into narrative form or check consistency (e.g., if a product passport claims a certain carbon footprint, Gemini can verify if it aligns with company-level reports). It might also suggest improvements or flag potential “greenwashing” if data looks inconsistent.
-- Toggle and Permissions: Not all clients will need CSRD (for example, non-EU SMEs might be exempt). The feature flag CSRD_Compliance_Module can be turned on per tenant. When off, CSRD-related fields are hidden from UI and not required. When on (likely for large EU companies), the module ensures all required data is collected and can generate a CSRD-ready report or data export.
-- Regulatory Alignment: By integrating CSRD, the platform ensures companies can meet their reporting obligations in a structured way. CSRD requires companies to submit sustainability data in a standardized digital format for easier comparison, aiming to end greenwashing and improve transparency. Our platform can act as the data source, compiling product-level info into the needed format, ensuring companies meet this requirement.
-### CRSD Module
-CRSD is a placeholder for an additional upcoming regulation (the exact acronym may refer to a Corporate Responsibility/Sustainability Directive or another related law). While details are still emerging, we treat it as a potential expansion of sustainability or due diligence requirements:
-- Placeholder Design: The CRSD module is structured similarly to CSRD – as a toggleable schema extension and set of rules. It might include fields for human rights due diligence, supply chain transparency, or other ESG (Environmental, Social, Governance) metrics not fully covered by CSRD.
-- Integration with DPP: If CRSD (or a similarly named directive) comes into effect, product passports may need to carry some data that feed into those corporate-level reports. For instance, a “conflict minerals” report or a “social impact score” per product could be introduced.
-- Gemini AI Extensions: Our AI would be updated to handle any new explanatory requirements. For example, if companies must explain how each product mitigates a particular risk, the AI could draft these explanations from the data.
-- Activating the Module: Like other modules, it would remain off until needed. The documentation here acts as a placeholder so that engineering and product teams are aware of a potential upcoming requirement. Once the regulation details are clear, this module will be updated with specifics.
-- Note: If CRSD turns out to be essentially the same as CSRD (or a variant naming), this module might be repurposed to another directive (such as CSDD – Corporate Sustainability Due Diligence for supply chain due diligence). The flexible architecture ensures that even unforeseen regulations can be accommodated with new modules.
-### Circular Economy Data Sheets (PCDS)
-Under the EU’s circular economy initiatives, standardized data sheets like the Product Circularity Data Sheet (PCDS) are being promoted. Our platform anticipates this by allowing a dedicated module for Circular Economy Data Sheets:
-- PCDS Overview: The PCDS is a standardized template that manufacturers fill with info on a product’s circularity (e.g., reused materials, recyclability). The DPP platform can incorporate this template structure.
-- Module Functionality: When the Circular Economy Data Sheets module is enabled, the system will present additional sections in the product passport where circularity data is captured according to the PCDS standard.
-- Data Exchange and Format: Because PCDS is designed as a data exchange format, the platform will be able to export/import this segment of the passport as a PCDS file or API payload. This ensures interoperability.
-- Toggle and Integration: The feature flag for this could be named Circularity_DataSheet_Module. It can be enabled for companies that wish to pilot or comply with PCDS. Gemini AI can assist by checking if PCDS fields are consistent with other product data.
-- Future Alignment: Should the EU or other bodies mandate PCDS for certain products, this module will ensure clients are ready. Even before formal mandates, enabling it can be a value-add for companies aiming to showcase circular economy leadership.
-### Ecodesign 2.0 and ESPR
-The Ecodesign for Sustainable Products Regulation (ESPR) is a foundational EU regulation that introduces the requirement for Digital Product Passports. Our platform is inherently aligned with this regulation:
-- Digital Product Passport Requirements: ESPR explicitly introduces a DPP as a “digital identity card for products” with information to support sustainability and circularity. Our entire platform is built around this concept.
-- ESPR Module: This module acts as a collection of specific features to ensure full compliance:
-- Ensuring each product passport contains all data fields required by any delegated acts under the regulation.
-- Providing an authenticity verification mechanism for customs authorities.
-- Enforcement of rules like marking products that lack a valid passport.
-- Future Delegated Acts: The ESPR framework will issue product-specific rules (delegated acts). The platform’s compliance engine and schema are designed to be updated in a modular way for each such product category rule.
-- Gemini AI Extensions: Genkit AI is leveraged to help businesses interpret the Ecodesign requirements, provide context on required fields, and analyze a product’s data to suggest ways to improve compliance.
-- Global Alignment: While ESPR is EU-specific, it sets a template for sustainability requirements. Our platform’s features here (like capturing detailed lifecycle info) can be useful for other regions or voluntary standards too.
+#### ESPR Module
+The Ecodesign for Sustainable Products Regulation (ESPR) is the foundational EU regulation mandating DPPs.
+- **Core Alignment**: The entire platform is built around ESPR principles, providing a digital identity card for products.
+- **Functionality**: The ESPR module ensures full compliance by enforcing data requirements from delegated acts, providing authenticity verification for customs, and managing product markings.
+- **Future-Proof**: As product-specific rules are released, the compliance engine will be updated modularly.
