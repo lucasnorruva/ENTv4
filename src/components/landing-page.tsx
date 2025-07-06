@@ -118,10 +118,10 @@ export default function LandingPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button size="lg" asChild>
-                    <Link href="/demo">Explore the Interactive Demo</Link>
+                    <Link href="/signup">Get Started for Free</Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
-                     <Link href="/docs">Read the Docs</Link>
+                     <Link href="/dashboard/admin">Go to Dashboard</Link>
                   </Button>
                 </div>
               </div>
