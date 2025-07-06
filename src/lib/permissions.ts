@@ -1,3 +1,4 @@
+
 // src/lib/permissions.ts
 import type { User, Product } from '@/types';
 import { hasRole } from './auth-utils';
