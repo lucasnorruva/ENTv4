@@ -20,6 +20,7 @@ export const typeDefs = gql`
     gtin: String
     compliancePathId: String
     manualUrl: String
+    model3dUrl: String
     declarationOfConformity: String
     materials: [MaterialInput!]
     manufacturing: ManufacturingInput
@@ -169,6 +170,7 @@ export const typeDefs = gql`
     gtin: String
     compliancePathId: String
     manualUrl: String
+    model3dUrl: String
     declarationOfConformity: String
 
     materials: [Material!]

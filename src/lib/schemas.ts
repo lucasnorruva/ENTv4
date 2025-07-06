@@ -187,6 +187,8 @@ export const productFormSchema = z.object({
   manualUrl: z.string().url().optional().or(z.literal('')),
   manualFileName: z.string().optional(),
   manualFileSize: z.number().optional(),
+  model3dUrl: z.string().url().optional().or(z.literal('')),
+  model3dFileName: z.string().optional(),
   declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),

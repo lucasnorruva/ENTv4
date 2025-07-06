@@ -13,20 +13,30 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import type { Product, User, CompliancePath } from '@/types';
+import type {
+  Product,
+  User,
+  CompliancePath,
+  CustomFieldDefinition,
+} from '@/types';
 import {
   saveProduct,
   generateProductDescription,
   generateAndSaveProductImage,
+  getFriendlyError,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';
+import { cn } from '@/lib/utils';
+import { getCompanyById } from '@/lib/auth';
 
 import GeneralTab from './product-form-tabs/general-tab';
 import DataTab from './product-form-tabs/data-tab';
 import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
+import CustomDataTab from './product-form-tabs/custom-data-tab';
+import TextileTab from './product-form-tabs/textile-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -56,6 +66,13 @@ export default function ProductForm({
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
+  
+  const [modelFile, setModelFile] = useState<File | null>(null);
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [modelUploadProgress, setModelUploadProgress] = useState(0);
+
+  const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([]);
+  const [isAiEnabled, setIsAiEnabled] = useState(false);
 
   const isEditMode = !!initialData?.id;
 
@@ -74,8 +91,14 @@ export default function ProductForm({
     battery: {},
     compliance: {},
     manualUrl: '',
+    manualFileName: '',
+    manualFileSize: 0,
+    model3dUrl: '',
+    model3dFileName: '',
     declarationOfConformity: '',
     compliancePathId: '',
+    customData: {},
+    textile: { fiberComposition: [] },
   };
 
   const form = useForm<ProductFormValues>({
@@ -85,6 +108,19 @@ export default function ProductForm({
       ...initialData,
     },
   });
+
+  const category = form.watch('category');
+
+  useEffect(() => {
+    async function fetchCompanySettings() {
+      const company = await getCompanyById(user.companyId);
+      if (company?.settings?.customFields) {
+        setCustomFields(company.settings.customFields);
+      }
+      setIsAiEnabled(company?.settings?.aiEnabled ?? false);
+    }
+    fetchCompanySettings();
+  }, [user.companyId]);
 
   const {
     fields: materialFields,
@@ -97,6 +133,15 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
+
+  const {
+    fields: fiberFields,
+    append: appendFiber,
+    remove: removeFiber,
+  } = useFieldArray({
+    control: form.control,
+    name: 'textile.fiberComposition',
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -114,6 +159,19 @@ export default function ProductForm({
       toast({
         title: 'Invalid File Type',
         description: 'Please upload a PDF file for the manual.',
+        variant: 'destructive',
+      });
+    }
+  };
+  
+  const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+      setModelFile(file);
+    } else if (file) {
+      toast({
+        title: 'Invalid File Type',
+        description: 'Please upload a .glb or .gltf file.',
         variant: 'destructive',
       });
     }
@@ -210,6 +268,8 @@ export default function ProductForm({
       let manualUrl = initialData?.manualUrl;
       let manualFileName = initialData?.manualFileName;
       let manualFileSize = initialData?.manualFileSize;
+      let model3dUrl = initialData?.model3dUrl;
+      let model3dFileName = initialData?.model3dFileName;
 
       if (imageFile) {
         setIsUploading(true);
@@ -289,6 +349,37 @@ export default function ProductForm({
           return;
         }
       }
+      
+      if (modelFile) {
+        setIsUploadingModel(true);
+        setModelUploadProgress(0);
+        const storageRef = ref(storage, `models/${user.id}/${Date.now()}-${modelFile.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, modelFile);
+
+        try {
+          model3dUrl = await new Promise<string>((resolve, reject) => {
+            uploadTask.on('state_changed',
+              snapshot => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                setModelUploadProgress(progress);
+              },
+              error => {
+                setIsUploadingModel(false);
+                reject(error);
+              },
+              async () => {
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                setIsUploadingModel(false);
+                resolve(downloadURL);
+              }
+            );
+          });
+          model3dFileName = modelFile.name;
+        } catch (error) {
+          toast({ title: '3D Model Upload Failed', variant: 'destructive' });
+          return;
+        }
+      }
 
       try {
         const productData = {
@@ -297,6 +388,8 @@ export default function ProductForm({
           manualUrl,
           manualFileName,
           manualFileSize,
+          model3dUrl,
+          model3dFileName,
         };
         const saved = await saveProduct(
           productData,
@@ -309,10 +402,15 @@ export default function ProductForm({
         });
         router.push(`/dashboard/${roleSlug}/products/${saved.id}`);
         router.refresh(); // Refresh server-side props for the target page
-      } catch (error) {
+      } catch (error: any) {
+        const friendlyError = await getFriendlyError(
+          error,
+          'saving the product passport',
+          user,
+        );
         toast({
-          title: 'Error',
-          description: 'Failed to save the passport.',
+          title: friendlyError.title,
+          description: friendlyError.description,
           variant: 'destructive',
         });
       }
@@ -332,6 +430,16 @@ export default function ProductForm({
       </div>
     );
   }
+
+  const hasCustomFields = customFields.length > 0;
+  const showTextileTab = category === 'Fashion';
+
+  const getTabCols = () => {
+    let cols = 4;
+    if (hasCustomFields) cols++;
+    if (showTextileTab) cols++;
+    return `grid-cols-${cols}`;
+  };
 
   return (
     <Form {...form}>
@@ -361,13 +469,15 @@ export default function ProductForm({
                 isSaving ||
                 isUploading ||
                 isGeneratingImage ||
-                isUploadingManual
+                isUploadingManual ||
+                isUploadingModel
               }
             >
               {isSaving ||
               isUploading ||
               isGeneratingImage ||
-              isUploadingManual ? (
+              isUploadingManual ||
+              isUploadingModel ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
@@ -376,20 +486,26 @@ export default function ProductForm({
                 ? 'Uploading Image...'
                 : isUploadingManual
                   ? 'Uploading Manual...'
-                  : isGeneratingImage
-                    ? 'Generating...'
-                    : isSaving
-                      ? 'Saving...'
-                      : 'Save Changes'}
+                  : isUploadingModel
+                    ? 'Uploading Model...'
+                    : isGeneratingImage
+                      ? 'Generating...'
+                      : isSaving
+                        ? 'Saving...'
+                        : 'Save Changes'}
             </Button>
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={cn('grid w-full', getTabCols())}>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
+              {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
+              {hasCustomFields && (
+                <TabsTrigger value="custom">Custom Data</TabsTrigger>
+              )}
             </TabsList>
             <TabsContent value="general">
               <GeneralTab
@@ -404,6 +520,7 @@ export default function ProductForm({
                 isGeneratingImage={isGeneratingImage}
                 handleContextImageChange={handleContextImageChange}
                 handleGenerateImage={handleGenerateImage}
+                isAiEnabled={isAiEnabled}
               />
             </TabsContent>
             <TabsContent value="data">
@@ -415,20 +532,42 @@ export default function ProductForm({
                 certFields={certFields}
                 appendCert={appendCert}
                 removeCert={removeCert}
+                isAiEnabled={isAiEnabled}
               />
             </TabsContent>
+             {showTextileTab && (
+              <TabsContent value="textile">
+                <TextileTab
+                  form={form}
+                  fiberFields={fiberFields}
+                  appendFiber={appendFiber}
+                  removeFiber={removeFiber}
+                  user={user}
+                  productId={initialData?.id}
+                  isAiEnabled={isAiEnabled}
+                />
+              </TabsContent>
+            )}
             <TabsContent value="lifecycle">
               <LifecycleTab
                 form={form}
                 handleManualChange={handleManualChange}
                 isUploadingManual={isUploadingManual}
                 manualUploadProgress={manualUploadProgress}
+                handleModelChange={handleModelChange}
+                isUploadingModel={isUploadingModel}
+                modelUploadProgress={modelUploadProgress}
                 isSaving={isSaving}
               />
             </TabsContent>
             <TabsContent value="compliance">
               <ComplianceTab form={form} compliancePaths={compliancePaths} />
             </TabsContent>
+            {hasCustomFields && (
+              <TabsContent value="custom">
+                <CustomDataTab form={form} customFields={customFields} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </form>

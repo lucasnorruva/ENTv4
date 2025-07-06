@@ -245,6 +245,8 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
+  model3dUrl?: string;
+  model3dFileName?: string;
   declarationOfConformity?: string;
 
   // Structured Data Fields

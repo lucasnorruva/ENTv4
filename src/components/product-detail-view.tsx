@@ -36,6 +36,7 @@ import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
+import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import { cn } from '@/lib/utils';
 
 export default function ProductDetailView({
@@ -86,9 +87,10 @@ export default function ProductDetailView({
     router.refresh();
   };
 
-  const tabListGridCols = () => {
+  const getTabListGridCols = () => {
     let cols = 6;
     if (showTextileTab) cols++;
+    if (product.model3dUrl) cols++;
     return `grid-cols-${cols}`;
   };
 
@@ -176,12 +178,13 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className={cn('grid w-full', tabListGridCols())}>
+              <TabsList className={cn('grid w-full', getTabListGridCols())}>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                {product.model3dUrl && <TabsTrigger value="3d-viewer">3D Viewer</TabsTrigger>}
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
               </TabsList>
@@ -208,6 +211,11 @@ export default function ProductDetailView({
                   compliancePath={compliancePath}
                 />
               </TabsContent>
+               {product.model3dUrl && (
+                <TabsContent value="3d-viewer" className="mt-4">
+                  <ThreeDViewerTab product={product} />
+                </TabsContent>
+              )}
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />
               </TabsContent>
