@@ -1,7 +1,7 @@
 // src/lib/actions/product-workflow-actions.ts
 'use server';
 
-import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus } from '@/types';
+import type { Product, User, ComplianceGap, ServiceRecord, CustomsStatus, BlockchainProof } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { getWebhooks, getProductById } from '@/lib/actions/index';
@@ -61,9 +61,15 @@ export async function approvePassport(
 
   const product = mockProducts[productIndex];
   const productHash = await hashProductData(product);
-  const blockchainProof = await anchorToPolygon(product.id, productHash);
+  // For now, we treat the single hash as the Merkle root of a batch of one.
+  const anchorResult = await anchorToPolygon(productHash);
   const verifiableCredential = await createVerifiableCredential(product, user);
 
+  const blockchainProof: BlockchainProof = {
+    type: 'SINGLE_HASH',
+    ...anchorResult,
+    merkleRoot: productHash,
+  };
 
   const updatedProduct = {
     ...product,

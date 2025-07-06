@@ -344,12 +344,18 @@ export default function ComplianceTab({
                     On-Chain Proof
                   </h4>
                 </AccordionTrigger>
-                <AccordionContent className="pt-2">
+                <AccordionContent className="pt-2 space-y-1">
+                  {product.blockchainProof.merkleRoot && (
+                    <div className='text-sm'>
+                      <p className='font-medium'>Merkle Root:</p>
+                      <p className='font-mono text-xs break-all text-muted-foreground'>{product.blockchainProof.merkleRoot}</p>
+                    </div>
+                  )}
                    <Link
                     href={product.blockchainProof.explorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary hover:underline text-sm flex items-center gap-1"
+                    className="text-primary hover:underline text-sm flex items-center gap-1 pt-2"
                   >
                     View Polygon Transaction
                     <LinkIcon className="h-3 w-3" />

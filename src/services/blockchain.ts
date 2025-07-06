@@ -2,15 +2,13 @@
 "use server";
 
 import { createHash } from "crypto";
-import type { Product } from "@/types";
+import type { Product, BlockchainProof } from "@/types";
 import {
   createWalletClient,
   http,
   publicActions,
   Hex,
   Address,
-  keccak256,
-  stringToHex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonAmoy } from "viem/chains";
@@ -46,39 +44,31 @@ const contractAddress = process.env.SMART_CONTRACT_ADDRESS as
   | Address
   | undefined;
 
-// A simple ABI for our mock contract's `registerPassport` function.
+// A simple ABI for a mock contract that registers a Merkle root.
 // In a real project, this would be imported from your contract artifacts.
 const contractAbi = [
   {
     type: "function",
-    name: "registerPassport",
-    inputs: [
-      { name: "productId", type: "bytes32", internalType: "bytes32" },
-      { name: "dataHash", type: "bytes32", internalType: "bytes32" },
-    ],
+    name: "anchorMerkleRoot",
+    inputs: [{ name: "merkleRoot", type: "bytes32", internalType: "bytes32" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
 ] as const;
 
 /**
- * Anchors a data hash to the Polygon Amoy testnet for immutability.
- * This function uses `viem` to interact with a smart contract.
+ * Anchors a data hash (representing a Merkle root) to the Polygon Amoy testnet.
  *
- * @param productId The ID of the product being anchored.
- * @param hash The hash to be anchored on the blockchain.
+ * @param hash The hash (Merkle root) to be anchored on the blockchain.
  * @returns A promise that resolves to an object with the transaction hash and a link to a block explorer.
  */
 export async function anchorToPolygon(
-  productId: string,
   hash: string,
-): Promise<{ txHash: string; explorerUrl: string; blockHeight: number }> {
-  // 1. Validate environment variables
+): Promise<Omit<BlockchainProof, 'type' | 'merkleRoot' | 'proof'>> {
   if (!rpcUrl || !privateKey || !contractAddress) {
     console.warn(
       "Blockchain environment variables (POLYGON_AMOY_RPC_URL, WALLET_PRIVATE_KEY, SMART_CONTRACT_ADDRESS) are not set. Returning mock data.",
     );
-    // Fallback to mock data if env vars are missing
     return {
       txHash:
         "0xMOCK_TX_HASH_ENV_VAR_MISSING_" + Math.random().toString(36).substring(2),
@@ -88,7 +78,6 @@ export async function anchorToPolygon(
   }
 
   try {
-    // 2. Setup Viem client and account
     const account = privateKeyToAccount(privateKey);
     const client = createWalletClient({
       account,
@@ -96,28 +85,23 @@ export async function anchorToPolygon(
       transport: http(rpcUrl),
     }).extend(publicActions);
 
-    console.log(`Anchoring hash for product ${productId} to Polygon Amoy...`);
+    console.log(`Anchoring root hash ${hash} to Polygon Amoy...`);
     console.log(`Using wallet: ${account.address}`);
     console.log(`Contract: ${contractAddress}`);
 
-    // Convert string IDs and hashes to bytes32 format for the contract
-    const productIdBytes32 = keccak256(stringToHex(productId));
     const dataHashBytes32 = ("0x" + hash) as Hex;
 
-    // 3. Simulate the contract write call to get gas estimates, etc.
     const { request } = await client.simulateContract({
       address: contractAddress,
       abi: contractAbi,
-      functionName: "registerPassport",
-      args: [productIdBytes32, dataHashBytes32],
+      functionName: "anchorMerkleRoot",
+      args: [dataHashBytes32],
       account,
     });
 
-    // 4. Send the transaction
     const txHash = await client.writeContract(request);
     console.log(`Transaction sent. Hash: ${txHash}`);
 
-    // 5. Wait for the transaction to be mined and get the receipt
     const transactionReceipt = await client.waitForTransactionReceipt({
       hash: txHash,
     });
@@ -132,8 +116,6 @@ export async function anchorToPolygon(
     };
   } catch (error: any) {
     console.error("❌ Failed to anchor hash to Polygon:", error.message);
-    // In case of a real error, we might want to throw or handle it gracefully
-    // For now, we'll return a mock error hash to avoid breaking the flow.
     return {
       txHash:
         "0xMOCK_TX_HASH_ERROR_OCCURRED_" + Math.random().toString(36).substring(2),

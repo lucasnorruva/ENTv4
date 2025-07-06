@@ -219,6 +219,15 @@ export interface SubmissionChecklist {
   passesDataQuality: boolean;
 }
 
+export interface BlockchainProof {
+  type: 'SINGLE_HASH' | 'MERKLE_PROOF';
+  txHash: string;
+  explorerUrl: string;
+  blockHeight: number;
+  merkleRoot?: string;
+  proof?: string[]; // Array of hashes for Merkle proof
+}
+
 /**
  * The core Digital Product Passport entity.
  */
@@ -268,11 +277,7 @@ export interface Product extends BaseEntity {
     date: string;
   };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
-  blockchainProof?: {
-    txHash: string;
-    explorerUrl: string;
-    blockHeight: number;
-  };
+  blockchainProof?: BlockchainProof;
   ebsiVcId?: string;
   verifiableCredential?: string; // JSON string of the signed VC
   compliance?: Compliance;

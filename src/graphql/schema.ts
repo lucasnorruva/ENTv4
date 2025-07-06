@@ -312,9 +312,12 @@ export const typeDefs = gql`
   }
 
   type BlockchainProof {
+    type: String!
     txHash: String!
     explorerUrl: String!
     blockHeight: Int!
+    merkleRoot: String
+    proof: [String!]
   }
 
   type User {
