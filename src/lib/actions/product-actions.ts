@@ -1,4 +1,3 @@
-
 // src/lib/actions/product-actions.ts
 'use server';
 
@@ -386,7 +385,7 @@ export async function deleteProduct(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
-  const product = await getProductById(productId, userId);
+  const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:delete', product);
