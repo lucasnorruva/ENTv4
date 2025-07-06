@@ -1,10 +1,8 @@
 // src/app/api/v1/compliance/check/[productId]/route.ts
 import { NextResponse, type NextRequest } from 'next/server';
-import {
-  getProductById,
-  runComplianceCheck,
-  logAuditEvent,
-} from '@/lib/actions';
+import { getProductById } from '@/lib/actions/product-actions';
+import { runComplianceCheck } from '@/lib/actions/product-ai-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
 import { RateLimitError } from '@/services/rate-limiter';

@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { runLifecyclePrediction } from '@/lib/actions';
+import { runLifecyclePrediction } from '@/lib/actions/product-ai-actions';
 
 interface PredictiveAnalyticsWidgetProps {
   product: Product;

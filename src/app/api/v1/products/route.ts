@@ -1,6 +1,7 @@
 // src/app/api/v1/products/route.ts
 import { NextResponse, NextRequest } from 'next/server';
-import { getProducts, saveProduct, logAuditEvent } from '@/lib/actions';
+import { getProducts, saveProduct } from '@/lib/actions/product-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
 import { RateLimitError } from '@/services/rate-limiter';

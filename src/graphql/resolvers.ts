@@ -4,13 +4,13 @@ import {
   getProductById,
   saveProduct,
   deleteProduct,
+} from '@/lib/actions/product-actions';
+import {
   getCompliancePaths,
   getCompliancePathById,
-  saveUser,
-  deleteUser,
-  saveCompany,
-  deleteCompany,
-} from '@/lib/actions';
+} from '@/lib/actions/compliance-actions';
+import { saveUser, deleteUser } from '@/lib/actions/user-actions';
+import { saveCompany, deleteCompany } from '@/lib/actions/company-actions';
 import {
   getUsers,
   getUserById,

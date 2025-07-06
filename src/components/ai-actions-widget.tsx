@@ -26,12 +26,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import {
-  runComplianceCheck,
-  runDataValidationCheck,
   suggestImprovements,
   generateAndSaveConformityDeclaration,
   generatePcdsForProduct,
-} from '@/lib/actions';
+  runDataValidationCheck,
+  runComplianceCheck,
+} from '@/lib/actions/product-ai-actions';
 import {
   Dialog,
   DialogContent,

@@ -26,7 +26,7 @@ import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
-import { generateZkProofForProduct } from '@/lib/actions';
+import { generateZkProofForProduct } from '@/lib/actions/product-workflow-actions';
 
 function InfoRow({
   icon: Icon,
@@ -116,7 +116,7 @@ export default function CryptoTab({
             <ScrollArea className="h-48 mt-2 w-full rounded-md border bg-muted p-4">
               <pre className="text-xs break-all whitespace-pre-wrap">
                 {product.verifiableCredential
-                  ? JSON.stringify(product.verifiableCredential, null, 2)
+                  ? JSON.stringify(JSON.parse(product.verifiableCredential), null, 2)
                   : 'Not available. Passport must be verified.'}
               </pre>
             </ScrollArea>

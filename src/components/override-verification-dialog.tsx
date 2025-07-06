@@ -5,7 +5,7 @@ import React, { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { overrideVerification } from '@/lib/actions';
+import { overrideVerification } from '@/lib/actions/product-workflow-actions';
 import {
   overrideVerificationSchema,
   type OverrideVerificationFormValues,

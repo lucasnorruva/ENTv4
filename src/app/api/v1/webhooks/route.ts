@@ -1,6 +1,7 @@
 // src/app/api/v1/webhooks/route.ts
 import { NextResponse, NextRequest } from 'next/server';
-import { getWebhooks, saveWebhook, logAuditEvent } from '@/lib/actions';
+import { getWebhooks, saveWebhook } from '@/lib/actions/api-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
 

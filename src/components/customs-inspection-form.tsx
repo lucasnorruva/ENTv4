@@ -5,7 +5,7 @@ import React, { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { performCustomsInspection } from '@/lib/actions';
+import { performCustomsInspection } from '@/lib/actions/product-workflow-actions';
 import {
   customsInspectionFormSchema,
   type CustomsInspectionFormValues,
