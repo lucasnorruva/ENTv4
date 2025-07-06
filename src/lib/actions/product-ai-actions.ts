@@ -25,6 +25,8 @@ import { generateProductDescription as generateProductDescriptionFlow } from '@/
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
+import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
+import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
 
 // --- AI Processing ---
 
@@ -576,4 +578,56 @@ export async function askQuestionAboutProduct(
   };
 
   return await productQa({ productContext, question });
+}
+
+export async function getFriendlyError(
+  error: any,
+  context: string,
+  user: User,
+) {
+  let errorMessage = 'An unexpected error occurred.';
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  } else if (typeof error === 'string') {
+    errorMessage = error;
+  }
+
+  return await explainErrorFlow({
+    errorMessage,
+    context,
+    userRole: user.roles.join(', '),
+  });
+}
+
+export async function analyzeTextileData(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+  checkPermission(user, 'product:edit', product);
+
+  if (!product.textile || !product.textile.fiberComposition || product.textile.fiberComposition.length === 0) {
+    throw new Error('No textile data available to analyze.');
+  }
+
+  const analysisResult = await analyzeTextileComposition(product.textile);
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].textileAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.textile_analysis',
+    productId,
+    { result: analysisResult },
+    userId,
+  );
+  
+  return Promise.resolve(mockProducts[productIndex]);
 }
