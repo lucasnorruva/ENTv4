@@ -23,7 +23,7 @@ const PcdsStatementSchema = z.object({
   methodology: z.string().optional().describe("The methodology used to determine the value (e.g., 'ISO 14021')."),
 });
 
-export const PcdsOutputSchema = z.object({
+const PcdsOutputSchema = z.object({
   header: z.object({
     dppId: z.string().describe("The Digital Product Passport ID."),
     productName: z.string().describe("The name of the product."),
