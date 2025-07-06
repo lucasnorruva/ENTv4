@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/data-tab.tsx
 'use client';
 
@@ -48,6 +47,7 @@ interface DataTabProps {
     ProductFormValues,
     'certifications'
   >['remove'];
+  isAiEnabled: boolean;
 }
 
 export default function DataTab({
@@ -58,6 +58,7 @@ export default function DataTab({
   certFields,
   appendCert,
   removeCert,
+  isAiEnabled,
 }: DataTabProps) {
   const handleApplyBom = (materials: ProductFormValues['materials']) => {
     if (materials) {
@@ -115,7 +116,7 @@ export default function DataTab({
             <h3 className="text-lg font-semibold">Materials</h3>
           </AccordionTrigger>
           <AccordionContent className="pt-4 space-y-6">
-            <BomAnalysisWidget onApply={handleApplyBom} />
+            {isAiEnabled && <BomAnalysisWidget onApply={handleApplyBom} />}
 
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">

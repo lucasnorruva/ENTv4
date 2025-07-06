@@ -25,6 +25,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import type { ProductFormValues } from '@/lib/schemas';
+import { Label } from '../ui/label';
 
 interface GeneralTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -38,6 +39,7 @@ interface GeneralTabProps {
   isGeneratingImage: boolean;
   handleContextImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleGenerateImage: () => void;
+  isAiEnabled: boolean;
 }
 
 export default function GeneralTab({
@@ -52,6 +54,7 @@ export default function GeneralTab({
   isGeneratingImage,
   handleContextImageChange,
   handleGenerateImage,
+  isAiEnabled,
 }: GeneralTabProps) {
   return (
     <div className="p-6 space-y-6">
@@ -95,21 +98,23 @@ export default function GeneralTab({
           <FormItem>
             <div className="flex items-center justify-between">
               <FormLabel>Product Description</FormLabel>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleGenerateDescription}
-                disabled={isGeneratingDescription || isSaving}
-                className="text-xs"
-              >
-                {isGeneratingDescription ? (
-                  <Loader2 className="mr-2 h-3 w-3 animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2 h-3 w-3" />
-                )}
-                Generate with AI
-              </Button>
+              {isAiEnabled && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleGenerateDescription}
+                  disabled={isGeneratingDescription || isSaving}
+                  className="text-xs"
+                >
+                  {isGeneratingDescription ? (
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="mr-2 h-3 w-3" />
+                  )}
+                  Generate with AI
+                </Button>
+              )}
             </div>
             <FormControl>
               <Textarea placeholder="Describe the product..." {...field} />
@@ -162,42 +167,44 @@ export default function GeneralTab({
               </div>
             )}
           </div>
-          <div className="space-y-2">
-            <FormLabel className="text-xs font-normal text-muted-foreground">
-              Generate Image with AI
-            </FormLabel>
+          {isAiEnabled && (
             <div className="space-y-2">
-              <Label
-                htmlFor="context-image"
-                className="text-xs text-muted-foreground"
-              >
-                Optional: Provide a reference image (e.g., a sketch)
-              </Label>
-              <Input
-                id="context-image"
-                type="file"
-                accept="image/*"
-                className="text-xs h-9"
-                onChange={handleContextImageChange}
+              <FormLabel className="text-xs font-normal text-muted-foreground">
+                Generate Image with AI
+              </FormLabel>
+              <div className="space-y-2">
+                <Label
+                  htmlFor="context-image"
+                  className="text-xs text-muted-foreground"
+                >
+                  Optional: Provide a reference image (e.g., a sketch)
+                </Label>
+                <Input
+                  id="context-image"
+                  type="file"
+                  accept="image/*"
+                  className="text-xs h-9"
+                  onChange={handleContextImageChange}
+                  disabled={isGeneratingImage || isSaving}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleGenerateImage}
                 disabled={isGeneratingImage || isSaving}
-              />
+              >
+                {isGeneratingImage ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                {isGeneratingImage ? 'Generating...' : 'Generate New Image'}
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={handleGenerateImage}
-              disabled={isGeneratingImage || isSaving}
-            >
-              {isGeneratingImage ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Sparkles className="mr-2 h-4 w-4" />
-              )}
-              {isGeneratingImage ? 'Generating...' : 'Generate New Image'}
-            </Button>
-          </div>
+          )}
         </div>
         <FormMessage />
       </div>

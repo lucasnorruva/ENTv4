@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -83,6 +82,7 @@ export default function ProductDetailView({
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
   
   const isFashionProduct = product.category === 'Fashion';
+  const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
   return (
     <>
@@ -220,6 +220,7 @@ export default function ProductDetailView({
                 onPredictionComplete={updatedProduct => {
                   setProduct(updatedProduct);
                 }}
+                isAiEnabled={isAiEnabled}
               />
             )}
             <AiActionsWidget
@@ -229,6 +230,7 @@ export default function ProductDetailView({
               canValidateData={canValidateData}
               canGenerateDoc={canGenerateDoc}
               canExportData={canExportData}
+              isAiEnabled={isAiEnabled}
             />
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 // src/components/ai-actions-widget.tsx
 'use client';
 
@@ -50,6 +49,7 @@ interface AiActionsWidgetProps {
   canValidateData: boolean;
   canGenerateDoc: boolean;
   canExportData: boolean;
+  isAiEnabled: boolean;
 }
 
 export default function AiActionsWidget({
@@ -59,6 +59,7 @@ export default function AiActionsWidget({
   canValidateData,
   canGenerateDoc,
   canExportData,
+  isAiEnabled,
 }: AiActionsWidgetProps) {
   const [isPending, startTransition] = useTransition();
   const [activeAction, setActiveAction] = useState<string | null>(null);
@@ -144,6 +145,10 @@ export default function AiActionsWidget({
     });
   };
 
+  if (!isAiEnabled) {
+    return null; // Don't render the widget if AI is disabled for the company
+  }
+
   return (
     <>
       <Card>
@@ -182,7 +187,7 @@ export default function AiActionsWidget({
                         'The AI compliance check has finished.',
                       )
                     }
-                    disabled={isPending}
+                    disabled={!isAiEnabled || isPending}
                   >
                     {isPending && activeAction === 'compliance' ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -220,7 +225,7 @@ export default function AiActionsWidget({
                         "The product's warnings have been updated.",
                       )
                     }
-                    disabled={isPending}
+                    disabled={!isAiEnabled || isPending}
                     variant="secondary"
                   >
                     {isPending && activeAction === 'validation' ? (
@@ -254,7 +259,7 @@ export default function AiActionsWidget({
                 <Button
                   className="w-full"
                   onClick={handleGetSuggestions}
-                  disabled={isPending}
+                  disabled={!isAiEnabled || isPending}
                 >
                   {isPending && activeAction === 'suggestions' ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -297,7 +302,7 @@ export default function AiActionsWidget({
                           'The Declaration of Conformity has been saved.',
                         )
                       }
-                      disabled={isPending}
+                      disabled={!isAiEnabled || isPending}
                     >
                       {isPending && activeAction === 'docgen' ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -314,7 +319,7 @@ export default function AiActionsWidget({
                       className="w-full mt-2"
                       variant="outline"
                       onClick={handleGeneratePcds}
-                      disabled={isPending}
+                      disabled={!isAiEnabled || isPending}
                     >
                       {isPending && activeAction === 'pcds' ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

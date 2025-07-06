@@ -1,4 +1,3 @@
-
 // src/components/product-form.tsx
 'use client';
 
@@ -69,6 +68,7 @@ export default function ProductForm({
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
   const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([]);
+  const [isAiEnabled, setIsAiEnabled] = useState(false);
 
   const isEditMode = !!initialData?.id;
 
@@ -101,7 +101,7 @@ export default function ProductForm({
     },
   });
 
-  const category = form.watch("category");
+  const category = form.watch('category');
 
   useEffect(() => {
     async function fetchCompanySettings() {
@@ -109,6 +109,7 @@ export default function ProductForm({
       if (company?.settings?.customFields) {
         setCustomFields(company.settings.customFields);
       }
+      setIsAiEnabled(company?.settings?.aiEnabled ?? false);
     }
     fetchCompanySettings();
   }, [user.companyId]);
@@ -129,7 +130,10 @@ export default function ProductForm({
     fields: fiberFields,
     append: appendFiber,
     remove: removeFiber,
-  } = useFieldArray({ control: form.control, name: 'textile.fiberComposition' });
+  } = useFieldArray({
+    control: form.control,
+    name: 'textile.fiberComposition',
+  });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -433,9 +437,7 @@ export default function ProductForm({
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList
-              className={cn('grid w-full', tabListGridCols())}
-            >
+            <TabsList className={cn('grid w-full', tabListGridCols())}>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
               {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
@@ -458,6 +460,7 @@ export default function ProductForm({
                 isGeneratingImage={isGeneratingImage}
                 handleContextImageChange={handleContextImageChange}
                 handleGenerateImage={handleGenerateImage}
+                isAiEnabled={isAiEnabled}
               />
             </TabsContent>
             <TabsContent value="data">
@@ -469,6 +472,7 @@ export default function ProductForm({
                 certFields={certFields}
                 appendCert={appendCert}
                 removeCert={removeCert}
+                isAiEnabled={isAiEnabled}
               />
             </TabsContent>
              {showTextileTab && (
@@ -480,6 +484,7 @@ export default function ProductForm({
                   removeFiber={removeFiber}
                   user={user}
                   productId={initialData?.id}
+                  isAiEnabled={isAiEnabled}
                 />
               </TabsContent>
             )}

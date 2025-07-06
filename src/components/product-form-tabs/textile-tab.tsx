@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/textile-tab.tsx
 'use client';
 
@@ -28,9 +27,10 @@ interface TextileTabProps {
   removeFiber: (index: number) => void;
   user: User;
   productId?: string;
+  isAiEnabled: boolean;
 }
 
-export default function TextileTab({ form, fiberFields, appendFiber, removeFiber, user, productId }: TextileTabProps) {
+export default function TextileTab({ form, fiberFields, appendFiber, removeFiber, user, productId, isAiEnabled }: TextileTabProps) {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
 
@@ -136,12 +136,14 @@ export default function TextileTab({ form, fiberFields, appendFiber, removeFiber
                 </FormItem>
             )}
         />
-        <div className="pt-4 border-t">
-            <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing}>
-                {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Bot className="mr-2 h-4 w-4" />}
-                Analyze Textile Data with AI
-            </Button>
-        </div>
+        {isAiEnabled && (
+            <div className="pt-4 border-t">
+                <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing}>
+                    {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Bot className="mr-2 h-4 w-4" />}
+                    Analyze Textile Data with AI
+                </Button>
+            </div>
+        )}
     </div>
   );
 }
