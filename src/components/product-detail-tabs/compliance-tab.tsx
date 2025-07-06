@@ -17,6 +17,9 @@ import {
   CalendarDays,
   ListTree,
   FileJson,
+  Battery,
+  TestTube2,
+  Diamond,
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification } from '@/types';
 import {
@@ -36,6 +39,7 @@ import {
 import { format } from 'date-fns';
 import { ScrollArea } from '../ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
+import { Button } from '../ui/button';
 
 function InfoRow({
   icon: Icon,
@@ -180,6 +184,38 @@ export default function ComplianceTab({
                 <span className="ml-2 text-xs">
                   (Diligence ID: {compliance.eudr.diligenceId})
                 </span>
+              )}
+            </div>
+          </InfoRow>
+           <InfoRow icon={Battery} label="EU Battery Regulation">
+            <div className="text-sm text-muted-foreground">
+              Compliant: {compliance?.battery?.compliant ? 'Yes' : 'No'}
+              {compliance?.battery?.passportId && (
+                <span className="ml-2 block mt-1 font-mono text-xs">
+                  Passport ID: {compliance.battery.passportId}
+                </span>
+              )}
+            </div>
+          </InfoRow>
+          <InfoRow icon={TestTube2} label="PFAS Declared">
+             <div className="text-sm text-muted-foreground">
+              {compliance?.pfas?.declared ? 'Yes' : 'No'}
+            </div>
+          </InfoRow>
+          <InfoRow icon={Diamond} label="Conflict Minerals Compliant">
+             <div className="text-sm text-muted-foreground">
+              {compliance?.conflictMinerals?.compliant ? 'Yes' : 'No'}
+              {compliance?.conflictMinerals?.reportUrl && (
+                 <Button asChild variant="link" size="sm" className="h-auto p-0 ml-2">
+                    <a
+                        href={compliance.conflictMinerals.reportUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs"
+                    >
+                        View Report <ExternalLink className="ml-1 h-3 w-3" />
+                    </a>
+                </Button>
               )}
             </div>
           </InfoRow>

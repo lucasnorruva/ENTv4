@@ -154,6 +154,17 @@ export interface Compliance {
     safe: boolean;
     standard?: string;
   };
+  battery?: {
+    compliant: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared: boolean;
+  };
+  conflictMinerals?: {
+    compliant: boolean;
+    reportUrl?: string;
+  };
 }
 
 export interface ComplianceGap {

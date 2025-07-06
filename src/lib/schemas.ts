@@ -47,32 +47,63 @@ const batterySchema = z.object({
 });
 
 const complianceSchema = z.object({
-  rohs: z.object({
-    compliant: z.boolean().default(false),
-    exemption: z.string().optional(),
-  }).optional(),
-  reach: z.object({
-    svhcDeclared: z.boolean().default(false),
-    scipReference: z.string().optional(),
-  }).optional(),
-  weee: z.object({
-    registered: z.boolean().default(false),
-    registrationNumber: z.string().optional(),
-  }).optional(),
-  eudr: z.object({
-    compliant: z.boolean().default(false),
-    diligenceId: z.string().optional(),
-  }).optional(),
-  ce: z.object({
-    marked: z.boolean().default(false),
-  }).optional(),
-  prop65: z.object({
-    warningRequired: z.boolean().default(false),
-  }).optional(),
-  foodContact: z.object({
-    safe: z.boolean().default(false),
-    standard: z.string().optional(),
-  }).optional(),
+  rohs: z
+    .object({
+      compliant: z.boolean().default(false),
+      exemption: z.string().optional(),
+    })
+    .optional(),
+  reach: z
+    .object({
+      svhcDeclared: z.boolean().default(false),
+      scipReference: z.string().optional(),
+    })
+    .optional(),
+  weee: z
+    .object({
+      registered: z.boolean().default(false),
+      registrationNumber: z.string().optional(),
+    })
+    .optional(),
+  eudr: z
+    .object({
+      compliant: z.boolean().default(false),
+      diligenceId: z.string().optional(),
+    })
+    .optional(),
+  ce: z
+    .object({
+      marked: z.boolean().default(false),
+    })
+    .optional(),
+  prop65: z
+    .object({
+      warningRequired: z.boolean().default(false),
+    })
+    .optional(),
+  foodContact: z
+    .object({
+      safe: z.boolean().default(false),
+      standard: z.string().optional(),
+    })
+    .optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().default(false),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z
+    .object({
+      declared: z.boolean().default(false),
+    })
+    .optional(),
+  conflictMinerals: z
+    .object({
+      compliant: z.boolean().default(false),
+      reportUrl: z.string().url().optional().or(z.literal('')),
+    })
+    .optional(),
 });
 
 
@@ -154,6 +185,7 @@ export const productFormSchema = z.object({
   customData: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
   verificationOverride: verificationOverrideSchema.optional(),
   textile: textileDataSchema.optional(),
+  compliance: complianceSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

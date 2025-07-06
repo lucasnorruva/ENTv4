@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
-import { Leaf, Recycle } from 'lucide-react';
+import { Leaf, Recycle, Battery, TestTube2, Diamond } from 'lucide-react';
 
 import {
   Accordion,
@@ -149,6 +149,122 @@ export default function ComplianceTab({
                   </FormControl>
                   <FormDescription>
                     The reference number from the SCIP database, if applicable.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="battery" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Battery className="h-4 w-4" />
+              EU Battery Regulation
+            </h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="compliance.battery.compliant"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Battery Reg. Compliant</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="compliance.battery.passportId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Battery Passport ID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., urn:uuid:..." {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    The unique identifier for the battery passport, if applicable.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="pfas" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="flex items-center gap-2 font-semibold">
+              <TestTube2 className="h-4 w-4" />
+              PFAS Declaration
+            </h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="compliance.pfas.declared"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>PFAS Declared</FormLabel>
+                    <FormDescription>
+                      Confirm if PFAS substances have been declared.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </AccordionContent>
+        </AccordionItem>
+        <AccordionItem value="conflictMinerals" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Diamond className="h-4 w-4" />
+              Conflict Minerals (EU)
+            </h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="compliance.conflictMinerals.compliant"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Conflict Minerals Compliant</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="compliance.conflictMinerals.reportUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Compliance Report URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/cm-report.pdf" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Link to the due diligence report (RCOI).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
