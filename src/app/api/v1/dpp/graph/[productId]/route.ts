@@ -1,7 +1,7 @@
 // src/app/api/v1/dpp/graph/[productId]/route.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getProductById } from '@/lib/actions';
+import { getProductById } from '@/lib/actions/product-actions';
 import { MOCK_SUPPLIERS } from '@/lib/supplier-data';
 
 interface GraphNode {

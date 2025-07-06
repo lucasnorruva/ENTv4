@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -179,7 +180,7 @@ export default function ProductDetailView({
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="crypto">Crypto</TabsTrigger>
+                <TabsTrigger value="crypto">Trust &amp; Verification</TabsTrigger>
                 {product.model3dUrl && <TabsTrigger value="3d-viewer">3D Viewer</TabsTrigger>}
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>

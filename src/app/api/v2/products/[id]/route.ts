@@ -4,8 +4,8 @@ import {
   getProductById,
   saveProduct,
   deleteProduct,
-  logAuditEvent,
-} from '@/lib/actions';
+} from '@/lib/actions/product-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
 import { RateLimitError } from '@/services/rate-limiter';
