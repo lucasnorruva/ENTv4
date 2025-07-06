@@ -115,8 +115,8 @@ export default function ProductScanner({ user }: ProductScannerProps) {
         if (code && code.data) {
           try {
             const url = new URL(code.data);
-            const pathParts = url.pathname.split('/');
-            const id = pathParts.pop() || pathParts.pop(); // handle trailing slash
+            const pathParts = url.pathname.split('/').filter(Boolean); // Filter out empty strings
+            const id = pathParts.pop();
             if (id) {
               setProductId(id);
               findProduct(id);

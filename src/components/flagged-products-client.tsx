@@ -5,6 +5,9 @@ import React, { useTransition, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, ShieldCheck } from 'lucide-react';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Table,
@@ -16,7 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { resolveComplianceIssue, getProducts } from '@/lib/actions';
+import { resolveComplianceIssue } from '@/lib/actions';
 import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {
@@ -33,38 +36,47 @@ export default function FlaggedProductsClient({
 
   const fetchFlaggedProducts = useCallback(() => {
     setIsLoading(true);
-    getProducts(user.id)
-      .then(allProducts => {
-        const flagged = allProducts.filter(
-          p => p.verificationStatus === 'Failed',
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Failed'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const flagged = querySnapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() } as Product),
         );
         setProducts(flagged);
-      })
-      .catch(() => {
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching flagged products:', error);
         toast({
           title: 'Error',
           description: 'Could not load flagged products.',
           variant: 'destructive',
         });
-      })
-      .finally(() => {
         setIsLoading(false);
-      });
-  }, [user.id, toast]);
+      },
+    );
+    return unsubscribe;
+  }, [toast]);
 
   useEffect(() => {
-    fetchFlaggedProducts();
+    const unsubscribe = fetchFlaggedProducts();
+    return () => unsubscribe();
   }, [fetchFlaggedProducts]);
 
   const handleResolve = (product: Product) => {
     startTransition(async () => {
       try {
         await resolveComplianceIssue(product.id, user.id);
-        setProducts(prev => prev.filter(p => p.id !== product.id));
         toast({
           title: 'Issue Resolved',
           description: `Product "${product.productName}" has been sent back to the supplier for revision.`,
         });
+        // The real-time listener will update the list automatically.
       } catch (error) {
         toast({
           title: 'Error',

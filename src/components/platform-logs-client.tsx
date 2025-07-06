@@ -95,6 +95,7 @@ export default function PlatformLogsClient({
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
+    const [globalFilter, setGlobalFilter] = React.useState('');
 
   const entityMaps = React.useMemo(
     () => ({
@@ -185,10 +186,24 @@ export default function PlatformLogsClient({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      globalFilter,
+    },
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      const action = row.getValue('action') as string;
+      const user = entityMaps.users.get(row.getValue('userId'))?.toLowerCase() || '';
+      const entityId = row.getValue('entityId') as string;
+      
+      return (
+        action.toLowerCase().includes(search) ||
+        user.includes(search) ||
+        entityId.toLowerCase().includes(search)
+      );
     },
   });
 
@@ -197,14 +212,9 @@ export default function PlatformLogsClient({
       <CardContent className="pt-6">
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter by action or user email..."
-            value={
-              (table.getColumn('action')?.getFilterValue() as string) ?? ''
-            }
-            onChange={event => {
-                table.getColumn('action')?.setFilterValue(event.target.value)
-                table.getColumn('userId')?.setFilterValue(event.target.value)
-            }}
+            placeholder="Filter by action, user, or entity ID..."
+            value={globalFilter ?? ''}
+            onChange={event => setGlobalFilter(event.target.value)}
             className="max-w-sm"
           />
         </div>

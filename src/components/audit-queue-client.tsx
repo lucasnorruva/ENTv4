@@ -1,7 +1,7 @@
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -18,6 +18,11 @@ import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import { useToast } from '@/hooks/use-toast';
+import type { Product, User } from '@/types';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,10 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type { Product, User } from '@/types';
 import { AuditReviewDialog } from '@/components/audit-review-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { getProducts } from '@/lib/actions';
 
 interface AuditQueueClientProps {
   user: User;
@@ -58,27 +60,42 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     {},
   );
-
-  useEffect(() => {
+  
+  const fetchPendingProducts = useCallback(() => {
     setIsLoading(true);
-    getProducts(user.id)
-      .then(allProducts => {
-        const pendingProducts = allProducts.filter(
-          p => p.verificationStatus === 'Pending',
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Pending'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        const pendingProducts = querySnapshot.docs.map(
+          doc => ({ id: doc.id, ...doc.data() } as Product),
         );
         setProducts(pendingProducts);
-      })
-      .catch(() => {
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching audit queue:', error);
         toast({
           title: 'Error',
           description: 'Failed to load audit queue.',
           variant: 'destructive',
         });
-      })
-      .finally(() => {
         setIsLoading(false);
-      });
-  }, [user.id, toast]);
+      },
+    );
+
+    return unsubscribe;
+  }, [toast]);
+
+  useEffect(() => {
+    const unsubscribe = fetchPendingProducts();
+    return () => unsubscribe();
+  }, [fetchPendingProducts]);
+
 
   const handleReviewClick = (product: Product) => {
     setSelectedProduct(product);
