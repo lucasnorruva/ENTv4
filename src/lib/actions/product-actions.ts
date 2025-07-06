@@ -1,8 +1,7 @@
-
 // src/lib/actions/product-actions.ts
 'use server';
 
-import type { Product, User } from '@/types';
+import type { Product, User, SustainabilityData } from '@/types';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { getUserById, getCompanyById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
@@ -10,9 +9,77 @@ import { UserRoles, type Role } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
-import { processProductAi } from './product-ai-actions';
 import { runSubmissionValidation } from '@/services/validation';
 import { products as mockProducts } from '@/lib/data';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
+import { classifyProduct } from '@/ai/flows/classify-product';
+import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
+import { validateProductData } from '@/ai/flows/validate-product-data';
+import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
+import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
+
+// --- AI Processing ---
+
+export async function processProductAi(product: Product): Promise<{
+  sustainability: SustainabilityData;
+  qrLabelText: string;
+  dataQualityWarnings: DataQualityWarning[];
+}> {
+  console.log(`Processing AI flows for product: ${product.id}`);
+  const company = await getCompanyById(product.companyId);
+  if (!company) {
+    throw new Error(`Company not found for product ${product.id}`);
+  }
+
+  const aiProductInput: AiProduct = {
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    supplier: company.name,
+    materials: product.materials,
+    gtin: product.gtin,
+    manufacturing: product.manufacturing,
+    certifications: product.certifications,
+    packaging: product.packaging,
+    lifecycle: product.lifecycle,
+    battery: product.battery,
+    compliance: product.compliance,
+    verificationStatus: product.verificationStatus ?? 'Not Submitted',
+    complianceSummary: product.sustainability?.complianceSummary,
+  };
+
+  const [
+    esgResult,
+    qrLabelResult,
+    classificationResult,
+    lifecycleAnalysisResult,
+    validationResult,
+  ] = await Promise.all([
+    calculateSustainability({ product: aiProductInput }),
+    generateQRLabelText({ product: aiProductInput }),
+    classifyProduct({ product: aiProductInput }),
+    analyzeProductLifecycle({ product: aiProductInput }),
+    validateProductData({ product: aiProductInput }),
+  ]);
+
+  const sustainability: SustainabilityData = {
+    ...esgResult,
+    classification: classificationResult,
+    lifecycleAnalysis: lifecycleAnalysisResult,
+    isCompliant: product.sustainability?.isCompliant || false,
+    complianceSummary:
+      product.sustainability?.complianceSummary ||
+      'Awaiting compliance analysis.',
+    gaps: product.sustainability?.gaps,
+    lifecyclePrediction: product.sustainability?.lifecyclePrediction,
+  };
+
+  return {
+    sustainability,
+    qrLabelText: qrLabelResult.qrLabelText,
+    dataQualityWarnings: validationResult.warnings,
+  };
+}
 
 // --- Core CRUD Actions ---
 

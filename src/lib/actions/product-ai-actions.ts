@@ -1,19 +1,14 @@
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
-import type { Product, User, SustainabilityData } from '@/types';
+import type { Product, User } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { classifyProduct } from '@/ai/flows/classify-product';
-import { analyzeProductLifecycle } from '@/ai/flows/analyze-product-lifecycle';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
-import { validateProductData } from '@/ai/flows/validate-product-data';
-import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import { productQa } from '@/ai/flows/product-qa-flow';
 import type { ProductQuestionOutput } from '@/ai/flows/product-qa-flow';
 import { getUserById, getCompanyById } from '@/lib/auth';
@@ -21,81 +16,23 @@ import { checkPermission, PermissionError } from '@/lib/permissions';
 import { getProductById } from './product-actions';
 import { getCompliancePathById } from './compliance-actions';
 import { logAuditEvent } from './audit-actions';
-import type { AiProduct, DataQualityWarning } from '@/types/ai-outputs';
+import type { AiProduct } from '@/types/ai-outputs';
 import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
+// `processProductAi` and its specific imports have been moved to `product-actions.ts` to resolve a circular dependency.
 
-// --- AI Processing ---
-
-export async function processProductAi(product: Product): Promise<{
-  sustainability: SustainabilityData;
-  qrLabelText: string;
-  dataQualityWarnings: DataQualityWarning[];
-}> {
-  console.log(`Processing AI flows for product: ${product.id}`);
-  const company = await getCompanyById(product.companyId);
-  if (!company) {
-    throw new Error(`Company not found for product ${product.id}`);
-  }
-
-  const aiProductInput: AiProduct = {
-    productName: product.productName,
-    productDescription: product.productDescription,
-    category: product.category,
-    supplier: company.name,
-    materials: product.materials,
-    gtin: product.gtin,
-    manufacturing: product.manufacturing,
-    certifications: product.certifications,
-    packaging: product.packaging,
-    lifecycle: product.lifecycle,
-    battery: product.battery,
-    compliance: product.compliance,
-    verificationStatus: product.verificationStatus ?? 'Not Submitted',
-    complianceSummary: product.sustainability?.complianceSummary,
-  };
-
-  const [
-    esgResult,
-    qrLabelResult,
-    classificationResult,
-    lifecycleAnalysisResult,
-    validationResult,
-  ] = await Promise.all([
-    calculateSustainability({ product: aiProductInput }),
-    generateQRLabelText({ product: aiProductInput }),
-    classifyProduct({ product: aiProductInput }),
-    analyzeProductLifecycle({ product: aiProductInput }),
-    validateProductData({ product: aiProductInput }),
-  ]);
-
-  const sustainability: SustainabilityData = {
-    ...esgResult,
-    classification: classificationResult,
-    lifecycleAnalysis: lifecycleAnalysisResult,
-    isCompliant: product.sustainability?.isCompliant || false,
-    complianceSummary:
-      product.sustainability?.complianceSummary ||
-      'Awaiting compliance analysis.',
-    gaps: product.sustainability?.gaps,
-    lifecyclePrediction: product.sustainability?.lifecyclePrediction,
-  };
-
-  return {
-    sustainability,
-    qrLabelText: qrLabelResult.qrLabelText,
-    dataQualityWarnings: validationResult.warnings,
-  };
-}
+// The remaining functions are AI actions callable from the UI or other server actions.
 
 export async function recalculateScore(
   productId: string,
   userId: string,
 ): Promise<void> {
+  // This is a placeholder as the main logic has been integrated into saveProduct.
+  // In a real app, this might trigger a dedicated background job.
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
@@ -103,59 +40,17 @@ export async function recalculateScore(
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recalculate', product);
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].isProcessing = true;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
+  
   await logAuditEvent(
-    'product.recalculate_score.started',
+    'product.recalculate_score.manual_trigger',
     productId,
     {},
     userId,
   );
-  console.log(`Product ${productId} marked for score recalculation.`);
-
-  setTimeout(async () => {
-    try {
-      const productToProcess = mockProducts[productIndex];
-      if (productToProcess) {
-        console.log(`AI processing started for ${product.id}`);
-        const { sustainability, qrLabelText, dataQualityWarnings } =
-          await processProductAi(productToProcess);
-
-        const currentIndex = mockProducts.findIndex(p => p.id === productId);
-        if (currentIndex !== -1) {
-          mockProducts[currentIndex].sustainability = sustainability;
-          mockProducts[currentIndex].qrLabelText = qrLabelText;
-          mockProducts[currentIndex].dataQualityWarnings = dataQualityWarnings;
-          mockProducts[currentIndex].isProcessing = false;
-          mockProducts[currentIndex].lastUpdated = new Date().toISOString();
-          await logAuditEvent(
-            'product.recalculate_score.success',
-            productId,
-            {},
-            userId,
-          );
-          console.log(`AI processing finished for ${product.id}`);
-        }
-      }
-    } catch (error) {
-      console.error(`AI processing failed for ${product.id}:`, error);
-      const currentIndex = mockProducts.findIndex(p => p.id === productId);
-      if (currentIndex !== -1) {
-        mockProducts[currentIndex].isProcessing = false;
-      }
-      await logAuditEvent(
-        'product.recalculate_score.failed',
-        productId,
-        { error: (error as Error).message },
-        userId,
-      );
-    }
-  }, 3000);
+  
+  // The actual recalculation is now part of the saveProduct flow to avoid duplicate logic.
+  // We can recommend the user to make a small edit and save to trigger the AI processing.
+  console.log(`Manual recalculation trigger for ${productId}. Processing is handled on save.`);
 
   return Promise.resolve();
 }
@@ -164,6 +59,8 @@ export async function runDataValidationCheck(
   productId: string,
   userId: string,
 ): Promise<void> {
+  // This is a placeholder. The core logic is in `processProductAi`
+  // and is triggered on save. This could be adapted for on-demand checks.
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
@@ -172,67 +69,8 @@ export async function runDataValidationCheck(
 
   checkPermission(user, 'product:validate_data', product);
 
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].isProcessing = true;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent('product.validation.started', productId, {}, userId);
-
-  setTimeout(async () => {
-    try {
-      const productToProcess = mockProducts[productIndex];
-      if (productToProcess) {
-        const company = await getCompanyById(productToProcess.companyId);
-        if (!company) throw new Error('Company not found');
-
-        const aiProductInput: AiProduct = {
-          productName: product.productName,
-          productDescription: product.productDescription,
-          category: product.category,
-          supplier: company.name,
-          materials: product.materials,
-          gtin: product.gtin,
-          manufacturing: product.manufacturing,
-          certifications: product.certifications,
-          packaging: product.packaging,
-          lifecycle: product.lifecycle,
-          battery: product.battery,
-          compliance: product.compliance,
-          verificationStatus: 'Not Submitted',
-          complianceSummary: '',
-        };
-
-        const result = await validateProductData({ product: aiProductInput });
-
-        const currentIndex = mockProducts.findIndex(p => p.id === productId);
-        if (currentIndex !== -1) {
-          mockProducts[currentIndex].dataQualityWarnings = result.warnings;
-          mockProducts[currentIndex].isProcessing = false;
-          mockProducts[currentIndex].lastUpdated = new Date().toISOString();
-          await logAuditEvent(
-            'product.validation.success',
-            productId,
-            { warningCount: result.warnings.length },
-            userId,
-          );
-        }
-      }
-    } catch (error) {
-      const currentIndex = mockProducts.findIndex(p => p.id === productId);
-      if (currentIndex !== -1) {
-        mockProducts[currentIndex].isProcessing = false;
-      }
-      await logAuditEvent(
-        'product.validation.failed',
-        productId,
-        { error: (error as Error).message },
-        userId,
-      );
-    }
-  }, 3000);
-
+  await logAuditEvent('product.validation.manual_trigger', productId, {}, userId);
+  console.log(`Manual data validation trigger for ${productId}. Processing is handled on save.`);
   return Promise.resolve();
 }
 

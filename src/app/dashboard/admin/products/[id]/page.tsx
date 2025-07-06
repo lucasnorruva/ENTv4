@@ -3,9 +3,8 @@ import {
   getProductById,
   getCompliancePathById,
   getAuditLogsForEntity,
-  getUsers,
 } from '@/lib/actions';
-import { getCurrentUser, getCompanyById } from '@/lib/auth';
+import { getCurrentUser, getCompanyById, getUsers } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import ProductDetailView from '@/components/product-detail-view';
 import { notFound } from 'next/navigation';
