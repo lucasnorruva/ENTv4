@@ -17,6 +17,10 @@ export async function getProductionLines(): Promise<ProductionLine[]> {
   return Promise.resolve(mockProductionLines);
 }
 
+export async function getProductionLineById(id: string): Promise<ProductionLine | undefined> {
+  return Promise.resolve(mockProductionLines.find(line => line.id === id));
+}
+
 export async function saveProductionLine(
   values: ProductionLineFormValues,
   userId: string,

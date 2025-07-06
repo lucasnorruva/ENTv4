@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/card';
 import { Button } from '../ui/button';
 import type { User } from '@/types';
-import { getProducts, getServiceTickets } from '@/lib/actions/product-actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 import { ArrowRight, Wrench, Ticket, BarChart3, BookCopy, CheckSquare } from 'lucide-react';
 import Link from 'next/link';

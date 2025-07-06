@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { signInWithMockUser } from '@/lib/actions';
+import { signInWithMockUser } from '@/lib/actions/user-actions';
 import {
   Loader2,
   UserCog,
