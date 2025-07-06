@@ -1,3 +1,4 @@
+
 // src/lib/actions/report-actions.ts
 'use server';
 
@@ -5,6 +6,8 @@ import { products as mockProducts } from '../data';
 import { auditLogs as mockAuditLogs } from '../audit-log-data';
 import { users as mockUsers } from '../user-data';
 import Papa from 'papaparse';
+import { getProducts } from './product-actions';
+import { getAuditLogs } from './audit-actions';
 
 const flattenObject = (
   obj: any,
@@ -35,7 +38,7 @@ export async function exportProducts(
   format: 'csv' | 'json',
   dateRange?: { from: Date; to: Date },
 ): Promise<string> {
-  let products = mockProducts;
+  let products = await getProducts(); // Using the main function to respect access rules
 
   if (dateRange?.from && dateRange?.to) {
     products = products.filter(p => {
@@ -63,7 +66,7 @@ export async function exportComplianceReport(
   format: 'csv',
   dateRange?: { from: Date; to: Date },
 ): Promise<string> {
-  let products = mockProducts;
+  let products = await getProducts();
   if (format !== 'csv') {
     throw new Error('Unsupported format for compliance report.');
   }
@@ -99,7 +102,7 @@ export async function exportFullAuditTrail(dateRange?: {
   from: Date;
   to: Date;
 }): Promise<string> {
-  let logs = mockAuditLogs;
+  let logs = await getAuditLogs();
 
   if (dateRange?.from && dateRange?.to) {
     logs = logs.filter(log => {

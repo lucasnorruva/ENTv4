@@ -1,3 +1,4 @@
+
 // src/triggers/scheduled-verifications.ts
 'use server';
 
@@ -5,9 +6,9 @@ import {
   getProducts,
   approvePassport,
   rejectPassport,
-  logAuditEvent,
-  getCompliancePaths,
-} from '@/actions/index';
+} from '@/lib/actions/product-actions';
+import { logAuditEvent } from '@/lib/actions/audit-actions';
+import { getCompliancePaths } from '@/lib/actions/compliance-actions';
 import { verifyProductAgainstPath } from '@/services/compliance';
 
 export async function runDailyComplianceCheck(): Promise<{
