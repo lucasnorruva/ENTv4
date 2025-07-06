@@ -72,6 +72,7 @@ export default function ProductDetailView({
   const canLogInspection = can(user, 'product:customs_inspect');
   const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
+  const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -199,7 +200,7 @@ export default function ProductDetailView({
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
             <DppQrCodeWidget productId={product.id} />
-             {canRunPrediction && (
+             {canRunPrediction && isAiEnabled && (
               <PredictiveAnalyticsWidget
                 product={product}
                 user={user}
@@ -213,6 +214,7 @@ export default function ProductDetailView({
               canValidateData={canValidateData}
               canGenerateDoc={canGenerateDoc}
               canExportData={canExportData}
+              isAiEnabled={isAiEnabled}
             />
           </div>
         </div>
