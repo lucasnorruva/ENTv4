@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -72,6 +73,10 @@ import type {
   ExplainErrorInput,
   ExplainErrorOutput,
 } from '@/ai/flows/explain-error';
+import type {
+  AnalyzeTextileInput,
+  AnalyzeTextileOutput,
+} from '@/ai/flows/analyze-textile-composition';
 
 
 // Re-export AI Product Schema
@@ -95,6 +100,7 @@ export type {
   ProductQuestionInput,
   PredictLifecycleInput,
   ExplainErrorInput,
+  AnalyzeTextileInput,
 };
 
 // Export Output types
@@ -116,4 +122,5 @@ export type {
   ProductQuestionOutput,
   PredictLifecycleOutput,
   ExplainErrorOutput,
+  AnalyzeTextileOutput,
 };

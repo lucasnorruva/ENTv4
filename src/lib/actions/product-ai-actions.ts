@@ -1,7 +1,8 @@
+
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
-import type { Product, User, SustainabilityData } from '@/types';
+import type { Product, User, SustainabilityData, TextileData } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
@@ -26,6 +27,8 @@ import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
+import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai/flows/analyze-textile-composition';
+
 
 // --- AI Processing ---
 
@@ -601,4 +604,35 @@ export async function getFriendlyError(
         'We were unable to process your request. Please try again later.',
     };
   }
+}
+
+export async function analyzeTextileData(
+    productId: string,
+    userId: string,
+  ): Promise<void> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+  
+    const product = await getProductById(productId, user.id);
+    if (!product || product.category !== 'Fashion') {
+      throw new Error('Product not found or is not a fashion item.');
+    }
+  
+    checkPermission(user, 'product:edit', product);
+  
+    if (!product.textile?.fiberComposition) {
+      throw new Error('Fiber composition data is required for analysis.');
+    }
+  
+    const analysis = await analyzeTextileCompositionFlow({
+      fiberComposition: product.textile.fiberComposition,
+      dyeProcess: product.textile.dyeProcess,
+    });
+  
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      mockProducts[productIndex].textileAnalysis = analysis;
+      mockProducts[productIndex].lastUpdated = new Date().toISOString();
+      await logAuditEvent('product.textile.analyzed', productId, {}, userId);
+    }
 }

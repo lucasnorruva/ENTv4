@@ -1,3 +1,4 @@
+
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
@@ -112,6 +113,15 @@ const verificationOverrideSchema = z.object({
     date: z.string(),
 });
 
+export const textileDataSchema = z.object({
+  fiberComposition: z.array(z.object({
+    name: z.string().min(1, 'Fiber name is required.'),
+    percentage: z.coerce.number().min(0).max(100),
+  })).optional(),
+  dyeProcess: z.string().optional(),
+  weaveType: z.string().optional(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -145,6 +155,7 @@ export const productFormSchema = z.object({
   submissionChecklist: submissionChecklistSchema.optional(),
   customData: z.record(z.union([z.string(), z.number(), z.boolean()])).optional(),
   verificationOverride: verificationOverrideSchema.optional(),
+  textile: textileDataSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

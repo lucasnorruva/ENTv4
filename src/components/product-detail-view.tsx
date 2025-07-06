@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -10,6 +11,7 @@ import {
   ArrowLeft,
   Landmark,
   ShieldAlert,
+  Shirt,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -35,6 +37,8 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
+import TextileTab from './product-detail-tabs/textile-tab';
+import { cn } from '@/lib/utils';
 
 export default function ProductDetailView({
   product: productProp,
@@ -77,6 +81,8 @@ export default function ProductDetailView({
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
+  
+  const isFashionProduct = product.category === 'Fashion';
 
   return (
     <>
@@ -162,8 +168,9 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className={cn("grid w-full", isFashionProduct ? "grid-cols-7" : "grid-cols-6")}>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                {isFashionProduct && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -176,6 +183,11 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
+               {isFashionProduct && (
+                <TabsContent value="textile" className="mt-4">
+                  <TextileTab product={product} />
+                </TabsContent>
+              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>

@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -6,6 +7,7 @@ import type {
   DataQualityWarning,
   EsgScoreOutput,
   PredictLifecycleOutput,
+  AnalyzeTextileOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 
@@ -114,6 +116,14 @@ export interface Battery {
   isRemovable?: boolean;
 }
 
+export interface TextileData {
+  fiberComposition?: { name: string; percentage: number }[];
+  dyeProcess?: string;
+  weaveType?: string;
+}
+
+export interface TextileAnalysis extends AnalyzeTextileOutput {}
+
 export interface Compliance {
   rohs?: {
     compliant: boolean;
@@ -221,6 +231,7 @@ export interface Product extends BaseEntity {
   customs?: CustomsStatus;
   transit?: TransitInfo;
   customData?: Record<string, string | number | boolean>;
+  textile?: TextileData;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -228,10 +239,16 @@ export interface Product extends BaseEntity {
   dataQualityWarnings?: DataQualityWarning[];
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
+  textileAnalysis?: TextileAnalysis;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
+  verificationOverride?: {
+    reason: string;
+    userId: string;
+    date: string;
+  };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: {
     txHash: string;

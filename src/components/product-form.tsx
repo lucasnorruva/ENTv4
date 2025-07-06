@@ -1,3 +1,4 @@
+
 // src/components/product-form.tsx
 'use client';
 
@@ -36,6 +37,7 @@ import DataTab from './product-form-tabs/data-tab';
 import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
 import CustomDataTab from './product-form-tabs/custom-data-tab';
+import TextileTab from './product-form-tabs/textile-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -88,6 +90,7 @@ export default function ProductForm({
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
+    textile: { fiberComposition: [] },
   };
 
   const form = useForm<ProductFormValues>({
@@ -97,6 +100,8 @@ export default function ProductForm({
       ...initialData,
     },
   });
+
+  const category = form.watch("category");
 
   useEffect(() => {
     async function fetchCompanySettings() {
@@ -119,6 +124,12 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
+
+  const {
+    fields: fiberFields,
+    append: appendFiber,
+    remove: removeFiber,
+  } = useFieldArray({ control: form.control, name: 'textile.fiberComposition' });
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -360,6 +371,16 @@ export default function ProductForm({
     );
   }
 
+  const hasCustomFields = customFields.length > 0;
+  const showTextileTab = category === 'Fashion';
+
+  const tabListGridCols = () => {
+    let cols = 4;
+    if (hasCustomFields) cols++;
+    if (showTextileTab) cols++;
+    return `grid-cols-${cols}`;
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -413,16 +434,14 @@ export default function ProductForm({
 
           <Tabs defaultValue="general" className="w-full">
             <TabsList
-              className={cn(
-                'grid w-full',
-                customFields.length > 0 ? 'grid-cols-5' : 'grid-cols-4',
-              )}
+              className={cn('grid w-full', tabListGridCols())}
             >
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
+              {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              {customFields.length > 0 && (
+              {hasCustomFields && (
                 <TabsTrigger value="custom">Custom Data</TabsTrigger>
               )}
             </TabsList>
@@ -452,6 +471,18 @@ export default function ProductForm({
                 removeCert={removeCert}
               />
             </TabsContent>
+             {showTextileTab && (
+              <TabsContent value="textile">
+                <TextileTab
+                  form={form}
+                  fiberFields={fiberFields}
+                  appendFiber={appendFiber}
+                  removeFiber={removeFiber}
+                  user={user}
+                  productId={initialData?.id}
+                />
+              </TabsContent>
+            )}
             <TabsContent value="lifecycle">
               <LifecycleTab
                 form={form}
@@ -464,7 +495,7 @@ export default function ProductForm({
             <TabsContent value="compliance">
               <ComplianceTab form={form} compliancePaths={compliancePaths} />
             </TabsContent>
-            {customFields.length > 0 && (
+            {hasCustomFields && (
               <TabsContent value="custom">
                 <CustomDataTab form={form} customFields={customFields} />
               </TabsContent>
