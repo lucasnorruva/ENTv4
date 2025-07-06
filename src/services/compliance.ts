@@ -1,4 +1,3 @@
-
 // src/services/compliance.ts
 'use server';
 
@@ -129,6 +128,14 @@ export async function verifyProductAgainstPath(
             issue:
               'Product is not declared as compliant with Conflict Minerals regulations.',
           });
+        }
+        break;
+      case 'espr':
+        if (!compliance.espr?.compliant) {
+            gaps.push({
+                regulation: 'ESPR',
+                issue: 'Product is not declared as compliant with Ecodesign for Sustainable Products Regulation.'
+            });
         }
         break;
     }

@@ -272,6 +272,52 @@ export default function ComplianceTab({
             />
           </AccordionContent>
         </AccordionItem>
+         <AccordionItem value="espr" className="border p-4 rounded-lg">
+          <AccordionTrigger>
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Leaf className="h-4 w-4" />
+              ESPR (Ecodesign)
+            </h3>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4 space-y-4">
+            <FormField
+              control={form.control}
+              name="compliance.espr.compliant"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>ESPR Compliant</FormLabel>
+                    <FormDescription>
+                      Product meets Ecodesign for Sustainable Products requirements.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="compliance.espr.delegatedActUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Delegated Act URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://eur-lex.europa.eu/..." {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Link to the specific product group regulation.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </AccordionContent>
+        </AccordionItem>
         <AccordionItem value="weee" className="border p-4 rounded-lg">
           <AccordionTrigger>
             <h3 className="flex items-center gap-2 font-semibold">

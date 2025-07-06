@@ -1,4 +1,3 @@
-
 // src/lib/compliance-data.ts
 import type { CompliancePath } from '@/types';
 

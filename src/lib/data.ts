@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import type { Product } from '@/types';
 
@@ -89,6 +88,7 @@ export let products: Product[] = [
       battery: { compliant: true, passportId: 'urn:uuid:bpr-001' },
       pfas: { declared: true },
       conflictMinerals: { compliant: true, reportUrl: 'https://example.com/cmr.pdf' },
+      espr: { compliant: true, delegatedActUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022R2554' },
     },
     sustainability: {
       score: 85,

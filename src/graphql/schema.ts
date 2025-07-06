@@ -1,4 +1,3 @@
-
 // src/graphql/schema.ts
 import { gql } from 'graphql-tag';
 
@@ -85,6 +84,7 @@ export const typeDefs = gql`
     battery: BatteryComplianceInput
     pfas: PfasComplianceInput
     conflictMinerals: ConflictMineralsComplianceInput
+    espr: EsprInput
   }
 
   input RohsInput {
@@ -132,6 +132,11 @@ export const typeDefs = gql`
   input ConflictMineralsComplianceInput {
     compliant: Boolean
     reportUrl: String
+  }
+
+  input EsprInput {
+    compliant: Boolean
+    delegatedActUrl: String
   }
 
   input UserInput {
@@ -235,6 +240,7 @@ export const typeDefs = gql`
     battery: BatteryCompliance
     pfas: PfasCompliance
     conflictMinerals: ConflictMineralsCompliance
+    espr: EsprCompliance
   }
 
   type RohsCompliance {
@@ -282,6 +288,11 @@ export const typeDefs = gql`
   type ConflictMineralsCompliance {
     compliant: Boolean
     reportUrl: String
+  }
+
+  type EsprCompliance {
+    compliant: Boolean
+    delegatedActUrl: String
   }
 
   type ComplianceGap {

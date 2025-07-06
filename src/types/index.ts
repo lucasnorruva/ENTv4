@@ -165,6 +165,10 @@ export interface Compliance {
     compliant: boolean;
     reportUrl?: string;
   };
+  espr?: {
+    compliant: boolean;
+    delegatedActUrl?: string;
+  };
 }
 
 export interface ComplianceGap {

@@ -104,6 +104,12 @@ const complianceSchema = z.object({
       reportUrl: z.string().url().optional().or(z.literal('')),
     })
     .optional(),
+  espr: z
+    .object({
+      compliant: z.boolean().default(false),
+      delegatedActUrl: z.string().url().optional().or(z.literal('')),
+    })
+    .optional(),
 });
 
 

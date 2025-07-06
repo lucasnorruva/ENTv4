@@ -1,4 +1,3 @@
-
 // src/ai/schemas.ts
 import { z } from 'zod';
 
@@ -81,6 +80,7 @@ export const AiProductSchema = z.object({
       battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
       pfas: z.object({ declared: z.boolean().optional() }).optional(),
       conflictMinerals: z.object({ compliant: z.boolean().optional(), reportUrl: z.string().url().optional().or(z.literal('')) }).optional(),
+      espr: z.object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().url().optional().or(z.literal('')) }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),

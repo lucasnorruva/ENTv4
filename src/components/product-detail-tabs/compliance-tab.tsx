@@ -219,6 +219,23 @@ export default function ComplianceTab({
               )}
             </div>
           </InfoRow>
+          <InfoRow icon={Leaf} label="ESPR Compliant">
+            <div className="text-sm text-muted-foreground">
+              {compliance?.espr?.compliant ? 'Yes' : 'No'}
+              {compliance?.espr?.delegatedActUrl && (
+                <Button asChild variant="link" size="sm" className="h-auto p-0 ml-2">
+                    <a
+                        href={compliance.espr.delegatedActUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs"
+                    >
+                        View Delegated Act <LinkIcon className="ml-1 h-3 w-3" />
+                    </a>
+                </Button>
+              )}
+            </div>
+          </InfoRow>
           <InfoRow icon={AlertTriangle} label="California Prop 65">
             <div className="text-sm text-muted-foreground">
               {compliance?.prop65?.warningRequired
