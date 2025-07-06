@@ -1,3 +1,4 @@
+
 // src/components/product-form-tabs/data-tab.tsx
 'use client';
 
