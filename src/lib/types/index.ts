@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -10,6 +9,8 @@ import type {
   AnalyzeTextileOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
+import type { TransitInfo, CustomsAlert } from './transit';
+
 
 export * from './transit';
 
