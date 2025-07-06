@@ -27,7 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveApiKey } from '@/lib/actions';
+import { saveApiKey } from '@/lib/actions/api-key-actions';
 import { apiKeyFormSchema, type ApiKeyFormValues } from '@/lib/schemas';
 import type { ApiKey, User } from '@/types';
 

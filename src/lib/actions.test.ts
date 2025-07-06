@@ -1,5 +1,5 @@
 // src/lib/actions.test.ts
-import { getProducts, getProductById, saveProduct, deleteProduct } from './actions';
+import { getProducts, getProductById, saveProduct, deleteProduct } from './product-actions';
 import { products as mockProductsData } from './data';
 import { users as mockUsersData } from './user-data';
 import { adminDb } from './firebase-admin';
