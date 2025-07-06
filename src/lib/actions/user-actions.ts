@@ -8,6 +8,7 @@ import {
   type UserFormValues,
   onboardingFormSchema,
   type OnboardingFormValues,
+  type BulkUserImportValues,
 } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
@@ -215,4 +216,54 @@ export async function signInWithMockUser(email: string, pass: string) {
         }
     }
     return { success: false, error: "User not found" };
+}
+
+export async function bulkCreateUsers(
+  usersToImport: BulkUserImportValues[],
+  adminId: string,
+): Promise<{ createdCount: number }> {
+  const adminUser = await getUserById(adminId);
+  if (!adminUser) throw new PermissionError('Admin user not found.');
+  checkPermission(adminUser, 'user:manage');
+
+  let createdCount = 0;
+  for (const userData of usersToImport) {
+    try {
+      // Simulate creating a user in Firebase Auth
+      const mockUserId = newId('user');
+
+      // Create company and user profile in our mock DB
+      const newCompany = await saveCompany({
+        name: `${userData.fullName}'s Company`,
+        ownerId: mockUserId,
+      }, 'system');
+
+      const newUser: User = {
+        id: mockUserId,
+        fullName: userData.fullName,
+        email: userData.email,
+        companyId: newCompany.id,
+        roles: userData.roles,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        onboardingComplete: true,
+        isMfaEnabled: false,
+        readNotificationIds: [],
+      };
+      mockUsers.push(newUser);
+      createdCount++;
+    } catch (error) {
+      console.error(`Failed to import user ${userData.email}:`, error);
+      // Continue with the next user
+    }
+  }
+
+  await logAuditEvent(
+    'user.bulk_import',
+    'multiple',
+    { count: createdCount, attempted: usersToImport.length },
+    adminId,
+  );
+
+  return { createdCount };
 }

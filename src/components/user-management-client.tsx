@@ -11,6 +11,7 @@ import {
   Users,
   ArrowUpDown,
   ChevronDown,
+  Upload,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -69,6 +70,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions';
 import { getUsers, getCompanies } from '@/lib/auth';
 import UserForm from './user-form';
+import UserImportDialog from './user-import-dialog';
 
 interface UserManagementClientProps {
   user: User;
@@ -81,6 +83,7 @@ export default function UserManagementClient({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -122,6 +125,20 @@ export default function UserManagementClient({
   const handleCreateNew = () => {
     setSelectedUser(null);
     setIsFormOpen(true);
+  };
+
+  const handleImport = () => {
+    setIsImportOpen(true);
+  };
+
+  const handleImportSave = () => {
+    toast({
+      title: 'Import in Progress',
+      description: 'New users will appear in the table shortly.',
+    });
+    setIsImportOpen(false);
+    // Refetch data after a short delay to allow backend processing
+    setTimeout(fetchInitialData, 1000);
   };
 
   const handleEdit = (user: User) => {
@@ -328,9 +345,14 @@ export default function UserManagementClient({
                 View, create, and manage all users in the system.
               </CardDescription>
             </div>
-            <Button onClick={handleCreateNew}>
-              <Plus className="mr-2 h-4 w-4" /> Invite User
-            </Button>
+            <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleImport}>
+                    <Upload className="mr-2 h-4 w-4" /> Import Users
+                </Button>
+                <Button onClick={handleCreateNew}>
+                <Plus className="mr-2 h-4 w-4" /> Invite User
+                </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -460,6 +482,12 @@ export default function UserManagementClient({
         adminUser={adminUser}
         onSave={handleSave}
         companies={companies}
+      />
+      <UserImportDialog
+        isOpen={isImportOpen}
+        onOpenChange={setIsImportOpen}
+        onSave={handleImportSave}
+        user={adminUser}
       />
     </>
   );

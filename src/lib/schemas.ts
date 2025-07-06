@@ -305,6 +305,26 @@ export const bulkProductImportSchema = z.object({
 
 export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
 
+export const bulkUserImportSchema = z.object({
+  fullName: z.string().min(2, 'fullName is required.'),
+  email: z.string().email('Invalid email address.'),
+  roles: z.string().min(1, 'At least one role is required.').transform((val, ctx) => {
+    const roles = val.split(',').map(r => r.trim());
+    const validRoles = Object.values(UserRoles);
+    for (const role of roles) {
+        if (!validRoles.includes(role as Role)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Invalid role: ${role}`,
+            });
+            return z.NEVER;
+        }
+    }
+    return roles as Role[];
+  }),
+});
+
+export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
 
 export const onboardingFormSchema = z.object({
   companyName: z
