@@ -157,6 +157,7 @@ export const typeDefs = gql`
     sustainability: SustainabilityData
     blockchainProof: BlockchainProof
     ebsiVcId: String
+    verifiableCredential: String
     compliancePath: CompliancePath
     company: Company
   }
