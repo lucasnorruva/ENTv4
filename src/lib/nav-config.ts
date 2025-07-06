@@ -230,7 +230,10 @@ export const navConfig: NavConfig = {
     },
     {
       label: 'Monitoring',
-      items: [{ title: 'API Logs', icon: FileText, href: 'logs' }],
+      items: [
+        { title: 'API Analytics', icon: BarChart3, href: 'analytics' },
+        { title: 'API Logs', icon: FileText, href: 'logs' },
+      ],
     },
     {
       label: 'Resources',
