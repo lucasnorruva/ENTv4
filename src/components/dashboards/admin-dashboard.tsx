@@ -8,10 +8,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { AuditLog, Company, Product, User, Webhook } from '@/types';
-import {
-  getProducts,
-  getServiceTickets,
-} from '@/lib/actions/product-actions';
+import { getProducts } from '@/lib/actions/product-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { getWebhooks } from '@/lib/actions/webhook-actions';
 import { getUsers, getCompanies } from '@/lib/auth';
