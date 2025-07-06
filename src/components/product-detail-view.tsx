@@ -87,7 +87,7 @@ export default function ProductDetailView({
   };
 
   const tabListGridCols = () => {
-    let cols = 5; // overview, sustainability, lifecycle, compliance, history, supply chain
+    let cols = 6;
     if (showTextileTab) cols++;
     return `grid-cols-${cols}`;
   };
