@@ -1,4 +1,3 @@
-
 # Welcome to the Norruva Documentation
 
 This is the central hub for developers, integrators, and partners building with the Norruva Digital Product Passport platform. Whether you're integrating our API, contributing to the platform, or exploring our architecture, you'll find what you need here.
@@ -28,4 +27,3 @@ Explore the foundational concepts that power the Norruva platform.
 -   **[DPP Methodology](./dpp-methodology):** How our platform handles real-world complexities like partial or invalid data.
 -   **[Compliance Matrix](./compliance-matrix):** An overview of the regulations and standards our platform helps you comply with.
 -   **[AI Prompt Design](./ai-prompt-design):** A look under the hood at how we use AI to ensure predictable and reliable outputs.
-
