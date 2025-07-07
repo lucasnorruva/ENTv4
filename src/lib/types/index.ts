@@ -8,6 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
+  AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource, SimulatedRoute } from './transit';
@@ -132,6 +133,11 @@ export interface TextileData {
   fiberComposition: { name: string; percentage: number }[];
   dyeProcess: string;
   weaveType?: string;
+}
+
+export interface FoodSafetyData {
+  ingredients: { value: string }[];
+  allergens?: string;
 }
 
 export interface Compliance {
@@ -259,7 +265,7 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction';
+  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
@@ -267,8 +273,10 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
+  manualFileHash?: string;
   model3dUrl?: string;
   model3dFileName?: string;
+  model3dFileHash?: string;
   declarationOfConformity?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
@@ -297,6 +305,7 @@ export interface Product extends BaseEntity {
   serviceHistory?: ServiceRecord[];
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  foodSafety?: FoodSafetyData;
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
@@ -309,6 +318,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
+  foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
@@ -433,4 +443,13 @@ export interface BlockchainProof {
   blockHeight: number;
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
+}
+
+export interface Integration extends BaseEntity {
+  name: 'SAP S/4HANA' | 'Oracle NetSuite' | 'Siemens Teamcenter' | 'Shopify';
+  type: 'ERP' | 'PLM' | 'E-commerce';
+  logo: string;
+  dataAiHint: string;
+  description: string;
+  enabled: boolean;
 }

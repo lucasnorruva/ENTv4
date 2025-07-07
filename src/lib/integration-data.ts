@@ -49,5 +49,3 @@ export let integrations: Integration[] = [
     updatedAt: now.toISOString(),
   },
 ];
-
-    
