@@ -183,101 +183,50 @@ export default function GlobalTrackerClient({
   }, []);
 
   useEffect(() => {
-    if (!selectedProduct) {
-      setArcsData([]);
-      setPointsData([]);
-      setHighlightedCountries([]);
-      return;
-    }
-
-    let newArcs: any[] = [];
-    let newPoints: any[] = [];
+    const newArcs: any[] = [];
+    const newPoints: any[] = [];
     const newHighlightedCountries = new Set<string>();
-    const pointColor = getPointColorForStatus(selectedProduct.verificationStatus);
 
-    const addCountryHighlight = (location?: string) => {
-      const country = getCountryFromLocationString(location);
-      if (country) newHighlightedCountries.add(country);
-      return country;
-    };
+    const processProduct = (product: Product) => {
+        const pointColor = getPointColorForStatus(product.verificationStatus);
 
-    if (selectedProduct.transit) {
-      const { transit } = selectedProduct;
-      const originCountry = addCountryHighlight(transit.origin);
-      const destinationCountry = addCountryHighlight(transit.destination);
-      const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
-      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
-
-      if (originCoords) {
-        newPoints.push({
-          lat: originCoords.lat, lng: originCoords.lng, size: 0.5, color: pointColor,
-          name: `Origin: ${transit.origin}`,
-        });
-      }
-      if (destinationCoords) {
-        newPoints.push({
-          lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.7, color: pointColor,
-          name: `Destination: ${transit.destination}`,
-        });
-      }
-
-      if (originCoords && destinationCoords) {
-        newArcs.push({
-          startLat: originCoords.lat, startLng: originCoords.lng,
-          endLat: destinationCoords.lat, endLng: destinationCoords.lng,
-          color: theme === 'dark' ? '#60A5FA' : '#3B82F6',
-          label: `${selectedProduct.productName} Transit`,
-        });
-      }
-    }
-
-    fetch(`/api/v1/dpp/graph/${selectedProduct.id}`)
-      .then(res => (res.ok ? res.json() : Promise.reject(res)))
-      .then(graph => {
-        if (!graph || !graph.nodes) return;
-
-        const manufacturerNode = graph.nodes.find((n: any) => n.type === 'manufacturer');
-        const manufacturerCountry = addCountryHighlight(manufacturerNode?.data?.location);
-        const manufacturerCoords = manufacturerCountry ? mockCountryCoordinates[manufacturerCountry] : null;
-
-        if (manufacturerCoords) {
-          newPoints.push({
-            lat: manufacturerCoords.lat, lng: manufacturerCoords.lng, size: 0.6,
-            color: '#6366F1', name: `Manufacturer: ${manufacturerNode.label}`,
-          });
-
-          graph.nodes.forEach((node: any) => {
-            if (node.type === 'supplier') {
-              const supplierCountry = addCountryHighlight(node.data.location);
-              const supplierCoords = supplierCountry ? mockCountryCoordinates[supplierCountry] : null;
-              if (supplierCoords) {
-                newPoints.push({
-                  lat: supplierCoords.lat, lng: supplierCoords.lng, size: 0.4,
-                  color: '#FBBF24', name: `Supplier: ${node.label}`
-                });
-                if (supplierCountry !== manufacturerCountry) {
-                  newArcs.push({
-                    startLat: supplierCoords.lat, startLng: supplierCoords.lng,
-                    endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
-                    color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
-                    label: `Supply from ${supplierCountry}`,
-                  });
-                }
-              }
+        if (product.transit) {
+            const { transit } = product;
+            const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || '']
+            const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || '']
+            
+            if (originCoords) {
+                newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
             }
-          });
+            if (destinationCoords) {
+                newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
+            }
+            if (originCoords && destinationCoords) {
+                newArcs.push({
+                    startLat: originCoords.lat, startLng: originCoords.lng,
+                    endLat: destinationCoords.lat, endLng: destinationCoords.lng,
+                    color: pointColor,
+                    label: `${product.productName} Transit`,
+                });
+            }
         }
-        setArcsData(newArcs);
-        setPointsData(newPoints);
-        setHighlightedCountries(Array.from(newHighlightedCountries));
-      })
-      .catch(err => {
-        console.error('Error fetching product graph:', err);
-        setArcsData(newArcs);
-        setPointsData(newPoints);
-        setHighlightedCountries(Array.from(newHighlightedCountries));
-      });
-  }, [selectedProduct, theme]);
+    }
+    
+    if (selectedProduct) {
+        processProduct(selectedProduct);
+        const originCountry = getCountryFromLocationString(selectedProduct.transit?.origin);
+        const destCountry = getCountryFromLocationString(selectedProduct.transit?.destination);
+        if(originCountry) newHighlightedCountries.add(originCountry);
+        if(destCountry) newHighlightedCountries.add(destCountry);
+    } else {
+        allProducts.forEach(processProduct);
+    }
+    
+    setArcsData(newArcs);
+    setPointsData(newPoints);
+    setHighlightedCountries(Array.from(newHighlightedCountries));
+
+  }, [selectedProduct, allProducts, theme]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -289,14 +238,7 @@ export default function GlobalTrackerClient({
       filtered = landPolygons.filter(feat => {
         const p = feat.properties as CountryProperties;
         const adminName = p.ADMIN || p.NAME_LONG || '';
-        const isoA3 = p.ADM0_A3 || p.ISO_A3 || '';
-        const lowerCaseAdminName = adminName.toLowerCase();
-
-        return highlightedCountries.some(hc => {
-          const lowerHc = hc.toLowerCase();
-          return lowerCaseAdminName.includes(lowerHc) || 
-                 (mockCountryCoordinates[hc] && isoA3 === Object.keys(mockCountryCoordinates).find(key => key === hc));
-        });
+        return highlightedCountries.some(hc => adminName.toLowerCase().includes(hc.toLowerCase()));
       });
     } else if (riskFilter !== 'all') {
       filtered = landPolygons.filter(feat => {
@@ -327,6 +269,9 @@ export default function GlobalTrackerClient({
       if (destinationCoords) {
         globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
       }
+    } else {
+        // Zoom out to global view if no product is selected
+        globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
     }
   }, [globeReady, isAutoRotating, selectedProduct]);
   
@@ -394,10 +339,9 @@ export default function GlobalTrackerClient({
       )}
        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"/>Supplier/MFG</div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#22C55E'}}/>Verified Product</div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#F59E0B'}}/>Pending Product</div>
-          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#EF4444'}}/>Failed Product</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: getPointColorForStatus('Verified')}}/>Verified</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: getPointColorForStatus('Pending')}}/>Pending</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: getPointColorForStatus('Failed')}}/>Failed</div>
         </div>
       </div>
     </div>
