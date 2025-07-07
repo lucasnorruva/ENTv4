@@ -8,10 +8,9 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  GreenClaim,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
@@ -415,3 +414,4 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
+```

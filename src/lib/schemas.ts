@@ -170,18 +170,6 @@ export const productFormSchema = z.object({
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
 
-export const custodyStepSchema = z.object({
-  event: z.string().min(3, "Event description is required."),
-  location: z.string().min(2, "Location is required."),
-  actor: z.string().min(2, "Actor name is required."),
-});
-export type CustodyStepFormValues = z.infer<typeof custodyStepSchema>;
-
-export const ownershipTransferSchema = z.object({
-  newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
-});
-export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
-
 export const userFormSchema = z.object({
   fullName: z.string().min(2, 'Full name is required.'),
   email: z.string().email('Invalid email address.'),
@@ -334,3 +322,15 @@ export const deleteAccountSchema = z.object({
     }),
 });
 export type DeleteAccountValues = z.infer<typeof deleteAccountSchema>;
+
+export const custodyStepSchema = z.object({
+  event: z.string().min(3, "Event description is required."),
+  location: z.string().min(2, "Location is required."),
+  actor: z.string().min(2, "Actor name is required."),
+});
+export type CustodyStepFormValues = z.infer<typeof custodyStepSchema>;
+
+export const ownershipTransferSchema = z.object({
+  newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
+});
+export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;

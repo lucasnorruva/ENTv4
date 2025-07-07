@@ -92,6 +92,7 @@ import type {
   AnalyzeSimulatedRouteInput,
   AnalyzeSimulatedRouteOutput,
 } from '@/ai/flows/analyze-simulated-route';
+import type { GreenClaim } from '@/types/transit';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -146,4 +147,6 @@ export type {
   AnalyzeProductTransitRiskOutput,
   AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
+  GreenClaim,
 };
+```

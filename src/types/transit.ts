@@ -29,3 +29,9 @@ export interface CustomsStatus {
   notes?: string;
   history?: Omit<CustomsStatus, 'history'>[];
 }
+
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
+}
+```
