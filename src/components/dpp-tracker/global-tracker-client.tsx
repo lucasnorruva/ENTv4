@@ -7,7 +7,6 @@ import React, {
   useRef,
   useCallback,
   useMemo,
-  useTransition,
 } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
@@ -17,13 +16,7 @@ import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
-import type {
-  Product,
-  CustomsAlert,
-  User,
-  ProductionLine,
-  SimulatedRoute,
-} from '@/types';
+import type { Product, CustomsAlert, User, ProductionLine } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
 import OperationalPointInfoCard from '@/components/dpp-tracker/OperationalPointInfoCard';
@@ -37,12 +30,7 @@ import {
   getPointColorForStatus,
   getFactoryColor,
 } from '@/lib/dppDisplayUtils';
-import { useToast } from '@/hooks/use-toast';
 import { getProductionLines } from '@/lib/actions';
-import { MOCK_SUPPLIERS } from '@/lib/supplier-data';
-import RouteAnalysisPanel from './RouteAnalysisPanel';
-import { analyzeSimulatedRoute as analyzeRouteAction } from '@/lib/actions/product-ai-actions';
-import SimulatedRouteInfoCard from './SimulatedRouteInfoCard';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -110,7 +98,6 @@ export default function GlobalTrackerClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
-  const { toast } = useToast();
 
   const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
@@ -137,10 +124,6 @@ export default function GlobalTrackerClient({
   >('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
-
-  const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
-  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
-  const [isAnalyzingRoute, startRouteAnalysisTransition] = useTransition();
 
   const [isMounted, setIsMounted] = useState(false);
   const [arcsData, setArcsData] = useState<any[]>([]);
@@ -213,14 +196,7 @@ export default function GlobalTrackerClient({
 
       return isDark ? '#334155' : '#e2e8f0';
     },
-    [
-      theme,
-      isEU,
-      highlightedCountries,
-      clickedCountryInfo,
-      riskFilter,
-      countryRiskMap,
-    ],
+    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap],
   );
 
   useEffect(() => {
@@ -243,7 +219,6 @@ export default function GlobalTrackerClient({
       setClickedFactory(null);
       setSelectedProductId(productId);
       setClickedCountryInfo(null);
-      setSimulatedRoute(null);
       const params = new URLSearchParams(searchParams.toString());
       if (productId) {
         params.set('productId', productId);
@@ -263,7 +238,6 @@ export default function GlobalTrackerClient({
 
     setClickedCountryInfo(countryProps);
     setClickedFactory(null);
-    setSimulatedRoute(null);
     const countryName = countryProps.ADMIN;
     const coords = mockCountryCoordinates[countryName];
     if (globeEl.current && coords) {
@@ -277,7 +251,6 @@ export default function GlobalTrackerClient({
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
-    setSimulatedRoute(null);
     if (globeEl.current) {
       globeEl.current.pointOfView(
         { lat: label.lat, lng: label.lng, altitude: 1.5 },
@@ -320,48 +293,16 @@ export default function GlobalTrackerClient({
     const newPoints: any[] = [];
     const newHighlightedCountries = new Set<string>();
 
-    const processProduct = (product: Product, isSelected: boolean) => {
+    const processProduct = (product: Product) => {
       const pointColor = getPointColorForStatus(product.verificationStatus);
-      const factoryCountry = product.manufacturing?.country
-        ? getCountryFromLocationString(product.manufacturing.country)
-        : null;
-      const factoryCoords = factoryCountry ? mockCountryCoordinates[factoryCountry] : null;
-
-      // Material Sourcing Arcs
-      if (isSelected && factoryCoords) {
-        product.materials.forEach(material => {
-          if (material.origin) {
-            const supplier = MOCK_SUPPLIERS.find(s => s.location.includes(material.origin!));
-            const originCountry = supplier ? getCountryFromLocationString(supplier.location) : null;
-            const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
-            
-            if (originCoords) {
-              const materialColor = '#fbbf24';
-              newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.2, color: materialColor, name: `Supplier: ${supplier?.name}` });
-              newArcs.push({
-                startLat: originCoords.lat,
-                startLng: originCoords.lng,
-                endLat: factoryCoords.lat,
-                endLng: factoryCoords.lng,
-                color: [materialColor, materialColor],
-                stroke: 0.2,
-                label: `Material: ${material.name}`
-              });
-              if(originCountry) newHighlightedCountries.add(originCountry);
-            }
-          }
-        });
-      }
-
-      // Final Product Transit Arc
       if (product.transit) {
         const { transit } = product;
-        const originCoords = factoryCoords || mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
+        const originCoords =
+          mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
         const destinationCoords =
           mockCountryCoordinates[
             getCountryFromLocationString(transit.destination) || ''
           ];
-        
         if (originCoords)
           newPoints.push({
             lat: originCoords.lat,
@@ -389,40 +330,21 @@ export default function GlobalTrackerClient({
           });
         }
       }
-      if (isSelected) {
-        if(factoryCountry) newHighlightedCountries.add(factoryCountry);
-        const destCountry = getCountryFromLocationString(
-          product.transit?.destination,
-        );
-        if (destCountry) newHighlightedCountries.add(destCountry);
-      }
     };
 
     if (selectedProduct) {
-      processProduct(selectedProduct, true);
+      processProduct(selectedProduct);
+      const originCountry = getCountryFromLocationString(
+        selectedProduct.transit?.origin,
+      );
+      const destCountry = getCountryFromLocationString(
+        selectedProduct.transit?.destination,
+      );
+      if (originCountry) newHighlightedCountries.add(originCountry);
+      if (destCountry) newHighlightedCountries.add(destCountry);
     } else {
-      allProducts.forEach(p => processProduct(p, false));
+      allProducts.forEach(processProduct);
     }
-
-    if (simulatedRoute) {
-        const originCoords = mockCountryCoordinates[simulatedRoute.origin];
-        const destCoords = mockCountryCoordinates[simulatedRoute.destination];
-        if (originCoords && destCoords) {
-          newArcs.push({
-            startLat: originCoords.lat,
-            startLng: originCoords.lng,
-            endLat: destCoords.lat,
-            endLng: destCoords.lng,
-            color: ['#8B5CF6', '#EC4899'], // A vibrant gradient for simulation
-            label: `Simulated: ${simulatedRoute.origin} to ${simulatedRoute.destination}`,
-            dashLength: 0.2,
-            dashGap: 0.1,
-            dashAnimateTime: 1000,
-          });
-          newHighlightedCountries.add(simulatedRoute.origin);
-          newHighlightedCountries.add(simulatedRoute.destination);
-        }
-      }
 
     setArcsData(newArcs);
     setPointsData(newPoints);
@@ -445,7 +367,7 @@ export default function GlobalTrackerClient({
     
     setRingsData(newRings);
 
-  }, [selectedProduct, allProducts, theme, simulatedRoute, showCustomsAlerts, allAlerts]);
+  }, [selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -533,41 +455,6 @@ export default function GlobalTrackerClient({
     );
   }, [clickedCountryInfo, allProducts]);
 
-  const handleAnalyzeNewRoute = (
-    productId: string,
-    origin: string,
-    destination: string,
-  ) => {
-    startRouteAnalysisTransition(async () => {
-      setSimulatedRoute(null);
-      setClickedCountryInfo(null);
-      setClickedFactory(null);
-      setSelectedProductId(null);
-      try {
-        const result = await analyzeRouteAction(
-          productId,
-          origin,
-          destination,
-          user.id,
-        );
-        setSimulatedRoute(result);
-        const destCoords = mockCountryCoordinates[destination];
-        if (destCoords && globeEl.current) {
-          globeEl.current.pointOfView(
-            { lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 },
-            1000,
-          );
-        }
-      } catch (error: any) {
-        toast({
-          title: 'Analysis Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
   if (!isMounted) return null;
 
   return (
@@ -586,7 +473,6 @@ export default function GlobalTrackerClient({
         onToggleFactories={setShowFactories}
         showCustomsAlerts={showCustomsAlerts}
         onToggleCustomsAlerts={setShowCustomsAlerts}
-        onToggleAnalysisPanel={() => setIsAnalysisPanelOpen(prev => !prev)}
       />
       <Globe
         ref={globeEl}
@@ -601,10 +487,9 @@ export default function GlobalTrackerClient({
         polygonsTransitionDuration={300}
         arcsData={arcsData}
         arcColor={'color'}
-        arcDashLength={(d: any) => d.dashLength || 0.4}
-        arcDashGap={(d: any) => d.dashGap || 0.1}
-        arcDashAnimateTime={(d: any) => d.dashAnimateTime || 2000}
-        arcStroke={'stroke'}
+        arcDashLength={0.4}
+        arcDashGap={0.1}
+        arcDashAnimateTime={2000}
         pointsData={pointsData}
         pointLat="lat"
         pointLng="lng"
@@ -630,7 +515,6 @@ export default function GlobalTrackerClient({
       {selectedProduct && (
         <SelectedProductCustomsInfoCard
           product={selectedProduct}
-          user={user}
           alerts={selectedProductAlerts}
           onDismiss={() => handleProductSelect(null)}
           destinationCountry={destinationCountry}
@@ -654,15 +538,6 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       )}
-       {simulatedRoute && (
-        <SimulatedRouteInfoCard route={simulatedRoute} onDismiss={() => setSimulatedRoute(null)} />
-      )}
-      <RouteAnalysisPanel
-        isOpen={isAnalysisPanelOpen}
-        products={allProducts}
-        isAnalyzing={isAnalyzingRoute}
-        onAnalyze={handleAnalyzeNewRoute}
-      />
     </div>
   );
 }

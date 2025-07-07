@@ -15,7 +15,7 @@ import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import { Map, X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle } from 'lucide-react';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -31,7 +31,6 @@ interface GlobeControlsProps {
   onToggleFactories: (checked: boolean) => void;
   showCustomsAlerts: boolean;
   onToggleCustomsAlerts: (checked: boolean) => void;
-  onToggleAnalysisPanel: () => void;
 }
 
 export default function GlobeControls({
@@ -48,7 +47,6 @@ export default function GlobeControls({
   onToggleFactories,
   showCustomsAlerts,
   onToggleCustomsAlerts,
-  onToggleAnalysisPanel,
 }: GlobeControlsProps) {
   return (
     <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -112,15 +110,16 @@ export default function GlobeControls({
         >
           {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
         </Button>
-         <Button
-          size="sm"
-          variant="secondary"
-          onClick={onToggleAnalysisPanel}
-          className="h-8"
-        >
-          <Map className="mr-2 h-4 w-4" />
-          Analyze Route
-        </Button>
+        {selectedProductId && (
+          <Button
+            size="icon"
+            variant="outline"
+            className="h-8 w-8"
+            onClick={() => onProductSelect(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

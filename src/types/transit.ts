@@ -15,6 +15,9 @@ export interface CustomsAlert {
   severity: 'High' | 'Medium' | 'Low';
   timestamp: string; // Can be a relative string or ISO date
   regulation?: string;
+  location: string;
+  lat: number;
+  lng: number;
 }
 
 export interface CustomsStatus {
