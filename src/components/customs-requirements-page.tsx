@@ -45,7 +45,7 @@ const RiskLevelBadge = ({
     Medium:
       'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700',
     High: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700',
-  }[level];
+  };
 
   return (
     <Badge variant={'outline'} className={cn('capitalize', colorClass)}>
