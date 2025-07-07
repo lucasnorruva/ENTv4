@@ -313,6 +313,7 @@ export interface Product extends BaseEntity {
   verificationOverride?: VerificationOverride;
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: BlockchainProof;
+  isMinting?: boolean;
 }
 
 /**

@@ -134,7 +134,7 @@ export let products: Product[] = [
       isVerified: true,
       verifiedAt: new Date().toISOString(),
     },
-    isProcessing: false,
+    isMinting: false,
   },
   {
     id: 'pp-002',
