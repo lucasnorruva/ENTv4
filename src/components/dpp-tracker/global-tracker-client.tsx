@@ -483,6 +483,16 @@ export default function GlobalTrackerClient({
     ? getCountryFromLocationString(selectedProduct.transit.destination)
     : null;
 
+  const productsToCountry = useMemo(() => {
+    if (!clickedCountryInfo) return [];
+    return allProducts.filter(p => p.transit?.destination.includes(clickedCountryInfo.ADMIN));
+  }, [clickedCountryInfo, allProducts]);
+
+  const productsFromCountry = useMemo(() => {
+    if (!clickedCountryInfo) return [];
+    return allProducts.filter(p => p.transit?.origin.includes(clickedCountryInfo.ADMIN));
+  }, [clickedCountryInfo, allProducts]);
+
   if (!isMounted) return null;
 
   return (
@@ -549,7 +559,10 @@ export default function GlobalTrackerClient({
       {clickedCountryInfo && (
         <ClickedCountryInfoCard
           countryInfo={clickedCountryInfo}
+          productsTo={productsToCountry}
+          productsFrom={productsFromCountry}
           onDismiss={() => setClickedCountryInfo(null)}
+          onProductSelect={handleProductSelect}
           roleSlug={roleSlug}
         />
       )}
