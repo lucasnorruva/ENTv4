@@ -25,7 +25,7 @@ import {
 import { Badge } from './ui/badge';
 import { bulkProductImportSchema } from '@/lib/schemas';
 import type { User } from '@/types';
-import { bulkCreateProducts } from '@/lib/actions/product-actions';
+import { bulkCreateProducts } from '@/lib/actions/product-workflow-actions';
 import { Loader2, Upload } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
