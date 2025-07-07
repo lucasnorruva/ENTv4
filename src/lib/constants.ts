@@ -12,10 +12,6 @@ export const Collections = {
   AUDIT_LOGS: 'auditLogs',
   WEBHOOKS: 'webhooks',
   API_KEYS: 'apiKeys',
-  API_RATE_LIMITS: 'apiRateLimits',
-  SERVICE_TICKETS: 'serviceTickets',
-  SUPPORT_TICKETS: 'supportTickets',
-  PRODUCTION_LINES: 'productionLines',
 };
 
 /**

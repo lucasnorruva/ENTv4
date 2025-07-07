@@ -8,8 +8,6 @@ import { serviceTickets } from '../lib/service-ticket-data';
 import { supportTickets } from '../lib/support-ticket-data';
 import { webhooks } from '../lib/webhook-data';
 import { apiKeys } from '../lib/api-key-data';
-import { integrations } from '../lib/integration-data';
-import { productionLines } from '../lib/manufacturing-data';
 import { Collections } from '../lib/constants';
 
 // A map of collection names to their data arrays
@@ -22,8 +20,6 @@ const collectionsToSeed = {
   [Collections.SUPPORT_TICKETS]: supportTickets,
   [Collections.WEBHOOKS]: webhooks,
   [Collections.API_KEYS]: apiKeys,
-  [Collections.INTEGRATIONS]: integrations,
-  [Collections.PRODUCTION_LINES]: productionLines,
 };
 
 /**
