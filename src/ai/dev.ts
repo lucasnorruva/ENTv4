@@ -24,3 +24,4 @@ import "@/ai/flows/analyze-construction-material.ts";
 import "@/ai/flows/analyze-transit-risk.ts";
 import "@/ai/flows/analyze-product-transit-risk.ts";
 import "@/ai/flows/analyze-simulated-route.ts";
+import "@/ai/flows/analyze-food-safety.ts";

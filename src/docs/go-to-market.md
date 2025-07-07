@@ -61,6 +61,12 @@ This persona requires deep, industry-specific insights into garment manufacturin
 - **AI-Powered Textile Analysis**: The `analyzeTextileComposition` flow assesses materials for microplastic shedding risk and evaluates dye safety against standards like ZDHC MRSL.
 - **Targeted Compliance**: Helps address textile-specific regulations under ESPR, such as recycled content verification and end-of-life process management.
 
+### For the Food & Beverage Specialist
+This persona is concerned with food safety, allergen management, and regulatory compliance for consumables.
+- **Specialized Data Entry**: A dedicated "Food & Beverage" tab for inputting ingredients and allergen statements.
+- **AI-Powered Safety Analysis**: The `analyzeFoodSafety` flow scans ingredients for common allergens and evaluates packaging materials for compliance with food-contact standards (e.g., BPA, phthalates).
+- **Targeted Compliance**: Helps address regulations like the EU's Food Contact Materials Regulation (1935/2004) and provides a clear basis for allergen labeling.
+
 ### For the Compliance Officer & Auditor
 This persona requires tools for risk mitigation, verification, and reporting.
 - **Automated Validation Engine**: The AI-powered `summarizeComplianceGaps` flow automatically checks products against assigned paths.

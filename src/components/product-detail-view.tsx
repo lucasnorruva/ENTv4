@@ -41,6 +41,7 @@ import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
 import CryptoTab from './product-detail-tabs/crypto-tab';
+import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -82,6 +83,7 @@ export default function ProductDetailView({
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
   const showTextileTab = product.category === 'Fashion';
   const showConstructionTab = product.category === 'Construction';
+  const showFoodTab = product.category === 'Food & Beverage';
   const show3dTab = !!product.model3dUrl;
 
   const roleSlug =
@@ -180,10 +182,11 @@ export default function ProductDetailView({
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
+                {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="crypto">Crypto & On-Chain</TabsTrigger>
+                <TabsTrigger value="crypto">Crypto &amp; On-Chain</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                  {show3dTab && <TabsTrigger value="3d_viewer">3D Viewer</TabsTrigger>}
@@ -202,6 +205,11 @@ export default function ProductDetailView({
                {showConstructionTab && (
                 <TabsContent value="construction" className="mt-4">
                     <ConstructionTab product={product} />
+                </TabsContent>
+              )}
+              {showFoodTab && (
+                <TabsContent value="food" className="mt-4">
+                  <FoodSafetyTab product={product} />
                 </TabsContent>
               )}
               <TabsContent value="sustainability" className="mt-4">

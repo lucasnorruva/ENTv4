@@ -8,6 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
+  AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource, SimulatedRoute } from './transit';
@@ -132,6 +133,11 @@ export interface TextileData {
   fiberComposition: { name: string; percentage: number }[];
   dyeProcess: string;
   weaveType?: string;
+}
+
+export interface FoodSafetyData {
+  ingredients: { value: string }[];
+  allergens?: string;
 }
 
 export interface Compliance {
@@ -259,7 +265,7 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction';
+  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
@@ -297,6 +303,7 @@ export interface Product extends BaseEntity {
   serviceHistory?: ServiceRecord[];
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  foodSafety?: FoodSafetyData;
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
@@ -309,6 +316,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
+  foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;

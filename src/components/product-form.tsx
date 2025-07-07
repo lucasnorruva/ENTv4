@@ -37,6 +37,7 @@ import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
 import CustomDataTab from './product-form-tabs/custom-data-tab';
 import TextileTab from './product-form-tabs/textile-tab';
+import FoodTab from './product-form-tabs/food-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -113,6 +114,7 @@ export default function ProductForm({
     compliancePathId: '',
     customData: {},
     textile: { fiberComposition: [] },
+    foodSafety: { ingredients: [], allergens: '' },
   };
 
   const form = useForm<ProductFormValues>({
@@ -126,6 +128,10 @@ export default function ProductForm({
         ...initialData?.compliance,
       },
       greenClaims: initialData?.greenClaims || [],
+      foodSafety: {
+        ...defaultNewValues.foodSafety,
+        ...initialData?.foodSafety,
+      },
     },
   });
 
@@ -459,12 +465,14 @@ export default function ProductForm({
 
   const hasCustomFields = customFields.length > 0;
   const showTextileTab = category === 'Fashion';
+  const showFoodTab = category === 'Food & Beverage';
 
   const getTabCols = () => {
     let cols = 4;
     if (hasCustomFields) cols++;
     if (showTextileTab) cols++;
-    return `grid-cols-${cols}`;
+    if (showFoodTab) cols++;
+    return `grid-cols-${cols > 6 ? 6 : cols}`;
   };
 
   return (
@@ -529,6 +537,9 @@ export default function ProductForm({
               {showTextileTab && (
                 <TabsTrigger value="textile">Textile</TabsTrigger>
               )}
+               {showFoodTab && (
+                <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>
+              )}
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
               {hasCustomFields && (
@@ -571,6 +582,16 @@ export default function ProductForm({
                   fiberFields={fiberFields}
                   appendFiber={appendFiber}
                   removeFiber={removeFiber}
+                  user={user}
+                  productId={initialData?.id}
+                  isAiEnabled={isAiEnabled}
+                />
+              </TabsContent>
+            )}
+            {showFoodTab && (
+              <TabsContent value="food">
+                <FoodTab
+                  form={form}
                   user={user}
                   productId={initialData?.id}
                   isAiEnabled={isAiEnabled}
