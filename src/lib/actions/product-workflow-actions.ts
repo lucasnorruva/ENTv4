@@ -10,6 +10,7 @@ import type {
   CustomsStatus,
   BlockchainProof,
   ZkProof,
+  ConstructionAnalysis,
 } from '@/types';
 import {
   productFormSchema,
@@ -23,7 +24,10 @@ import { UserRoles, type Role } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
-import { runSubmissionValidation, isChecklistComplete } from '@/services/validation';
+import {
+  runSubmissionValidation,
+  isChecklistComplete,
+} from '@/services/validation';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
@@ -38,8 +42,8 @@ import { hashData, anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { generateComplianceProof } from '@/services/zkp-service';
 import { getWebhooks } from './webhook-actions';
-import { getApiSettingsData } from '@/lib/api-settings';
 import { getApiSettings } from './settings-actions';
+import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
 
 // --- AI Processing ---
 
@@ -47,6 +51,7 @@ export async function processProductAi(product: Product): Promise<{
   sustainability: SustainabilityData;
   qrLabelText: string;
   dataQualityWarnings: DataQualityWarning[];
+  constructionAnalysis?: ConstructionAnalysis;
 }> {
   console.log(`Processing AI flows for product: ${product.id}`);
   const company = await getCompanyById(product.companyId);
@@ -69,6 +74,8 @@ export async function processProductAi(product: Product): Promise<{
     compliance: product.compliance,
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
+    constructionAnalysis: product.constructionAnalysis,
+    textile: product.textile,
   };
 
   const [
@@ -97,10 +104,26 @@ export async function processProductAi(product: Product): Promise<{
     lifecyclePrediction: product.sustainability?.lifecyclePrediction,
   };
 
+  let constructionAnalysis: ConstructionAnalysis | undefined = undefined;
+  if (product.category === 'Construction' && product.materials.length > 0) {
+    const primaryMaterial = product.materials[0]; // Assuming first material is primary
+    try {
+      constructionAnalysis = await analyzeConstructionMaterial({
+        materialName: primaryMaterial.name,
+        manufacturingProcess: product.manufacturing?.country, // Using country as a proxy for now
+        recycledContentPercentage: primaryMaterial.recycledContent,
+      });
+    } catch (e) {
+      console.error('Construction material analysis failed:', e);
+    }
+  }
+
+
   return {
     sustainability,
     qrLabelText: qrLabelResult.qrLabelText,
     dataQualityWarnings: validationResult.warnings,
+    constructionAnalysis,
   };
 }
 
@@ -321,8 +344,12 @@ export async function saveProduct(
         p => p.id === savedProduct.id,
       );
       if (!currentProductState) return;
-      const { sustainability, qrLabelText, dataQualityWarnings } =
-        await processProductAi(currentProductState);
+      const {
+        sustainability,
+        qrLabelText,
+        dataQualityWarnings,
+        constructionAnalysis,
+      } = await processProductAi(currentProductState);
 
       const finalChecklist = await runSubmissionValidation({
         ...currentProductState,
@@ -338,6 +365,7 @@ export async function saveProduct(
           sustainability,
           qrLabelText,
           dataQualityWarnings,
+          constructionAnalysis,
           submissionChecklist: finalChecklist,
           isProcessing: false,
           lastUpdated: new Date().toISOString(),
@@ -367,7 +395,7 @@ export async function deleteProduct(
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
 
-  const product = await getProductById(productId, userId);
+  const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:delete', product);
