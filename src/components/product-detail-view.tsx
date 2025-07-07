@@ -105,7 +105,7 @@ export default function ProductDetailView({
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {can(user, 'product:override_verification') && product.verificationStatus === 'Failed' && (
+            {can(user, 'product:override_verification', product) && product.verificationStatus === 'Failed' && (
               <Button
                 variant="destructive"
                 onClick={() => setIsOverrideOpen(true)}
