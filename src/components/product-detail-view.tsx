@@ -38,7 +38,6 @@ import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CryptoTab from './product-detail-tabs/crypto-tab';
-import { cn } from '@/lib/utils';
 
 export default function ProductDetailView({
   product: productProp,

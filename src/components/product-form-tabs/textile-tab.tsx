@@ -1,7 +1,7 @@
 // src/components/product-form-tabs/textile-tab.tsx
 'use client';
 
-import type { UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn, FieldArrayWithId, UseFieldArrayReturn } from 'react-hook-form';
 import { Plus, Trash2, Bot, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,9 +22,9 @@ import { analyzeTextileData } from '@/lib/actions/product-ai-actions';
 
 interface TextileTabProps {
   form: UseFormReturn<ProductFormValues>;
-  fiberFields: any[]; // Simplified for this context
-  appendFiber: (value: {name: string, percentage: number}) => void;
-  removeFiber: (index: number) => void;
+  fiberFields: FieldArrayWithId<ProductFormValues, "textile.fiberComposition", "id">[];
+  appendFiber: UseFieldArrayReturn<ProductFormValues, "textile.fiberComposition">["append"];
+  removeFiber: UseFieldArrayReturn<ProductFormValues, "textile.fiberComposition">["remove"];
   user: User;
   productId?: string;
   isAiEnabled: boolean;

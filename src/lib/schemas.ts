@@ -181,21 +181,6 @@ export const textileDataSchema = z.object({
   weaveType: z.string().optional(),
 });
 
-const blockchainProofSchema = z.object({
-  type: z.enum(['SINGLE_HASH', 'MERKLE_PROOF']),
-  txHash: z.string(),
-  explorerUrl: z.string().url(),
-  blockHeight: z.number(),
-  merkleRoot: z.string().optional(),
-  proof: z.array(z.string()).optional(),
-});
-
-const zkProofSchema = z.object({
-  proofData: z.string(),
-  isVerified: z.boolean(),
-  verifiedAt: z.string(),
-});
-
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -216,8 +201,6 @@ export const productFormSchema = z.object({
   manualUrl: z.string().url().optional().or(z.literal('')),
   manualFileName: z.string().optional(),
   manualFileSize: z.number().optional(),
-  model3dUrl: z.string().url().optional().or(z.literal('')),
-  model3dFileName: z.string().optional(),
   declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
@@ -235,11 +218,6 @@ export const productFormSchema = z.object({
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
-  blockchainProof: blockchainProofSchema.optional(),
-  zkProof: zkProofSchema.optional(),
-  ebsiVcId: z.string().optional(),
-  verifiableCredential: z.any().optional(),
-  isProcessing: z.boolean().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

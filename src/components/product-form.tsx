@@ -24,7 +24,7 @@ import {
   generateProductDescription,
   generateAndSaveProductImage,
   getFriendlyError,
-} from '@/lib/actions/product-actions';
+} from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';
@@ -67,10 +67,6 @@ export default function ProductForm({
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
 
-  const [modelFile, setModelFile] = useState<File | null>(null);
-  const [isUploadingModel, setIsUploadingModel] = useState(false);
-  const [modelUploadProgress, setModelUploadProgress] = useState(0);
-
   const [customFields, setCustomFields] = useState<CustomFieldDefinition[]>([]);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
 
@@ -107,8 +103,6 @@ export default function ProductForm({
     manualUrl: '',
     manualFileName: '',
     manualFileSize: 0,
-    model3dUrl: '',
-    model3dFileName: '',
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
@@ -185,19 +179,6 @@ export default function ProductForm({
       toast({
         title: 'Invalid File Type',
         description: 'Please upload a PDF file for the manual.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
-      setModelFile(file);
-    } else if (file) {
-      toast({
-        title: 'Invalid File Type',
-        description: 'Please upload a .glb or .gltf file.',
         variant: 'destructive',
       });
     }
@@ -294,8 +275,6 @@ export default function ProductForm({
       let manualUrl = initialData?.manualUrl;
       let manualFileName = initialData?.manualFileName;
       let manualFileSize = initialData?.manualFileSize;
-      let model3dUrl = initialData?.model3dUrl;
-      let model3dFileName = initialData?.model3dFileName;
 
       if (imageFile) {
         setIsUploading(true);
@@ -376,44 +355,6 @@ export default function ProductForm({
         }
       }
 
-      if (modelFile) {
-        setIsUploadingModel(true);
-        setModelUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `models/${user.id}/${Date.now()}-${modelFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, modelFile);
-
-        try {
-          model3dUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setModelUploadProgress(progress);
-              },
-              error => {
-                setIsUploadingModel(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploadingModel(false);
-                resolve(downloadURL);
-              },
-            );
-          });
-          model3dFileName = modelFile.name;
-        } catch (error) {
-          toast({ title: '3D Model Upload Failed', variant: 'destructive' });
-          return;
-        }
-      }
-
       try {
         const productData = {
           ...values,
@@ -421,8 +362,6 @@ export default function ProductForm({
           manualUrl,
           manualFileName,
           manualFileSize,
-          model3dUrl,
-          model3dFileName,
         };
         const saved = await saveProduct(
           productData,
@@ -495,15 +434,13 @@ export default function ProductForm({
                 isSaving ||
                 isUploading ||
                 isGeneratingImage ||
-                isUploadingManual ||
-                isUploadingModel
+                isUploadingManual
               }
             >
               {isSaving ||
               isUploading ||
               isGeneratingImage ||
-              isUploadingManual ||
-              isUploadingModel ? (
+              isUploadingManual ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Save className="mr-2 h-4 w-4" />
@@ -512,8 +449,6 @@ export default function ProductForm({
                 ? 'Uploading Image...'
                 : isUploadingManual
                 ? 'Uploading Manual...'
-                : isUploadingModel
-                ? 'Uploading Model...'
                 : isGeneratingImage
                 ? 'Generating...'
                 : isSaving
@@ -582,9 +517,6 @@ export default function ProductForm({
                 handleManualChange={handleManualChange}
                 isUploadingManual={isUploadingManual}
                 manualUploadProgress={manualUploadProgress}
-                handleModelChange={handleModelChange}
-                isUploadingModel={isUploadingModel}
-                modelUploadProgress={modelUploadProgress}
                 isSaving={isSaving}
               />
             </TabsContent>

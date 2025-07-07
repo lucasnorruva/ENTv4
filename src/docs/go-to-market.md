@@ -54,6 +54,12 @@ This persona is focused on production efficiency, supply chain visibility, and m
 - **Supply Chain Provenance Viewer**: An interactive graph that visualizes the relationships between suppliers, components, and the final product.
 - **Service Ticket Management**: The ability to create and track service tickets for production line maintenance.
 
+### For the Fashion & Textile Specialist
+This persona requires deep, industry-specific insights into garment manufacturing.
+- **Specialized Data Entry**: A dedicated "Textile" tab for entering fiber composition, dye processes, and weave types.
+- **AI-Powered Textile Analysis**: The `analyzeTextileComposition` flow assesses materials for microplastic shedding risk and evaluates dye safety against standards like ZDHC MRSL.
+- **Targeted Compliance**: Helps address textile-specific regulations under ESPR, such as recycled content verification and end-of-life process management.
+
 ### For the Compliance Officer & Auditor
 This persona requires tools for risk mitigation, verification, and reporting.
 - **Compliance Paths Dashboard**: Define and manage rule sets for different regulations and product categories.
