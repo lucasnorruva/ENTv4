@@ -103,17 +103,18 @@ export default function GlobalTrackerClient({
   const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
-  const [isMounted, setIsMounted] = useState(false);
+  
   const [arcsData, setArcsData] = useState<any[]>([]);
   const [pointsData, setPointsData] = useState<any[]>([]);
   const [pucksData, setPucksData] = useState<any[]>([]);
   const [ringsData, setRingsData] = useState<any[]>([]);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
-  
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const [isClientMounted, setIsClientMounted] = useState(false);
 
+  useEffect(() => {
+    setIsClientMounted(true);
+  }, []);
+  
   const globeMaterial = useMemo(
     () => new MeshPhongMaterial({
         color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
@@ -181,8 +182,8 @@ export default function GlobalTrackerClient({
     if (!showFactories) return [];
     return productionLines
       .map(line => {
-        const coords =
-          mockCountryCoordinates[getCountryFromLocationString(line.location) || ''];
+        const country = getCountryFromLocationString(line.location);
+        const coords = mockCountryCoordinates[country || ''];
         if (!coords) return null;
         return {
           ...coords,
@@ -280,6 +281,8 @@ export default function GlobalTrackerClient({
   );
 
   useEffect(() => {
+    if (!isClientMounted) return;
+
     const newArcs: any[] = [];
     const newPoints: any[] = [];
     const newPucks: any[] = [];
@@ -376,7 +379,7 @@ export default function GlobalTrackerClient({
       color: alertColorMapping[alert.severity],
     })) : [];
     setRingsData(newRings);
-  }, [selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
+  }, [isClientMounted, selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
 
   const filteredPolygons = useMemo(() => {
     if (!landPolygons.length) return [];
@@ -418,8 +421,6 @@ export default function GlobalTrackerClient({
     return allProducts.filter(p => p.transit?.origin.includes(clickedCountryInfo.ADMIN));
   }, [clickedCountryInfo, allProducts]);
 
-  if (!isMounted) return null;
-
   return (
     <div className="absolute inset-0">
       <GlobeControls
@@ -436,7 +437,6 @@ export default function GlobalTrackerClient({
         onToggleFactories={setShowFactories}
         showCustomsAlerts={showCustomsAlerts}
         onToggleCustomsAlerts={setShowCustomsAlerts}
-        onAnalyzeRouteClick={() => setIsAnalysisPanelOpen(prev => !prev)}
       />
       <Globe
         ref={globeEl}
@@ -526,12 +526,13 @@ export default function GlobalTrackerClient({
         products={allProducts}
         isAnalyzing={isAnalyzingRoute}
         onAnalyze={handleAnalyzeRoute}
-        onSelectProduct={(id) => setSimulatedRoute(prev => ({ ...prev, productId: id } as unknown as SimulatedRoute))}
-        onCancel={() => {
-            setIsAnalysisPanelOpen(false);
-            setAnalysisOrigin(null);
-        }}
       />
+      <div className="absolute bottom-4 right-4 z-10">
+        <Button onClick={() => setIsAnalysisPanelOpen(p => !p)}>
+            <Zap className="mr-2 h-4 w-4" />
+            Analyze New Route
+        </Button>
+      </div>
     </div>
   );
 }
