@@ -53,6 +53,7 @@ This persona is focused on production efficiency, supply chain visibility, and m
 - **Material Composition Analytics**: Tools to analyze material usage across all products, track recycled content, and identify opportunities for more sustainable sourcing.
 - **Supply Chain Provenance Viewer**: An interactive graph that visualizes the relationships between suppliers, components, and the final product.
 - **Service Ticket Management**: The ability to create and track service tickets for production line maintenance.
+- **Global Supply Chain Tracker**: Provides visibility into the transit of finished goods from factory to destination port, with real-time customs alerts.
 
 ### For the Fashion & Textile Specialist
 This persona requires deep, industry-specific insights into garment manufacturing.

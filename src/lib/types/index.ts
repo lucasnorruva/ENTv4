@@ -10,7 +10,7 @@ import type {
   AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
 
 export * from './transit';
 
@@ -196,15 +196,6 @@ export interface ServiceRecord extends BaseEntity {
   providerId: string;
   providerName: string;
   notes: string;
-}
-
-export interface CustomsStatus {
-  status: 'Cleared' | 'Detained' | 'Rejected';
-  authority: string;
-  location: string;
-  date: string; // ISO 8601 format
-  notes?: string;
-  history?: Omit<CustomsStatus, 'history'>[];
 }
 
 /**
@@ -428,4 +419,4 @@ export interface ApiRateLimit {
   windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }
 
-export type { TransitInfo, CustomsAlert };
+export type { TransitInfo, CustomsAlert, CustomsStatus };

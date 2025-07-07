@@ -36,9 +36,11 @@ export function ProductTrackerSelector({
 }: ProductTrackerSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
-  // This is the correct handler that will be called by onSelect
-  const handleSelect = (productId: string | null) => {
-    onProductSelect(productId);
+  // This is the correct handler that will be called by onValueChange
+  const handleSelect = (productId: string) => {
+    // If the same product is selected, clear the selection.
+    // Otherwise, select the new product.
+    onProductSelect(selectedProductId === productId ? null : productId);
     setOpen(false);
   };
 
@@ -64,7 +66,7 @@ export function ProductTrackerSelector({
             <CommandEmpty>No product found.</CommandEmpty>
             <CommandGroup>
               <CommandItem
-                onSelect={() => handleSelect(null)}
+                onSelect={() => handleSelect('')}
                 value="clear-selection"
               >
                 Clear Selection
@@ -72,10 +74,8 @@ export function ProductTrackerSelector({
               {products.map(product => (
                 <CommandItem
                   key={product.id}
-                  value={product.id} // The value passed to onSelect
-                  onSelect={(currentValue) => {
-                    handleSelect(currentValue);
-                  }}
+                  value={product.productName} // Value is used for search
+                  onSelect={() => handleSelect(product.id)}
                 >
                   <Check
                     className={cn(
