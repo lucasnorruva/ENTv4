@@ -151,8 +151,11 @@ export default async function ServiceProviderDashboard({
                             {ticket.issue}
                           </p>
                         </div>
-                        <div className="text-right text-xs text-muted-foreground shrink-0">
-                          <p suppressHydrationWarning>
+                        <div
+                          className="text-right text-xs text-muted-foreground shrink-0"
+                          suppressHydrationWarning
+                        >
+                          <p>
                             {formatDistanceToNow(new Date(ticket.updatedAt), {
                               addSuffix: true,
                             })}

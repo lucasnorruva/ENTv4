@@ -118,7 +118,11 @@ export default function PlatformLogsClient({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => format(new Date(row.original.createdAt), 'PPpp'),
+        cell: ({ row }) => (
+          <span suppressHydrationWarning>
+            {format(new Date(row.original.createdAt), 'PPpp')}
+          </span>
+        ),
         size: 250,
       },
       {

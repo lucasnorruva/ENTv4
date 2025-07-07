@@ -183,7 +183,7 @@ export default function SelectedProductCustomsInfoCard({
               <strong className="text-muted-foreground">Destination:</strong>{' '}
               {transit.destination}
             </p>
-            <div className="flex items-center">
+            <div className="flex items-center" suppressHydrationWarning>
               <strong className="text-muted-foreground mr-1">ETA:</strong>
               {renderEta()}
             </div>
