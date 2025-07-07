@@ -236,6 +236,7 @@ export async function bulkCreateUsers(
       const newCompany = await saveCompany({
         name: `${userData.fullName}'s Company`,
         ownerId: mockUserId,
+        industry: '',
       }, 'system');
 
       const newUser: User = {

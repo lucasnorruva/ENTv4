@@ -47,10 +47,8 @@ const batterySchema = z.object({
 });
 
 const eprSchemeSchema = z.object({
-  schemeId: z.string().min(1, 'Scheme ID is required.'),
-  producerRegistrationNumber: z
-    .string()
-    .min(1, 'Producer Registration Number is required.'),
+  schemeId: z.string().optional(),
+  producerRegistrationNumber: z.string().optional(),
   wasteCategory: z.string().optional(),
 });
 
@@ -408,6 +406,7 @@ export const bulkUserImportSchema = z.object({
 });
 
 export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
+
 
 export const onboardingFormSchema = z.object({
   companyName: z
