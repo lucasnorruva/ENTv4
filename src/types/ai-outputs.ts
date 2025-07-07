@@ -92,6 +92,7 @@ import type {
   AnalyzeSimulatedRouteInput,
   AnalyzeSimulatedRouteOutput,
 } from '@/ai/flows/analyze-simulated-route';
+import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -119,6 +120,7 @@ export type {
   AnalyzeTransitRiskInput,
   AnalyzeProductTransitRiskInput,
   AnalyzeSimulatedRouteInput,
+  AnalyzeFoodSafetyInput,
 };
 
 // Export Output types
@@ -145,4 +147,5 @@ export type {
   AnalyzeTransitRiskOutput,
   AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
+  AnalyzeFoodSafetyOutput,
 };

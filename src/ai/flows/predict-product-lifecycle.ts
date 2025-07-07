@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for predicting a product's lifecycle characteristics.
