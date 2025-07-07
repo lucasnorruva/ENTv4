@@ -80,13 +80,7 @@ import {
 import { UserRoles } from "@/lib/constants";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
-import { recalculateScore } from "@/lib/actions/product-ai-actions";
-import {
-  submitForReview,
-  bulkDeleteProducts,
-  bulkSubmitForReview,
-  bulkArchiveProducts,
-} from "@/lib/actions/product-actions";
+import { getStatusBadgeVariant } from "@/lib/dppDisplayUtils";
 
 interface ProductTableProps {
   products: Product[];
@@ -130,19 +124,6 @@ export default function ProductTable({
         return 'secondary';
       case 'Archived':
         return 'outline';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getVerificationVariant = (status?: Product['verificationStatus']) => {
-    switch (status) {
-      case 'Verified':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Failed':
-        return 'destructive';
       default:
         return 'outline';
     }
@@ -258,7 +239,7 @@ export default function ProductTable({
         header: 'Verification',
         cell: ({ row }) => (
           <Badge
-            variant={getVerificationVariant(row.original.verificationStatus)}
+            variant={getStatusBadgeVariant(row.original.verificationStatus)}
           >
             {row.original.verificationStatus ?? 'Not Submitted'}
           </Badge>

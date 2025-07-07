@@ -27,7 +27,7 @@ import {
   bulkDeleteProducts,
   bulkSubmitForReview,
   bulkArchiveProducts,
-} from '@/lib/actions/product-actions';
+} from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { hasRole } from '@/lib/auth-utils';
 import ProductImportDialog from './product-import-dialog';
