@@ -1,8 +1,8 @@
 // src/app/dashboard/retailer/products/[id]/page.tsx
 import {
   getProductById,
-  getCompliancePathById,
 } from '@/lib/actions/product-actions';
+import { getCompliancePathById } from '@/lib/actions/compliance-actions';
 import { getAuditLogsForEntity } from '@/lib/actions/audit-actions';
 import { getCurrentUser, getCompanyById, getUsers } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
