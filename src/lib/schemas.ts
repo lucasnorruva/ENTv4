@@ -290,6 +290,41 @@ export const bulkProductImportSchema = z.object({
   });
 export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
 
+export const onboardingFormSchema = z.object({
+  companyName: z.string().min(2, 'Company name must be at least 2 characters.'),
+  industry: z.string().optional(),
+});
+export type OnboardingFormValues = z.infer<typeof onboardingFormSchema>;
+
+export const profileFormSchema = z.object({
+  fullName: z.string().min(2, { message: "Full name is required." }),
+});
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+export const passwordFormSchema = z.object({
+  currentPassword: z.string().min(1, { message: "Current password is required."}),
+  newPassword: z.string().min(8, { message: "New password must be at least 8 characters."}),
+  confirmPassword: z.string(),
+}).refine(data => data.newPassword === data.confirmPassword, {
+    message: "New passwords don't match.",
+    path: ["confirmPassword"],
+});
+export type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
+export const notificationsFormSchema = z.object({
+  productUpdates: z.boolean().default(false),
+  complianceAlerts: z.boolean().default(true),
+  platformNews: z.boolean().default(false),
+});
+export type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
+
+export const deleteAccountSchema = z.object({
+    confirmText: z.string().refine(val => val === "DELETE MY ACCOUNT", {
+      message: "You must type 'DELETE MY ACCOUNT' to confirm.",
+    }),
+});
+export type DeleteAccountValues = z.infer<typeof deleteAccountSchema>;
+
 export const customsInspectionFormSchema = z.object({
     status: z.enum(['Cleared', 'Detained', 'Rejected']),
     authority: z.string().min(2, 'Authority is required.'),
@@ -302,13 +337,6 @@ export const overrideVerificationSchema = z.object({
   reason: z.string().min(10, 'A justification is required (min. 10 characters).'),
 });
 export type OverrideVerificationFormValues = z.infer<typeof overrideVerificationSchema>;
-
-export const deleteAccountSchema = z.object({
-    confirmText: z.string().refine(val => val === "DELETE MY ACCOUNT", {
-      message: "You must type 'DELETE MY ACCOUNT' to confirm.",
-    }),
-});
-export type DeleteAccountValues = z.infer<typeof deleteAccountSchema>;
 
 export const custodyStepSchema = z.object({
   event: z.string().min(3, "Event description is required."),

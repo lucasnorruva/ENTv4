@@ -243,7 +243,7 @@ export async function bulkCreateUsers(
   adminId: string,
 ): Promise<{ createdCount: number }> {
   const adminUser = await getUserById(adminId);
-  if (!adminUser) throw new PermissionError('Admin user not found.');
+  if (!adminUser) throw new Error('Admin user not found.');
   checkPermission(adminUser, 'user:manage');
 
   let createdCount = 0;
@@ -290,18 +290,4 @@ export async function bulkCreateUsers(
   );
 
   return { createdCount };
-}
-
-export async function deleteOwnAccount(userId: string): Promise<void> {
-  const user = await getUserById(userId);
-  if (!user) {
-      throw new Error('User not found.');
-  }
-  const userIndex = mockUsers.findIndex(u => u.id === userId);
-  if (userIndex > -1) {
-      mockUsers.splice(userIndex, 1);
-      // In a real app, you would also delete from Firebase Auth
-      console.log(`User ${userId} deleted from mock data.`);
-      await logAuditEvent('user.account.deleted', userId, {}, userId);
-  }
 }
