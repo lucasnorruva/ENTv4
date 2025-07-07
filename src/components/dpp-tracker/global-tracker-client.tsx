@@ -100,6 +100,52 @@ export default function GlobalTrackerClient({
     [selectedProductId, allAlerts]
   );
   
+  // --- Callbacks and Memos (defined before useEffect hooks that use them) ---
+
+  const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
+
+  const globeMaterial = useMemo(() => new MeshPhongMaterial({
+    color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
+    transparent: true,
+    opacity: 1,
+  }), [theme]);
+
+  const getPolygonCapColor = useCallback((feat: GeoJsonFeature) => {
+    if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
+    const p = feat.properties as CountryProperties;
+    const isDark = theme === 'dark';
+    if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
+    if (highlightedCountries.some(hc => p.ADMIN.toLowerCase().includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
+    if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
+    return isDark ? '#334155' : '#e2e8f0';
+  }, [theme, isEU, highlightedCountries, clickedCountryInfo]);
+  
+  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
+    if (feat.properties) {
+      setClickedCountryInfo(feat.properties as CountryProperties);
+      const countryName = (feat.properties as CountryProperties).ADMIN;
+      const coords = mockCountryCoordinates[countryName];
+      if (globeEl.current && coords) {
+        globeEl.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.5 }, 1000);
+      }
+    }
+  }, []);
+
+  const handleProductSelect = useCallback((productId: string | null) => {
+    setSelectedProductId(productId);
+    setClickedCountryInfo(null); // Clear country selection when product changes
+    const params = new URLSearchParams(searchParams.toString());
+    if (productId) {
+      params.set('productId', productId);
+      setCountryFilter('supplyChain'); // Default to supply chain view when a product is selected
+    } else {
+      params.delete('productId');
+      setCountryFilter('all');
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
+
   // --- Effects ---
 
   // Effect 1: Fetch initial GeoJSON data for countries
@@ -237,53 +283,7 @@ export default function GlobalTrackerClient({
       // globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
     }
   }, [globeReady, isAutoRotating, selectedProduct, clickedCountryInfo]);
-
   
-  // --- Callbacks and Memos ---
-
-  const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
-
-  const globeMaterial = useMemo(() => new MeshPhongMaterial({
-    color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
-    transparent: true,
-    opacity: 1,
-  }), [theme]);
-
-  const getPolygonCapColor = useCallback((feat: GeoJsonFeature) => {
-    if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
-    const p = feat.properties as CountryProperties;
-    const isDark = theme === 'dark';
-    if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
-    if (highlightedCountries.some(hc => p.ADMIN.toLowerCase().includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
-    if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
-    return isDark ? '#334155' : '#e2e8f0';
-  }, [theme, isEU, highlightedCountries, clickedCountryInfo]);
-  
-  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
-    if (feat.properties) {
-      setClickedCountryInfo(feat.properties as CountryProperties);
-      const countryName = (feat.properties as CountryProperties).ADMIN;
-      const coords = mockCountryCoordinates[countryName];
-      if (globeEl.current && coords) {
-        globeEl.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.5 }, 1000);
-      }
-    }
-  }, []);
-
-  const handleProductSelect = useCallback((productId: string | null) => {
-    setSelectedProductId(productId);
-    setClickedCountryInfo(null); // Clear country selection when product changes
-    const params = new URLSearchParams(searchParams.toString());
-    if (productId) {
-      params.set('productId', productId);
-      setCountryFilter('supplyChain'); // Default to supply chain view when a product is selected
-    } else {
-      params.delete('productId');
-      setCountryFilter('all');
-    }
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [pathname, router, searchParams]);
-
   const destinationCountry = selectedProduct?.transit ? getCountryFromLocationString(selectedProduct.transit.destination) : null;
   
   if (!isMounted) {
