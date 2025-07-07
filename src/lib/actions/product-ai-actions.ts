@@ -26,7 +26,7 @@ import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-compositio
 import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
-import type { AnalyzeSimulatedRouteOutput, AnalyzeProductTransitRiskOutput } from '@/types/ai-outputs';
+import type { AnalyzeSimulatedRouteOutput, ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
 
 // The remaining functions are AI actions callable from the UI or other server actions.
@@ -549,7 +549,7 @@ export async function analyzeSimulatedRoute(
 export async function analyzeProductTransitRisk(
   productId: string,
   userId: string,
-): Promise<AnalyzeProductTransitRiskOutput> {
+): Promise<ProductTransitRiskAnalysis> {
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
   checkPermission(user, 'admin:manage_settings'); // Example permission

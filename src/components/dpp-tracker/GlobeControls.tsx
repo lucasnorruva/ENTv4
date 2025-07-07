@@ -15,7 +15,7 @@ import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import { X, AlertTriangle, Factory } from 'lucide-react';
+import { X, AlertTriangle, Factory, Zap } from 'lucide-react';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -31,6 +31,7 @@ interface GlobeControlsProps {
   onToggleFactories: (checked: boolean) => void;
   showCustomsAlerts: boolean;
   onToggleCustomsAlerts: (checked: boolean) => void;
+  onToggleAnalyzer: () => void;
 }
 
 export default function GlobeControls({
@@ -47,6 +48,7 @@ export default function GlobeControls({
   onToggleFactories,
   showCustomsAlerts,
   onToggleCustomsAlerts,
+  onToggleAnalyzer,
 }: GlobeControlsProps) {
   return (
     <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -58,7 +60,7 @@ export default function GlobeControls({
           className="w-full sm:w-[300px] bg-background/80 backdrop-blur-sm"
         />
       </div>
-      <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+      <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm flex-wrap">
         <Select onValueChange={onCountryFilterChange} value={countryFilter}>
           <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
             <SelectValue placeholder="Filter Countries" />
@@ -103,6 +105,15 @@ export default function GlobeControls({
             <AlertTriangle className="h-3 w-3" /> Alerts
           </Label>
         </div>
+         <Button
+          size="sm"
+          variant="outline"
+          onClick={onToggleAnalyzer}
+          className="h-8"
+        >
+          <Zap className="mr-1 h-3.5 w-3.5" />
+          AI Analyzer
+        </Button>
         <Button
           size="sm"
           variant="outline"
