@@ -36,9 +36,6 @@ import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
-import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
-import CryptoTab from './product-detail-tabs/crypto-tab';
-import ConstructionTab from './product-detail-tabs/construction-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -79,7 +76,6 @@ export default function ProductDetailView({
   const canExportData = can(user, 'product:export_data', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
   const showTextileTab = product.category === 'Fashion';
-  const showConstructionTab = product.category === 'Construction';
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -176,12 +172,9 @@ export default function ProductDetailView({
               <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="crypto">Trust &amp; Verification</TabsTrigger>
-                {product.model3dUrl && <TabsTrigger value="3d-viewer">3D Viewer</TabsTrigger>}
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
               </TabsList>
@@ -196,11 +189,6 @@ export default function ProductDetailView({
                   <TextileTab product={product} />
                 </TabsContent>
               )}
-               {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                  <ConstructionTab product={product} />
-                </TabsContent>
-              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
@@ -213,14 +201,6 @@ export default function ProductDetailView({
                   compliancePath={compliancePath}
                 />
               </TabsContent>
-              <TabsContent value="crypto" className="mt-4">
-                <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
-              </TabsContent>
-               {product.model3dUrl && (
-                <TabsContent value="3d-viewer" className="mt-4">
-                  <ThreeDViewerTab product={product} />
-                </TabsContent>
-              )}
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />
               </TabsContent>

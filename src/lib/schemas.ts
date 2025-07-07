@@ -14,7 +14,6 @@ const certificationSchema = z.object({
   name: z.string().min(1, 'Certificate name is required.'),
   issuer: z.string().min(1, 'Issuer is required.'),
   validUntil: z.string().optional(),
-  documentUrl: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 const manufacturingSchema = z.object({
@@ -94,34 +93,6 @@ const complianceSchema = z.object({
     })
     .optional(),
   epr: eprSchemeSchema.optional(),
-  battery: z
-    .object({
-      compliant: z.boolean().optional(),
-      passportId: z.string().optional(),
-    })
-    .optional(),
-  pfas: z
-    .object({
-      declared: z.boolean().optional(),
-    })
-    .optional(),
-  conflictMinerals: z
-    .object({
-      compliant: z.boolean().optional(),
-      reportUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-  espr: z
-    .object({
-      compliant: z.boolean().optional(),
-      delegatedActUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-});
-
-export const greenClaimSchema = z.object({
-  claim: z.string().min(3, 'Claim text must be at least 3 characters.'),
-  substantiation: z.string().min(3, 'Substantiation is required.'),
 });
 
 export const customsInspectionFormSchema = z.object({
@@ -217,7 +188,6 @@ export const productFormSchema = z.object({
   verificationOverride: verificationOverrideSchema.optional(),
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
-  greenClaims: z.array(greenClaimSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
