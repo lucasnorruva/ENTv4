@@ -153,6 +153,7 @@ export const navConfig: NavConfig = {
           href: 'composition',
         },
         { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+        { title: 'Customs Dashboard', icon: Scale, href: 'customs' },
       ],
     },
   ],
@@ -219,6 +220,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Product Catalog', icon: BookCopy, href: 'catalog' },
         { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+        { title: 'Customs Dashboard', icon: Scale, href: 'customs' },
       ],
     },
     {
