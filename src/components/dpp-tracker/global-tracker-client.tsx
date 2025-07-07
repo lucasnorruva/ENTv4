@@ -31,7 +31,6 @@ import {
 } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import {
-  getPointColorForStatus,
   getFactoryColor,
 } from '@/lib/dppDisplayUtils';
 import {
@@ -211,6 +210,23 @@ export default function GlobalTrackerClient({
       })
       .catch(err => console.error('Error fetching initial globe data:', err));
   }, []);
+
+  const getPointColorForStatus = useCallback(
+    (status: Product['verificationStatus']) => {
+        const isDark = theme === 'dark';
+        switch (status) {
+        case 'Verified':
+            return isDark ? '#22c55e' : '#16a34a'; // green
+        case 'Pending':
+            return isDark ? '#f59e0b' : '#d97706'; // amber
+        case 'Failed':
+            return isDark ? '#ef4444' : '#b91c1c'; // red
+        default:
+            return isDark ? '#64748b' : '#94a3b8'; // slate
+        }
+    },
+    [theme],
+  );
 
   const factoryPoints = useMemo(() => {
     if (!showFactories) return [];
@@ -433,7 +449,7 @@ export default function GlobalTrackerClient({
       color: alertColorMapping[alert.severity],
     })) : [];
     setRingsData(newRings);
-  }, [isClientMounted, selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
+  }, [isClientMounted, selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute, getPointColorForStatus]);
 
   useEffect(() => {
     const globe = globeEl.current;

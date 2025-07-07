@@ -49,3 +49,15 @@ export function getStatusBadgeClasses(status: string | undefined): string {
         return '';
     }
 }
+
+export function getFactoryColor(status: 'Active' | 'Idle' | 'Maintenance'): string {
+  switch (status) {
+    case 'Active':
+      return '#22c55e'; // green-500
+    case 'Maintenance':
+      return '#ef4444'; // red-500
+    case 'Idle':
+    default:
+      return '#f59e0b'; // amber-500
+  }
+}
