@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -11,7 +12,10 @@ import {
   Recycle,
   Fingerprint,
   Users,
-  ExternalLink,
+  Box,
+  Weight,
+  GitBranch,
+  CheckCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -126,7 +130,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="relative flex items-center justify-center h-[500px]">
+              <div className="relative flex items-center justify-center h-[550px]">
                 <Image
                   alt="Abstract Sphere"
                   className="absolute opacity-30 dark:opacity-20"
@@ -135,30 +139,86 @@ export default function LandingPage() {
                   width="600"
                   data-ai-hint="abstract network"
                 />
-                 <Card className="z-10 w-full max-w-sm shadow-xl animate-fade-in backdrop-blur-sm bg-background/80">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><ShieldCheck className="text-primary"/> Verified Passport</CardTitle>
-                        <CardDescription>Eco-Friendly Smart Watch</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">ESG Score</span>
-                            <span className="font-bold">85 / 100</span>
+                <Card className="z-10 w-full max-w-sm shadow-xl animate-fade-in bg-card text-card-foreground p-6 rounded-2xl">
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                        <h2 className="font-bold text-lg">GreenLeaf</h2>
+                        <p className="text-xs text-muted-foreground">Product ID: dpp-004</p>
                         </div>
-                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">Carbon Footprint</span>
-                            <span className="font-bold">25.5 kg CO₂e</span>
+                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=60x60&data=https://norruva.com/products/dpp-004&bgcolor=ffffff&color=000000&qzone=1" width={60} height={60} alt="QR Code" data-ai-hint="qr code"/>
+                    </div>
+
+                    {/* Main Info */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="bg-muted p-3 rounded-lg">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-primary">
+                                <path d="M8 4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V4Z" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M12 11.5v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                <path d="M9.5 13.5v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                <path d="M14.5 13.5v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                                <path d="M7 21a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v2Z" stroke="currentColor" strokeWidth="1.5"/>
+                                <path d="M12 7V3" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round"/>
+                                <path d="M14 5h-4" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
                         </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Repairability</span>
-                            <span className="font-bold">8 / 10</span>
+                        <div>
+                        <h3 className="font-semibold">Bamboo Cutlery Set</h3>
+                        <Badge variant="outline" className="mt-1 border-primary/50 text-primary text-xs">
+                            <ShieldCheck className="h-3 w-3 mr-1" />
+                            Verified Product Passport
+                        </Badge>
                         </div>
-                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">On-Chain Proof</span>
-                             <Link href="#" className="text-primary font-bold hover:underline flex items-center gap-1">Verified <ExternalLink className="h-3 w-3"/></Link>
+                    </div>
+                    
+                    {/* EU Regulation Status */}
+                    <div className="bg-muted flex justify-between items-center p-3 rounded-lg mb-6">
+                        <span className="text-sm font-medium text-muted-foreground">EU Regulation Status</span>
+                        <Badge variant="default" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                            <CheckCircle className="h-4 w-4 mr-1"/>
+                            COMPLIANT
+                        </Badge>
+                    </div>
+
+                    {/* Material Traceability */}
+                    <div className="text-center mb-6">
+                        <p className="font-semibold text-card-foreground text-xs uppercase mb-3">Material Traceability</p>
+                        <div className="relative inline-flex items-center justify-center w-28 h-28">
+                            <svg className="w-full h-full" viewBox="0 0 100 100">
+                                <circle className="text-muted/50" strokeWidth="10" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
+                                <circle className="text-primary" strokeWidth="10" strokeDasharray="283" strokeDashoffset="calc(283 - (283 * 98) / 100))" strokeLinecap="round" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" transform="rotate(-90 50 50)" />
+                            </svg>
+                            <span className="absolute text-2xl font-bold text-primary">98%</span>
                         </div>
-                    </CardContent>
-                </Card>
+                        <p className="text-xs text-muted-foreground mt-2">Traced Materials In Product</p>
+                    </div>
+
+                    {/* Chain of Custody */}
+                    <div className="mb-6">
+                        <p className="font-semibold text-card-foreground text-xs uppercase mb-3">Chain of Custody</p>
+                        <ul className="space-y-2 text-sm">
+                            <li className="flex justify-between items-center">
+                                <span className="flex items-center gap-2 text-muted-foreground"><CheckCircle className="h-4 w-4 text-green-500"/> Bamboo Harvested</span>
+                                <span className="text-xs text-muted-foreground">05/01/24 &middot; China</span>
+                            </li>
+                            <li className="flex justify-between items-center">
+                                <span className="flex items-center gap-2 text-muted-foreground"><CheckCircle className="h-4 w-4 text-green-500"/> Cutlery Shaped</span>
+                                <span className="text-xs text-muted-foreground">20/01/24 &middot; China</span>
+                            </li>
+                            <li className="flex justify-between items-center">
+                                <span className="flex items-center gap-2 text-muted-foreground"><CheckCircle className="h-4 w-4 text-green-500"/> Shipped to EU</span>
+                                <span className="text-xs text-muted-foreground">01/03/24 &middot; EU Warehouse</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* Footer Button */}
+                    <Button asChild className="w-full">
+                        <Link href="#">
+                        View Passport <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                    </Card>
               </div>
             </div>
           </div>
