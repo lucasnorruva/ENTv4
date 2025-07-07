@@ -10,7 +10,7 @@ import type {
   AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
@@ -21,6 +21,7 @@ export type {
   CustomsStatus,
   ModelHotspot,
   GreenClaim,
+  RegulationSource,
 };
 
 /**
@@ -234,6 +235,20 @@ export interface VerificationOverride {
 
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 
+export interface CustodyStep {
+    event: string;
+    location: string;
+    actor: string;
+    date: string;
+}
+
+export interface OwnershipNft {
+    tokenId: string;
+    contractAddress: string;
+    ownerAddress: string;
+}
+
+
 /**
  * The core Digital Product Passport entity.
  */
@@ -258,6 +273,8 @@ export interface Product extends BaseEntity {
   ebsiVcId?: string;
   zkProof?: ZkProof;
   modelHotspots?: ModelHotspot[];
+  chainOfCustody?: CustodyStep[];
+  ownershipNft?: OwnershipNft;
   ebsiDetails?: {
     status: 'Verified' | 'Pending' | 'Failed';
     conformanceResultUrl?: string;
@@ -414,4 +431,3 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
-```

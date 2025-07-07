@@ -34,4 +34,17 @@ export interface GreenClaim {
   claim: string;
   substantiation: string;
 }
-```
+
+export interface RegulationSource {
+  id: string;
+  name: string;
+  type: 'API' | 'Feed' | 'Manual';
+  status: 'Operational' | 'Degraded Performance' | 'Offline' | 'Not Implemented';
+  version?: string;
+  lastSync: string;
+  checklist: {
+    id: string;
+    description: string;
+    status: boolean;
+  }[];
+}
