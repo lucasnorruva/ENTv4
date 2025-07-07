@@ -146,6 +146,8 @@ export const companyFormSchema = z.object({
   ownerId: z.string().min(1, 'Owner ID is required.'),
   industry: z.string().optional(),
   tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
+  isTrustedIssuer: z.boolean().optional(),
+  revocationListUrl: z.string().url('Must be a valid URL.').optional().or(z.literal('')),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
