@@ -87,7 +87,7 @@ const HistoryTab = ({ product }: { product: Product }) => {
     });
 
     // Latest Customs Event
-    if (product.customs && product.customs.date) {
+    if (product.customs && product.customs.date && !(product.customs.history?.some(h => h.date === product.customs!.date))) {
         allEvents.push({
             date: new Date(product.customs.date),
             title: 'Customs Inspection',
