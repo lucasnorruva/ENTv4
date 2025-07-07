@@ -24,6 +24,7 @@ import { can } from '@/lib/permissions';
 import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
 import { runSubmissionValidation } from '@/services/validation';
+import { AuditLogTimeline } from './audit-log-timeline';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -197,7 +198,7 @@ export default function ProductDetailView({
               )}
                {showConstructionTab && (
                 <TabsContent value="construction" className="mt-4">
-                  <ConstructionTab product={product} />
+                    <ConstructionTab product={product} />
                 </TabsContent>
               )}
               <TabsContent value="sustainability" className="mt-4">
@@ -224,6 +225,7 @@ export default function ProductDetailView({
                  </TabsContent>
               )}
             </Tabs>
+             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
             {product.submissionChecklist && (

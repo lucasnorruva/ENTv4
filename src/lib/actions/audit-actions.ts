@@ -35,7 +35,8 @@ export async function logAuditEvent(
   return Promise.resolve();
 }
 
-export async function getAuditLogs(): Promise<AuditLog[]> {
+export async function getAuditLogs(filters?: { companyId?: string }): Promise<AuditLog[]> {
+  // Mock filtering if needed, for now returns all
   return Promise.resolve(
     [...mockAuditLogs].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -55,8 +56,14 @@ export async function getAuditLogsForEntity(
   );
 }
 
-export async function getAuditLogById(
-  logId: string,
-): Promise<AuditLog | undefined> {
-  return Promise.resolve(mockAuditLogs.find(log => log.id === logId));
+export async function getAuditLogsForUser(
+  userId: string,
+): Promise<AuditLog[]> {
+  return Promise.resolve(
+    [...mockAuditLogs]
+      .filter(log => log.userId === userId)
+      .sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      ),
+  );
 }
