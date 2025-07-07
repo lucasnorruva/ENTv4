@@ -24,6 +24,7 @@ import {
   mockCountryCoordinates,
   getCountryFromLocationString,
 } from '@/lib/country-coordinates';
+import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -83,6 +84,7 @@ export default function GlobalTrackerClient({
   const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
   
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
+  const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -102,6 +104,19 @@ export default function GlobalTrackerClient({
   
   const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
 
+  const countryRiskMap = useMemo(() => {
+    const map = new Map<string, 'High' | 'Medium' | 'Low'>();
+    MOCK_CUSTOMS_DATA.forEach(data => {
+      data.keywords.forEach(keyword => {
+        // Simple mapping; a more robust solution would use ISO codes.
+        if (!map.has(keyword)) {
+          map.set(keyword, data.riskLevel);
+        }
+      });
+    });
+    return map;
+  }, []);
+
   const globeMaterial = useMemo(() => new MeshPhongMaterial({
     color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
     transparent: true,
@@ -112,11 +127,27 @@ export default function GlobalTrackerClient({
     if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
     const p = feat.properties as CountryProperties;
     const isDark = theme === 'dark';
+    const countryNameLower = p.ADMIN.toLowerCase();
+    
+    // Clicked country always has priority color
     if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
-    if (highlightedCountries.some(hc => p.ADMIN.toLowerCase().includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
+    
+    // Product supply chain highlight has next priority
+    if (highlightedCountries.some(hc => countryNameLower.includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
+    
+    // Risk filter highlight
+    if (riskFilter !== 'all' && countryRiskMap.get(countryNameLower) === riskFilter) {
+      if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
+      if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
+      if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
+    }
+
+    // EU highlight
     if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
+    
+    // Default color
     return isDark ? '#334155' : '#e2e8f0';
-  }, [theme, isEU, highlightedCountries, clickedCountryInfo]);
+  }, [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap]);
   
   const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
     if (feat.properties) {
@@ -242,9 +273,15 @@ export default function GlobalTrackerClient({
                  (mockCountryCoordinates[hc] && isoA3 === Object.keys(mockCountryCoordinates).find(key => key === hc));
         });
       });
+    } else if (riskFilter !== 'all') {
+      filtered = landPolygons.filter(feat => {
+        const p = feat.properties as CountryProperties;
+        const adminNameLower = p.ADMIN.toLowerCase();
+        return countryRiskMap.get(adminNameLower) === riskFilter;
+      });
     }
     setFilteredLandPolygons(filtered);
-  }, [countryFilter, landPolygons, highlightedCountries, selectedProduct, isEU]);
+  }, [countryFilter, landPolygons, highlightedCountries, selectedProduct, isEU, riskFilter, countryRiskMap]);
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -282,6 +319,8 @@ export default function GlobalTrackerClient({
         onProductSelect={handleProductSelect}
         countryFilter={countryFilter}
         onCountryFilterChange={setCountryFilter as any}
+        riskFilter={riskFilter}
+        onRiskFilterChange={setRiskFilter as any}
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}

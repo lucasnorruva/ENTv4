@@ -19,6 +19,8 @@ interface GlobeControlsProps {
   onProductSelect: (productId: string | null) => void;
   countryFilter: 'all' | 'eu' | 'supplyChain';
   onCountryFilterChange: (value: 'all' | 'eu' | 'supplyChain') => void;
+  riskFilter: 'all' | 'High' | 'Medium' | 'Low';
+  onRiskFilterChange: (value: 'all' | 'High' | 'Medium' | 'Low') => void;
   isAutoRotating: boolean;
   onToggleRotation: () => void;
   isProductSelected: boolean;
@@ -30,6 +32,8 @@ export default function GlobeControls({
   onProductSelect,
   countryFilter,
   onCountryFilterChange,
+  riskFilter,
+  onRiskFilterChange,
   isAutoRotating,
   onToggleRotation,
   isProductSelected,
@@ -45,6 +49,20 @@ export default function GlobeControls({
         />
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+      <Select
+          onValueChange={onRiskFilterChange as any}
+          value={riskFilter}
+        >
+          <SelectTrigger className="w-full sm:w-auto">
+            <SelectValue placeholder="Filter by Risk" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Risk Levels</SelectItem>
+            <SelectItem value="High">High Risk</SelectItem>
+            <SelectItem value="Medium">Medium Risk</SelectItem>
+            <SelectItem value="Low">Low Risk</SelectItem>
+          </SelectContent>
+        </Select>
         <Select
           onValueChange={onCountryFilterChange}
           value={countryFilter}
