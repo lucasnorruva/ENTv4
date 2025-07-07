@@ -32,6 +32,8 @@ export type Action =
   | 'product:customs_inspect'
   | 'product:export_data'
   | 'product:run_prediction'
+  | 'product:generate_zkp'
+  | 'product:override_verification'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -97,6 +99,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
     
+    case 'product:override_verification':
+      return hasRole(user, UserRoles.ADMIN); // This is an admin-only action
+
     case 'product:run_compliance':
       return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);
 
@@ -116,6 +121,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     
     case 'product:run_prediction':
       return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
+    
+    case 'product:generate_zkp':
+      return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.DEVELOPER);
 
     case 'product:resolve':
       return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
@@ -142,7 +150,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
 
     case 'ticket:create':
     case 'ticket:manage':
-      return hasRole(user, UserRoles.SERVICE_PROVIDER);
+      return hasRole(user, UserRoles.SERVICE_PROVIDER) || hasRole(user, UserRoles.MANUFACTURER);
       
     case 'ticket:view_all':
       return hasRole(user, UserRoles.ADMIN);

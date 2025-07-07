@@ -32,6 +32,7 @@ import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
+import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
@@ -78,6 +79,7 @@ export default function ProductDetailView({
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
   const showTextileTab = product.category === 'Fashion';
   const showConstructionTab = product.category === 'Construction';
+  const show3dTab = !!product.model3dUrl;
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -180,6 +182,7 @@ export default function ProductDetailView({
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
+                 {show3dTab && <TabsTrigger value="3d_viewer">3D Viewer</TabsTrigger>}
               </TabsList>
               <TabsContent value="overview" className="mt-4">
                 <OverviewTab
@@ -215,6 +218,11 @@ export default function ProductDetailView({
               <TabsContent value="supply_chain" className="mt-4">
                 <SupplyChainTab product={product} />
               </TabsContent>
+              {show3dTab && (
+                 <TabsContent value="3d_viewer" className="mt-4">
+                    <ThreeDViewerTab product={product} />
+                 </TabsContent>
+              )}
             </Tabs>
           </div>
           <div className="space-y-6">
