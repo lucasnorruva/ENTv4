@@ -419,4 +419,4 @@ export interface ApiRateLimit {
   windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }
 
-export type { TransitInfo, CustomsAlert };
+export type { TransitInfo, CustomsAlert, CustomsStatus };
