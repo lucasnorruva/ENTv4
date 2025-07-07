@@ -12,7 +12,7 @@ import { z } from 'genkit';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import type { Product } from '@/types';
 
-export const AnalyzeSimulatedRouteInputSchema = z.object({
+const AnalyzeSimulatedRouteInputSchema = z.object({
   product: z.custom<Product>().describe('The product being shipped.'),
   originCountry: z.string().describe('The country of origin for the shipment.'),
   destinationCountry: z
@@ -23,7 +23,7 @@ export type AnalyzeSimulatedRouteInput = z.infer<
   typeof AnalyzeSimulatedRouteInputSchema
 >;
 
-export const AnalyzeSimulatedRouteOutputSchema = z.object({
+const AnalyzeSimulatedRouteOutputSchema = z.object({
   origin: z.string(),
   destination: z.string(),
   riskLevel: z
