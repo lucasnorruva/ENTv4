@@ -1,4 +1,3 @@
-// src/components/dpp-tracker/GlobeControls.tsx
 'use client';
 
 import React from 'react';
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/select';
 import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
+import RouteSimulator from './RouteSimulator';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -24,6 +24,8 @@ interface GlobeControlsProps {
   isAutoRotating: boolean;
   onToggleRotation: () => void;
   isProductSelected: boolean;
+  onSimulateRoute: (origin: string, destination: string) => void;
+  isSimulating: boolean;
 }
 
 export default function GlobeControls({
@@ -37,23 +39,23 @@ export default function GlobeControls({
   isAutoRotating,
   onToggleRotation,
   isProductSelected,
+  onSimulateRoute,
+  isSimulating,
 }: GlobeControlsProps) {
   return (
     <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-      <div className="bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+      <div className="flex flex-col sm:flex-row gap-2">
         <ProductTrackerSelector
           products={products}
           selectedProductId={selectedProductId}
           onProductSelect={onProductSelect}
-          className="w-full sm:w-[300px]"
+          className="w-full sm:w-[300px] bg-background/80 backdrop-blur-sm"
         />
+        <RouteSimulator onSimulate={onSimulateRoute} isSimulating={isSimulating} />
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
-      <Select
-          onValueChange={onRiskFilterChange as any}
-          value={riskFilter}
-        >
-          <SelectTrigger className="w-full sm:w-auto">
+        <Select onValueChange={onRiskFilterChange as any} value={riskFilter}>
+          <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
             <SelectValue placeholder="Filter by Risk" />
           </SelectTrigger>
           <SelectContent>
@@ -63,11 +65,8 @@ export default function GlobeControls({
             <SelectItem value="Low">Low Risk</SelectItem>
           </SelectContent>
         </Select>
-        <Select
-          onValueChange={onCountryFilterChange}
-          value={countryFilter}
-        >
-          <SelectTrigger className="w-full sm:w-auto">
+        <Select onValueChange={onCountryFilterChange} value={countryFilter}>
+          <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
             <SelectValue placeholder="Filter Countries" />
           </SelectTrigger>
           <SelectContent>
@@ -78,11 +77,7 @@ export default function GlobeControls({
             </SelectItem>
           </SelectContent>
         </Select>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onToggleRotation}
-        >
+        <Button size="sm" variant="outline" onClick={onToggleRotation} className="h-8">
           {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
         </Button>
       </div>

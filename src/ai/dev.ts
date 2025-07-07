@@ -21,3 +21,4 @@ import "@/ai/flows/predict-product-lifecycle.ts";
 import "@/ai/flows/explain-error.ts";
 import "@/ai/flows/analyze-textile-composition.ts";
 import "@/ai/flows/analyze-construction-material.ts";
+import "@/ai/flows/analyze-transit-risk.ts";

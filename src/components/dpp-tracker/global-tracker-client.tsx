@@ -1,24 +1,19 @@
 // src/components/dpp-tracker/global-tracker-client.tsx
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo, useTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
 import { MeshPhongMaterial } from 'three';
-import { Loader2, Info } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
-import type { Product, CustomsAlert, User } from '@/types';
+import type { Product, CustomsAlert, User, SimulatedRoute } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
+import SimulatedRouteInfoCard from '@/components/dpp-tracker/SimulatedRouteInfoCard';
 import GlobeControls from './GlobeControls';
 import {
   mockCountryCoordinates,
@@ -26,6 +21,9 @@ import {
 } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import { getPointColorForStatus } from '@/lib/dppDisplayUtils';
+import { analyzeTransitRisk } from '@/lib/actions/product-ai-actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -69,6 +67,7 @@ export default function GlobalTrackerClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [filteredLandPolygons, setFilteredLandPolygons] = useState<GeoJsonFeature[]>([]);
@@ -76,10 +75,9 @@ export default function GlobalTrackerClient({
   const [isAutoRotating, setIsAutoRotating] = useState(true);
 
   const productIdFromQuery = searchParams.get('productId');
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(
-    productIdFromQuery,
-  );
-  
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(productIdFromQuery);
+  const [isSimulating, startSimulationTransition] = useTransition();
+
   const [arcsData, setArcsData] = useState<any[]>([]);
   const [pointsData, setPointsData] = useState<any[]>([]);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
@@ -87,22 +85,13 @@ export default function GlobalTrackerClient({
   
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
   const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
+  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => { setIsMounted(true); }, []);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  const selectedProduct = useMemo(
-    () => allProducts.find(p => p.id === selectedProductId),
-    [selectedProductId, allProducts],
-  );
-
-  const selectedProductAlerts = useMemo(
-    () => allAlerts.filter(a => a.productId === selectedProductId),
-    [selectedProductId, allAlerts]
-  );
+  const selectedProduct = useMemo(() => allProducts.find(p => p.id === selectedProductId), [selectedProductId, allProducts]);
+  const selectedProductAlerts = useMemo(() => allAlerts.filter(a => a.productId === selectedProductId), [selectedProductId, allAlerts]);
   
   const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
 
@@ -110,9 +99,7 @@ export default function GlobalTrackerClient({
     const map = new Map<string, 'High' | 'Medium' | 'Low'>();
     MOCK_CUSTOMS_DATA.forEach(data => {
       data.keywords.forEach(keyword => {
-        if (!map.has(keyword)) {
-          map.set(keyword, data.riskLevel);
-        }
+        if (!map.has(keyword)) map.set(keyword, data.riskLevel);
       });
     });
     return map;
@@ -131,7 +118,6 @@ export default function GlobalTrackerClient({
     const countryNameLower = p.ADMIN.toLowerCase();
     
     if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
-    
     if (highlightedCountries.some(hc => countryNameLower.includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
     
     if (riskFilter !== 'all' && countryRiskMap.get(countryNameLower) === riskFilter) {
@@ -157,12 +143,13 @@ export default function GlobalTrackerClient({
   }, []);
 
   const handleProductSelect = useCallback((productId: string | null) => {
+    setSimulatedRoute(null);
     setSelectedProductId(productId);
     setClickedCountryInfo(null);
     const params = new URLSearchParams(searchParams.toString());
     if (productId) {
       params.set('productId', productId);
-      setCountryFilter('supplyChain'); 
+      setCountryFilter('supplyChain');
     } else {
       params.delete('productId');
       setCountryFilter('all');
@@ -170,16 +157,26 @@ export default function GlobalTrackerClient({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams]);
 
+  const handleSimulateRoute = (origin: string, destination: string) => {
+    handleProductSelect(null);
+    setClickedCountryInfo(null);
+    setSimulatedRoute(null);
+    startSimulationTransition(async () => {
+      try {
+        const analysis = await analyzeTransitRisk({ originCountry: origin, destinationCountry: destination });
+        setSimulatedRoute({ origin, destination, ...analysis });
+      } catch (error: any) {
+        toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
+      }
+    });
+  };
+
   useEffect(() => {
-    fetch(
-      'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
-    )
-      .then(res => res.json())
-      .then(geoJsonData => {
+    fetch('https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson')
+      .then(res => res.json()).then(geoJsonData => {
         setLandPolygons(geoJsonData.features);
         setFilteredLandPolygons(geoJsonData.features);
-      })
-      .catch(err => console.error('Error fetching geo data:', err));
+      }).catch(err => console.error('Error fetching geo data:', err));
   }, []);
 
   useEffect(() => {
@@ -187,54 +184,54 @@ export default function GlobalTrackerClient({
     const newPoints: any[] = [];
     const newHighlightedCountries = new Set<string>();
 
-    const processProduct = (product: Product) => {
+    const processProduct = (product: Product, isSelected: boolean) => {
         const pointColor = getPointColorForStatus(product.verificationStatus);
-
         if (product.transit) {
             const { transit } = product;
-            const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || '']
-            const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || '']
-            
-            if (originCoords) {
-                newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
-            }
-            if (destinationCoords) {
-                newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
-            }
+            const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
+            const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || ''];
+            if (originCoords) newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
+            if (destinationCoords) newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
             if (originCoords && destinationCoords) {
-                newArcs.push({
-                    startLat: originCoords.lat, startLng: originCoords.lng,
-                    endLat: destinationCoords.lat, endLng: destinationCoords.lng,
-                    color: pointColor,
-                    label: `${product.productName} Transit`,
-                });
+                newArcs.push({ startLat: originCoords.lat, startLng: originCoords.lng, endLat: destinationCoords.lat, endLng: destinationCoords.lng, color: pointColor, label: `${product.productName} Transit` });
             }
         }
-    }
+        if (isSelected) {
+            const originCountry = getCountryFromLocationString(product.transit?.origin);
+            const destCountry = getCountryFromLocationString(product.transit?.destination);
+            if(originCountry) newHighlightedCountries.add(originCountry);
+            if(destCountry) newHighlightedCountries.add(destCountry);
+        }
+    };
     
     if (selectedProduct) {
-        processProduct(selectedProduct);
-        const originCountry = getCountryFromLocationString(selectedProduct.transit?.origin);
-        const destCountry = getCountryFromLocationString(selectedProduct.transit?.destination);
-        if(originCountry) newHighlightedCountries.add(originCountry);
-        if(destCountry) newHighlightedCountries.add(destCountry);
+        processProduct(selectedProduct, true);
+    } else if (simulatedRoute) {
+        const originCoords = mockCountryCoordinates[simulatedRoute.origin];
+        const destinationCoords = mockCountryCoordinates[simulatedRoute.destination];
+        if (originCoords) newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: '#94a3b8', name: `Simulated Origin: ${simulatedRoute.origin}` });
+        if (destinationCoords) newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: '#94a3b8', name: `Simulated Destination: ${simulatedRoute.destination}` });
+        if (originCoords && destinationCoords) {
+            newArcs.push({ startLat: originCoords.lat, startLng: originCoords.lng, endLat: destinationCoords.lat, endLng: destinationCoords.lng, color: '#94a3b8', label: 'Simulated Route', dashLength: 0.2, dashGap: 0.1 });
+        }
+        newHighlightedCountries.add(simulatedRoute.origin);
+        newHighlightedCountries.add(simulatedRoute.destination);
     } else {
-        allProducts.forEach(processProduct);
+        allProducts.forEach(p => processProduct(p, false));
     }
     
     setArcsData(newArcs);
     setPointsData(newPoints);
     setHighlightedCountries(Array.from(newHighlightedCountries));
 
-  }, [selectedProduct, allProducts, theme]);
+  }, [selectedProduct, allProducts, theme, simulatedRoute]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
-
     let filtered = landPolygons;
     if (countryFilter === 'eu') {
       filtered = landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
-    } else if (countryFilter === 'supplyChain' && selectedProduct && highlightedCountries.length > 0) {
+    } else if (countryFilter === 'supplyChain' && highlightedCountries.length > 0) {
       filtered = landPolygons.filter(feat => {
         const p = feat.properties as CountryProperties;
         const adminName = p.ADMIN || p.NAME_LONG || '';
@@ -253,7 +250,6 @@ export default function GlobalTrackerClient({
   useEffect(() => {
     const globe = globeEl.current;
     if (!globe || !globeReady) return;
-
     const controls = globe.controls() as any;
     if (controls) {
       controls.autoRotate = isAutoRotating;
@@ -262,24 +258,21 @@ export default function GlobalTrackerClient({
       controls.minDistance = 150;
       controls.maxDistance = 1000;
     }
-
-    if (selectedProduct && selectedProduct.transit) {
+    if (simulatedRoute) {
+        const destinationCoords = mockCountryCoordinates[simulatedRoute.destination];
+        if (destinationCoords) globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
+    } else if (selectedProduct && selectedProduct.transit) {
       const destinationCountry = getCountryFromLocationString(selectedProduct.transit.destination);
       const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
-      if (destinationCoords) {
-        globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
-      }
+      if (destinationCoords) globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
     } else {
-        // Zoom out to global view if no product is selected
         globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
     }
-  }, [globeReady, isAutoRotating, selectedProduct]);
+  }, [globeReady, isAutoRotating, selectedProduct, simulatedRoute]);
   
   const destinationCountry = selectedProduct?.transit ? getCountryFromLocationString(selectedProduct.transit.destination) : null;
   
-  if (!isMounted) {
-    return null;
-  }
+  if (!isMounted) return null;
 
   return (
     <div className="absolute inset-0">
@@ -294,6 +287,8 @@ export default function GlobalTrackerClient({
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}
+        onSimulateRoute={handleSimulateRoute}
+        isSimulating={isSimulating}
       />
       <Globe
         ref={globeEl}
@@ -308,8 +303,8 @@ export default function GlobalTrackerClient({
         polygonsTransitionDuration={300}
         arcsData={arcsData}
         arcColor={'color'}
-        arcDashLength={0.4}
-        arcDashGap={0.1}
+        arcDashLength={d => d.dashLength || 0.4}
+        arcDashGap={d => d.dashGap || 0.1}
         arcDashAnimateTime={2000}
         arcStroke={0.5}
         pointsData={pointsData}
@@ -321,23 +316,10 @@ export default function GlobalTrackerClient({
         pointLabel="name"
         onGlobeReady={() => setGlobeReady(true)}
       />
-      {selectedProduct && (
-        <SelectedProductCustomsInfoCard
-          product={selectedProduct}
-          alerts={selectedProductAlerts}
-          onDismiss={() => handleProductSelect(null)}
-          destinationCountry={destinationCountry}
-          roleSlug={roleSlug}
-        />
-      )}
-      {clickedCountryInfo && (
-        <ClickedCountryInfoCard
-          countryInfo={clickedCountryInfo}
-          onDismiss={() => setClickedCountryInfo(null)}
-          roleSlug={roleSlug}
-        />
-      )}
-       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
+      {selectedProduct && <SelectedProductCustomsInfoCard product={selectedProduct} alerts={selectedProductAlerts} onDismiss={() => handleProductSelect(null)} destinationCountry={destinationCountry} roleSlug={roleSlug} />}
+      {clickedCountryInfo && <ClickedCountryInfoCard countryInfo={clickedCountryInfo} onDismiss={() => setClickedCountryInfo(null)} roleSlug={roleSlug} />}
+      {simulatedRoute && <SimulatedRouteInfoCard route={simulatedRoute} onDismiss={() => setSimulatedRoute(null)} />}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: getPointColorForStatus('Verified')}}/>Verified</div>
           <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: getPointColorForStatus('Pending')}}/>Pending</div>

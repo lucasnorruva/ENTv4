@@ -24,6 +24,8 @@ import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flo
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
 import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
+import { analyzeTransitRisk as analyzeTransitRiskFlow } from '@/ai/flows/analyze-transit-risk';
+import type { AnalyzeTransitRiskInput } from '@/ai/flows/analyze-transit-risk';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -510,4 +512,8 @@ export async function analyzeConstructionData(
     );
     
     return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeTransitRisk(input: AnalyzeTransitRiskInput) {
+    return analyzeTransitRiskFlow(input);
 }
