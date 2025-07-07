@@ -298,5 +298,13 @@ export let products: Product[] = [
       isCompliant: false,
       gaps: [],
     },
+    transit: {
+      stage: 'In Transit',
+      eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
+      transport: 'Ship',
+      origin: 'USA',
+      destination: 'Germany',
+      departureDate: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
+    },
   },
 ];
