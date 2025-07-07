@@ -21,6 +21,7 @@ import {
   Ticket,
   ShieldAlert,
   ListChecks,
+  Fingerprint,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -83,6 +84,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        { title: 'Blockchain', icon: Fingerprint, href: 'blockchain' },
         { title: 'Platform Logs', icon: Clock, href: 'logs' },
       ],
     },
