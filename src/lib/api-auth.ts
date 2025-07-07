@@ -11,7 +11,7 @@ import { checkRateLimit, RateLimitError } from '@/services/rate-limiter';
  * This function performs the following steps:
  * 1. Extracts the token from the Authorization header.
  * 2. Looks up the API key using the raw token (mock implementation).
- * 3. Checks if the key is active.
+ * 3. Checks if the key is active, not expired, and if the request IP is allowed.
  * 4. Finds the user associated with the key.
  * 5. Checks the rate limit for the API key.
  * 6. Updates the `lastUsed` timestamp on the key.
@@ -37,6 +37,22 @@ export async function authenticateApiRequest(): Promise<User> {
   if (!apiKey || apiKey.status !== 'Active') {
     throw new PermissionError('Invalid or revoked API key.');
   }
+
+  // Check for expiration
+  if (apiKey.expiresAt && new Date(apiKey.expiresAt) < new Date()) {
+    // Optionally update status to 'Revoked' here or have a cron job do it.
+    throw new PermissionError('API key has expired.');
+  }
+
+  // Check IP restrictions
+  // NOTE: In a real app, this should handle CIDR ranges properly.
+  if (apiKey.ipRestrictions && apiKey.ipRestrictions.length > 0) {
+    const requestIp = headers().get('x-forwarded-for')?.split(',')[0].trim();
+    if (!requestIp || !apiKey.ipRestrictions.includes(requestIp)) {
+      throw new PermissionError('Request IP address is not allowed.');
+    }
+  }
+
 
   const user = await getUserById(apiKey.userId);
   if (!user) {

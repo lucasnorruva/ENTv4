@@ -12,6 +12,8 @@ import {
   KeyRound,
   MoreHorizontal,
   Edit,
+  Globe,
+  Calendar,
 } from 'lucide-react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -19,6 +21,7 @@ import { Collections } from '@/lib/constants';
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { revokeApiKey, deleteApiKey } from '@/lib/actions/api-key-actions';
+import { format, formatDistanceToNow } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +60,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import ApiKeyForm from './api-key-form';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 interface ApiKeysClientProps {
   user: User;
@@ -186,8 +190,10 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
             <TableRow>
               <TableHead>Label</TableHead>
               <TableHead>Token</TableHead>
-              <TableHead>Scopes</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Expires</TableHead>
+              <TableHead>IP Restrictions</TableHead>
+              <TableHead>Last Used</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -199,20 +205,50 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                   {key.token}
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-wrap gap-1">
-                    {key.scopes.map(scope => (
-                      <Badge key={scope} variant="secondary">
-                        {scope}
-                      </Badge>
-                    ))}
-                  </div>
-                </TableCell>
-                <TableCell>
                   <Badge
                     variant={key.status === 'Active' ? 'default' : 'secondary'}
                   >
                     {key.status}
                   </Badge>
+                </TableCell>
+                <TableCell>
+                  {key.expiresAt ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                           <span className="flex items-center gap-1 text-xs">
+                            <Calendar className="h-4 w-4"/>
+                            {formatDistanceToNow(new Date(key.expiresAt), { addSuffix: true })}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {format(new Date(key.expiresAt), 'PPP')}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    'Never'
+                  )}
+                </TableCell>
+                <TableCell>
+                  {key.ipRestrictions && key.ipRestrictions.length > 0 ? (
+                     <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <span className="flex items-center gap-1 text-xs">
+                           <Globe className="h-4 w-4"/>
+                           {key.ipRestrictions.length} IP(s)
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {key.ipRestrictions.join(', ')}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : 'Any'}
+                </TableCell>
+                <TableCell>
+                    {key.lastUsed ? formatDistanceToNow(new Date(key.lastUsed), { addSuffix: true }) : 'Never'}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -224,7 +260,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     <DropdownMenuContent>
                       <DropdownMenuItem onClick={() => handleEdit(key)}>
                         <Edit className="mr-2 h-4 w-4" />
-                        Edit Scopes
+                        Edit Details
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleRevokeKey(key.id)}
@@ -269,7 +305,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
             ))}
             {apiKeys.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-48 text-center">
+                <TableCell colSpan={7} className="h-48 text-center">
                   <div className="flex flex-col items-center justify-center gap-4">
                     <KeyRound className="h-12 w-12 text-muted-foreground" />
                     <h3 className="text-xl font-semibold">No API Keys Yet</h3>

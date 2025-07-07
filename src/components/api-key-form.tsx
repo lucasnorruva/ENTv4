@@ -4,6 +4,8 @@
 import React, { useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -25,11 +27,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Loader2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { Textarea } from './ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { saveApiKey } from '@/lib/actions/api-key-actions';
 import { apiKeyFormSchema, type ApiKeyFormValues } from '@/lib/schemas';
 import type { ApiKey, User } from '@/types';
+import { cn } from '@/lib/utils';
 
 // Pre-defined scopes for the platform
 const AVAILABLE_SCOPES = [
@@ -62,6 +67,7 @@ export default function ApiKeyForm({
     defaultValues: {
       label: '',
       scopes: [],
+      ipRestrictions: '',
     },
   });
 
@@ -71,11 +77,15 @@ export default function ApiKeyForm({
         form.reset({
           label: apiKey.label,
           scopes: apiKey.scopes || [],
+          expiresAt: apiKey.expiresAt ? new Date(apiKey.expiresAt) : undefined,
+          ipRestrictions: apiKey.ipRestrictions?.join(', ') || '',
         });
       } else {
         form.reset({
           label: '',
           scopes: ['product:read'], // Default scope
+          expiresAt: undefined,
+          ipRestrictions: '',
         });
       }
     }
@@ -103,7 +113,7 @@ export default function ApiKeyForm({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{apiKey ? 'Edit API Key' : 'Create API Key'}</DialogTitle>
           <DialogDescription>
@@ -112,7 +122,7 @@ export default function ApiKeyForm({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="label"
@@ -126,59 +136,118 @@ export default function ApiKeyForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="scopes"
-              render={() => (
-                <FormItem>
-                  <div className="mb-4">
-                    <FormLabel>Scopes</FormLabel>
-                    <FormDescription>
-                      Select the permissions this key will have.
-                    </FormDescription>
-                  </div>
-                  <div className="space-y-2">
-                    {AVAILABLE_SCOPES.map(item => (
-                      <FormField
-                        key={item.id}
-                        control={form.control}
-                        name="scopes"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={item.id}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(item.id)}
-                                  onCheckedChange={checked => {
-                                    return checked
-                                      ? field.onChange([
-                                          ...(field.value || []),
-                                          item.id,
-                                        ])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            value => value !== item.id,
-                                          ),
-                                        );
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="font-normal">
-                                {item.label}
-                              </FormLabel>
-                            </FormItem>
-                          );
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="scopes"
+                  render={() => (
+                    <FormItem>
+                      <FormLabel>Scopes</FormLabel>
+                      <div className="space-y-2 border rounded-md p-3 min-h-[160px]">
+                        {AVAILABLE_SCOPES.map(item => (
+                          <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="scopes"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={item.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={field.value?.includes(item.id)}
+                                      onCheckedChange={checked => {
+                                        return checked
+                                          ? field.onChange([
+                                              ...(field.value || []),
+                                              item.id,
+                                            ])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                value => value !== item.id,
+                                              ),
+                                            );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    {item.label}
+                                  </FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="space-y-6">
+                    <FormField
+                    control={form.control}
+                    name="expiresAt"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Expiration Date (Optional)</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={form.control}
+                    name="ipRestrictions"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>IP Restrictions (Optional)</FormLabel>
+                        <FormControl>
+                            <Textarea
+                            placeholder="e.g. 203.0.113.42, 198.51.100.0/24"
+                            {...field}
+                            />
+                        </FormControl>
+                        <FormDescription>
+                            Comma-separated list of IP addresses or CIDR blocks.
+                        </FormDescription>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
+            </div>
+
             <DialogFooter className="pt-4">
               <DialogClose asChild>
                 <Button type="button" variant="outline">

@@ -12,6 +12,7 @@ export let apiKeys: ApiKey[] = [
     status: 'Active',
     userId: 'user-developer',
     scopes: ['product:read', 'product:write', 'compliance:read'],
+    ipRestrictions: ['203.0.113.0/24'],
     lastUsed: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
@@ -26,5 +27,17 @@ export let apiKeys: ApiKey[] = [
     scopes: ['product:read'],
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
+  },
+  {
+    id: 'key-003',
+    label: 'Analytics Partner (Expired)',
+    rawToken: 'nor_exp_5555555555_qwerty',
+    token: 'nor_exp_******************erty',
+    status: 'Active', // A cron job would mark this as revoked
+    userId: 'user-developer',
+    scopes: ['product:read'],
+    expiresAt: new Date(new Date(now).setDate(now.getDate() - 7)).toISOString(),
+    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
+    updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
   },
 ];

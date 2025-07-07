@@ -377,6 +377,8 @@ export interface ApiKey extends BaseEntity {
   userId: string;
   scopes: string[];
   lastUsed?: string;
+  expiresAt?: string; // ISO 8601 date string
+  ipRestrictions?: string[]; // Array of CIDR notations
 }
 
 /**
@@ -406,8 +408,8 @@ export interface ApiSettings {
  * Represents a rate limit counter for a specific key.
  */
 export interface ApiRateLimit {
-  count: number;
-  windowStart: number; // Unix timestamp
+  tokens: number;
+  lastRefilled: number; // Unix timestamp
 }
 
 /**

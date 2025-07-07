@@ -31,6 +31,11 @@ export async function saveApiKey(
   let savedKey: ApiKey;
   let rawToken: string | undefined = undefined;
 
+  const ipRestrictions = validatedData.ipRestrictions
+    ?.split(',')
+    .map(ip => ip.trim())
+    .filter(Boolean);
+
   if (keyId) {
     const keyIndex = mockApiKeys.findIndex(
       k => k.id === keyId && k.userId === userId,
@@ -40,13 +45,15 @@ export async function saveApiKey(
       ...mockApiKeys[keyIndex],
       label: validatedData.label,
       scopes: validatedData.scopes,
+      expiresAt: validatedData.expiresAt?.toISOString(),
+      ipRestrictions: ipRestrictions,
       updatedAt: now,
     };
     mockApiKeys[keyIndex] = savedKey;
     await logAuditEvent(
       'api_key.updated',
       keyId,
-      { changes: ['label', 'scopes'] },
+      { changes: ['label', 'scopes', 'expiresAt', 'ipRestrictions'] },
       userId,
     );
     return { key: savedKey };
@@ -59,6 +66,8 @@ export async function saveApiKey(
       id: newId('key'),
       label: validatedData.label,
       scopes: validatedData.scopes,
+      expiresAt: validatedData.expiresAt?.toISOString(),
+      ipRestrictions: ipRestrictions,
       token: `nor_mock_******************${rawToken.slice(-4)}`,
       rawToken: rawToken, // Store the full token for mock auth
       status: 'Active',

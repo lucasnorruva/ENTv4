@@ -237,6 +237,8 @@ export type WebhookFormValues = z.infer<typeof webhookFormSchema>;
 export const apiKeyFormSchema = z.object({
   label: z.string().min(3, 'Label must be at least 3 characters.'),
   scopes: z.array(z.string()).min(1, { message: 'You must select at least one scope.' }),
+  expiresAt: z.date().optional(),
+  ipRestrictions: z.string().optional(),
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
