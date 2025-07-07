@@ -1,7 +1,13 @@
 // src/components/compliance-path-management.tsx
 'use client';
 
-import React, { useState, useEffect, useTransition, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useTransition,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -10,18 +16,23 @@ import {
   Loader2,
   ListTree,
   Search,
+  BookCopy,
 } from 'lucide-react';
 
-import type { CompliancePath, User } from '@/types';
+import type { CompliancePath, User, Product } from '@/types';
 import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
-import { deleteCompliancePath, getCompliancePaths } from '@/lib/actions/compliance-actions';
+import {
+  deleteCompliancePath,
+  getCompliancePaths,
+} from '@/lib/actions/compliance-actions';
 import { hasRole } from '@/lib/auth-utils';
 
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -46,6 +57,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import CompliancePathForm from './compliance-path-form';
 import { Input } from './ui/input';
+import { getProducts } from '@/lib/actions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
 
 interface CompliancePathManagementProps {
   user: User;
@@ -55,36 +74,68 @@ export default function CompliancePathManagement({
   user,
 }: CompliancePathManagementProps) {
   const [paths, setPaths] = useState<CompliancePath[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedPath, setSelectedPath] = useState<CompliancePath | null>(
     null,
   );
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
   const fetchPaths = useCallback(() => {
     setIsLoading(true);
-    getCompliancePaths()
-      .then(setPaths)
+    Promise.all([getCompliancePaths(), getProducts(user.id)])
+      .then(([paths, prods]) => {
+        setPaths(paths);
+        setProducts(prods);
+      })
       .catch(() => {
         toast({
           title: 'Error',
-          description: 'Failed to load compliance paths.',
+          description: 'Failed to load initial data.',
           variant: 'destructive',
         });
       })
       .finally(() => setIsLoading(false));
-  }, [toast]);
+  }, [toast, user.id]);
 
   useEffect(() => {
     fetchPaths();
   }, [fetchPaths]);
 
+  const pathUsageCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      if (product.compliancePathId) {
+        counts.set(
+          product.compliancePathId,
+          (counts.get(product.compliancePathId) || 0) + 1,
+        );
+      }
+    });
+    return counts;
+  }, [products]);
+
+  const uniqueCategories = useMemo(() => {
+    const categories = new Set(paths.map(p => p.category));
+    return ['all', ...Array.from(categories)];
+  }, [paths]);
+
   const filteredPaths = useMemo(() => {
-    if (!searchTerm) return paths;
-    return paths.filter(
+    let tempPaths = paths;
+
+    if (categoryFilter !== 'all') {
+      tempPaths = tempPaths.filter(path => path.category === categoryFilter);
+    }
+
+    if (!searchTerm) {
+      return tempPaths;
+    }
+
+    return tempPaths.filter(
       path =>
         path.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         path.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,7 +143,7 @@ export default function CompliancePathManagement({
           r.toLowerCase().includes(searchTerm.toLowerCase()),
         ),
     );
-  }, [paths, searchTerm]);
+  }, [paths, searchTerm, categoryFilter]);
 
   const handleCreateNew = () => {
     setSelectedPath(null);
@@ -122,12 +173,12 @@ export default function CompliancePathManagement({
 
   const handleSave = (savedPath: CompliancePath) => {
     setPaths(prev => {
-        const exists = prev.some(p => p.id === savedPath.id);
-        if (exists) {
-            return prev.map(p => p.id === savedPath.id ? savedPath : p);
-        }
-        return [savedPath, ...prev];
-    })
+      const exists = prev.some(p => p.id === savedPath.id);
+      if (exists) {
+        return prev.map(p => (p.id === savedPath.id ? savedPath : p));
+      }
+      return [savedPath, ...prev];
+    });
     setIsFormOpen(false);
   };
 
@@ -159,14 +210,28 @@ export default function CompliancePathManagement({
           )}
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, category, or regulation..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, category, or regulation..."
+              className="pl-9"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <SelectValue placeholder="Filter by category..." />
+            </SelectTrigger>
+            <SelectContent>
+              {uniqueCategories.map(cat => (
+                <SelectItem key={cat} value={cat}>
+                  {cat === 'all' ? 'All Categories' : cat}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {isLoading ? (
@@ -276,6 +341,12 @@ export default function CompliancePathManagement({
                     </ul>
                   </div>
                 </CardContent>
+                 <CardFooter className="mt-auto pt-4 border-t">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <BookCopy className="h-3.5 w-3.5 mr-2" />
+                    Assigned to {pathUsageCounts.get(path.id) || 0} products
+                  </div>
+                </CardFooter>
               </Card>
             ))}
           </div>
