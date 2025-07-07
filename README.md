@@ -7,11 +7,12 @@ To democratize sustainability and compliance by providing the world's most robus
 
 ## Key Features
 
--   **AI-Powered Intelligence**: Leverage Google's Gemini models via Genkit for automated compliance checking against 75+ regulations, dynamic ESG scoring, supply chain risk assessment, and auto-generation of product descriptions and compliance summaries.
+-   **AI-Powered Intelligence**: Leverage Google's Gemini models via Genkit for automated compliance checking, ESG scoring, supply chain risk analysis, and auto-generation of product descriptions and conformity declarations.
 -   **Enterprise-Grade Security**: Built with a focus on security, all data integrity can be secured via blockchain anchoring for immutable proof of authenticity.
 -   **Multi-Persona Dashboards**: A multi-tenant system with distinct, feature-rich dashboards and granular permissions for 10 unique roles, including Suppliers, Auditors, Compliance Managers, Service Providers, and Manufacturers.
--   **Global Supply Chain Visualization**: An interactive 3D globe tracker to visualize product transit routes and supply chain networks in real-time.
+-   **Global Supply Chain Visualization**: An interactive 3D globe tracker to visualize product transit routes, customs alerts, and supply chain networks in real-time.
 -   **Seamless Integration**: A developer-friendly GraphQL API, a versioned REST API, and a webhook system for real-time notifications and integration with external ERPs or e-commerce platforms.
+-   **Advanced Trust Hub**: A dedicated control center for managing the cryptographic lifecycle of products, including on-chain anchoring, Verifiable Credential (VC) issuer status, and Zero-Knowledge Proof (ZKP) generation.
 
 ## Tech Stack
 
@@ -92,6 +93,14 @@ This command concurrently starts two processes:
 -   **Next.js Frontend**: Runs the main web application. The dashboard can be accessed at `http://localhost:9002`.
 
 Both services will run in the same terminal, and you will see logs from both. Upon starting, the Firebase Emulators (Firestore, Auth, Storage) will be automatically launched.
+
+### Interactive Demo
+
+To quickly explore the different user roles and dashboards, you can use the interactive demo page. Navigate to:
+
+`http://localhost:9002/demo`
+
+From there, you can log in as any of the 10 pre-configured user personas to experience their unique workflow and features.
 
 ## Testing
 
