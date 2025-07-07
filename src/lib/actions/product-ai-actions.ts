@@ -27,6 +27,7 @@ import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import type { AnalyzeSimulatedRouteOutput, AnalyzeProductTransitRiskOutput } from '@/types/ai-outputs';
+import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -559,4 +560,45 @@ export async function analyzeProductTransitRisk(
     originCountry: product.transit.origin,
     destinationCountry: product.transit.destination,
   });
+}
+
+export async function analyzeFoodSafetyData(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+  checkPermission(user, 'product:edit', product);
+
+  if (
+    !product.foodSafety ||
+    !product.foodSafety.ingredients ||
+    product.foodSafety.ingredients.length === 0
+  ) {
+    throw new Error('No ingredients provided to analyze for food safety.');
+  }
+
+  const analysisResult = await analyzeFoodSafetyFlow({
+    productName: product.productName,
+    ingredients: product.foodSafety.ingredients.map(i => i.value),
+    packagingMaterials: product.packaging ? [product.packaging.type] : [],
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].foodSafetyAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.food_safety_analysis',
+    productId,
+    { result: analysisResult },
+    userId,
+  );
+
+  return Promise.resolve(mockProducts[productIndex]);
 }

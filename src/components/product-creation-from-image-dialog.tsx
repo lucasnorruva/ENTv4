@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { createProductFromImage } from '@/lib/actions/product-actions';
+import { createProductFromImage } from '@/lib/actions/product-ai-actions';
 import type { User } from '@/types';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
 import { Loader2, Sparkles } from 'lucide-react';

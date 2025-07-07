@@ -1,4 +1,3 @@
-
 // src/app/dashboard/supplier/products/new/page.tsx
 import ProductForm from '@/components/product-form';
 import { getCurrentUser } from '@/lib/auth';
