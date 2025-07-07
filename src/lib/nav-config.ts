@@ -23,7 +23,10 @@ import {
   Globe,
   LifeBuoy,
   Landmark,
+  LayoutDashboard,
+  FlaskConical,
   BookOpen,
+  Settings,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -40,6 +43,42 @@ interface NavGroup {
 }
 
 type NavConfig = Record<Role, NavGroup[]>;
+
+export const developerNavItems = [
+  {
+    href: `/dashboard/developer`,
+    icon: LayoutDashboard,
+    text: 'Dashboard',
+  },
+  { href: `/dashboard/developer/keys`, icon: KeyRound, text: 'API Keys' },
+  { href: `/dashboard/developer/webhooks`, icon: Webhook, text: 'Webhooks' },
+  {
+    href: `/dashboard/developer/analytics`,
+    icon: BarChart3,
+    text: 'Analytics',
+  },
+  {
+    href: `#`,
+    icon: FlaskConical,
+    text: 'Playground',
+  },
+  {
+    href: `/docs`,
+    icon: FileCode,
+    text: 'Docs',
+    external: true,
+  },
+  {
+    href: `/dashboard/developer/integrations`,
+    icon: Wrench,
+    text: 'Integrations',
+  },
+  {
+    href: `/dashboard/developer/settings`,
+    icon: Settings,
+    text: 'Settings',
+  },
+];
 
 export const navConfig: NavConfig = {
   [UserRoles.ADMIN]: [
@@ -216,31 +255,7 @@ export const navConfig: NavConfig = {
       ],
     },
   ],
-  [UserRoles.DEVELOPER]: [
-    {
-      label: 'API & Services',
-      items: [
-        { title: 'API Keys', icon: KeyRound, href: 'keys' },
-        { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
-        { title: 'Integrations', icon: Wrench, href: 'integrations' },
-        { title: 'API Settings', icon: Cog, href: 'api-settings' },
-      ]
-    },
-    {
-      label: 'Monitoring',
-      items: [
-        { title: 'API Logs', icon: History, href: 'logs' },
-        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
-      ],
-    },
-    {
-      label: 'Resources',
-      items: [
-        { title: 'API Reference', icon: FileCode, href: '/docs/api', external: true },
-        { title: 'Documentation', icon: BookOpen, href: '/docs', external: true },
-      ],
-    }
-  ],
+  [UserRoles.DEVELOPER]: [], // Developer uses developerNavItems now
   [UserRoles.RECYCLER]: [
     {
       label: 'Operations',

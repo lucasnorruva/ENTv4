@@ -6,10 +6,25 @@ import type { User } from '@/types';
 import Logo from './logo';
 import { ThemeToggle } from './theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { UserCircle, PanelLeft } from 'lucide-react';
-import DeveloperNav from './developer-nav';
+import {
+  UserCircle,
+  Menu,
+} from 'lucide-react';
 import { Sheet, SheetTrigger, SheetContent } from './ui/sheet';
 import { Button } from './ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from './ui/input';
+import { Search } from 'lucide-react';
+import GlobalSearchButton from './global-search-button';
+import { developerNavItems } from '@/lib/nav-config';
+import DeveloperNavTabs from './developer-nav-tabs';
+import Link from 'next/link';
 
 interface DeveloperLayoutClientProps {
   user: User;
@@ -21,19 +36,12 @@ export default function DeveloperLayoutClient({
   children,
 }: DeveloperLayoutClientProps) {
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
-      <div className="hidden border-r bg-muted/40 md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
+        <div className="flex items-center gap-4">
+          <div className="hidden md:block">
             <Logo />
           </div>
-          <div className="flex-1">
-            <DeveloperNav />
-          </div>
-        </div>
-      </div>
-      <div className="flex flex-col">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button
@@ -41,7 +49,7 @@ export default function DeveloperLayoutClient({
                 size="icon"
                 className="shrink-0 md:hidden"
               >
-                <PanelLeft className="h-5 w-5" />
+                <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle navigation menu</span>
               </Button>
             </SheetTrigger>
@@ -50,26 +58,70 @@ export default function DeveloperLayoutClient({
                 <div className="mb-4">
                   <Logo />
                 </div>
-                <DeveloperNav />
+                {developerNavItems.map(item => (
+                  <Link
+                    key={item.text}
+                    href={item.href}
+                    target={item.external ? '_blank' : '_self'}
+                    className="flex items-center gap-4 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.text}
+                  </Link>
+                ))}
               </nav>
             </SheetContent>
           </Sheet>
+        </div>
 
-          <div className="w-full flex-1">
-            {/* Future search can go here */}
+        <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
+          <span className="border-r pr-4 font-semibold text-lg text-foreground">
+            Developer Portal
+          </span>
+          <div className="flex items-center gap-2">
+            <span>Org:</span>
+            <Select defaultValue="acme-innovations">
+              <SelectTrigger className="w-[180px] h-8">
+                <SelectValue placeholder="Select Organization" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="acme-innovations">
+                  Acme Innovations
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+          <div className="flex items-center gap-2">
+            <span>Environment:</span>
+            <Select defaultValue="sandbox">
+              <SelectTrigger className="w-[120px] h-8">
+                <SelectValue placeholder="Select Environment" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sandbox">Sandbox</SelectItem>
+                <SelectItem value="production" disabled>
+                  Production
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="ml-auto flex items-center gap-4">
+          <GlobalSearchButton user={user} role="Developer" />
           <ThemeToggle />
-          <Avatar className="ml-4">
+          <Avatar>
             <AvatarImage src={user.avatarUrl} />
             <AvatarFallback>
               <UserCircle />
             </AvatarFallback>
           </Avatar>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          {children}
-        </main>
-      </div>
+        </div>
+      </header>
+      <main className="flex flex-1 flex-col">
+        <DeveloperNavTabs />
+        <div className="flex-1 p-4 sm:p-6">{children}</div>
+      </main>
     </div>
   );
 }
