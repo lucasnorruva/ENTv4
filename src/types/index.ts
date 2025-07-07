@@ -64,6 +64,8 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
+  isTrustedIssuer: boolean;
+  revocationListUrl?: string;
   settings?: {
     aiEnabled: boolean;
     apiAccess: boolean;
@@ -271,8 +273,10 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
+  manualFileHash?: string;
   model3dUrl?: string;
   model3dFileName?: string;
+  model3dFileHash?: string;
   declarationOfConformity?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;

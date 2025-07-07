@@ -13,6 +13,8 @@ import {
   Recycle,
   BookText,
   Paperclip,
+  View,
+  Fingerprint,
 } from 'lucide-react';
 import type { Product, ServiceRecord } from '@/types';
 import {
@@ -30,6 +32,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 function InfoRow({
   icon: Icon,
@@ -106,21 +109,71 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
         />
         <InfoRow icon={BookText} label="Service Manual">
           {product.manualUrl ? (
-            <Button asChild variant="outline" size="sm">
-              <a
-                href={product.manualUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Paperclip className="mr-2 h-4 w-4" />
-                {product.manualFileName || 'Download Manual'}
-                {product.manualFileSize && (
-                  <span className="text-xs text-muted-foreground ml-2">
-                    ({(product.manualFileSize / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                )}
-              </a>
-            </Button>
+            <div>
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={product.manualUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Paperclip className="mr-2 h-4 w-4" />
+                  {product.manualFileName || 'Download Manual'}
+                  {product.manualFileSize && (
+                    <span className="text-xs text-muted-foreground ml-2">
+                      ({(product.manualFileSize / 1024 / 1024).toFixed(2)} MB)
+                    </span>
+                  )}
+                </a>
+              </Button>
+               {product.manualFileHash && (
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
+                                <Fingerprint className="h-3 w-3" />
+                                <span className="font-mono">SHA256: {product.manualFileHash.substring(0, 16)}...</span>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p className="font-mono text-xs">{product.manualFileHash}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                 </TooltipProvider>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Not provided.</p>
+          )}
+        </InfoRow>
+         <InfoRow icon={View} label="3D Model">
+          {product.model3dUrl ? (
+             <div>
+              <Button asChild variant="outline" size="sm">
+                <a
+                  href={product.model3dUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Paperclip className="mr-2 h-4 w-4" />
+                  {product.model3dFileName || 'Download Model'}
+                </a>
+              </Button>
+               {product.model3dFileHash && (
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
+                                <Fingerprint className="h-3 w-3" />
+                                <span className="font-mono">SHA256: {product.model3dFileHash.substring(0, 16)}...</span>
+                            </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p className="font-mono text-xs">{product.model3dFileHash}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                 </TooltipProvider>
+              )}
+            </div>
           ) : (
             <p className="text-sm text-muted-foreground">Not provided.</p>
           )}

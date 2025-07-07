@@ -16,7 +16,12 @@ export let products: Product[] = [
     status: 'Published',
     compliancePathId: 'cp-electronics-01',
     manualUrl: 'https://example.com/manual.pdf',
+    manualFileName: 'smartwatch-manual-v5.pdf',
+    manualFileSize: 1258291,
+    manualFileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     model3dUrl: '/watch-v1.glb',
+    model3dFileName: 'watch-v1.glb',
+    model3dFileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     createdAt: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
     lastUpdated: new Date(

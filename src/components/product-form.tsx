@@ -46,6 +46,13 @@ interface ProductFormProps {
   roleSlug: string;
 }
 
+async function hashFile(file: File): Promise<string> {
+    const buffer = await file.arrayBuffer();
+    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 export default function ProductForm({
   initialData,
   user,
@@ -108,8 +115,10 @@ export default function ProductForm({
     manualUrl: '',
     manualFileName: '',
     manualFileSize: 0,
+    manualFileHash: '',
     model3dUrl: '',
     model3dFileName: '',
+    model3dFileHash: '',
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
@@ -183,10 +192,12 @@ export default function ProductForm({
     }
   };
 
-  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleManualChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setManualFile(file);
+      const fileHash = await hashFile(file);
+      form.setValue('manualFileHash', fileHash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -196,10 +207,12 @@ export default function ProductForm({
     }
   };
   
-  const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleModelChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
       setModelFile(file);
+      const fileHash = await hashFile(file);
+      form.setValue('model3dFileHash', fileHash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -300,8 +313,10 @@ export default function ProductForm({
       let manualUrl = initialData?.manualUrl;
       let manualFileName = initialData?.manualFileName;
       let manualFileSize = initialData?.manualFileSize;
+      let manualFileHash = initialData?.manualFileHash;
       let model3dUrl = initialData?.model3dUrl;
       let model3dFileName = initialData?.model3dFileName;
+      let model3dFileHash = initialData?.model3dFileHash;
 
       if (imageFile) {
         setIsUploading(true);
@@ -376,6 +391,7 @@ export default function ProductForm({
           });
           manualFileName = manualFile.name;
           manualFileSize = manualFile.size;
+          manualFileHash = await hashFile(manualFile);
         } catch (error) {
           toast({ title: 'Manual Upload Failed', variant: 'destructive' });
           return;
@@ -407,6 +423,7 @@ export default function ProductForm({
             );
           });
           model3dFileName = modelFile.name;
+          model3dFileHash = await hashFile(modelFile);
         } catch (error) {
           toast({ title: '3D Model Upload Failed', variant: 'destructive' });
           return;
@@ -420,8 +437,10 @@ export default function ProductForm({
           manualUrl,
           manualFileName,
           manualFileSize,
+          manualFileHash: manualFileHash || values.manualFileHash,
           model3dUrl,
           model3dFileName,
+          model3dFileHash: model3dFileHash || values.model3dFileHash,
         };
         const saved = await saveProduct(
           productData,

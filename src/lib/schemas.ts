@@ -133,6 +133,11 @@ const textileDataSchema = z.object({
   weaveType: z.string().optional(),
 });
 
+const foodSafetyDataSchema = z.object({
+  ingredients: z.array(z.object({ value: z.string().min(1, "Ingredient cannot be empty.") })).optional(),
+  allergens: z.string().optional(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -147,14 +152,16 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
   manualFileName: z.string().optional(),
   manualFileSize: z.number().optional(),
+  manualFileHash: z.string().optional(),
   model3dUrl: z.string().url().optional().or(z.literal('')),
   model3dFileName: z.string().optional(),
+  model3dFileHash: z.string().optional(),
   declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
@@ -165,6 +172,7 @@ export const productFormSchema = z.object({
   compliance: complianceSchema.optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
+  foodSafety: foodSafetyDataSchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
 });
 
