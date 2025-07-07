@@ -226,7 +226,7 @@ export default function GeneralTab({
                 <SelectItem value="Fashion">Fashion</SelectItem>
                 <SelectItem value="Home Goods">Home Goods</SelectItem>
                 <SelectItem value="Construction">Construction</SelectItem>
-                <SelectItem value="Food & Beverage">Food & Beverage</SelectItem>
+                <SelectItem value="Food &amp; Beverage">Food &amp; Beverage</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

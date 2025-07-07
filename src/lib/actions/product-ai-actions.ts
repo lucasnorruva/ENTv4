@@ -252,6 +252,7 @@ export async function generateConformityDeclarationText(
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
+    foodSafety: product.foodSafety,
   };
 
   const { declarationText } = await generateConformityDeclarationFlow({
@@ -324,6 +325,7 @@ export async function generatePcdsForProduct(
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
+    foodSafety: product.foodSafety,
   };
 
   const pcdsData = await generatePcdsFlow({ product: aiProductInput });
@@ -373,6 +375,7 @@ export async function runLifecyclePrediction(
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
+    foodSafety: product.foodSafety,
   };
 
   const predictionResult = await predictProductLifecycleFlow({
@@ -426,6 +429,7 @@ export async function askQuestionAboutProduct(
     verificationStatus: product.verificationStatus,
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
+    foodSafety: product.foodSafety,
   };
 
   return await productQa({ productContext, question });
