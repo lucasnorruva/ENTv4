@@ -9,6 +9,7 @@ import type {
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
   ProductTransitRiskAnalysis,
+  AnalyzeSimulatedRouteOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -40,12 +41,6 @@ export interface User extends BaseEntity {
   isMfaEnabled: boolean;
   readNotificationIds?: string[];
   circularityCredits?: number;
-  notificationPreferences?: {
-    productUpdates?: boolean;
-    complianceAlerts?: boolean;
-    platformNews?: boolean;
-  };
-  avatarUrl?: string;
 }
 
 export interface CustomFieldDefinition {
@@ -140,13 +135,6 @@ export interface TextileData {
 }
 
 export interface TextileAnalysis extends AnalyzeTextileOutput {}
-export interface ConstructionAnalysis extends AnalyzeConstructionMaterialOutput {}
-
-export interface EprScheme {
-  schemeId?: string;
-  producerRegistrationNumber?: string;
-  wasteCategory?: string;
-}
 
 export interface Compliance {
   rohs?: {
@@ -175,27 +163,6 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
-  epr?: EprScheme;
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
-}
-
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
 }
 
 export interface ComplianceGap {
@@ -286,7 +253,6 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   compliance?: Compliance;
-  greenClaims?: GreenClaim[];
   modelHotspots?: ModelHotspot[];
 
   // AI-Generated & Compliance Data
@@ -296,7 +262,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: TextileAnalysis;
-  constructionAnalysis?: ConstructionAnalysis;
+  constructionAnalysis?: AnalyzeConstructionMaterialOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
@@ -436,8 +402,6 @@ export interface ApiRateLimit {
 
 export type { TransitInfo, CustomsAlert, CustomsStatus };
 
-export type SimulatedRoute = ProductTransitRiskAnalysis & {
-  origin: string;
-  destination: string;
+export type SimulatedRoute = AnalyzeSimulatedRouteOutput & {
   productId: string;
 };
