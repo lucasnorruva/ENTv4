@@ -8,14 +8,13 @@ import { format } from 'date-fns';
 import {
   Loader2,
   Fingerprint,
-  ChevronRight,
   RefreshCw,
   Rocket,
   Download,
   FileClock,
   ExternalLink,
 } from 'lucide-react';
-
+import { cn } from '@/lib/utils';
 import type { Product, User } from '@/types';
 import { getProducts, anchorProductOnChain, bulkAnchorProducts } from '@/lib/actions/product-actions';
 import { useToast } from '@/hooks/use-toast';
