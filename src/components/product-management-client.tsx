@@ -1,7 +1,7 @@
 // src/components/product-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useCallback } from 'react';
+import React, { useState, useTransition, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductTable from './product-table';
 import {
   deleteProduct,
@@ -36,19 +37,17 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 interface ProductManagementClientProps {
   user: User;
   compliancePaths: CompliancePath[];
-  initialFilter?: string;
 }
 
 export default function ProductManagementClient({
   user,
   compliancePaths,
-  initialFilter,
 }: ProductManagementClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -75,9 +74,8 @@ export default function ProductManagementClient({
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
-  const handleImport = () => {
-    setIsImportOpen(true);
-  };
+  const handleImport = () => setIsImportOpen(true);
+  const handleCreateFromImage = () => setIsCreateFromImageOpen(true);
 
   const handleImportSave = () => {
     toast({
@@ -86,10 +84,6 @@ export default function ProductManagementClient({
     });
     setIsImportOpen(false);
     fetchProducts();
-  };
-
-  const handleCreateFromImage = () => {
-    setIsCreateFromImageOpen(true);
   };
 
   const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
@@ -103,83 +97,58 @@ export default function ProductManagementClient({
 
   const handleDelete = (id: string) => {
     startTransition(async () => {
-      try {
-        await deleteProduct(id, user.id);
-        setProducts(prev => prev.filter(p => p.id !== id));
-        toast({
-          title: 'Product Deleted',
-          description: 'The product passport has been successfully deleted.',
-        });
-      } catch (e) {
-        toast({ title: 'Error deleting product', variant: 'destructive' });
-      }
+      await deleteProduct(id, user.id);
+      fetchProducts();
+      toast({ title: 'Product Deleted' });
     });
   };
 
   const handleSubmitForReview = (id: string) => {
     startTransition(async () => {
-      try {
-        const reviewedProduct = await submitForReview(id, user.id);
-        setProducts(prev => prev.map(p => (p.id === id ? reviewedProduct : p)));
-        toast({
-          title: 'Product Submitted',
-          description: `"${reviewedProduct.productName}" has been submitted for review.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Submission Failed',
-          description: 'There was an error submitting the product for review.',
-          variant: 'destructive',
-        });
-      }
+      await submitForReview(id, user.id);
+      fetchProducts();
+      toast({ title: 'Product Submitted' });
     });
   };
 
-  const handleRecalculateScore = (id: string, productName: string) => {
+  const handleRecalculateScore = (id: string, name: string) => {
     startTransition(async () => {
-      try {
-        await recalculateScore(id, user.id);
-        toast({
-          title: 'AI Recalculation Started',
-          description: `AI data for "${productName}" is being updated. This may take a moment.`,
-        });
-        // Optimistically set processing state
-        setProducts(prev =>
-          prev.map(p => (p.id === id ? { ...p, isProcessing: true } : p)),
+      await recalculateScore(id, user.id);
+      toast({ title: `Recalculating score for ${name}...` });
+      fetchProducts();
+    });
+  };
+
+  const handleBulkAction = async (
+    action: (ids: string[], userId: string) => Promise<any>,
+    productIds: string[],
+    successMessage: string,
+  ) => {
+    startTransition(async () => {
+      await action(productIds, user.id);
+      toast({ title: successMessage });
+      fetchProducts();
+    });
+  };
+
+  const [isPending, startTransition] = useTransition();
+
+  const filteredProducts = useMemo(() => {
+    switch (activeTab) {
+      case 'needsAction':
+        return products.filter(
+          p => p.status === 'Draft' || p.verificationStatus === 'Failed',
         );
-      } catch (error) {
-        toast({
-          title: 'Recalculation Failed',
-          description: 'There was an error triggering the recalculation.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
-
-  const handleBulkDelete = (productIds: string[]) => {
-    startTransition(async () => {
-      await bulkDeleteProducts(productIds, user.id);
-      toast({ title: `Deleted ${productIds.length} products.` });
-      fetchProducts(); // Refetch data
-    });
-  };
-
-  const handleBulkSubmit = (productIds: string[]) => {
-    startTransition(async () => {
-      await bulkSubmitForReview(productIds, user.id);
-      toast({ title: `Submitted ${productIds.length} products for review.` });
-      fetchProducts(); // Refetch data
-    });
-  };
-
-  const handleBulkArchive = (productIds: string[]) => {
-    startTransition(async () => {
-      await bulkArchiveProducts(productIds, user.id);
-      toast({ title: `Archived ${productIds.length} products.` });
-      fetchProducts(); // Refetch data
-    });
-  };
+      case 'live':
+        return products.filter(
+          p => p.status === 'Published' && p.verificationStatus === 'Verified',
+        );
+      case 'archived':
+        return products.filter(p => p.status === 'Archived');
+      default:
+        return products.filter(p => p.status !== 'Archived');
+    }
+  }, [products, activeTab]);
 
   return (
     <>
@@ -210,18 +179,40 @@ export default function ProductManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          <ProductTable
-            products={products}
-            user={user}
-            isLoading={isLoading}
-            onDelete={handleDelete}
-            onSubmitForReview={handleSubmitForReview}
-            onRecalculateScore={handleRecalculateScore}
-            onBulkDelete={handleBulkDelete}
-            onBulkSubmit={handleBulkSubmit}
-            onBulkArchive={handleBulkArchive}
-            initialFilter={initialFilter}
-          />
+          <Tabs
+            defaultValue="all"
+            className="w-full"
+            onValueChange={setActiveTab}
+          >
+            <TabsList>
+              <TabsTrigger value="all">All ({products.filter(p => p.status !== 'Archived').length})</TabsTrigger>
+              <TabsTrigger value="needsAction">Needs Action ({products.filter(
+                  p => p.status === 'Draft' || p.verificationStatus === 'Failed',
+                ).length})</TabsTrigger>
+              <TabsTrigger value="live">Live ({products.filter(
+                  p => p.status === 'Published' && p.verificationStatus === 'Verified',
+                ).length})</TabsTrigger>
+              <TabsTrigger value="archived">Archived ({products.filter(p => p.status === 'Archived').length})</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {isLoading ? (
+             <div className="flex justify-center items-center h-96">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+             </div>
+          ): (
+            <ProductTable
+              products={filteredProducts}
+              user={user}
+              isLoading={isLoading}
+              isProcessingAction={isPending}
+              onDelete={handleDelete}
+              onSubmitForReview={handleSubmitForReview}
+              onRecalculateScore={handleRecalculateScore}
+              onBulkDelete={ids => handleBulkAction(bulkDeleteProducts, ids, `Deleted ${ids.length} products.`)}
+              onBulkSubmit={ids => handleBulkAction(bulkSubmitForReview, ids, `Submitted ${ids.length} products.`)}
+              onBulkArchive={ids => handleBulkAction(bulkArchiveProducts, ids, `Archived ${ids.length} products.`)}
+            />
+          )}
         </CardContent>
       </Card>
       {canCreate && (

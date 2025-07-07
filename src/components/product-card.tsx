@@ -12,6 +12,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, CheckCircle, ShieldAlert } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { getStatusBadgeClasses, getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
 
 interface ProductCardProps {
   product: Product;
@@ -19,18 +21,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, roleSlug }: ProductCardProps) {
-  const getVerificationVariant = (status?: Product['verificationStatus']) => {
-    switch (status) {
-      case 'Verified':
-        return 'default';
-      case 'Pending':
-        return 'secondary';
-      case 'Failed':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
+  const verificationStatus = product.verificationStatus ?? 'Not Submitted';
 
   return (
     <Card className="flex flex-col h-full">
@@ -52,13 +43,16 @@ export default function ProductCard({ product, roleSlug }: ProductCardProps) {
       <CardContent className="flex-grow">
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary">{product.category}</Badge>
-          <Badge variant={getVerificationVariant(product.verificationStatus)}>
-            {product.verificationStatus === 'Verified' ? (
+          <Badge
+            variant={getStatusBadgeVariant(verificationStatus)}
+            className={cn('capitalize', getStatusBadgeClasses(verificationStatus))}
+          >
+            {verificationStatus === 'Verified' ? (
               <CheckCircle className="mr-1 h-3 w-3" />
             ) : (
               <ShieldAlert className="mr-1 h-3 w-3" />
             )}
-            {product.verificationStatus || 'Not Submitted'}
+            {verificationStatus}
           </Badge>
           {product.sustainability?.score && (
             <Badge variant="outline">

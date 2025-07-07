@@ -14,8 +14,6 @@ import {
   ChevronDown,
   AlertCircle,
   BookCopy,
-  ExternalLink,
-  Loader2,
   Archive,
 } from "lucide-react";
 import {
@@ -61,13 +59,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "./ui/input";
@@ -77,42 +68,45 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
-import { UserRoles } from "@/lib/constants";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
-import { getStatusBadgeVariant } from "@/lib/dppDisplayUtils";
+import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dppDisplayUtils";
+import { cn } from "@/lib/utils";
 
 interface ProductTableProps {
   products: Product[];
   user: User;
   isLoading: boolean;
+  isProcessingAction: boolean;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
   onBulkDelete: (ids: string[]) => void;
   onBulkSubmit: (ids: string[]) => void;
   onBulkArchive: (ids: string[]) => void;
-  initialFilter?: string;
 }
 
 export default function ProductTable({
   products,
   user,
   isLoading,
+  isProcessingAction,
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
   onBulkDelete,
   onBulkSubmit,
   onBulkArchive,
-  initialFilter,
 }: ProductTableProps) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "lastUpdated", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const [globalFilter, setGlobalFilter] = React.useState("");
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
@@ -166,22 +160,8 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
-          const isProcessing = row.original.isProcessing;
-
           return (
             <div className="flex items-center gap-3">
-              {isProcessing && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>AI processing is in progress.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
               <Image
                 src={row.original.productImage}
                 alt={row.original.productName}
@@ -218,14 +198,6 @@ export default function ProductTable({
         },
       },
       {
-        accessorKey: 'category',
-        header: 'Category',
-      },
-      {
-        accessorKey: 'supplier',
-        header: 'Supplier',
-      },
-      {
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => (
@@ -240,6 +212,7 @@ export default function ProductTable({
         cell: ({ row }) => (
           <Badge
             variant={getStatusBadgeVariant(row.original.verificationStatus)}
+            className={cn('capitalize', getStatusBadgeClasses(row.original.verificationStatus))}
           >
             {row.original.verificationStatus ?? 'Not Submitted'}
           </Badge>
@@ -268,7 +241,6 @@ export default function ProductTable({
                 <Button
                   variant="ghost"
                   size="icon"
-                  disabled={product.isProcessing}
                 >
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
@@ -352,6 +324,7 @@ export default function ProductTable({
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -363,7 +336,16 @@ export default function ProductTable({
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter,
     },
+    globalFilterFn: (row, columnId, filterValue) => {
+        const s = filterValue.toLowerCase();
+        return (
+          row.original.productName.toLowerCase().includes(s) ||
+          row.original.supplier.toLowerCase().includes(s) ||
+          (row.original.gtin || '').toLowerCase().includes(s)
+        );
+      },
   });
 
   const selectedRowCount = table.getFilteredSelectedRowModel().rows.length;
@@ -384,85 +366,39 @@ export default function ProductTable({
       <div className="flex items-center justify-between py-4">
         <Input
           placeholder="Filter by name, GTIN, or supplier..."
-          value={(table.getColumn('productName')?.getFilterValue() as string) ?? ''}
+          value={globalFilter ?? ''}
           onChange={(event) =>
-            table.getColumn('productName')?.setFilterValue(event.target.value)
+            setGlobalFilter(event.target.value)
           }
           className="max-w-sm"
         />
 
-        <div className="flex items-center gap-2">
-            <Select
-                value={
-                  (table.getColumn("status")?.getFilterValue() as string) ??
-                  "all"
-                }
-                onValueChange={(value) =>
-                  table
-                    .getColumn("status")
-                    ?.setFilterValue(value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Published">Published</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
-                  <SelectItem value="Archived">Archived</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={
-                  (table
-                    .getColumn("verificationStatus")
-                    ?.getFilterValue() as string) ?? "all"
-                }
-                onValueChange={(value) =>
-                  table
-                    .getColumn("verificationStatus")
-                    ?.setFilterValue(value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by verification..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Verification</SelectItem>
-                  <SelectItem value="Verified">Verified</SelectItem>
-                  <SelectItem value="Pending">Pending</SelectItem>
-                  <SelectItem value="Failed">Failed</SelectItem>
-                  <SelectItem value="Not Submitted">Not Submitted</SelectItem>
-                </SelectContent>
-              </Select>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    Columns <ChevronDown className="ml-2 h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {table
-                    .getAllColumns()
-                    .filter((column) => column.getCanHide())
-                    .map((column) => {
-                      return (
-                        <DropdownMenuCheckboxItem
-                          key={column.id}
-                          className="capitalize"
-                          checked={column.getIsVisible()}
-                          onCheckedChange={(value) =>
-                            column.toggleVisibility(!!value)
-                          }
-                        >
-                          {column.id.replace(/([A-Z])/g, " $1")}
-                        </DropdownMenuCheckboxItem>
-                      );
-                    })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">
+              Columns <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id.replace(/([A-Z])/g, " $1")}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {selectedRowCount > 0 && (
          <div className="flex-1 text-sm text-muted-foreground mb-4">
@@ -567,20 +503,15 @@ export default function ProductTable({
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-48 text-center"
-                >
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
+                  className={cn(
+                      row.original.verificationStatus === 'Failed' && 'bg-destructive/5',
+                      row.original.verificationStatus === 'Pending' && 'bg-amber-400/5'
+                  )}
                 >
                   {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id}>
@@ -596,15 +527,15 @@ export default function ProductTable({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-48 text-center"
                 >
-                  <BookCopy className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-2 text-lg font-semibold">
-                    No Products Found
-                  </h3>
-                  <p className="text-muted-foreground">
-                    No results for the current filter.
-                  </p>
+                   <BookCopy className="mx-auto h-12 w-12 text-muted-foreground" />
+                    <h3 className="mt-2 text-lg font-semibold">
+                      No Products Found
+                    </h3>
+                    <p className="text-muted-foreground">
+                      No products match the current filters.
+                    </p>
                 </TableCell>
               </TableRow>
             )}
