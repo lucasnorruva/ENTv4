@@ -141,7 +141,7 @@ export let products: Product[] = [
     productImage: 'https://placehold.co/600x400.png',
     category: 'Electronics',
     supplier: 'Eco Innovate Ltd.',
-    status: 'Draft',
+    status: 'Published',
     materials: [
       { name: 'Recycled ABS Plastic', percentage: 95, recycledContent: 95, origin: 'China' },
       { name: 'Steel Screws', percentage: 5, recycledContent: 10, origin: 'Japan' },
@@ -232,7 +232,7 @@ export let products: Product[] = [
     productImage: 'https://placehold.co/600x400.png',
     category: 'Fashion',
     supplier: 'Sustainable Threads Inc.',
-    status: 'Draft',
+    status: 'Published',
     compliancePathId: 'cp-fashion-02',
     materials: [
       { name: 'Leather', origin: 'Brazil' },
@@ -291,7 +291,7 @@ export let products: Product[] = [
     productImage: 'https://placehold.co/600x400.png',
     category: 'Electronics',
     supplier: 'Eco Innovate Ltd.',
-    status: 'Draft',
+    status: 'Published',
     materials: [
       { name: 'Carbon Fiber', origin: 'Japan' },
       { name: 'Plastic', origin: 'South Korea' },
@@ -326,7 +326,7 @@ export let products: Product[] = [
     productImage: 'https://placehold.co/600x400.png',
     category: 'Electronics',
     supplier: 'Eco Innovate Ltd.',
-    status: 'Draft',
+    status: 'Published',
     compliancePathId: 'cp-electronics-01',
     materials: [{ name: 'Lithium Battery', origin: 'USA' }, { name: 'Plastic Casing', origin: 'USA' }],
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },

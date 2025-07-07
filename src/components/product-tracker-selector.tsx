@@ -36,6 +36,13 @@ export function ProductTrackerSelector({
 }: ProductTrackerSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
+  const handleSelect = (value: string) => {
+    // The value will be the product ID or an empty string for "Clear Selection"
+    const newSelectedId = value === selectedProductId ? null : value || null;
+    onProductSelect(newSelectedId);
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -58,10 +65,7 @@ export function ProductTrackerSelector({
             <CommandEmpty>No product found.</CommandEmpty>
             <CommandGroup>
               <CommandItem
-                onSelect={() => {
-                  onProductSelect(null);
-                  setOpen(false);
-                }}
+                onSelect={() => handleSelect('')}
               >
                 Clear Selection
               </CommandItem>
@@ -69,10 +73,7 @@ export function ProductTrackerSelector({
                 <CommandItem
                   key={product.id}
                   value={product.productName}
-                  onSelect={() => {
-                    onProductSelect(product.id);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(product.id)}
                 >
                   <Check
                     className={cn(
