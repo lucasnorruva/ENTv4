@@ -89,7 +89,6 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
-  documentUrl?: string;
 }
 
 export interface Manufacturing {
@@ -127,11 +126,6 @@ export interface TextileData {
   weaveType?: string;
 }
 
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
-}
-
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -158,26 +152,6 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
-  };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
   };
 }
 
@@ -226,27 +200,6 @@ export interface ZkProof {
   verifiedAt: string;
 }
 
-export interface VerificationOverride {
-  userId: string;
-  reason: string;
-  date: string;
-}
-
-export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
-
-export interface ChainOfCustodyStep {
-  event: string;
-  actor: string;
-  location: string;
-  date: string;
-}
-
-export interface OwnershipNft {
-  tokenId: string;
-  contractAddress: string;
-  ownerAddress: string;
-}
-
 /**
  * The core Digital Product Passport entity.
  */
@@ -271,8 +224,6 @@ export interface Product extends BaseEntity {
   ebsiVcId?: string;
   zkProof?: ZkProof;
   modelHotspots?: ModelHotspot[];
-  chainOfCustody?: ChainOfCustodyStep[];
-  ownershipNft?: OwnershipNft;
   ebsiDetails?: {
     status: 'Verified' | 'Pending' | 'Failed';
     conformanceResultUrl?: string;
@@ -297,7 +248,6 @@ export interface Product extends BaseEntity {
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
-  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -310,7 +260,6 @@ export interface Product extends BaseEntity {
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
-  verificationOverride?: VerificationOverride;
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: BlockchainProof;
   isMinting?: boolean;

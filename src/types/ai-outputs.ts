@@ -92,11 +92,6 @@ import type {
   AnalyzeSimulatedRouteInput,
   AnalyzeSimulatedRouteOutput,
 } from '@/ai/flows/analyze-simulated-route';
-import type {
-  GenerateConformityDeclarationInput,
-  GenerateConformityDeclarationOutput,
-} from '@/ai/flows/generate-conformity-declaration';
-import type { GreenClaim } from '@/types';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -124,8 +119,6 @@ export type {
   AnalyzeTransitRiskInput,
   AnalyzeProductTransitRiskInput,
   AnalyzeSimulatedRouteInput,
-  GenerateConformityDeclarationInput,
-  GreenClaim,
 };
 
 // Export Output types
@@ -153,5 +146,4 @@ export type {
   AnalyzeProductTransitRiskOutput,
   AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
-  GenerateConformityDeclarationOutput,
 };

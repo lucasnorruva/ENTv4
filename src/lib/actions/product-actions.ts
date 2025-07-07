@@ -304,7 +304,7 @@ export async function bulkAnchorProducts(productIds: string[], userId: string): 
   for (const productId of productIds) {
     anchorProductOnChain(productId, userId).catch(error => {
       console.error(`Failed to anchor product ${productId}:`, error);
-      logAuditEvent('product.bulk_anchor.failed_item', productId, { error: error.message }, userId);
+      logAuditEvent('product.bulk_anchor.failed_item', productId, { error: (error as Error).message }, userId);
     });
   }
 }

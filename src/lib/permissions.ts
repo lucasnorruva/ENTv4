@@ -33,7 +33,6 @@ export type Action =
   | 'product:export_data'
   | 'product:run_prediction'
   | 'product:generate_zkp'
-  | 'product:override_verification'
   | 'compliance:manage'
   | 'user:manage'
   | 'user:edit'
@@ -98,9 +97,6 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:reject':
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
-    
-    case 'product:override_verification':
-      return hasRole(user, UserRoles.ADMIN); // This is an admin-only action
 
     case 'product:run_compliance':
       return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);

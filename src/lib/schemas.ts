@@ -87,36 +87,6 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
-  epr: z
-    .object({
-      schemeId: z.string().optional(),
-      producerRegistrationNumber: z.string().optional(),
-      wasteCategory: z.string().optional(),
-    })
-    .optional(),
-  battery: z
-    .object({
-      compliant: z.boolean().optional(),
-      passportId: z.string().optional(),
-    })
-    .optional(),
-  pfas: z
-    .object({
-      declared: z.boolean().optional(),
-    })
-    .optional(),
-  conflictMinerals: z
-    .object({
-      compliant: z.boolean().optional(),
-      reportUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-  espr: z
-    .object({
-      compliant: z.boolean().optional(),
-      delegatedActUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
 });
 
 const textileDataSchema = z.object({
@@ -126,11 +96,6 @@ const textileDataSchema = z.object({
   })).optional(),
   dyeProcess: z.string().optional(),
   weaveType: z.string().optional(),
-});
-
-const greenClaimSchema = z.object({
-  claim: z.string().min(1, 'Claim cannot be empty.'),
-  substantiation: z.string().min(1, 'Substantiation cannot be empty.'),
 });
 
 export const productFormSchema = z.object({
@@ -163,7 +128,6 @@ export const productFormSchema = z.object({
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
-  greenClaims: z.array(greenClaimSchema).optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
 });
@@ -197,8 +161,6 @@ export const companyFormSchema = z.object({
   ownerId: z.string().min(1, 'Owner ID is required.'),
   industry: z.string().optional(),
   tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
-  isTrustedIssuer: z.boolean().optional(),
-  revocationListUrl: z.string().url('Must be a valid URL.').optional().or(z.literal('')),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
@@ -308,7 +270,7 @@ export const bulkProductImportSchema = z.object({
     productName: z.string().min(3),
     productDescription: z.string().min(10),
     gtin: z.string().optional(),
-    category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']),
+    category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
     productImage: z.string().url().optional(),
     manualUrl: z.string().url().optional(),
     materials: z.string().transform((val) => (val ? JSON.parse(val) : [])),

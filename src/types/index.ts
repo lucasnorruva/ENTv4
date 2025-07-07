@@ -127,11 +127,6 @@ export interface TextileData {
   weaveType?: string;
 }
 
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
-}
-
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -158,26 +153,6 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
-  };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
   };
 }
 
@@ -297,7 +272,6 @@ export interface Product extends BaseEntity {
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
-  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
