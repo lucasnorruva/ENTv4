@@ -1,3 +1,4 @@
+
 // src/components/dpp-tracker/global-tracker-client.tsx
 'use client';
 
@@ -82,7 +83,7 @@ export default function GlobalTrackerClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { theme } } from useTheme();
+  const { theme } = useTheme();
   const { toast } = useToast();
 
   const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
