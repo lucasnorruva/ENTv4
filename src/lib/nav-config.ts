@@ -210,6 +210,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
     {
