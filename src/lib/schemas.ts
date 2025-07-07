@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { Role } from './constants';
 import { UserRoles } from './constants';
 import { textileDataSchema } from './schemas/textile';
+import type { GreenClaim } from '@/types';
 
 export const profileFormSchema = z.object({
   fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
@@ -47,6 +48,11 @@ const certificationSchema = z.object({
   issuer: z.string().min(1, 'Issuer is required.'),
   validUntil: z.string().optional(),
   documentUrl: z.string().url().optional().or(z.literal('')),
+});
+
+const greenClaimSchema = z.object({
+  claim: z.string().min(1, 'Claim text is required.'),
+  substantiation: z.string().min(1, 'Substantiation is required.'),
 });
 
 const manufacturingSchema = z.object({
@@ -119,6 +125,36 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
+  epr: z
+    .object({
+      schemeId: z.string().optional(),
+      producerRegistrationNumber: z.string().optional(),
+      wasteCategory: z.string().optional(),
+    })
+    .optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().optional(),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z
+    .object({
+      declared: z.boolean().optional(),
+    })
+    .optional(),
+  conflictMinerals: z
+    .object({
+      compliant: z.boolean().optional(),
+      reportUrl: z.string().url().optional().or(z.literal('')),
+    })
+    .optional(),
+  espr: z
+    .object({
+      compliant: z.boolean().optional(),
+      delegatedActUrl: z.string().url().optional().or(z.literal('')),
+    })
+    .optional(),
 });
 
 export const productFormSchema = z.object({
@@ -151,6 +187,7 @@ export const productFormSchema = z.object({
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
 });

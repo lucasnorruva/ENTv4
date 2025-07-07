@@ -140,6 +140,11 @@ export interface TextileData {
 
 export interface TextileAnalysis extends AnalyzeTextileOutput {}
 
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -166,6 +171,26 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
+  };
+  epr?: {
+    schemeId?: string;
+    producerRegistrationNumber?: string;
+    wasteCategory?: string;
+  };
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
   };
 }
 
@@ -257,6 +282,7 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   compliance?: Compliance;
+  greenClaims?: GreenClaim[];
   modelHotspots?: ModelHotspot[];
 
   // AI-Generated & Compliance Data
@@ -405,3 +431,5 @@ export interface ApiRateLimit {
 }
 
 export type { TransitInfo, CustomsAlert, CustomsStatus };
+
+export interface SimulatedRoute extends AnalyzeProductTransitRiskOutput {}

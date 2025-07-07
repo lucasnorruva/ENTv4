@@ -27,6 +27,7 @@ import ComplianceTab from './product-detail-tabs/compliance-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
 import { Button } from './ui/button';
+import ConstructionTab from './product-detail-tabs/construction-tab';
 
 export default function PublicPassportView({
   product,
@@ -40,6 +41,7 @@ export default function PublicPassportView({
   const customsStatusVariant = getStatusBadgeVariant(product.customs?.status);
 
   const showTextileTab = product.category === 'Fashion';
+  const showConstructionTab = product.category === 'Construction';
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm bg-transparent md:bg-card">
@@ -176,6 +178,7 @@ export default function PublicPassportView({
           <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+            {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
             <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -186,6 +189,11 @@ export default function PublicPassportView({
           {showTextileTab && (
             <TabsContent value="textile" className="mt-4">
               <TextileTab product={product} />
+            </TabsContent>
+          )}
+          {showConstructionTab && (
+            <TabsContent value="construction" className="mt-4">
+                <ConstructionTab product={product} />
             </TabsContent>
           )}
           <TabsContent value="sustainability" className="mt-4">
