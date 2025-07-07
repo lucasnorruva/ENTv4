@@ -25,6 +25,7 @@ import {
   getCountryFromLocationString,
 } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
+import { getPointColorForStatus } from '@/lib/dppDisplayUtils';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -80,6 +81,7 @@ export default function GlobalTrackerClient({
   );
   
   const [arcsData, setArcsData] = useState<any[]>([]);
+  const [pointsData, setPointsData] = useState<any[]>([]);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
   const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
   
@@ -108,7 +110,6 @@ export default function GlobalTrackerClient({
     const map = new Map<string, 'High' | 'Medium' | 'Low'>();
     MOCK_CUSTOMS_DATA.forEach(data => {
       data.keywords.forEach(keyword => {
-        // Simple mapping; a more robust solution would use ISO codes.
         if (!map.has(keyword)) {
           map.set(keyword, data.riskLevel);
         }
@@ -129,23 +130,18 @@ export default function GlobalTrackerClient({
     const isDark = theme === 'dark';
     const countryNameLower = p.ADMIN.toLowerCase();
     
-    // Clicked country always has priority color
     if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
     
-    // Product supply chain highlight has next priority
     if (highlightedCountries.some(hc => countryNameLower.includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
     
-    // Risk filter highlight
     if (riskFilter !== 'all' && countryRiskMap.get(countryNameLower) === riskFilter) {
       if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
       if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
       if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
     }
 
-    // EU highlight
     if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
     
-    // Default color
     return isDark ? '#334155' : '#e2e8f0';
   }, [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap]);
   
@@ -189,12 +185,15 @@ export default function GlobalTrackerClient({
   useEffect(() => {
     if (!selectedProduct) {
       setArcsData([]);
+      setPointsData([]);
       setHighlightedCountries([]);
       return;
     }
 
     let newArcs: any[] = [];
+    let newPoints: any[] = [];
     const newHighlightedCountries = new Set<string>();
+    const pointColor = getPointColorForStatus(selectedProduct.verificationStatus);
 
     const addCountryHighlight = (location?: string) => {
       const country = getCountryFromLocationString(location);
@@ -208,6 +207,19 @@ export default function GlobalTrackerClient({
       const destinationCountry = addCountryHighlight(transit.destination);
       const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
       const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
+
+      if (originCoords) {
+        newPoints.push({
+          lat: originCoords.lat, lng: originCoords.lng, size: 0.5, color: pointColor,
+          name: `Origin: ${transit.origin}`,
+        });
+      }
+      if (destinationCoords) {
+        newPoints.push({
+          lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.7, color: pointColor,
+          name: `Destination: ${transit.destination}`,
+        });
+      }
 
       if (originCoords && destinationCoords) {
         newArcs.push({
@@ -229,27 +241,40 @@ export default function GlobalTrackerClient({
         const manufacturerCoords = manufacturerCountry ? mockCountryCoordinates[manufacturerCountry] : null;
 
         if (manufacturerCoords) {
+          newPoints.push({
+            lat: manufacturerCoords.lat, lng: manufacturerCoords.lng, size: 0.6,
+            color: '#6366F1', name: `Manufacturer: ${manufacturerNode.label}`,
+          });
+
           graph.nodes.forEach((node: any) => {
             if (node.type === 'supplier') {
               const supplierCountry = addCountryHighlight(node.data.location);
               const supplierCoords = supplierCountry ? mockCountryCoordinates[supplierCountry] : null;
-              if (supplierCoords && supplierCountry !== manufacturerCountry) {
-                newArcs.push({
-                  startLat: supplierCoords.lat, startLng: supplierCoords.lng,
-                  endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
-                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
-                  label: `Supply from ${supplierCountry}`,
+              if (supplierCoords) {
+                newPoints.push({
+                  lat: supplierCoords.lat, lng: supplierCoords.lng, size: 0.4,
+                  color: '#FBBF24', name: `Supplier: ${node.label}`
                 });
+                if (supplierCountry !== manufacturerCountry) {
+                  newArcs.push({
+                    startLat: supplierCoords.lat, startLng: supplierCoords.lng,
+                    endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
+                    color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
+                    label: `Supply from ${supplierCountry}`,
+                  });
+                }
               }
             }
           });
         }
         setArcsData(newArcs);
+        setPointsData(newPoints);
         setHighlightedCountries(Array.from(newHighlightedCountries));
       })
       .catch(err => {
         console.error('Error fetching product graph:', err);
         setArcsData(newArcs);
+        setPointsData(newPoints);
         setHighlightedCountries(Array.from(newHighlightedCountries));
       });
   }, [selectedProduct, theme]);
@@ -287,7 +312,7 @@ export default function GlobalTrackerClient({
     const globe = globeEl.current;
     if (!globe || !globeReady) return;
 
-    const controls = globe.controls();
+    const controls = globe.controls() as any;
     if (controls) {
       controls.autoRotate = isAutoRotating;
       controls.autoRotateSpeed = 0.3;
@@ -342,6 +367,13 @@ export default function GlobalTrackerClient({
         arcDashGap={0.1}
         arcDashAnimateTime={2000}
         arcStroke={0.5}
+        pointsData={pointsData}
+        pointLat="lat"
+        pointLng="lng"
+        pointColor="color"
+        pointAltitude={0.02}
+        pointRadius="size"
+        pointLabel="name"
         onGlobeReady={() => setGlobeReady(true)}
       />
       {selectedProduct && (
@@ -361,15 +393,12 @@ export default function GlobalTrackerClient({
         />
       )}
        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
-        <Info className="inline h-3 w-3 mr-1" />
-        <span className="font-bold">Legend:</span> Supply Chain Route:{' '}
-        <span className="text-amber-600 dark:text-amber-400 font-semibold">
-          Amber
-        </span>{' '}
-        | Final Transit:{' '}
-        <span className="text-blue-600 dark:text-blue-400 font-semibold">
-          Blue
-        </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500"/>Supplier/MFG</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#22C55E'}}/>Verified Product</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#F59E0B'}}/>Pending Product</div>
+          <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full" style={{backgroundColor: '#EF4444'}}/>Failed Product</div>
+        </div>
       </div>
     </div>
   );

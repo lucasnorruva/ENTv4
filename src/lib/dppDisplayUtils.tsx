@@ -44,3 +44,16 @@ export function getStatusBadgeClasses(status: string | undefined) {
       return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700';
   }
 }
+
+export function getPointColorForStatus(status: string | undefined): string {
+  switch (status) {
+    case 'Verified':
+      return '#22C55E'; // green-500
+    case 'Pending':
+      return '#F59E0B'; // amber-500
+    case 'Failed':
+      return '#EF4444'; // red-500
+    default:
+      return '#6B7280'; // gray-500
+  }
+}
