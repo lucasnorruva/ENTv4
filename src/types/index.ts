@@ -8,7 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  ProductTransitRiskAnalysis
+  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -91,6 +91,12 @@ export interface Material {
   origin?: string;
 }
 
+export interface ModelHotspot {
+  position: { x: number; y: number; z: number };
+  label: string;
+  description: string;
+}
+
 export interface Certification {
   name: string;
   issuer: string;
@@ -135,7 +141,6 @@ export interface TextileData {
 
 export interface TextileAnalysis extends AnalyzeTextileOutput {}
 export interface ConstructionAnalysis extends AnalyzeConstructionMaterialOutput {}
-
 
 export interface EprScheme {
   schemeId?: string;
@@ -282,6 +287,7 @@ export interface Product extends BaseEntity {
   textile?: TextileData;
   compliance?: Compliance;
   greenClaims?: GreenClaim[];
+  modelHotspots?: ModelHotspot[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -431,7 +437,7 @@ export interface ApiRateLimit {
 export type { TransitInfo, CustomsAlert, CustomsStatus };
 
 export type SimulatedRoute = ProductTransitRiskAnalysis & {
-    origin: string;
-    destination: string;
-    productId: string;
+  origin: string;
+  destination: string;
+  productId: string;
 };

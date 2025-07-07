@@ -26,7 +26,7 @@ export default function ThreeDViewerTab({ product }: ThreeDViewerTabProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>3D Model</CardTitle>
+          <CardTitle>Digital Twin</CardTitle>
           <CardDescription>
             Interactive 3D representation of the product.
           </CardDescription>
@@ -43,13 +43,13 @@ export default function ThreeDViewerTab({ product }: ThreeDViewerTabProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>3D Model</CardTitle>
+        <CardTitle>Digital Twin</CardTitle>
         <CardDescription>
-          Interact with the product's digital twin. Click and drag to rotate, scroll to zoom.
+          Interact with the product's digital twin. Click hotspots for more info.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Product3DViewer modelUrl={product.model3dUrl} />
+        <Product3DViewer modelUrl={product.model3dUrl} hotspots={product.modelHotspots} />
       </CardContent>
     </Card>
   );
