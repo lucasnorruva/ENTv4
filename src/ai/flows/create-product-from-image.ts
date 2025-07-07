@@ -32,7 +32,7 @@ const CreateProductFromImageOutputSchema = z.object({
       'A detailed, marketing-friendly description of the product, highlighting key visual features.',
     ),
   category: z
-    .enum(['Electronics', 'Fashion', 'Home Goods'])
+    .enum(['Electronics', 'Fashion', 'Home Goods', 'Construction'])
     .describe(
       'The most appropriate category for the product from the provided options.',
     ),
@@ -56,7 +56,7 @@ const prompt = ai.definePrompt({
 - Based on the image, identify the product.
 - Create a concise but descriptive 'productName'.
 - Write a compelling 'productDescription' (2-3 sentences) that highlights the product's visual features and likely use case.
-- Classify the product into one of these categories: 'Electronics', 'Fashion', 'Home Goods'.
+- Classify the product into one of these categories: 'Electronics', 'Fashion', 'Home Goods', 'Construction'.
 - Your output must be a JSON object that strictly adheres to the provided schema.
 
 USER_DATA:

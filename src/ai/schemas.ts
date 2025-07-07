@@ -1,6 +1,7 @@
 // src/ai/schemas.ts
 import { z } from 'zod';
 import { textileDataSchema } from '@/lib/schemas/textile';
+import type { AnalyzeConstructionMaterialOutput } from '@/types/ai-outputs';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
@@ -92,6 +93,7 @@ export const AiProductSchema = z.object({
     .optional()
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
+  constructionAnalysis: z.custom<AnalyzeConstructionMaterialOutput>().optional().describe('Construction-specific data.'),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;

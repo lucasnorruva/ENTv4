@@ -36,6 +36,7 @@ import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
+import ConstructionTab from './product-detail-tabs/construction-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -76,6 +77,7 @@ export default function ProductDetailView({
   const canExportData = can(user, 'product:export_data', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
   const showTextileTab = product.category === 'Fashion';
+  const showConstructionTab = product.category === 'Construction';
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -172,6 +174,7 @@ export default function ProductDetailView({
               <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -187,6 +190,11 @@ export default function ProductDetailView({
               {showTextileTab && (
                 <TabsContent value="textile" className="mt-4">
                   <TextileTab product={product} />
+                </TabsContent>
+              )}
+               {showConstructionTab && (
+                <TabsContent value="construction" className="mt-4">
+                  <ConstructionTab product={product} />
                 </TabsContent>
               )}
               <TabsContent value="sustainability" className="mt-4">
