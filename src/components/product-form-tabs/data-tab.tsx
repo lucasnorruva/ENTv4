@@ -25,7 +25,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
-import BomAnalysisWidget from '../../components/bom-analysis-widget';
+import BomAnalysisWidget from '../bom-analysis-widget';
+import type { User } from '@/types';
 
 interface DataTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -48,6 +49,7 @@ interface DataTabProps {
     'certifications'
   >['remove'];
   isAiEnabled: boolean;
+  user: User;
 }
 
 export default function DataTab({
@@ -59,6 +61,7 @@ export default function DataTab({
   appendCert,
   removeCert,
   isAiEnabled,
+  user,
 }: DataTabProps) {
   const handleApplyBom = (materials: ProductFormValues['materials']) => {
     if (materials) {
@@ -116,7 +119,7 @@ export default function DataTab({
             <h3 className="text-lg font-semibold">Materials</h3>
           </AccordionTrigger>
           <AccordionContent className="pt-4 space-y-6">
-            {isAiEnabled && <BomAnalysisWidget onApply={handleApplyBom} />}
+            {isAiEnabled && <BomAnalysisWidget onApply={handleApplyBom} user={user} />}
 
             <div className="flex justify-between items-center">
               <p className="text-sm text-muted-foreground">

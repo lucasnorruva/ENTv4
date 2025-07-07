@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeBillOfMaterials } from '@/lib/actions/product-actions';
+import { analyzeBillOfMaterials } from '@/lib/actions';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { AnalyzeBomOutput } from '@/types/ai-outputs';
 import {
@@ -34,9 +34,10 @@ import {
 
 interface BomAnalysisWidgetProps {
   onApply: (materials: ProductFormValues['materials']) => void;
+  user: { id: string };
 }
 
-export default function BomAnalysisWidget({ onApply }: BomAnalysisWidgetProps) {
+export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetProps) {
   const [isAnalyzing, startAnalysisTransition] = useTransition();
   const [bomText, setBomText] = useState('');
   const [analysisResult, setAnalysisResult] =
@@ -55,7 +56,7 @@ export default function BomAnalysisWidget({ onApply }: BomAnalysisWidgetProps) {
     }
     startAnalysisTransition(async () => {
       try {
-        const result = await analyzeBillOfMaterials(bomText);
+        const result = await analyzeBillOfMaterials(bomText, user.id);
         setAnalysisResult(result);
         setIsDialogOpen(true);
       } catch (error) {

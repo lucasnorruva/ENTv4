@@ -76,15 +76,6 @@ import type {
   AnalyzeTextileInput,
   AnalyzeTextileOutput,
 } from '@/ai/flows/analyze-textile-composition';
-import type {
-  AnalyzeConstructionMaterialInput,
-  AnalyzeConstructionMaterialOutput,
-} from '@/ai/flows/analyze-construction-material';
-import type {
-  AnalyzeTransitRiskInput,
-  AnalyzeTransitRiskOutput,
-} from '@/ai/flows/analyze-transit-risk';
-
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -108,8 +99,6 @@ export type {
   PredictLifecycleInput,
   ExplainErrorInput,
   AnalyzeTextileInput,
-  AnalyzeConstructionMaterialInput,
-  AnalyzeTransitRiskInput,
 };
 
 // Export Output types
@@ -132,6 +121,4 @@ export type {
   PredictLifecycleOutput,
   ExplainErrorOutput,
   AnalyzeTextileOutput,
-  AnalyzeConstructionMaterialOutput,
-  AnalyzeTransitRiskOutput,
 };

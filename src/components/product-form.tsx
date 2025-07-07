@@ -561,6 +561,7 @@ export default function ProductForm({
                 appendCert={appendCert}
                 removeCert={removeCert}
                 isAiEnabled={isAiEnabled}
+                user={user}
               />
             </TabsContent>
             {showTextileTab && (

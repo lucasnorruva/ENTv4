@@ -268,7 +268,11 @@ export async function createProductFromImage(
   return createProductFromImageFlow({ imageDataUri });
 }
 
-export async function analyzeBillOfMaterials(bomText: string) {
+export async function analyzeBillOfMaterials(bomText: string, userId: string) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create'); // Re-use create permission for this helper
+  
   return await analyzeBillOfMaterialsFlow({ bomText });
 }
 
