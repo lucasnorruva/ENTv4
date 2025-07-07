@@ -241,7 +241,7 @@ export default function SelectedProductCustomsInfoCard({
                     asChild
                 >
                     <Link
-                    href={`/dashboard/admin/customs?q=${destinationCountry}`}
+                    href={`/dashboard/${roleSlug}/customs?q=${destinationCountry}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     >

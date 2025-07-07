@@ -293,7 +293,7 @@ export default function GlobalTrackerClient({
         selectedProductId={selectedProductId}
         onProductSelect={handleProductSelect}
         countryFilter={countryFilter}
-        onCountryFilterChange={setCountryFilter}
+        onCountryFilterChange={setCountryFilter as any}
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(!isAutoRotating)}
         isProductSelected={!!selectedProduct}
