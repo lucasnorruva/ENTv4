@@ -23,16 +23,16 @@ import { Alert, AlertTitle } from './ui/alert';
 
 const announcements = [
   {
-    title: 'New API Version v1.1 Released',
+    title: 'New API Version v2.0 Released',
     date: 'Aug 1, 2024',
     content:
-      'Version 1.1 of the DPP API is now live, featuring enhanced query parameters for lifecycle events and new endpoints for supplier data management. Check the API Reference for details.',
+      'Version 2.0 of the REST API is now the recommended version, featuring HATEOAS links and improved filtering. The v1 API is now deprecated.',
   },
   {
-    title: 'Webinar: Navigating EU Battery Regulation',
+    title: 'Webinar: Mastering Webhook Signatures',
     date: 'Jul 25, 2024',
     content:
-      'Join us next week for a deep dive into using the Norruva platform to comply with the new EU Battery Regulation requirements. Registration is open.',
+      'Join us next week for a deep dive into securing your webhook endpoints by verifying HMAC-SHA256 signatures. Registration is open.',
   },
   {
     title: 'Sandbox Environment Maintenance',
@@ -43,10 +43,10 @@ const announcements = [
 ];
 
 const serviceStatus = [
-  { name: 'DPP Core API', status: 'Operational' },
-  { name: 'AI Services (Genkit Flows)', status: 'Operational' },
-  { name: 'Data Extraction Service (Mock)', status: 'Degraded Performance' },
-  { name: 'EBSI Mock Interface', status: 'Operational' },
+  { name: 'GraphQL API', status: 'Operational' },
+  { name: 'REST API v2', status: 'Operational' },
+  { name: 'REST API v1 (Legacy)', status: 'Degraded Performance' },
+  { name: 'Webhook Delivery Service', status: 'Operational' },
   { name: 'Developer Portal Site', status: 'Operational' },
   { name: 'Sandbox Environment API', status: 'Under Maintenance' },
   { name: 'Documentation Site', status: 'Operational' },
@@ -116,7 +116,7 @@ export default function DeveloperDashboardClient() {
           <CardHeader>
             <CardTitle>Key API Metrics & Health (Sandbox)</CardTitle>
             <CardDescription>
-              Mock conceptual API metrics for the current environment.
+              A conceptual overview of API performance and usage metrics for your organization.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,7 +124,7 @@ export default function DeveloperDashboardClient() {
             <MetricRow label="Error Rate (Last 24h)" value="0.2%" />
             <MetricRow label="Avg. Latency" value="120ms" />
             <MetricRow label="API Uptime (Last 7d)" value="99.95%" />
-            <MetricRow label="Peak Requests/Sec" value="15" />
+            <MetricRow label="Webhook Success Rate" value="98.7%" />
             <MetricRow
               label="Overall API Status"
               value="Some Systems Impacted"
@@ -133,8 +133,8 @@ export default function DeveloperDashboardClient() {
           </CardContent>
           <CardFooter>
             <Button variant="link" asChild className="p-0 h-auto">
-              <Link href="#">
-                View Full Usage Report{' '}
+              <Link href="/dashboard/developer/analytics">
+                View Full Analytics Report{' '}
                 <ExternalLink className="ml-1 h-3 w-3" />
               </Link>
             </Button>
@@ -145,7 +145,7 @@ export default function DeveloperDashboardClient() {
           <CardHeader>
             <CardTitle>Platform News & Announcements</CardTitle>
             <CardDescription>
-              Stay updated with the latest from Norruva.
+              Stay updated with the latest from Norruva's developer platform.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -210,7 +210,7 @@ export default function DeveloperDashboardClient() {
           </CardContent>
           <CardFooter>
             <p className="text-xs text-muted-foreground">
-              Last checked: 4:41:42 PM. For detailed incidents, visit{' '}
+              For detailed incidents, visit{' '}
               <a href="#" className="underline">
                 status.norruva.com
               </a>{' '}
