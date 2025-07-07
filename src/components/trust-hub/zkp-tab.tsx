@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Bot, ShieldCheck, ShieldQuestion } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateZkProofForProduct } from '@/lib/actions';
+import { generateZkProofForProduct, verifyZkProofForProduct } from '@/lib/actions';
 
 interface ZkpTabProps {
   initialProducts: Product[];
@@ -37,13 +37,28 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
     });
   };
 
+  const handleVerifyProof = (productId: string) => {
+    setProcessingId(productId);
+    startTransition(async () => {
+        try {
+            await verifyZkProofForProduct(productId, user.id);
+            toast({ title: 'ZK Proof Verified', description: "The proof has been successfully verified." });
+            onDataChange();
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        } finally {
+            setProcessingId(null);
+        }
+    });
+  }
+
   const productsWithProofs = initialProducts.filter(p => p.verificationStatus === 'Verified');
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Zero-Knowledge Proofs</CardTitle>
-        <CardDescription>Generate privacy-preserving ZKPs for compliant products. These proofs can attest to compliance without revealing underlying sensitive data.</CardDescription>
+        <CardDescription>Generate and verify privacy-preserving ZKPs for compliant products. These proofs can attest to compliance without revealing underlying sensitive data.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -68,7 +83,18 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
                     <Badge variant="outline">Not Generated</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right space-x-2">
+                   {product.zkProof && !product.zkProof.isVerified && (
+                     <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleVerifyProof(product.id)}
+                        disabled={isPending && processingId === product.id}
+                      >
+                         {isPending && processingId === product.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <ShieldCheck className="mr-2 h-4 w-4"/>}
+                         Verify Proof
+                      </Button>
+                   )}
                   <Button
                     variant="outline"
                     size="sm"

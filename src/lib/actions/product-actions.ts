@@ -30,7 +30,7 @@ import { validateProductData } from '@/ai/flows/validate-product-data';
 import { anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
-import { generateComplianceProof } from '@/services/zkp-service';
+import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
 
 // --- Data Access Functions ---
 
@@ -398,6 +398,29 @@ export async function generateZkProofForProduct(
   mockProducts[productIndex].zkProof = proof;
 
   await logAuditEvent('product.zkp.generated', productId, {}, userId);
+  return mockProducts[productIndex];
+}
+
+export async function verifyZkProofForProduct(
+  productId: string,
+  userId: string
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const product = await getProductById(productId, user.id);
+  if (!product || !product.zkProof) throw new Error('Product or ZK Proof not found');
+  checkPermission(user, 'product:generate_zkp'); // Same permission for verify
+
+  const isVerified = await verifyComplianceProof(product.zkProof);
+  if (!isVerified) {
+    throw new Error('ZKP verification failed.');
+  }
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  mockProducts[productIndex].zkProof!.isVerified = true;
+  mockProducts[productIndex].zkProof!.verifiedAt = new Date().toISOString();
+
+  await logAuditEvent('product.zkp.verified', productId, {}, userId);
   return mockProducts[productIndex];
 }
 

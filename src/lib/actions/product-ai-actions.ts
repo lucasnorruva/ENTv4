@@ -23,6 +23,9 @@ import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
+import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
+import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
+import type { AnalyzeSimulatedRouteOutput, AnalyzeProductTransitRiskOutput } from '@/types/ai-outputs';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -476,4 +479,46 @@ export async function analyzeTextileData(
   );
   
   return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeSimulatedRoute(
+  productId: string,
+  originCountry: string,
+  destinationCountry: string,
+  userId: string,
+): Promise<AnalyzeSimulatedRouteOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'admin:manage_settings'); // Example permission
+
+  const product = await getProductById(productId, user.id);
+  if (!product) {
+    throw new Error('Product not found.');
+  }
+
+  return analyzeSimulatedRouteFlow({
+    product,
+    originCountry,
+    destinationCountry,
+  });
+}
+
+export async function analyzeProductTransitRisk(
+  productId: string,
+  userId: string,
+): Promise<AnalyzeProductTransitRiskOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'admin:manage_settings'); // Example permission
+
+  const product = await getProductById(productId, user.id);
+  if (!product || !product.transit) {
+    throw new Error('Product or its transit information not found.');
+  }
+
+  return analyzeProductTransitRiskFlow({
+    product,
+    originCountry: product.transit.origin,
+    destinationCountry: product.transit.destination,
+  });
 }
