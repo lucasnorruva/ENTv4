@@ -26,7 +26,6 @@ interface ProductTrackerSelectorProps {
   selectedProductId: string | null;
   onProductSelect: (productId: string | null) => void;
   className?: string;
-  // New props for controlled state
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -39,11 +38,6 @@ export function ProductTrackerSelector({
   open,
   onOpenChange,
 }: ProductTrackerSelectorProps) {
-  const handleSelect = (productId: string | null) => {
-    onProductSelect(productId === selectedProductId ? null : productId);
-    onOpenChange(false);
-  };
-
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -65,14 +59,25 @@ export function ProductTrackerSelector({
           <CommandList>
             <CommandEmpty>No product found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem onSelect={() => handleSelect(null)}>
+              <CommandItem
+                value="clear-selection"
+                onSelect={() => {
+                  onProductSelect(null);
+                  onOpenChange(false);
+                }}
+              >
                 Clear Selection
               </CommandItem>
               {products.map(product => (
                 <CommandItem
                   key={product.id}
-                  value={product.productName}
-                  onSelect={() => handleSelect(product.id)}
+                  value={product.id}
+                  onSelect={currentValue => {
+                    onProductSelect(
+                      currentValue === selectedProductId ? null : currentValue,
+                    );
+                    onOpenChange(false);
+                  }}
                 >
                   <Check
                     className={cn(
