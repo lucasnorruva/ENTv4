@@ -1,6 +1,8 @@
 // src/lib/audit-log-data.ts
 import type { AuditLog } from '@/types';
 
+const now = new Date();
+
 export let auditLogs: AuditLog[] = [
   {
     id: 'log-001',
