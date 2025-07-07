@@ -6,8 +6,6 @@ import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
 import BlockchainManagementClient from '@/components/blockchain-management-client';
 
-export const dynamic = 'force-dynamic';
-
 export default async function BlockchainManagementPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
