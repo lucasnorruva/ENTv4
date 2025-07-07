@@ -2,7 +2,7 @@
 
 export interface TransitInfo {
   stage: string;
-  eta: string;
+  eta: string; // ISO 8601 format
   transport: 'Ship' | 'Plane' | 'Truck';
   origin: string;
   destination: string;
@@ -13,6 +13,15 @@ export interface CustomsAlert {
   productId: string;
   message: string;
   severity: 'High' | 'Medium' | 'Low';
-  timestamp: string; // Human-readable e.g., "2 hours ago"
+  timestamp: string; // Can be a relative string or ISO date
   regulation?: string;
+}
+
+export interface CustomsStatus {
+  status: 'Cleared' | 'Detained' | 'Rejected';
+  authority: string;
+  location: string;
+  date: string; // ISO 8601 format
+  notes?: string;
+  history?: Omit<CustomsStatus, 'history'>[];
 }

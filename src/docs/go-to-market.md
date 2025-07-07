@@ -62,7 +62,6 @@ This persona requires deep, industry-specific insights into garment manufacturin
 
 ### For the Compliance Officer & Auditor
 This persona requires tools for risk mitigation, verification, and reporting.
-- **Global Supply Chain Tracker**: An interactive 3D globe to visualize product transit routes, monitor for customs alerts, and proactively identify cross-border compliance risks.
 - **Automated Validation Engine**: The AI-powered `summarizeComplianceGaps` flow automatically checks products against assigned paths.
 - **Flagged Products Queue**: A dedicated dashboard to view and manage all products that have failed verification.
 - **Immutable Audit Logs**: A complete, verifiable history of every action taken on a product passport, crucial for regulatory inquiries.
