@@ -123,7 +123,7 @@ export default function GlobalTrackerClient({
       return;
     }
 
-    const newArcs: any[] = [];
+    let newArcs: any[] = [];
     const newHighlightedCountries = new Set<string>();
 
     const addCountryHighlight = (location?: string) => {
@@ -132,7 +132,7 @@ export default function GlobalTrackerClient({
       return country;
     };
 
-    // Add transit arc and countries
+    // Add final transit arc first
     if (selectedProduct.transit) {
       const { transit } = selectedProduct;
       const originCountry = addCountryHighlight(transit.origin);
@@ -144,13 +144,13 @@ export default function GlobalTrackerClient({
         newArcs.push({
           startLat: originCoords.lat, startLng: originCoords.lng,
           endLat: destinationCoords.lat, endLng: destinationCoords.lng,
-          color: theme === 'dark' ? '#60A5FA' : '#3B82F6', // Blue
+          color: theme === 'dark' ? '#60A5FA' : '#3B82F6', // Blue for transit
           label: `${selectedProduct.productName} Transit`,
         });
       }
     }
 
-    // Fetch and process supply chain graph
+    // Fetch and process supply chain graph for supplier arcs
     fetch(`/api/v1/dpp/graph/${selectedProduct.id}`)
       .then(res => (res.ok ? res.json() : Promise.reject(res)))
       .then(graph => {
@@ -169,7 +169,7 @@ export default function GlobalTrackerClient({
                 newArcs.push({
                   startLat: supplierCoords.lat, startLng: supplierCoords.lng,
                   endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
-                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B', // Amber
+                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B', // Amber for supply chain
                   label: `Supply from ${supplierCountry}`,
                 });
               }
@@ -181,6 +181,7 @@ export default function GlobalTrackerClient({
       })
       .catch(err => {
         console.error('Error fetching product graph:', err);
+        // Still set the transit arc and highlights if graph fails
         setArcsData(newArcs);
         setHighlightedCountries(Array.from(newHighlightedCountries));
       });
@@ -196,12 +197,19 @@ export default function GlobalTrackerClient({
       filtered = landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
     } else if (countryFilter === 'supplyChain' && selectedProduct && highlightedCountries.length > 0) {
       filtered = landPolygons.filter(feat => {
-        const adminName = feat.properties?.ADMIN || feat.properties?.NAME_LONG || '';
-        return highlightedCountries.some(hc => adminName.toLowerCase().includes(hc.toLowerCase()));
+        const p = feat.properties as CountryProperties;
+        const adminName = p.ADMIN || p.NAME_LONG || '';
+        const isoA3 = p.ADM0_A3 || p.ISO_A3 || '';
+
+        // Check if the polygon's admin name or ISO code is in our list of highlighted locations
+        return highlightedCountries.some(hc => 
+            adminName.toLowerCase().includes(hc.toLowerCase()) || 
+            isoA3 === Object.keys(mockCountryCoordinates).find(key => key.toLowerCase() === hc.toLowerCase())
+        );
       });
     }
     setFilteredLandPolygons(filtered);
-  }, [countryFilter, landPolygons, highlightedCountries, selectedProduct]);
+  }, [countryFilter, landPolygons, highlightedCountries, selectedProduct, isEU]);
 
 
   // Effect 4: Control globe instance (camera, rotation)
@@ -225,7 +233,8 @@ export default function GlobalTrackerClient({
         globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
       }
     } else if (!clickedCountryInfo) {
-      globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
+      // Default view
+      // globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
     }
   }, [globeReady, isAutoRotating, selectedProduct, clickedCountryInfo]);
 
@@ -246,7 +255,7 @@ export default function GlobalTrackerClient({
     const isDark = theme === 'dark';
     if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
     if (highlightedCountries.some(hc => p.ADMIN.toLowerCase().includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
-    if (isEU(p.ADM0_A3)) return isDark ? '#2563eb' : '#002D62';
+    if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
     return isDark ? '#334155' : '#e2e8f0';
   }, [theme, isEU, highlightedCountries, clickedCountryInfo]);
   
@@ -263,12 +272,14 @@ export default function GlobalTrackerClient({
 
   const handleProductSelect = useCallback((productId: string | null) => {
     setSelectedProductId(productId);
+    setClickedCountryInfo(null); // Clear country selection when product changes
     const params = new URLSearchParams(searchParams.toString());
     if (productId) {
       params.set('productId', productId);
+      setCountryFilter('supplyChain'); // Default to supply chain view when a product is selected
     } else {
       params.delete('productId');
-      setClickedCountryInfo(null);
+      setCountryFilter('all');
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams]);
@@ -328,13 +339,13 @@ export default function GlobalTrackerClient({
       )}
        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
         <Info className="inline h-3 w-3 mr-1" />
-        <span className="font-bold">Legend:</span> EU Countries:{' '}
-        <span className="text-blue-600 dark:text-blue-400 font-semibold">
-          Blue
-        </span>{' '}
-        | Product Focus:{' '}
+        <span className="font-bold">Legend:</span> Supply Chain Route:{' '}
         <span className="text-amber-600 dark:text-amber-400 font-semibold">
           Amber
+        </span>{' '}
+        | Final Transit:{' '}
+        <span className="text-blue-600 dark:text-blue-400 font-semibold">
+          Blue
         </span>
       </div>
     </div>

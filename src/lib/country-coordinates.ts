@@ -51,10 +51,11 @@ export function getCountryFromLocationString(
   locationString?: string,
 ): string | null {
   if (!locationString) return null;
-  if (mockCountryCoordinates[locationString]) {
-    return locationString;
+  const normalizedLocation = locationString.trim();
+  if (mockCountryCoordinates[normalizedLocation]) {
+    return normalizedLocation;
   }
-  const parts = locationString.split(',').map(p => p.trim());
+  const parts = normalizedLocation.split(',').map(p => p.trim());
   const country = parts.pop();
   if (country && mockCountryCoordinates[country]) {
     return country;
