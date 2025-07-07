@@ -1,3 +1,4 @@
+// src/components/dpp-tracker/GlobeControls.tsx
 
 'use client';
 
@@ -64,27 +65,6 @@ export default function GlobeControls({
         />
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="factories-toggle"
-            checked={showFactories}
-            onCheckedChange={onToggleFactories}
-          />
-          <Label htmlFor="factories-toggle" className="text-xs">
-            Factories
-          </Label>
-        </div>
-        <Select onValueChange={onRiskFilterChange as any} value={riskFilter}>
-          <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
-            <SelectValue placeholder="Filter by Risk" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Risk Levels</SelectItem>
-            <SelectItem value="High">High Risk</SelectItem>
-            <SelectItem value="Medium">Medium Risk</SelectItem>
-            <SelectItem value="Low">Low Risk</SelectItem>
-          </SelectContent>
-        </Select>
         <Select onValueChange={onCountryFilterChange} value={countryFilter}>
           <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
             <SelectValue placeholder="Filter Countries" />
@@ -97,6 +77,27 @@ export default function GlobeControls({
             </SelectItem>
           </SelectContent>
         </Select>
+        <Select onValueChange={onRiskFilterChange as any} value={riskFilter}>
+          <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
+            <SelectValue placeholder="Filter by Risk" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Risk Levels</SelectItem>
+            <SelectItem value="High">High Risk</SelectItem>
+            <SelectItem value="Medium">Medium Risk</SelectItem>
+            <SelectItem value="Low">Low Risk</SelectItem>
+          </SelectContent>
+        </Select>
+         <div className="flex items-center space-x-2 pl-2">
+          <Switch
+            id="factories-toggle"
+            checked={showFactories}
+            onCheckedChange={onToggleFactories}
+          />
+          <Label htmlFor="factories-toggle" className="text-xs">
+            Factories
+          </Label>
+        </div>
         <Button
           size="sm"
           variant="outline"
