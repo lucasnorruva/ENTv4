@@ -8,6 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
+  GreenClaim,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -15,7 +16,13 @@ import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, ModelHotspot };
+export type {
+  TransitInfo,
+  CustomsAlert,
+  CustomsStatus,
+  ModelHotspot,
+  GreenClaim,
+};
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -55,26 +62,25 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
-  isTrustedIssuer?: boolean;
+  isTrustedIssuer: boolean;
   revocationListUrl?: string;
   settings?: {
     aiEnabled: boolean;
     apiAccess: boolean;
     brandingCustomization: boolean;
     theme?: {
-      light: { primary: string, accent: string };
-      dark: { primary: string, accent: string };
+      light: { primary: string; accent: string };
+      dark: { primary: string; accent: string };
     };
     customFields?: CustomFieldDefinition[];
-  }
+  };
 }
 
 export interface CustomFieldDefinition {
-    id: string;
-    label: string;
-    type: 'text' | 'number' | 'boolean';
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'boolean';
 }
-
 
 // --- PRODUCT DATA STRUCTURES ---
 
@@ -153,6 +159,26 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
+  };
+  epr?: {
+    schemeId?: string;
+    producerRegistrationNumber?: string;
+    wasteCategory?: string;
+  };
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
   };
 }
 
@@ -272,6 +298,7 @@ export interface Product extends BaseEntity {
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
+  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -336,7 +363,6 @@ export interface SupportTicket extends BaseEntity {
   message: string;
   status: 'Open' | 'Closed';
 }
-
 
 /**
  * Represents a developer API key for integrations.

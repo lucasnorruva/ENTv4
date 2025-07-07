@@ -46,6 +46,11 @@ const batterySchema = z.object({
   isRemovable: z.boolean().optional(),
 });
 
+const greenClaimSchema = z.object({
+    claim: z.string().min(1, 'Claim text is required.'),
+    substantiation: z.string().min(1, 'Substantiation is required.'),
+});
+
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -85,6 +90,36 @@ const complianceSchema = z.object({
     .object({
       safe: z.boolean().optional(),
       standard: z.string().optional(),
+    })
+    .optional(),
+  epr: z
+    .object({
+      schemeId: z.string().optional(),
+      producerRegistrationNumber: z.string().optional(),
+      wasteCategory: z.string().optional(),
+    })
+    .optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().optional(),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z
+    .object({
+      declared: z.boolean().optional(),
+    })
+    .optional(),
+  conflictMinerals: z
+    .object({
+      compliant: z.boolean().optional(),
+      reportUrl: z.string().url().optional().or(z.literal('')),
+    })
+    .optional(),
+  espr: z
+    .object({
+      compliant: z.boolean().optional(),
+      delegatedActUrl: z.string().url().optional().or(z.literal('')),
     })
     .optional(),
 });
@@ -130,6 +165,7 @@ export const productFormSchema = z.object({
   compliance: complianceSchema.optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -161,6 +197,8 @@ export const companyFormSchema = z.object({
   ownerId: z.string().min(1, 'Owner ID is required.'),
   industry: z.string().optional(),
   tier: z.enum(['free', 'pro', 'enterprise']).default('free'),
+  isTrustedIssuer: z.boolean().default(false),
+  revocationListUrl: z.string().url().optional().or(z.literal('')),
 });
 export type CompanyFormValues = z.infer<typeof companyFormSchema>;
 
@@ -270,7 +308,7 @@ export const bulkProductImportSchema = z.object({
     productName: z.string().min(3),
     productDescription: z.string().min(10),
     gtin: z.string().optional(),
-    category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
+    category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']),
     productImage: z.string().url().optional(),
     manualUrl: z.string().url().optional(),
     materials: z.string().transform((val) => (val ? JSON.parse(val) : [])),
