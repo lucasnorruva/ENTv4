@@ -1,4 +1,3 @@
-
 // src/components/dpp-tracker/global-tracker-client.tsx
 'use client';
 
@@ -291,36 +290,47 @@ export default function GlobalTrackerClient({
     const newHighlightedCountries = new Set<string>();
 
     const processProduct = (product: Product, isSelected: boolean) => {
-      const pointColor = getPointColorForStatus(product.verificationStatus);
       if (product.transit) {
         const { transit } = product;
+
+        // Date and Coordinate validation
+        const departure = new Date(transit.departureDate);
+        const eta = new Date(transit.eta);
+        if (isNaN(departure.getTime()) || isNaN(eta.getTime())) {
+          console.warn(`Skipping product ${product.id} due to invalid transit dates.`);
+          return;
+        }
+
         const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
         const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || ''];
-
-        if (originCoords) {
-          newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
+        
+        if (!originCoords || typeof originCoords.lat !== 'number' || typeof originCoords.lng !== 'number') {
+            console.warn(`Skipping product ${product.id} due to invalid origin coordinates.`);
+            return;
         }
-        if (destinationCoords) {
-          newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
+        if (!destinationCoords || typeof destinationCoords.lat !== 'number' || typeof destinationCoords.lng !== 'number') {
+            console.warn(`Skipping product ${product.id} due to invalid destination coordinates.`);
+            return;
         }
-        if (originCoords && destinationCoords) {
-          const arcData = { startLat: originCoords.lat, startLng: originCoords.lng, endLat: destinationCoords.lat, endLng: destinationCoords.lng, color: [pointColor, pointColor] };
-          newArcs.push(arcData);
 
-          const departure = new Date(product.transit.departureDate);
-          const eta = new Date(product.transit.eta);
-          const now = new Date();
-          const totalDuration = eta.getTime() - departure.getTime();
+        const pointColor = getPointColorForStatus(product.verificationStatus);
+        newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
+        newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
+        
+        const arcData = { startLat: originCoords.lat, startLng: originCoords.lng, endLat: destinationCoords.lat, endLng: destinationCoords.lng, color: [pointColor, pointColor] };
+        newArcs.push(arcData);
 
-          if (totalDuration > 0) {
-            const elapsed = now.getTime() - departure.getTime();
-            const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
-            const currentLat = originCoords.lat + (destinationCoords.lat - originCoords.lat) * progress;
-            const currentLng = originCoords.lng + (destinationCoords.lng - originCoords.lng) * progress;
-            newPucks.push({ lat: currentLat, lng: currentLng, alt: 0.05, data: product });
-          } else {
-            newPucks.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, alt: 0.05, data: product });
-          }
+        const now = new Date();
+        const totalDuration = eta.getTime() - departure.getTime();
+
+        if (totalDuration > 0) {
+          const elapsed = now.getTime() - departure.getTime();
+          const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
+          const currentLat = originCoords.lat + (destinationCoords.lat - originCoords.lat) * progress;
+          const currentLng = originCoords.lng + (destinationCoords.lng - originCoords.lng) * progress;
+          newPucks.push({ lat: currentLat, lng: currentLng, alt: 0.05, data: product });
+        } else {
+          newPucks.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, alt: 0.05, data: product });
         }
       }
 
@@ -382,12 +392,6 @@ export default function GlobalTrackerClient({
     })) : [];
     setRingsData(newRings);
   }, [isClientMounted, selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
-
-  const filteredPolygons = useMemo(() => {
-    if (!landPolygons.length) return [];
-    if (countryFilter === 'all') return landPolygons;
-    return landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
-  }, [countryFilter, landPolygons, isEU]);
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -463,14 +467,17 @@ export default function GlobalTrackerClient({
       ringRepeatPeriod={1000}
       htmlElementsData={pucksData}
       htmlElement={(d: any) => {
+        if (!d || !d.data) {
+          const el = document.createElement('div');
+          el.style.display = 'none';
+          return el;
+        }
         const { data } = d;
         const color = getPointColorForStatus(data.verificationStatus);
-        return (
-          <div className="relative">
-            <Package size={14} style={{ color }} className="transform -rotate-45" />
-            <div className={cn('absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full')} style={{ backgroundColor: color }}></div>
-          </div>
-        );
+        
+        const el = document.createElement('div');
+        el.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transform -rotate-45"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+        return el;
       }}
       onGlobeReady={() => setGlobeReady(true)}
     />
