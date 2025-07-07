@@ -84,6 +84,7 @@ These circular economy partners need access to specific EOL and repair informati
 - **Circularity Credits**: An incentive system that rewards recyclers with digital credits for processing end-of-life products.
 - **Service Manual Access**: Easy access to downloadable PDF service and repair manuals attached to each product passport.
 - **Service Ticket Management**: A system for creating, viewing, and updating maintenance and repair tickets for products and production lines.
+- **Global Supply Chain Tracker**: Provides visibility into incoming product streams, helping recyclers anticipate material flow and plan capacity.
 - **Material Composition View**: Quick access to the detailed bill of materials to identify valuable or hazardous materials during disassembly.
 
 ### For the Retailer

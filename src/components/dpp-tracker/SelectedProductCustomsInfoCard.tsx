@@ -37,6 +37,7 @@ interface SelectedProductCustomsInfoCardProps {
   alerts: CustomsAlert[];
   onDismiss: () => void;
   destinationCountry?: string | null;
+  roleSlug: string;
 }
 
 export default function SelectedProductCustomsInfoCard({
@@ -44,8 +45,9 @@ export default function SelectedProductCustomsInfoCard({
   alerts,
   onDismiss,
   destinationCountry,
+  roleSlug,
 }: SelectedProductCustomsInfoCardProps) {
-  const { transit, customs } = product;
+  const { transit } = product;
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function SelectedProductCustomsInfoCard({
 
   if (!transit) {
     return (
-      <Card className="absolute bottom-4 left-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm">
+      <Card className="absolute bottom-4 right-4 z-20 w-full max-w-md shadow-xl bg-card/95 backdrop-blur-sm">
         <CardHeader className="flex flex-row items-center justify-between pb-3 pt-4 px-4">
           <div className="flex items-center">
             <Package className="h-5 w-5 mr-2 text-primary" />
@@ -234,20 +236,20 @@ export default function SelectedProductCustomsInfoCard({
               </Link>
             </Button>
             {destinationCountry && (
-                <Button
-                    variant="link"
-                    size="sm"
-                    className="p-0 h-auto text-primary text-xs"
-                    asChild
+              <Button
+                variant="link"
+                size="sm"
+                className="p-0 h-auto text-primary text-xs"
+                asChild
+              >
+                <Link
+                  href={`/dashboard/${roleSlug}/customs?q=${destinationCountry}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                    <Link
-                    href={`/dashboard/${roleSlug}/customs?q=${destinationCountry}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    >
-                    View Customs Rules <Globe className="ml-1 h-3 w-3" />
-                    </Link>
-                </Button>
+                  View Customs Rules <Globe className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
             )}
           </div>
         </CardContent>

@@ -21,7 +21,11 @@ export default async function RetailerGlobalTrackerPage() {
 
   return (
     <Suspense>
-      <GlobalTrackerClient products={transitProducts} alerts={relevantAlerts} />
+      <GlobalTrackerClient
+        products={transitProducts}
+        alerts={relevantAlerts}
+        user={user}
+      />
     </Suspense>
   );
 }
