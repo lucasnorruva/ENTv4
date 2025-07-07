@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin/global-tracker/page.tsx
 import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
@@ -7,6 +6,7 @@ import type { Product } from '@/types';
 import { Suspense } from 'react';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
+import { Loader2 } from 'lucide-react';
 
 export default async function AdminGlobalTrackerPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
@@ -33,7 +33,7 @@ export default async function AdminGlobalTrackerPage() {
         </p>
       </div>
       <div className="flex-1 relative">
-        <Suspense>
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
           <GlobalTrackerClient
             products={transitProducts}
             alerts={relevantAlerts}

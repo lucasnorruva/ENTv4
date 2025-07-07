@@ -1,4 +1,3 @@
-
 // src/app/dashboard/retailer/global-tracker/page.tsx
 import { getProducts } from '@/lib/actions';
 import { getCurrentUser } from '@/lib/auth';
@@ -7,6 +6,7 @@ import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client'
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
 import type { Product } from '@/types';
 import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 
 export default async function RetailerGlobalTrackerPage() {
   const user = await getCurrentUser(UserRoles.RETAILER);
@@ -31,7 +31,7 @@ export default async function RetailerGlobalTrackerPage() {
         </p>
       </div>
       <div className="flex-1 relative">
-        <Suspense>
+        <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
           <GlobalTrackerClient
             products={transitProducts}
             alerts={relevantAlerts}
