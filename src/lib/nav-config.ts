@@ -20,6 +20,7 @@ import {
   Building2,
   Fingerprint,
   RefreshCw,
+  TestTubeDiagonal,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -44,6 +45,11 @@ export const developerNavItems = [
     text: 'Dashboard',
   },
   { href: `/dashboard/developer/keys`, icon: KeyRound, text: 'API Keys' },
+  {
+    href: `/dashboard/developer/explorer`,
+    icon: TestTubeDiagonal,
+    text: 'API Explorer',
+  },
   { href: `/dashboard/developer/webhooks`, icon: Webhook, text: 'Webhooks' },
   { href: `/dashboard/developer/analytics`, icon: BarChart3, text: 'Analytics' },
   {

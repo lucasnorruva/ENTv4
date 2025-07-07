@@ -11,7 +11,10 @@ export default function DeveloperNavTabs() {
 
   return (
     <div className="border-b">
-      <nav className="flex space-x-2 lg:space-x-4 px-4 md:px-6" aria-label="Tabs">
+      <nav
+        className="-mb-px flex space-x-2 lg:space-x-4 px-4 md:px-6 overflow-x-auto"
+        aria-label="Tabs"
+      >
         {developerNavItems.map(item => (
           <Link
             key={item.text}
