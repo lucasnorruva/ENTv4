@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
 import { MeshPhongMaterial } from 'three';
-import { Loader2, Package, Zap } from 'lucide-react';
+import { Loader2, Package, Zap, X, AlertTriangle } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
@@ -100,7 +100,7 @@ export default function GlobalTrackerClient({
   const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
   const [analysisOrigin, setAnalysisOrigin] = useState<CountryProperties | null>(null);
 
-  const [countryFilter, setCountryFilter] = useState<'all' | 'eu'>('all');
+  const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
   const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
@@ -140,6 +140,41 @@ export default function GlobalTrackerClient({
     });
     return map;
   }, []);
+  
+  const selectedProduct = useMemo(
+    () => allProducts.find(p => p.id === selectedProductId),
+    [selectedProductId, allProducts],
+  );
+
+  const filteredPolygons = useMemo(() => {
+    if (countryFilter === 'all') {
+      return landPolygons;
+    }
+    if (countryFilter === 'eu') {
+      return landPolygons.filter(feat => {
+        const p = feat.properties as CountryProperties;
+        return isEU(p.ADM0_A3 || p.ISO_A3);
+      });
+    }
+    if (countryFilter === 'supplyChain' && selectedProduct) {
+        const relatedCountries = new Set<string>();
+        const product = selectedProduct;
+        if(product.manufacturing?.country) relatedCountries.add(getCountryFromLocationString(product.manufacturing.country) || '');
+        if(product.transit?.origin) relatedCountries.add(getCountryFromLocationString(product.transit.origin) || '');
+        if(product.transit?.destination) relatedCountries.add(getCountryFromLocationString(product.transit.destination) || '');
+        product.materials.forEach(m => {
+            if (m.origin) relatedCountries.add(getCountryFromLocationString(m.origin) || '');
+        });
+        
+        return landPolygons.filter(feat => {
+            const p = feat.properties as CountryProperties;
+            return relatedCountries.has(p.ADMIN);
+        });
+    }
+
+    // Default to all if no product selected for supplyChain filter
+    return landPolygons;
+  }, [landPolygons, countryFilter, selectedProduct, isEU]);
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
@@ -272,10 +307,6 @@ export default function GlobalTrackerClient({
     }
   }, []);
 
-  const selectedProduct = useMemo(
-    () => allProducts.find(p => p.id === selectedProductId),
-    [selectedProductId, allProducts],
-  );
   const selectedProductAlerts = useMemo(
     () => allAlerts.filter(a => a.productId === selectedProductId),
     [selectedProductId, allAlerts],
@@ -294,6 +325,7 @@ export default function GlobalTrackerClient({
         const { transit } = product;
 
         // Date and Coordinate validation
+        if (!transit.departureDate || !transit.eta) return;
         const departure = new Date(transit.departureDate);
         const eta = new Date(transit.eta);
         if (isNaN(departure.getTime()) || isNaN(eta.getTime())) {
@@ -301,15 +333,17 @@ export default function GlobalTrackerClient({
           return;
         }
 
-        const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
-        const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || ''];
+        const originCountry = getCountryFromLocationString(transit.origin);
+        const destinationCountry = getCountryFromLocationString(transit.destination);
+        const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
+        const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
         
         if (!originCoords || typeof originCoords.lat !== 'number' || typeof originCoords.lng !== 'number') {
-            console.warn(`Skipping product ${product.id} due to invalid origin coordinates.`);
+            console.warn(`Skipping product ${product.id} due to invalid origin coordinates for '${transit.origin}'.`);
             return;
         }
         if (!destinationCoords || typeof destinationCoords.lat !== 'number' || typeof destinationCoords.lng !== 'number') {
-            console.warn(`Skipping product ${product.id} due to invalid destination coordinates.`);
+            console.warn(`Skipping product ${product.id} due to invalid destination coordinates for '${transit.destination}'.`);
             return;
         }
 
@@ -328,7 +362,9 @@ export default function GlobalTrackerClient({
           const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
           const currentLat = originCoords.lat + (destinationCoords.lat - originCoords.lat) * progress;
           const currentLng = originCoords.lng + (destinationCoords.lng - originCoords.lng) * progress;
-          newPucks.push({ lat: currentLat, lng: currentLng, alt: 0.05, data: product });
+          if (!isNaN(currentLat) && !isNaN(currentLng)) {
+            newPucks.push({ lat: currentLat, lng: currentLng, alt: 0.05, data: product });
+          }
         } else {
           newPucks.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, alt: 0.05, data: product });
         }
@@ -339,8 +375,9 @@ export default function GlobalTrackerClient({
           if (material.origin) {
             const originCountry = getCountryFromLocationString(material.origin);
             if (originCountry) newHighlightedCountries.add(originCountry);
-            const supplierCoords = mockCountryCoordinates[originCountry || ''];
-            const factoryCoords = mockCountryCoordinates[getCountryFromLocationString(product.manufacturing?.country) || ''];
+            const supplierCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
+            const factoryCountry = getCountryFromLocationString(product.manufacturing?.country);
+            const factoryCoords = factoryCountry ? mockCountryCoordinates[factoryCountry] : null;
             if (supplierCoords && factoryCoords) {
               newArcs.push({
                 startLat: supplierCoords.lat, startLng: supplierCoords.lng,
