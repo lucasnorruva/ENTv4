@@ -42,7 +42,7 @@ import { hashData, anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { generateComplianceProof } from '@/services/zkp-service';
 import { getWebhooks } from './webhook-actions';
-import { getApiSettings } from './settings-actions';
+import { getApiSettings } from '../api-settings';
 import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
 
 // --- AI Processing ---

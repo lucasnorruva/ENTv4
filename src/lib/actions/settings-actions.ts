@@ -9,9 +9,10 @@ import {
 import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 // Import the data directly for modification
-import { apiSettings } from '@/lib/api-settings';
+import { apiSettings, getApiSettings } from '@/lib/api-settings';
 import { logAuditEvent } from './audit-actions';
 
+export { getApiSettings };
 // The get function is now in api-settings.ts to break circular deps.
 
 export async function saveApiSettings(

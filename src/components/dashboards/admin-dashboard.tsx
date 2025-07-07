@@ -34,6 +34,8 @@ import {
   Cog,
   Wrench,
   Ticket,
+  Globe,
+  Scale,
   UserPlus,
   Webhook as WebhookIcon,
   KeyRound,
@@ -41,6 +43,8 @@ import {
   Award,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { hasRole } from '@/lib/auth-utils';
+import { UserRoles } from '@/lib/constants';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
@@ -394,6 +398,26 @@ export default async function AdminDashboard({ user }: { user: User }) {
                   <ArrowRight className="ml-auto h-4 w-4" />
                 </Link>
               </Button>
+              {(hasRole(user, UserRoles.ADMIN) ||
+                hasRole(user, UserRoles.MANUFACTURER) ||
+                hasRole(user, UserRoles.RETAILER)) && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dashboard/admin/global-tracker">
+                    Global Tracker
+                    <Globe className="ml-auto h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
+              {(hasRole(user, UserRoles.ADMIN) ||
+                hasRole(user, UserRoles.AUDITOR) ||
+                hasRole(user, UserRoles.COMPLIANCE_MANAGER)) && (
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dashboard/admin/customs">
+                    Customs Inspection
+                    <Scale className="ml-auto h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
