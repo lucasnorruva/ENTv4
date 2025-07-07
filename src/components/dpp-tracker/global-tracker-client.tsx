@@ -39,6 +39,7 @@ import {
 } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
