@@ -48,7 +48,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format, formatDistanceToNow } from 'date-fns';
-import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
+import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dppDisplayUtils.tsx';
 
 const RiskLevelBadge = ({
   level,
@@ -206,14 +206,14 @@ export default function CustomsDashboardPage() {
                         productsInTransit.map(p => (
                             <TableRow key={p.id}>
                                 <TableCell className="font-medium">{p.productName}</TableCell>
-                                <TableCell><TransportIcon transport={p.transit!.transport} /></TableCell>
+                                <TableCell>{p.transit!.transport && <TransportIcon transport={p.transit!.transport} />}</TableCell>
                                 <TableCell>{p.transit!.origin} → {p.transit!.destination}</TableCell>
                                 <TableCell suppressHydrationWarning>{format(new Date(p.transit!.eta), "PPP")}</TableCell>
                                 <TableCell>
-                                    {p.customs?.status ? <Badge variant={getStatusBadgeVariant(p.customs.status)}>{p.customs.status}</Badge> : <Badge variant="outline">En Route</Badge>}
+                                    {p.customs?.status ? <Badge variant={getStatusBadgeVariant(p.customs.status)} className={cn('capitalize', getStatusBadgeClasses(p.customs.status))}>{p.customs.status}</Badge> : <Badge variant="outline">En Route</Badge>}
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant={getStatusBadgeVariant(p.verificationStatus)}>{p.verificationStatus}</Badge>
+                                    <Badge variant={getStatusBadgeVariant(p.verificationStatus)} className={cn('capitalize', getStatusBadgeClasses(p.verificationStatus))}>{p.verificationStatus}</Badge>
                                 </TableCell>
                             </TableRow>
                         ))
