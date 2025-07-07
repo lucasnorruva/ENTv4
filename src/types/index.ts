@@ -8,6 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
+  ProductTransitRiskAnalysis
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -428,11 +429,7 @@ export interface ApiRateLimit {
 }
 
 export type { TransitInfo, CustomsAlert, CustomsStatus };
-export type ProductTransitRiskAnalysis = {
-    riskLevel: "Low" | "Medium" | "High" | "Very High";
-    summary: string;
-    keyConsiderations: string[];
-};
+
 export type SimulatedRoute = ProductTransitRiskAnalysis & {
     origin: string;
     destination: string;
