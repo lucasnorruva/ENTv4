@@ -264,7 +264,6 @@ export const navConfig: NavConfig = {
       ],
     },
   ],
-  [UserRoles.DEVELOPER]: [], // Uses a different layout/nav
   [UserRoles.RECYCLER]: [
     {
       label: 'Operations',
