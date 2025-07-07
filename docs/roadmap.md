@@ -210,8 +210,9 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Technical Specification Extraction**
 
 #### 2.2.3 Anomaly Detection System
-- [ ] **Supply Chain Fraud Detection**
 - [x] **Real-time Monitoring**
+- [x] **AI Transit Risk Analysis**
+- [ ] **Supply Chain Fraud Detection**
 
 ### 2.3 Intelligent Automation
 

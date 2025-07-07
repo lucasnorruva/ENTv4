@@ -123,6 +123,7 @@ export const navConfig: NavConfig = {
           icon: Scale,
           href: 'customs',
         },
+         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
   ],
@@ -140,6 +141,11 @@ export const navConfig: NavConfig = {
           icon: ShieldCheck,
           href: 'compliance',
         },
+        {
+          title: 'Data Quality',
+          icon: FileQuestion,
+          href: 'data-quality',
+        }
       ],
     },
     {
@@ -180,6 +186,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Audit Queue', icon: ShieldCheck, href: 'audit' },
         { title: 'All Products', icon: BookCopy, href: 'products' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
     {
