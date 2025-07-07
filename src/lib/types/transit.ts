@@ -6,6 +6,7 @@ export interface TransitInfo {
   transport: 'Ship' | 'Plane' | 'Truck';
   origin: string;
   destination: string;
+  departureDate: string; // ISO 8601 format
 }
 
 export interface CustomsAlert {

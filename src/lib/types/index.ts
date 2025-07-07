@@ -11,20 +11,11 @@ import type {
   AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource, SimulatedRoute } from './transit';
-import type { ModelHotspot } from './3d';
+import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type {
-  TransitInfo,
-  CustomsAlert,
-  CustomsStatus,
-  ModelHotspot,
-  GreenClaim,
-  RegulationSource,
-  SimulatedRoute,
-};
+export type { TransitInfo, CustomsAlert, CustomsStatus };
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -167,26 +158,6 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
 }
 
 export interface ComplianceGap {
@@ -242,19 +213,6 @@ export interface VerificationOverride {
 
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 
-export interface CustodyStep {
-    event: string;
-    location: string;
-    actor: string;
-    date: string;
-}
-
-export interface OwnershipNft {
-    tokenId: string;
-    contractAddress: string;
-    ownerAddress: string;
-}
-
 
 /**
  * The core Digital Product Passport entity.
@@ -281,19 +239,10 @@ export interface Product extends BaseEntity {
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
-  modelHotspots?: ModelHotspot[];
-  chainOfCustody?: CustodyStep[];
-  ownershipNft?: OwnershipNft;
   ebsiDetails?: {
     status: 'Verified' | 'Pending' | 'Failed';
     conformanceResultUrl?: string;
   };
-  verifiableCredentials?: {
-    id: string;
-    type: 'DPP' | 'Material Passport' | 'Compliance Certificate';
-    issuer: string;
-    issueDate: string;
-  }[];
 
   // Structured Data Fields
   materials: Material[];
@@ -309,7 +258,6 @@ export interface Product extends BaseEntity {
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
-  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -443,13 +391,4 @@ export interface BlockchainProof {
   blockHeight: number;
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
-}
-
-export interface Integration extends BaseEntity {
-  name: 'SAP S/4HANA' | 'Oracle NetSuite' | 'Siemens Teamcenter' | 'Shopify';
-  type: 'ERP' | 'PLM' | 'E-commerce';
-  logo: string;
-  dataAiHint: string;
-  description: string;
-  enabled: boolean;
 }

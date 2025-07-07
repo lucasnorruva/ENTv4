@@ -21,7 +21,6 @@ import {
   Fingerprint,
   RefreshCw,
   TestTubeDiagonal,
-  Award,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -270,7 +269,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Rewards',
       items: [
-        { title: 'Credit History', icon: Award, href: 'credits' },
+        { title: 'Credit History', icon: BookCopy, href: 'credits' },
       ],
     },
   ],
