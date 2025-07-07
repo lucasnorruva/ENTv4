@@ -24,8 +24,8 @@ import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flo
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
 import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
-import { analyzeTransitRisk as analyzeTransitRiskFlow } from '@/ai/flows/analyze-transit-risk';
-import type { AnalyzeTransitRiskInput } from '@/ai/flows/analyze-transit-risk';
+import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
+import type { AnalyzeProductTransitRiskOutput } from '@/ai/flows/analyze-product-transit-risk';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -514,6 +514,34 @@ export async function analyzeConstructionData(
     return Promise.resolve(mockProducts[productIndex]);
 }
 
-export async function analyzeTransitRisk(input: AnalyzeTransitRiskInput) {
-    return analyzeTransitRiskFlow(input);
+export async function analyzeProductTransitRisk(
+  productId: string,
+  userId: string,
+): Promise<AnalyzeProductTransitRiskOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:run_compliance'); // Reuse a relevant permission
+
+  if (!product.transit) {
+    throw new Error('Product is not currently in transit.');
+  }
+
+  await logAuditEvent(
+    'product.transit_risk.started',
+    productId,
+    { route: `${product.transit.origin} -> ${product.transit.destination}` },
+    userId,
+  );
+
+  const result = await analyzeProductTransitRiskFlow({
+    product,
+    originCountry: product.transit.origin,
+    destinationCountry: product.transit.destination,
+  });
+
+  return result;
 }

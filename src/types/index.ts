@@ -8,7 +8,7 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  AnalyzeTransitRiskOutput,
+  AnalyzeProductTransitRiskOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -21,10 +21,7 @@ export type ErpProduct = ErpProductType;
 /**
  * Represents the result of a simulated transit route analysis.
  */
-export interface SimulatedRoute extends AnalyzeTransitRiskOutput {
-  origin: string;
-  destination: string;
-}
+export type ProductTransitRiskAnalysis = AnalyzeProductTransitRiskOutput;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent

@@ -27,10 +27,6 @@ interface GlobeControlsProps {
   onRiskFilterChange: (value: 'all' | 'High' | 'Medium' | 'Low') => void;
   isAutoRotating: boolean;
   onToggleRotation: () => void;
-  isProductSelected: boolean;
-  onStartRouteAnalysis: () => void;
-  isAnalyzing: boolean;
-  onClearSimulation: () => void;
   showFactories: boolean;
   onToggleFactories: (checked: boolean) => void;
 }
@@ -45,10 +41,6 @@ export default function GlobeControls({
   onRiskFilterChange,
   isAutoRotating,
   onToggleRotation,
-  isProductSelected,
-  onStartRouteAnalysis,
-  isAnalyzing,
-  onClearSimulation,
   showFactories,
   onToggleFactories,
 }: GlobeControlsProps) {
@@ -61,17 +53,6 @@ export default function GlobeControls({
           onProductSelect={onProductSelect}
           className="w-full sm:w-[300px] bg-background/80 backdrop-blur-sm"
         />
-         {isAnalyzing ? (
-            <Button size="sm" variant="destructive" onClick={onClearSimulation} className="h-8">
-                <X className="mr-2 h-4 w-4" />
-                Cancel Analysis
-            </Button>
-         ) : (
-            <Button size="sm" variant="outline" onClick={onStartRouteAnalysis} className="h-8">
-                <Zap className="mr-2 h-4 w-4" />
-                Analyze New Route
-            </Button>
-         )}
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
         <Select onValueChange={onCountryFilterChange} value={countryFilter}>
@@ -81,7 +62,7 @@ export default function GlobeControls({
           <SelectContent>
             <SelectItem value="all">All Countries</SelectItem>
             <SelectItem value="eu">EU Countries</SelectItem>
-            <SelectItem value="supplyChain" disabled={!isProductSelected}>
+            <SelectItem value="supplyChain" disabled={!selectedProductId}>
               Product Focus
             </SelectItem>
           </SelectContent>

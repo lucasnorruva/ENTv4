@@ -21,12 +21,10 @@ import type {
   Product,
   CustomsAlert,
   User,
-  SimulatedRoute,
   ProductionLine,
 } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
-import SimulatedRouteInfoCard from '@/components/dpp-tracker/SimulatedRouteInfoCard';
 import OperationalPointInfoCard from '@/components/dpp-tracker/OperationalPointInfoCard';
 import GlobeControls from './GlobeControls';
 import {
@@ -38,7 +36,6 @@ import {
   getPointColorForStatus,
   getFactoryColor,
 } from '@/lib/dppDisplayUtils';
-import { analyzeTransitRisk } from '@/lib/actions/product-ai-actions';
 import { useToast } from '@/hooks/use-toast';
 import { getProductionLines } from '@/lib/actions';
 import { MOCK_SUPPLIERS } from '@/lib/supplier-data';
@@ -118,7 +115,6 @@ export default function GlobalTrackerClient({
   >([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
-  const [isSimulating, startSimulationTransition] = useTransition();
 
   const productIdFromQuery = searchParams.get('productId');
   const [selectedProductId, setSelectedProductId] =
@@ -129,20 +125,12 @@ export default function GlobalTrackerClient({
     null,
   );
 
-  // New state for click-to-analyze feature
-  const [routeOrigin, setRouteOrigin] = useState<CountryProperties | null>(
-    null,
-  );
-
   const [countryFilter, setCountryFilter] = useState<
     'all' | 'eu' | 'supplyChain'
   >('all');
   const [riskFilter, setRiskFilter] = useState<
     'all' | 'High' | 'Medium' | 'Low'
   >('all');
-  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(
-    null,
-  );
   const [showFactories, setShowFactories] = useState(true);
 
   const [isMounted, setIsMounted] = useState(false);
@@ -189,8 +177,6 @@ export default function GlobalTrackerClient({
       const isDark = theme === 'dark';
       const countryNameLower = p.ADMIN.toLowerCase();
 
-      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN)
-        return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
       if (
         clickedCountryInfo &&
         (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
@@ -224,7 +210,6 @@ export default function GlobalTrackerClient({
       clickedCountryInfo,
       riskFilter,
       countryRiskMap,
-      routeOrigin,
     ],
   );
 
@@ -245,9 +230,7 @@ export default function GlobalTrackerClient({
 
   const handleProductSelect = useCallback(
     (productId: string | null) => {
-      setSimulatedRoute(null);
       setClickedFactory(null);
-      setRouteOrigin(null); // Cancel route selection
       setSelectedProductId(productId);
       setClickedCountryInfo(null);
       const params = new URLSearchParams(searchParams.toString());
@@ -263,51 +246,11 @@ export default function GlobalTrackerClient({
     [pathname, router, searchParams],
   );
 
-  const handleSimulateRoute = useCallback(
-    (origin: string, destination: string) => {
-      handleProductSelect(null);
-      setClickedCountryInfo(null);
-      setClickedFactory(null);
-      setSimulatedRoute(null);
-      startSimulationTransition(async () => {
-        try {
-          const analysis = await analyzeTransitRisk({
-            originCountry: origin,
-            destinationCountry: destination,
-          });
-          setSimulatedRoute({ origin, destination, ...analysis });
-        } catch (error: any) {
-          toast({
-            title: 'Analysis Failed',
-            description: error.message,
-            variant: 'destructive',
-          });
-        }
-      });
-    },
-    [handleProductSelect, toast],
-  );
-
   const handlePolygonClick = useCallback(
     (feat: GeoJsonFeature) => {
       const countryProps = feat.properties as CountryProperties;
       if (!countryProps) return;
 
-      // Logic for route simulation
-      if (routeOrigin && routeOrigin.ADMIN !== countryProps.ADMIN) {
-        // This is the destination click
-        handleSimulateRoute(routeOrigin.ADMIN, countryProps.ADMIN);
-        setRouteOrigin(null); // Reset after simulation starts
-        setClickedCountryInfo(null);
-        return;
-      } else if (routeOrigin && routeOrigin.ADMIN === countryProps.ADMIN) {
-        // Clicked the same country again, cancel selection
-        setRouteOrigin(null);
-        setClickedCountryInfo(null);
-        return;
-      }
-
-      // Default click behavior
       setClickedCountryInfo(countryProps);
       setClickedFactory(null);
       const countryName = countryProps.ADMIN;
@@ -319,13 +262,12 @@ export default function GlobalTrackerClient({
         );
       }
     },
-    [routeOrigin, handleSimulateRoute],
+    [],
   );
 
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
-    setRouteOrigin(null); // Cancel route selection if a factory is clicked
     if (globeEl.current) {
       globeEl.current.pointOfView(
         { lat: label.lat, lng: label.lng, altitude: 1.5 },
@@ -333,17 +275,6 @@ export default function GlobalTrackerClient({
       );
     }
   }, []);
-
-  const startRouteAnalysis = () => {
-    handleProductSelect(null); // Clear any selected product
-    setClickedCountryInfo(null);
-    setSimulatedRoute(null);
-    setRouteOrigin(null);
-    toast({
-      title: 'Select Origin Country',
-      description: 'Click a country on the globe to set it as the origin.',
-    });
-  };
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
@@ -459,40 +390,6 @@ export default function GlobalTrackerClient({
 
     if (selectedProduct) {
       processProduct(selectedProduct, true);
-    } else if (simulatedRoute) {
-      const originCoords = mockCountryCoordinates[simulatedRoute.origin];
-      const destinationCoords =
-        mockCountryCoordinates[simulatedRoute.destination];
-      if (originCoords)
-        newPoints.push({
-          lat: originCoords.lat,
-          lng: originCoords.lng,
-          size: 0.3,
-          color: '#94a3b8',
-          name: `Simulated Origin: ${simulatedRoute.origin}`,
-        });
-      if (destinationCoords)
-        newPoints.push({
-          lat: destinationCoords.lat,
-          lng: destinationCoords.lng,
-          size: 0.5,
-          color: '#94a3b8',
-          name: `Simulated Destination: ${simulatedRoute.destination}`,
-        });
-      if (originCoords && destinationCoords) {
-        newArcs.push({
-          startLat: originCoords.lat,
-          startLng: originCoords.lng,
-          endLat: destinationCoords.lat,
-          endLng: destinationCoords.lng,
-          color: '#94a3b8',
-          label: 'Simulated Route',
-          dashLength: 0.2,
-          dashGap: 0.1,
-        });
-      }
-      newHighlightedCountries.add(simulatedRoute.origin);
-      newHighlightedCountries.add(simulatedRoute.destination);
     } else {
       allProducts.forEach(p => processProduct(p, false));
     }
@@ -500,7 +397,7 @@ export default function GlobalTrackerClient({
     setArcsData(newArcs);
     setPointsData(newPoints);
     setHighlightedCountries(Array.from(newHighlightedCountries));
-  }, [selectedProduct, allProducts, theme, simulatedRoute]);
+  }, [selectedProduct, allProducts, theme]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -549,19 +446,7 @@ export default function GlobalTrackerClient({
       controls.minDistance = 150;
       controls.maxDistance = 1000;
     }
-    if (simulatedRoute) {
-      const destinationCoords =
-        mockCountryCoordinates[simulatedRoute.destination];
-      if (destinationCoords)
-        globe.pointOfView(
-          {
-            lat: destinationCoords.lat,
-            lng: destinationCoords.lng,
-            altitude: 1.5,
-          },
-          1000,
-        );
-    } else if (selectedProduct && selectedProduct.transit) {
+    if (selectedProduct && selectedProduct.transit) {
       const destinationCountry = getCountryFromLocationString(
         selectedProduct.transit.destination,
       );
@@ -580,7 +465,7 @@ export default function GlobalTrackerClient({
     } else {
       globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
     }
-  }, [globeReady, isAutoRotating, selectedProduct, simulatedRoute]);
+  }, [globeReady, isAutoRotating, selectedProduct]);
 
   const destinationCountry = selectedProduct?.transit
     ? getCountryFromLocationString(selectedProduct.transit.destination)
@@ -614,13 +499,6 @@ export default function GlobalTrackerClient({
         onRiskFilterChange={setRiskFilter as any}
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
-        isProductSelected={!!selectedProduct}
-        onStartRouteAnalysis={startRouteAnalysis}
-        isAnalyzing={!!routeOrigin || !!simulatedRoute}
-        onClearSimulation={() => {
-          setRouteOrigin(null);
-          setSimulatedRoute(null);
-        }}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
       />
@@ -661,13 +539,14 @@ export default function GlobalTrackerClient({
       {selectedProduct && (
         <SelectedProductCustomsInfoCard
           product={selectedProduct}
+          user={user}
           alerts={selectedProductAlerts}
           onDismiss={() => handleProductSelect(null)}
           destinationCountry={destinationCountry}
           roleSlug={roleSlug}
         />
       )}
-      {clickedCountryInfo && !routeOrigin && (
+      {clickedCountryInfo && (
         <ClickedCountryInfoCard
           countryInfo={clickedCountryInfo}
           productsTo={productsToCountry}
@@ -682,12 +561,6 @@ export default function GlobalTrackerClient({
           line={clickedFactory}
           onDismiss={() => setClickedFactory(null)}
           roleSlug={roleSlug}
-        />
-      )}
-      {simulatedRoute && (
-        <SimulatedRouteInfoCard
-          route={simulatedRoute}
-          onDismiss={() => setSimulatedRoute(null)}
         />
       )}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">

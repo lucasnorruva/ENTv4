@@ -81,9 +81,9 @@ import type {
   AnalyzeConstructionMaterialOutput,
 } from '@/ai/flows/analyze-construction-material';
 import type {
-  AnalyzeTransitRiskInput,
-  AnalyzeTransitRiskOutput,
-} from '@/ai/flows/analyze-transit-risk';
+  AnalyzeProductTransitRiskInput,
+  AnalyzeProductTransitRiskOutput,
+} from '@/ai/flows/analyze-product-transit-risk';
 
 
 // Re-export AI Product Schema
@@ -109,7 +109,7 @@ export type {
   ExplainErrorInput,
   AnalyzeTextileInput,
   AnalyzeConstructionMaterialInput,
-  AnalyzeTransitRiskInput,
+  AnalyzeProductTransitRiskInput,
 };
 
 // Export Output types
@@ -133,5 +133,5 @@ export type {
   ExplainErrorOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  AnalyzeTransitRiskOutput,
+  AnalyzeProductTransitRiskOutput,
 };
