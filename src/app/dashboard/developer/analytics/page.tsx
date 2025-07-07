@@ -1,7 +1,8 @@
 // src/app/dashboard/developer/analytics/page.tsx
 import { redirect } from 'next/navigation';
 import { getAuditLogs } from '@/lib/actions/audit-actions';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
 import {
   Card,

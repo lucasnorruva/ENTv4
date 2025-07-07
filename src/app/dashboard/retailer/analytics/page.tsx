@@ -1,6 +1,7 @@
 // src/app/dashboard/retailer/analytics/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser, hasRole } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
+import { hasRole } from '@/lib/auth-utils';
 import { getProducts } from '@/lib/actions/product-actions';
 import { UserRoles } from '@/lib/constants';
 import {
