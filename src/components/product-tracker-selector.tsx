@@ -36,15 +36,10 @@ export function ProductTrackerSelector({
 }: ProductTrackerSelectorProps) {
   const [open, setOpen] = React.useState(false);
 
-  // This handler is now tied to the Command's onValueChange
-  const handleValueChange = (currentValue: string) => {
-    // The value is the product.id or 'clear-selection'
-    if (currentValue === 'clear-selection') {
-      onProductSelect(null);
-    } else {
-      onProductSelect(currentValue);
-    }
-    setOpen(false); // Close the popover on selection
+  // This is the correct handler that will be called by onSelect
+  const handleSelect = (productId: string | null) => {
+    onProductSelect(productId);
+    setOpen(false);
   };
 
   return (
@@ -63,18 +58,24 @@ export function ProductTrackerSelector({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-        <Command onValueChange={handleValueChange}>
+        <Command>
           <CommandInput placeholder="Search product..." />
           <CommandList>
             <CommandEmpty>No product found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem value="clear-selection">
+              <CommandItem
+                onSelect={() => handleSelect(null)}
+                value="clear-selection"
+              >
                 Clear Selection
               </CommandItem>
               {products.map(product => (
                 <CommandItem
                   key={product.id}
-                  value={product.id} // Use unique ID for the value
+                  value={product.id} // The value passed to onSelect
+                  onSelect={(currentValue) => {
+                    handleSelect(currentValue);
+                  }}
                 >
                   <Check
                     className={cn(
