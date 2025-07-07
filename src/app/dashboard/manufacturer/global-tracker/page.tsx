@@ -39,6 +39,7 @@ export default async function ManufacturerGlobalTrackerPage() {
             products={transitProducts}
             alerts={companyAlerts}
             user={user}
+            roleSlug="manufacturer"
           />
         </Suspense>
       </div>

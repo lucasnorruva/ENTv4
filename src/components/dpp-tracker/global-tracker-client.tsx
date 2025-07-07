@@ -9,7 +9,7 @@ import React, {
   useMemo,
 } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
 import { MeshPhongMaterial } from 'three';
 import { Loader2, Info } from 'lucide-react';
@@ -49,15 +49,18 @@ interface GlobalTrackerClientProps {
   products: Product[];
   alerts: CustomsAlert[];
   user: User;
+  roleSlug: string;
 }
 
 export default function GlobalTrackerClient({
   products: allProducts,
   alerts: allAlerts,
   user,
+  roleSlug,
 }: GlobalTrackerClientProps) {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
@@ -77,8 +80,6 @@ export default function GlobalTrackerClient({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [globeSize, setGlobeSize] = useState({ width: 0, height: 0 });
-
-  const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
@@ -309,24 +310,39 @@ export default function GlobalTrackerClient({
       opacity: 1,
     });
   }, [theme]);
-
+  
+  // Consolidate all globe instance effects
   useEffect(() => {
-    if (globeEl.current && globeReady) {
-      const controls = globeEl.current.controls();
-      if (controls) {
-        controls.autoRotate = isAutoRotating;
-        controls.autoRotateSpeed = 0.3;
-        controls.enableZoom = true;
-        controls.minDistance = 150;
-        controls.maxDistance = 1000;
-      }
-      if (!selectedProduct)
-        globeEl.current.pointOfView(
-          { lat: 50, lng: 15, altitude: 2.0 },
-          1000,
-        );
+    const globe = globeEl.current;
+    if (!globe || !globeReady) return;
+
+    // Set controls
+    const controls = globe.controls();
+    if (controls) {
+      controls.autoRotate = isAutoRotating;
+      controls.autoRotateSpeed = 0.3;
+      controls.enableZoom = true;
+      controls.minDistance = 150;
+      controls.maxDistance = 1000;
     }
-  }, [globeReady, isAutoRotating, selectedProduct]);
+
+    // Set point of view
+    if (selectedProduct && selectedProduct.transit) {
+      const destinationCountry = getCountryFromLocationString(
+        selectedProduct.transit.destination,
+      );
+      const destinationCoords = destinationCountry
+        ? mockCountryCoordinates[destinationCountry]
+        : null;
+
+      if (destinationCoords) {
+        globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
+      }
+    } else {
+      globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
+    }
+  }, [globeReady, isAutoRotating, selectedProduct, getCountryFromLocationString, mockCountryCoordinates]);
+
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
@@ -373,10 +389,13 @@ export default function GlobalTrackerClient({
 
   const handleProductSelect = (productId: string | null) => {
     setSelectedProductId(productId);
-    const newPath = productId
-      ? `/dashboard/admin/global-tracker?productId=${productId}`
-      : '/dashboard/admin/global-tracker';
-    router.push(newPath, { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+    if (productId) {
+      params.set('productId', productId);
+    } else {
+      params.delete('productId');
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const destinationCountry = selectedProduct?.transit

@@ -37,6 +37,7 @@ export default async function AdminGlobalTrackerPage() {
             products={transitProducts}
             alerts={relevantAlerts}
             user={user}
+            roleSlug="admin"
           />
         </Suspense>
       </div>
