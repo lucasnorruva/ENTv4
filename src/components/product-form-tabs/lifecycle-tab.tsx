@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
-import { BatteryCharging, Paperclip } from 'lucide-react';
+import { BatteryCharging, Paperclip, View } from 'lucide-react';
 import {
   FormControl,
   FormDescription,
@@ -35,6 +35,9 @@ interface LifecycleTabProps {
   handleManualChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isUploadingManual: boolean;
   manualUploadProgress: number;
+  handleModelChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploadingModel: boolean;
+  modelUploadProgress: number;
   isSaving: boolean;
 }
 
@@ -43,6 +46,9 @@ export default function LifecycleTab({
   handleManualChange,
   isUploadingManual,
   manualUploadProgress,
+  handleModelChange,
+  isUploadingModel,
+  modelUploadProgress,
   isSaving,
 }: LifecycleTabProps) {
   return (
@@ -144,31 +150,59 @@ export default function LifecycleTab({
         />
       </div>
 
-      <div className="space-y-2">
-        <FormLabel>Service Manual (PDF)</FormLabel>
-        <FormDescription>
-          Upload a PDF of the product's service or repair manual.
-        </FormDescription>
-        <Input
-          type="file"
-          accept="application/pdf"
-          onChange={handleManualChange}
-          disabled={isUploadingManual || isSaving}
-        />
-        {isUploadingManual && (
-          <div className="flex items-center gap-2 mt-2">
-            <Progress value={manualUploadProgress} className="w-full h-2" />
-            <span className="text-xs text-muted-foreground">
-              {Math.round(manualUploadProgress)}%
-            </span>
-          </div>
-        )}
-        {form.watch('manualUrl') && (
-          <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
-            <Paperclip className="h-4 w-4" />
-            <span>Current file: {form.watch('manualFileName')}</span>
-          </div>
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <FormLabel>Service Manual (PDF)</FormLabel>
+          <FormDescription>
+            Upload a PDF of the product's service or repair manual.
+          </FormDescription>
+          <Input
+            type="file"
+            accept="application/pdf"
+            onChange={handleManualChange}
+            disabled={isUploadingManual || isSaving}
+          />
+          {isUploadingManual && (
+            <div className="flex items-center gap-2 mt-2">
+              <Progress value={manualUploadProgress} className="w-full h-2" />
+              <span className="text-xs text-muted-foreground">
+                {Math.round(manualUploadProgress)}%
+              </span>
+            </div>
+          )}
+          {form.watch('manualUrl') && (
+            <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+              <Paperclip className="h-4 w-4" />
+              <span>Current file: {form.watch('manualFileName')}</span>
+            </div>
+          )}
+        </div>
+        <div className="space-y-2">
+          <FormLabel>3D Model (.glb, .gltf)</FormLabel>
+          <FormDescription>
+            Upload a 3D model file for the product's digital twin.
+          </FormDescription>
+          <Input
+            type="file"
+            accept=".glb,.gltf"
+            onChange={handleModelChange}
+            disabled={isUploadingModel || isSaving}
+          />
+          {isUploadingModel && (
+            <div className="flex items-center gap-2 mt-2">
+              <Progress value={modelUploadProgress} className="w-full h-2" />
+              <span className="text-xs text-muted-foreground">
+                {Math.round(modelUploadProgress)}%
+              </span>
+            </div>
+          )}
+          {form.watch('model3dUrl') && (
+            <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
+              <View className="h-4 w-4" />
+              <span>Current file: {form.watch('model3dFileName')}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       <FormField
