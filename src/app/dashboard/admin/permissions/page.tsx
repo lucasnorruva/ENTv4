@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin/permissions/page.tsx
 import React from 'react';
 import { redirect } from 'next/navigation';
