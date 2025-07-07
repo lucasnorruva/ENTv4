@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -12,6 +13,8 @@ import {
 import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
 import RouteSimulator from './RouteSimulator';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -26,6 +29,8 @@ interface GlobeControlsProps {
   isProductSelected: boolean;
   onSimulateRoute: (origin: string, destination: string) => void;
   isSimulating: boolean;
+  showFactories: boolean;
+  onToggleFactories: (checked: boolean) => void;
 }
 
 export default function GlobeControls({
@@ -41,6 +46,8 @@ export default function GlobeControls({
   isProductSelected,
   onSimulateRoute,
   isSimulating,
+  showFactories,
+  onToggleFactories,
 }: GlobeControlsProps) {
   return (
     <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -51,9 +58,22 @@ export default function GlobeControls({
           onProductSelect={onProductSelect}
           className="w-full sm:w-[300px] bg-background/80 backdrop-blur-sm"
         />
-        <RouteSimulator onSimulate={onSimulateRoute} isSimulating={isSimulating} />
+        <RouteSimulator
+          onSimulate={onSimulateRoute}
+          isSimulating={isSimulating}
+        />
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="factories-toggle"
+            checked={showFactories}
+            onCheckedChange={onToggleFactories}
+          />
+          <Label htmlFor="factories-toggle" className="text-xs">
+            Factories
+          </Label>
+        </div>
         <Select onValueChange={onRiskFilterChange as any} value={riskFilter}>
           <SelectTrigger className="w-full sm:w-auto h-8 text-xs">
             <SelectValue placeholder="Filter by Risk" />
@@ -77,7 +97,12 @@ export default function GlobeControls({
             </SelectItem>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={onToggleRotation} className="h-8">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onToggleRotation}
+          className="h-8"
+        >
           {isAutoRotating ? 'Stop Rotation' : 'Auto-Rotate'}
         </Button>
       </div>
