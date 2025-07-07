@@ -79,7 +79,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'product:edit',
     'product:delete', // With resource-specific logic
     'product:archive',
-    'product:submit',
+    'product:submit', // Submit for verification
     'product:recalculate',
     'product:validate_data',
     'product:run_prediction',
