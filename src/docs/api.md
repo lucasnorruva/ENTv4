@@ -38,63 +38,6 @@ query GetElectronicsProducts {
 }
 ```
 
-### Example Query: Fetch a Company and its Users
-
-This query retrieves a specific company by its ID and lists all users associated with it, demonstrating how to use variables.
-
-```graphql
-query GetCompanyUsers($companyId: ID!) {
-  company(id: $companyId) {
-    id
-    name
-    users {
-      id
-      fullName
-      email
-      roles
-    }
-  }
-}
-```
-
-**Variables:**
-```json
-{
-  "companyId": "comp-eco"
-}
-```
-
-### Example Mutation: Create a User
-
-This mutation creates a new user and assigns them to a company.
-
-```graphql
-mutation CreateNewUser($input: UserInput!) {
-  createUser(input: $input) {
-    id
-    fullName
-    email
-    roles
-    company {
-      id
-      name
-    }
-  }
-}
-```
-
-**Variables:**
-```json
-{
-  "input": {
-    "fullName": "API User",
-    "email": "api.user@example.com",
-    "companyId": "comp-eco",
-    "roles": ["Supplier"]
-  }
-}
-```
-
 ### Example Mutation: Create a Product
 
 This mutation creates a new product with basic information. The `ProductInput` type includes all fields necessary to create a detailed passport.
@@ -192,20 +135,57 @@ Retrieves a single product passport by its ID.
     }
     ```
 
-#### `PUT /api/v2/products/{id}`
+---
 
-Updates an existing product passport.
+## Webhooks
 
--   **Method**: `PUT`
--   **Body**: A JSON object with the fields to update.
--   **Success Response**: `200 OK`
+Webhooks allow you to receive real-time notifications about events that happen on the Norruva platform, such as a product being published or a compliance check failing.
 
-#### `DELETE /api/v2/products/{id}`
+### Event Payload
 
-Deletes a product passport.
+All webhook events are sent as `POST` requests with a JSON body structured as follows:
 
--   **Method**: `DELETE`
--   **Success Response**: `204 No Content`
+```json
+{
+  "event": "product.published",
+  "createdAt": "2024-07-30T10:00:00Z",
+  "payload": {
+    "id": "pp-001",
+    "productName": "Eco-Friendly Smart Watch",
+    "status": "Published",
+    "..."
+  }
+}
+```
+
+### Verifying Signatures
+
+To ensure the integrity and authenticity of webhook payloads, we sign each request with an HMAC-SHA256 signature. The signature is included in the `X-Norruva-Signature` header.
+
+You should verify this signature on your server using your webhook's secret key (available in the developer dashboard).
+
+#### Example: Verifying a signature in Node.js
+
+```javascript
+const crypto = require('crypto');
+
+const secret = 'your_webhook_secret'; // Keep this secret!
+const receivedSignature = req.headers['x-norruva-signature'];
+const payload = req.body; // The raw request body
+
+const computedSignature = crypto
+  .createHmac('sha256', secret)
+  .update(JSON.stringify(payload))
+  .digest('hex');
+
+if (crypto.timingSafeEqual(Buffer.from(receivedSignature), Buffer.from(computedSignature))) {
+  // Signature is valid, process the event
+  console.log('Webhook verified successfully!');
+} else {
+  // Signature is invalid, reject the request
+  console.error('Invalid webhook signature.');
+}
+```
 
 ---
 

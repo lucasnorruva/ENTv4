@@ -336,3 +336,14 @@ export const ownershipTransferSchema = z.object({
   newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
 });
 export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
+
+export const apiSettingsSchema = z.object({
+  isPublicApiEnabled: z.boolean(),
+  rateLimits: z.object({
+    free: z.number().min(0),
+    pro: z.number().min(0),
+    enterprise: z.number().min(0),
+  }),
+  isWebhookSigningEnabled: z.boolean(),
+});
+export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
