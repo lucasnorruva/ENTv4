@@ -27,6 +27,7 @@ import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
 import BomAnalysisWidget from '../bom-analysis-widget';
 import type { User } from '@/types';
+import { Textarea } from '../ui/textarea';
 
 interface DataTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -112,6 +113,22 @@ export default function DataTab({
                 )}
               />
             </div>
+            <FormField
+              control={form.control}
+              name="manufacturing.manufacturingProcess"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Manufacturing Process</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Describe the primary manufacturing process (e.g., Blast Furnace, Injection Molding)..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="materials" className="border p-4 rounded-lg">

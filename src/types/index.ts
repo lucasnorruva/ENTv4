@@ -96,6 +96,7 @@ export interface Certification {
 export interface Manufacturing {
   facility: string;
   country: string;
+  manufacturingProcess?: string;
   emissionsKgCo2e?: number;
 }
 

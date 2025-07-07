@@ -38,6 +38,7 @@ import ComplianceTab from './product-form-tabs/compliance-tab';
 import CustomDataTab from './product-form-tabs/custom-data-tab';
 import TextileTab from './product-form-tabs/textile-tab';
 import FoodTab from './product-form-tabs/food-tab';
+import ConstructionTab from './product-form-tabs/construction-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -92,7 +93,7 @@ export default function ProductForm({
     category: 'Electronics',
     status: 'Draft',
     materials: [],
-    manufacturing: { facility: '', country: '' },
+    manufacturing: { facility: '', country: '', manufacturingProcess: '' },
     certifications: [],
     packaging: { type: '', recyclable: false },
     lifecycle: {},
@@ -485,12 +486,14 @@ export default function ProductForm({
   const hasCustomFields = customFields.length > 0;
   const showTextileTab = category === 'Fashion';
   const showFoodTab = category === 'Food & Beverage';
+  const showConstructionTab = category === 'Construction';
 
   const getTabCols = () => {
     let cols = 4;
     if (hasCustomFields) cols++;
     if (showTextileTab) cols++;
     if (showFoodTab) cols++;
+    if (showConstructionTab) cols++;
     return `grid-cols-${cols > 6 ? 6 : cols}`;
   };
 
@@ -556,6 +559,9 @@ export default function ProductForm({
               {showTextileTab && (
                 <TabsTrigger value="textile">Textile</TabsTrigger>
               )}
+              {showConstructionTab && (
+                <TabsTrigger value="construction">Construction</TabsTrigger>
+              )}
                {showFoodTab && (
                 <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>
               )}
@@ -594,13 +600,23 @@ export default function ProductForm({
                 user={user}
               />
             </TabsContent>
-            {showTextileTab && (
+             {showTextileTab && (
               <TabsContent value="textile">
                 <TextileTab
                   form={form}
                   fiberFields={fiberFields}
                   appendFiber={appendFiber}
                   removeFiber={removeFiber}
+                  user={user}
+                  productId={initialData?.id}
+                  isAiEnabled={isAiEnabled}
+                />
+              </TabsContent>
+            )}
+            {showConstructionTab && (
+              <TabsContent value="construction">
+                <ConstructionTab
+                  form={form}
                   user={user}
                   productId={initialData?.id}
                   isAiEnabled={isAiEnabled}

@@ -20,6 +20,7 @@ const certificationSchema = z.object({
 const manufacturingSchema = z.object({
   facility: z.string().min(1, 'Facility name is required.'),
   country: z.string().min(1, 'Country is required.'),
+  manufacturingProcess: z.string().optional(),
   emissionsKgCo2e: z.coerce.number().optional(),
 });
 

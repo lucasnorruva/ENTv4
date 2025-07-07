@@ -23,6 +23,7 @@ import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
+import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import type { AnalyzeSimulatedRouteOutput, AnalyzeProductTransitRiskOutput } from '@/types/ai-outputs';
@@ -473,6 +474,43 @@ export async function analyzeTextileData(
 
   await logAuditEvent(
     'product.textile_analysis',
+    productId,
+    { result: analysisResult },
+    userId,
+  );
+  
+  return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeConstructionData(productId: string, userId: string): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+  checkPermission(user, 'product:edit', product);
+
+  if (!product.materials || product.materials.length === 0) {
+    throw new Error('Product has no materials to analyze.');
+  }
+
+  // Use the first material as the primary one for analysis in this mock
+  const primaryMaterial = product.materials[0];
+
+  const analysisResult = await analyzeConstructionMaterialFlow({
+    materialName: primaryMaterial.name,
+    manufacturingProcess: product.manufacturing?.manufacturingProcess,
+    recycledContentPercentage: primaryMaterial.recycledContent,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+  
+  mockProducts[productIndex].constructionAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.construction_analysis',
     productId,
     { result: analysisResult },
     userId,
