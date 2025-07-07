@@ -22,6 +22,7 @@ import type {
   CustomsAlert,
   User,
   ProductionLine,
+  SimulatedRoute,
 } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
@@ -39,6 +40,9 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { getProductionLines } from '@/lib/actions';
 import { MOCK_SUPPLIERS } from '@/lib/supplier-data';
+import RouteAnalysisPanel from './RouteAnalysisPanel';
+import { analyzeSimulatedRoute as analyzeRouteAction } from '@/lib/actions/product-ai-actions';
+import SimulatedRouteInfoCard from './SimulatedRouteInfoCard';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -132,6 +136,10 @@ export default function GlobalTrackerClient({
     'all' | 'High' | 'Medium' | 'Low'
   >('all');
   const [showFactories, setShowFactories] = useState(true);
+
+  const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
+  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
+  const [isAnalyzingRoute, startRouteAnalysisTransition] = useTransition();
 
   const [isMounted, setIsMounted] = useState(false);
   const [arcsData, setArcsData] = useState<any[]>([]);
@@ -246,28 +254,27 @@ export default function GlobalTrackerClient({
     [pathname, router, searchParams],
   );
 
-  const handlePolygonClick = useCallback(
-    (feat: GeoJsonFeature) => {
-      const countryProps = feat.properties as CountryProperties;
-      if (!countryProps) return;
+  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
+    const countryProps = feat.properties as CountryProperties;
+    if (!countryProps) return;
 
-      setClickedCountryInfo(countryProps);
-      setClickedFactory(null);
-      const countryName = countryProps.ADMIN;
-      const coords = mockCountryCoordinates[countryName];
-      if (globeEl.current && coords) {
-        globeEl.current.pointOfView(
-          { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-          1000,
-        );
-      }
-    },
-    [],
-  );
+    setClickedCountryInfo(countryProps);
+    setClickedFactory(null);
+    setSimulatedRoute(null);
+    const countryName = countryProps.ADMIN;
+    const coords = mockCountryCoordinates[countryName];
+    if (globeEl.current && coords) {
+      globeEl.current.pointOfView(
+        { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
+        1000,
+      );
+    }
+  }, []);
 
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
+    setSimulatedRoute(null);
     if (globeEl.current) {
       globeEl.current.pointOfView(
         { lat: label.lat, lng: label.lng, altitude: 1.5 },
@@ -394,10 +401,30 @@ export default function GlobalTrackerClient({
       allProducts.forEach(p => processProduct(p, false));
     }
 
+    if (simulatedRoute) {
+        const originCoords = mockCountryCoordinates[simulatedRoute.origin];
+        const destCoords = mockCountryCoordinates[simulatedRoute.destination];
+        if (originCoords && destCoords) {
+          newArcs.push({
+            startLat: originCoords.lat,
+            startLng: originCoords.lng,
+            endLat: destCoords.lat,
+            endLng: destCoords.lng,
+            color: ['#8B5CF6', '#EC4899'], // A vibrant gradient for simulation
+            label: `Simulated: ${simulatedRoute.origin} to ${simulatedRoute.destination}`,
+            dashLength: 0.2,
+            dashGap: 0.1,
+            dashAnimateTime: 1000,
+          });
+          newHighlightedCountries.add(simulatedRoute.origin);
+          newHighlightedCountries.add(simulatedRoute.destination);
+        }
+      }
+
     setArcsData(newArcs);
     setPointsData(newPoints);
     setHighlightedCountries(Array.from(newHighlightedCountries));
-  }, [selectedProduct, allProducts, theme]);
+  }, [selectedProduct, allProducts, theme, simulatedRoute]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -485,6 +512,41 @@ export default function GlobalTrackerClient({
     );
   }, [clickedCountryInfo, allProducts]);
 
+  const handleAnalyzeNewRoute = (
+    productId: string,
+    origin: string,
+    destination: string,
+  ) => {
+    startRouteAnalysisTransition(async () => {
+      setSimulatedRoute(null);
+      setClickedCountryInfo(null);
+      setClickedFactory(null);
+      setSelectedProductId(null);
+      try {
+        const result = await analyzeRouteAction(
+          productId,
+          origin,
+          destination,
+          user.id,
+        );
+        setSimulatedRoute(result);
+        const destCoords = mockCountryCoordinates[destination];
+        if (destCoords && globeEl.current) {
+          globeEl.current.pointOfView(
+            { lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 },
+            1000,
+          );
+        }
+      } catch (error: any) {
+        toast({
+          title: 'Analysis Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
   if (!isMounted) return null;
 
   return (
@@ -501,6 +563,7 @@ export default function GlobalTrackerClient({
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
+        onToggleAnalysisPanel={() => setIsAnalysisPanelOpen(prev => !prev)}
       />
       <Globe
         ref={globeEl}
@@ -515,9 +578,9 @@ export default function GlobalTrackerClient({
         polygonsTransitionDuration={300}
         arcsData={arcsData}
         arcColor={'color'}
-        arcDashLength={d => d.dashLength || 0.4}
-        arcDashGap={d => d.dashGap || 0.1}
-        arcDashAnimateTime={2000}
+        arcDashLength={(d: any) => d.dashLength || 0.4}
+        arcDashGap={(d: any) => d.dashGap || 0.1}
+        arcDashAnimateTime={(d: any) => d.dashAnimateTime || 2000}
         arcStroke={'stroke'}
         pointsData={pointsData}
         pointLat="lat"
@@ -563,24 +626,15 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       )}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: '#2563eb' }}
-            />
-            Product Transit
-          </div>
-          <div className="flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: '#fbbf24' }}
-            />
-            Material Sourcing
-          </div>
-        </div>
-      </div>
+       {simulatedRoute && (
+        <SimulatedRouteInfoCard route={simulatedRoute} onDismiss={() => setSimulatedRoute(null)} />
+      )}
+      <RouteAnalysisPanel
+        isOpen={isAnalysisPanelOpen}
+        products={allProducts}
+        isAnalyzing={isAnalyzingRoute}
+        onAnalyze={handleAnalyzeNewRoute}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
-import type { Product, User } from '@/types';
+import type { Product, User, SimulatedRoute } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
@@ -25,6 +25,7 @@ import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
 import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
+import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import type { AnalyzeProductTransitRiskOutput } from '@/ai/flows/analyze-product-transit-risk';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
@@ -541,6 +542,36 @@ export async function analyzeProductTransitRisk(
     product,
     originCountry: product.transit.origin,
     destinationCountry: product.transit.destination,
+  });
+
+  return result;
+}
+
+export async function analyzeSimulatedRoute(
+  productId: string,
+  origin: string,
+  destination: string,
+  userId: string,
+): Promise<SimulatedRoute> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:run_compliance');
+
+  await logAuditEvent(
+    'route.simulation.started',
+    productId,
+    { route: `${origin} -> ${destination}` },
+    userId,
+  );
+
+  const result = await analyzeSimulatedRouteFlow({
+    product,
+    originCountry: origin,
+    destinationCountry: destination,
   });
 
   return result;
