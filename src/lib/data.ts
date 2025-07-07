@@ -66,9 +66,9 @@ export let products: Product[] = [
       isRemovable: false,
     },
     transit: {
-      stage: 'In Transit',
+      stage: 'Cleared - Inland Transit (DE)',
       departureDate: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
-      eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
+      eta: '2024-08-02T12:00:00Z',
       transport: 'Truck',
       origin: 'Port of Gdansk, Poland',
       destination: 'Berlin, Germany',
@@ -87,16 +87,7 @@ export let products: Product[] = [
       rohs: { compliant: true },
       ce: { marked: true },
       weee: { registered: true, registrationNumber: 'DE 12345678' },
-      epr: { schemeId: 'DE-EPR-01', producerRegistrationNumber: 'WEEE-DE-12345', wasteCategory: 'Small EEE' },
-      battery: { compliant: true, passportId: 'urn:uuid:bpr-001' },
-      pfas: { declared: true },
-      conflictMinerals: { compliant: true, reportUrl: 'https://example.com/cmr.pdf' },
-      espr: { compliant: true, delegatedActUrl: 'https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32022R2554' },
     },
-    greenClaims: [
-        { claim: 'Carbon Neutral', substantiation: 'Offsets purchased from certified provider. See report at example.com/cn-report.pdf' },
-        { claim: '100% Recyclable Packaging', substantiation: 'Packaging is made from mono-material corrugated cardboard, widely recyclable.' }
-    ],
     sustainability: {
       score: 85,
       environmental: 90,
@@ -107,12 +98,6 @@ export let products: Product[] = [
       isCompliant: true,
       complianceSummary: 'This product is fully compliant with the assigned EU Electronics path.',
       gaps: [],
-      lifecyclePrediction: {
-        predictedLifespanYears: 6.5,
-        keyFailurePoints: ['Battery degradation', 'Screen damage from drops'],
-        optimalReplacementTimeYears: 4,
-        confidenceScore: 0.85,
-      },
     },
     customData: {
       internal_sku: 'ECO-SW-S5-BLK',
@@ -130,14 +115,7 @@ export let products: Product[] = [
       blockHeight: 123456,
       merkleRoot: 'mock-merkle-root-for-pp-001',
     },
-    ebsiVcId: 'did:ebsi:z123456789abcdef',
-    verifiableCredential: `{\n  "@context": [\n    "https://www.w3.org/2018/credentials/v1",\n    "https://schema.org",\n    "https://w3id.org/dpp/v1"\n  ],\n  "id": "urn:uuid:mock-vc-id",\n  "type": ["VerifiableCredential", "DigitalProductPassport"],\n  "issuer": {\n    "id": "did:web:norruva.com",\n    "name": "Norruva Platform"\n  },\n  "issuanceDate": "2024-07-29T10:00:00Z",\n  "credentialSubject": {\n    "id": "did:dpp:product:pp-001",\n    "type": "Product",\n    "productName": "Eco-Friendly Smart Watch Series 5",\n    "dataHash": "mock-hash"\n  },\n  "proof": {\n    "type": "EcdsaSecp256k1Signature2019",\n    "created": "2024-07-29T10:00:00Z",\n    "proofPurpose": "assertionMethod",\n    "verificationMethod": "did:web:norruva.com#keys-1",\n    "jws": "mock-signature..."\n  }\n}`,
     isProcessing: false,
-    modelHotspots: [
-        { position: { x: 0, y: 0.3, z: 0.8 }, label: "Screen", description: "Gorilla Glass, 0% recycled content, sourced from USA." },
-        { position: { x: 0, y: -0.2, z: 0 }, label: "Casing", description: "100% Recycled Aluminum, sourced from Germany." },
-        { position: { x: -0.9, y: 0.1, z: 0 }, label: "Strap", description: "50% Recycled Silicone, sourced from South Korea." }
-    ],
   },
   {
     id: 'pp-002',
@@ -167,6 +145,13 @@ export let products: Product[] = [
         transport: 'Ship',
         origin: 'Shenzhen, China',
         destination: 'Los Angeles, USA',
+    },
+    customs: {
+        status: 'Detained',
+        authority: 'US Customs & Border Protection',
+        location: 'Port of Long Beach',
+        date: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
+        notes: 'Random container inspection underway.'
     },
     verificationStatus: 'Not Submitted',
     endOfLifeStatus: 'Active',
@@ -372,39 +357,5 @@ export let products: Product[] = [
       isCompliant: false,
       gaps: [],
     },
-  },
-  {
-    id: 'pp-007',
-    companyId: 'comp-eco',
-    productName: 'Eco-Concrete Mix',
-    productDescription:
-      'A low-carbon concrete mix with 40% recycled aggregate content, designed for sustainable construction projects.',
-    productImage: 'https://placehold.co/600x400.png',
-    category: 'Construction',
-    supplier: 'Eco Innovate Ltd.',
-    status: 'Published',
-    compliancePathId: 'cp-construction-eu-01',
-    materials: [
-      { name: 'Portland Cement', percentage: 20 },
-      { name: 'Recycled Aggregate', percentage: 40, recycledContent: 100 },
-      { name: 'Sand', percentage: 30 },
-      { name: 'Water', percentage: 10 },
-    ],
-    manufacturing: { facility: 'Heidelberg Eco-Cement', country: 'Germany' },
-    createdAt: new Date(
-      new Date(now).setDate(now.getDate() - 20),
-    ).toISOString(),
-    updatedAt: new Date(
-      new Date(now).setDate(now.getDate() - 5),
-    ).toISOString(),
-    lastUpdated: new Date(
-      new Date(now).setDate(now.getDate() - 5),
-    ).toISOString(),
-    verificationStatus: 'Verified',
-    lastVerificationDate: new Date(
-      new Date(now).setDate(now.getDate() - 4),
-    ).toISOString(),
-    endOfLifeStatus: 'Active',
-    isProcessing: false,
   },
 ];

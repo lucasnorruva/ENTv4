@@ -102,7 +102,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
         {
-          title: 'Customs Requirements',
+          title: 'Customs Dashboard',
           icon: Scale,
           href: 'customs',
         },
@@ -187,7 +187,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
-        { title: 'Customs Rules', icon: Scale, href: 'customs' },
+        { title: 'Customs Dashboard', icon: Scale, href: 'customs' },
         { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },

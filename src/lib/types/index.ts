@@ -7,9 +7,11 @@ import type {
   EsgScoreOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
+import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
+export type { TransitInfo, CustomsAlert, CustomsStatus };
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -27,8 +29,17 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   email: string;
   fullName: string;
+  avatarUrl?: string;
   companyId: string;
   roles: Role[];
+  onboardingComplete: boolean;
+  isMfaEnabled: boolean;
+  readNotificationIds?: string[];
+  notificationPreferences?: {
+    productUpdates?: boolean;
+    complianceAlerts?: boolean;
+    platformNews?: boolean;
+  };
 }
 
 /**
@@ -74,6 +85,7 @@ export interface Lifecycle {
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
+  energyEfficiencyClass?: string;
 }
 
 export interface Battery {
@@ -182,8 +194,6 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
-  model3dUrl?: string;
-  model3dFileName?: string;
   declarationOfConformity?: string;
 
   // Structured Data Fields
@@ -197,6 +207,8 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   compliance?: Compliance;
+  transit?: TransitInfo;
+  customs?: CustomsStatus;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
