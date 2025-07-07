@@ -25,6 +25,8 @@ import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
+import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
+
 
 export default function PublicPassportView({
   product,
@@ -35,18 +37,7 @@ export default function PublicPassportView({
   compliancePath?: CompliancePath;
   company?: Company;
 }) {
-  const getCustomsStatusVariant = (status?: Product['customs']['status']) => {
-    switch (status) {
-      case 'Cleared':
-        return 'default';
-      case 'Detained':
-        return 'secondary';
-      case 'Rejected':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
+  const customsStatusVariant = getStatusBadgeVariant(product.customs?.status);
 
   const showTextileTab = product.category === 'Fashion';
 
@@ -148,7 +139,7 @@ export default function PublicPassportView({
                 <Globe className="h-10 w-10 text-primary" />
                 <div>
                   <Badge
-                    variant={getCustomsStatusVariant(product.customs.status)}
+                    variant={customsStatusVariant}
                     className="text-sm"
                   >
                     {product.customs.status}

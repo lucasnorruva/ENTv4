@@ -15,7 +15,7 @@ export function getStatusIcon(status: string | undefined) {
   }
 }
 
-export function getStatusBadgeVariant(status: string | undefined) {
+export function getStatusBadgeVariant(status: string | undefined): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
     case 'Verified':
     case 'Cleared':

@@ -22,6 +22,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
+
 
 interface LifecycleEvent {
   date: Date;
@@ -30,17 +32,6 @@ interface LifecycleEvent {
   icon: React.ElementType;
 }
 
-const getStatusVariant = (status: string) => {
-  switch (status) {
-    case 'Cleared':
-      return 'default';
-    case 'Detained':
-      return 'secondary';
-    case 'Rejected':
-    default:
-      return 'destructive';
-  }
-};
 
 const HistoryTab = ({ product }: { product: Product }) => {
   const events: LifecycleEvent[] = useMemo(() => {
