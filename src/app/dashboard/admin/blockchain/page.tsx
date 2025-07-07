@@ -1,4 +1,5 @@
 // src/app/dashboard/admin/blockchain/page.tsx
+'use server';
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
@@ -15,5 +16,5 @@ export default async function BlockchainManagementPage() {
   }
 
   // The client component will handle fetching and filtering the data.
-  return <BlockchainManagementClient />;
+  return <BlockchainManagementClient user={user} />;
 }
