@@ -2,13 +2,13 @@
 'use client';
 
 import React, { useTransition, useEffect } from 'react';
-import { useForm, useWatch, useFieldArray } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   companySettingsSchema,
   type CompanySettingsFormValues,
 } from '@/lib/schemas';
-import type { Company, User } from '@/types';
+import type { Company, User, CustomFieldDefinition } from '@/types';
 import { saveCompanySettings } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,16 +31,9 @@ import {
 } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Loader2, Plus, Trash2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { Input } from './ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
 
 interface CompanySettingsFormProps {
   company: Company;
@@ -66,11 +59,6 @@ export default function CompanySettingsForm({
       },
       customFields: company.settings?.customFields ?? [],
     },
-  });
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'customFields',
   });
 
   const isBrandingEnabled = useWatch({
@@ -263,98 +251,6 @@ export default function CompanySettingsForm({
             </CardContent>
           </Card>
         )}
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Custom Product Fields</CardTitle>
-            <CardDescription>
-              Define custom data fields that will appear on the product creation
-              form for this company.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className="flex flex-col sm:flex-row sm:items-end gap-2 border p-4 rounded-md"
-              >
-                <FormField
-                  control={form.control}
-                  name={`customFields.${index}.label`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Field Label</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Internal SKU" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`customFields.${index}.id`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Field ID</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., internal_sku"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name={`customFields.${index}.type`}
-                  render={({ field }) => (
-                    <FormItem className="flex-1">
-                      <FormLabel>Field Type</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="text">Text</SelectItem>
-                          <SelectItem value="number">Number</SelectItem>
-                          <SelectItem value="boolean">
-                            Boolean (Checkbox)
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => remove(index)}
-                  className="sm:mb-1"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => append({ id: '', label: '', type: 'text' })}
-            >
-              <Plus className="mr-2 h-4 w-4" /> Add Custom Field
-            </Button>
-          </CardContent>
-        </Card>
 
         <div className="flex justify-end">
           <Button type="submit" disabled={isSaving}>
