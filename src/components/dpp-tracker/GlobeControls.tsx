@@ -15,7 +15,7 @@ import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, Factory } from 'lucide-react';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -88,7 +88,8 @@ export default function GlobeControls({
             checked={showFactories}
             onCheckedChange={onToggleFactories}
           />
-          <Label htmlFor="factories-toggle" className="text-xs">
+          <Label htmlFor="factories-toggle" className="text-xs flex items-center gap-1">
+            <Factory className="h-3 w-3" />
             Factories
           </Label>
         </div>

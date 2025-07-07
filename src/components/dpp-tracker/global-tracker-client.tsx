@@ -15,12 +15,15 @@ import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
-import type { Product, CustomsAlert, User } from '@/types';
+import type { Product, CustomsAlert, User, ProductionLine } from '@/types';
 import { mockCountryCoordinates } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
+import { getFactoryColor } from '@/lib/dppDisplayUtils';
 import GlobeControls from './GlobeControls';
 import ClickedCountryInfoCard from './ClickedCountryInfoCard';
 import SelectedProductCustomsInfoCard from './SelectedProductCustomsInfoCard';
+import OperationalPointInfoCard from './OperationalPointInfoCard';
+import RouteAnalysisPanel from './RouteAnalysisPanel';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -35,6 +38,7 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 interface GlobalTrackerClientProps {
   products: Product[];
   alerts: CustomsAlert[];
+  productionLines?: ProductionLine[];
   user: User;
   roleSlug: string;
 }
@@ -57,6 +61,7 @@ const EU_COUNTRIES = new Set([
 export default function GlobalTrackerClient({
   products,
   alerts,
+  productionLines = [],
   user,
   roleSlug,
 }: GlobalTrackerClientProps) {
@@ -69,10 +74,11 @@ export default function GlobalTrackerClient({
   const [isClientMounted, setIsClientMounted] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [clickedCountry, setClickedCountry] = useState<CountryProperties | null>(null);
+  const [clickedPoint, setClickedPoint] = useState<any | null>(null);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
   const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
-  const [showFactories, setShowFactories] = useState(false);
+  const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
 
   useEffect(() => setIsClientMounted(true), []);
@@ -97,6 +103,7 @@ export default function GlobalTrackerClient({
   const onProductSelect = (productId: string | null) => {
     setSelectedProductId(productId);
     setClickedCountry(null);
+    setClickedPoint(null);
     if(productId) {
       setCountryFilter('supplyChain');
     }
@@ -105,6 +112,13 @@ export default function GlobalTrackerClient({
   const handleCountryClick = useCallback((polygon: any) => {
     setClickedCountry(polygon.properties);
     setSelectedProductId(null);
+    setClickedPoint(null);
+  }, []);
+  
+  const handlePointClick = useCallback((point: any) => {
+    setClickedPoint(point);
+    setSelectedProductId(null);
+    setClickedCountry(null);
   }, []);
 
   useEffect(() => {
@@ -186,18 +200,19 @@ export default function GlobalTrackerClient({
 
   const factoryPoints = useMemo(() => {
     if(!showFactories) return [];
-    return products.map(p => {
-        if(!p.manufacturing?.country) return null;
-        const coords = mockCountryCoordinates[p.manufacturing.country];
+    return productionLines.map(line => {
+        const coords = mockCountryCoordinates[line.location.split(', ').pop() || ''];
         if(!coords) return null;
         return {
+            ...line,
             lat: coords.lat,
             lng: coords.lng,
             size: 0.2,
-            color: 'rgba(234, 179, 8, 0.7)',
+            color: getFactoryColor(line.status),
+            type: 'factory',
         }
     }).filter(Boolean);
-  }, [products, showFactories]);
+  }, [productionLines, showFactories]);
 
   const alertPoints = useMemo(() => {
     if (!showCustomsAlerts) return [];
@@ -207,6 +222,7 @@ export default function GlobalTrackerClient({
         lng: alert.lng,
         size: 0.5,
         color: alert.severity === 'High' ? 'red' : 'orange',
+        type: 'alert',
     }));
   }, [alerts, showCustomsAlerts]);
   
@@ -233,13 +249,14 @@ export default function GlobalTrackerClient({
       pointColor="color"
       pointRadius="size"
       pointAltitude={0.01}
+      onPointClick={handlePointClick}
       onGlobeReady={() => setGlobeReady(true)}
     />
   ) : (
     <div className="flex items-center justify-center h-full w-full bg-globe-background">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
     </div>
-  ), [isClientMounted, globeMaterial, landPolygons, polygonColor, handleCountryClick, arcsData, alertPoints, factoryPoints, theme]);
+  ), [isClientMounted, globeMaterial, landPolygons, polygonColor, handleCountryClick, handlePointClick, arcsData, alertPoints, factoryPoints, theme]);
 
   return (
     <div className="absolute inset-0">
@@ -279,6 +296,13 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       }
+      {clickedPoint?.type === 'factory' && (
+        <OperationalPointInfoCard
+          line={clickedPoint}
+          onDismiss={() => setClickedPoint(null)}
+          roleSlug={roleSlug}
+        />
+      )}
     </div>
   );
 }

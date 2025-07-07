@@ -2,16 +2,21 @@
 import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product } from '@/types';
+import type { Product, ProductionLine } from '@/types';
 import { Suspense } from 'react';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { Loader2 } from 'lucide-react';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 
 export default async function AdminGlobalTrackerPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
   // Admins see all products on the platform
-  const allProducts: Product[] = await getProducts(user.id);
+  const [allProducts, allProductionLines] = await Promise.all([
+    getProducts(user.id),
+    getProductionLines(),
+  ]);
+
   const transitProducts = allProducts.filter(
     p => p.status === 'Published' && p.transit,
   );
@@ -37,6 +42,7 @@ export default async function AdminGlobalTrackerPage() {
           <GlobalTrackerClient
             products={transitProducts}
             alerts={relevantAlerts}
+            productionLines={allProductionLines}
             user={user}
             roleSlug="admin"
           />

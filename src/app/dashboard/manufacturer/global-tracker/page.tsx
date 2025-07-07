@@ -7,15 +7,24 @@ import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
 import type { Product } from '@/types';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 
 export default async function ManufacturerGlobalTrackerPage() {
   // Get current user to filter products by their company
   const user = await getCurrentUser(UserRoles.MANUFACTURER);
-  const companyProducts: Product[] = await getProducts(user.id);
+  
+  const [companyProducts, allProductionLines] = await Promise.all([
+    getProducts(user.id),
+    getProductionLines(),
+  ]);
 
   // Filter for products that are actually in transit
   const transitProducts = companyProducts.filter(
     p => p.status === 'Published' && p.transit,
+  );
+
+  const companyProductionLines = allProductionLines.filter(
+    line => line.companyId === user.companyId
   );
 
   // For this view, filter alerts related to the company's products
@@ -39,6 +48,7 @@ export default async function ManufacturerGlobalTrackerPage() {
           <GlobalTrackerClient
             products={transitProducts}
             alerts={companyAlerts}
+            productionLines={companyProductionLines}
             user={user}
             roleSlug="manufacturer"
           />
