@@ -4,13 +4,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import type { User, Product, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardDescription,
-} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { getProducts } from '@/lib/actions';

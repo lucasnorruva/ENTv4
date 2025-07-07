@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   Landmark,
   ShieldAlert,
+  Fingerprint
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -39,6 +40,7 @@ import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import OverrideVerificationDialog from './override-verification-dialog';
 import TextileTab from './product-detail-tabs/textile-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
+import CryptoTab from './product-detail-tabs/crypto-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -181,6 +183,7 @@ export default function ProductDetailView({
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                <TabsTrigger value="crypto">Crypto & On-Chain</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                  {show3dTab && <TabsTrigger value="3d_viewer">3D Viewer</TabsTrigger>}
@@ -212,6 +215,9 @@ export default function ProductDetailView({
                   product={product}
                   compliancePath={compliancePath}
                 />
+              </TabsContent>
+              <TabsContent value="crypto" className="mt-4">
+                <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh}/>
               </TabsContent>
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />

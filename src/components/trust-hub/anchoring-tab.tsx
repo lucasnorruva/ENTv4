@@ -169,9 +169,9 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
                   <TableCell>{formatDistanceToNow(new Date(p.lastUpdated), { addSuffix: true })}</TableCell>
                    <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
-                        <Link href={`/dashboard/admin/blockchain/${p.id}`}>
+                        <Link href={`/dashboard/admin/products/${p.id}`}>
                             <Edit className="h-3 w-3 mr-2"/>
-                            Manage
+                            View Details
                         </Link>
                     </Button>
                   </TableCell>
