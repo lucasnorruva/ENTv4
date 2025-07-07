@@ -3,10 +3,8 @@
 
 import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, useGLTF, Html } from '@react-three/drei';
-import { Loader2 } from 'lucide-react';
+import { OrbitControls, useGLTF } from '@react-three/drei';
 import { Vector3, Box3 } from 'three';
-import type { ModelHotspot } from '@/types';
 
 function Model({ url }: { url: string }) {
   const { scene } = useGLTF(url);
@@ -21,28 +19,19 @@ function Model({ url }: { url: string }) {
 
 export default function Product3DViewer({
   modelUrl,
-  hotspots,
 }: {
   modelUrl: string;
-  hotspots?: ModelHotspot[];
 }) {
 
   return (
     <div className="w-full h-96 rounded-lg bg-muted relative border">
-      <Canvas shadows dpr={[1, 2]} camera={{ fov: 50, position: [2, 2, 2] }}>
-        <Suspense
-          fallback={
-            <Html center>
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </Html>
-          }
-        >
-          <ambientLight intensity={Math.PI / 2} />
-          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
-          <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
+      <Canvas camera={{ fov: 50, position: [2, 1, 2] }}>
+        <Suspense fallback={null}>
+          <ambientLight intensity={Math.PI} />
+          <pointLight position={[10, 10, 10]} decay={0} intensity={Math.PI} />
           <Model url={modelUrl} />
         </Suspense>
-        <OrbitControls autoRotate />
+        <OrbitControls />
       </Canvas>
     </div>
   );
