@@ -12,7 +12,7 @@ import React, {
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
-import { MeshPhongMaterial, Color } from 'three';
+import { MeshPhongMaterial } from 'three';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
@@ -176,6 +176,73 @@ export default function GlobalTrackerClient({
     [theme],
   );
 
+  const isEU = useCallback(
+    (isoA3: string | undefined) =>
+      !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
+    [],
+  );
+
+  const getPolygonCapColor = useCallback(
+    (feat: GeoJsonFeature) => {
+      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
+      const p = feat.properties as CountryProperties;
+      const isDark = theme === 'dark';
+      const countryNameLower = p.ADMIN.toLowerCase();
+
+      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN)
+        return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
+      if (
+        clickedCountryInfo &&
+        (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
+          clickedCountryInfo.ADMIN === p.ADMIN)
+      )
+        return 'tomato';
+      if (
+        highlightedCountries.some(hc =>
+          countryNameLower.includes(hc.toLowerCase()),
+        )
+      )
+        return isDark ? '#FBBF24' : '#F59E0B';
+
+      if (
+        riskFilter !== 'all' &&
+        countryRiskMap.get(countryNameLower) === riskFilter
+      ) {
+        if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
+        if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
+        if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
+      }
+
+      if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
+
+      return isDark ? '#334155' : '#e2e8f0';
+    },
+    [
+      theme,
+      isEU,
+      highlightedCountries,
+      clickedCountryInfo,
+      riskFilter,
+      countryRiskMap,
+      routeOrigin,
+    ],
+  );
+
+  useEffect(() => {
+    Promise.all([
+      fetch(
+        'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
+      ).then(res => res.json()),
+      getProductionLines(),
+    ])
+      .then(([geoJsonData, lines]) => {
+        setLandPolygons(geoJsonData.features);
+        setFilteredLandPolygons(geoJsonData.features);
+        setProductionLines(lines);
+      })
+      .catch(err => console.error('Error fetching initial globe data:', err));
+  }, []);
+
   const handleProductSelect = useCallback(
     (productId: string | null) => {
       setSimulatedRoute(null);
@@ -307,80 +374,13 @@ export default function GlobalTrackerClient({
       .filter(p => p !== null);
   }, [showFactories, productionLines]);
 
-  const isEU = useCallback(
-    (isoA3: string | undefined) =>
-      !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
-    [],
-  );
-
-  const getPolygonCapColor = useCallback(
-    (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
-      const p = feat.properties as CountryProperties;
-      const isDark = theme === 'dark';
-      const countryNameLower = p.ADMIN.toLowerCase();
-
-      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN)
-        return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
-      if (
-        clickedCountryInfo &&
-        (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
-          clickedCountryInfo.ADMIN === p.ADMIN)
-      )
-        return 'tomato';
-      if (
-        highlightedCountries.some(hc =>
-          countryNameLower.includes(hc.toLowerCase()),
-        )
-      )
-        return isDark ? '#FBBF24' : '#F59E0B';
-
-      if (
-        riskFilter !== 'all' &&
-        countryRiskMap.get(countryNameLower) === riskFilter
-      ) {
-        if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
-        if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
-        if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
-      }
-
-      if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
-
-      return isDark ? '#334155' : '#e2e8f0';
-    },
-    [
-      theme,
-      isEU,
-      highlightedCountries,
-      clickedCountryInfo,
-      riskFilter,
-      countryRiskMap,
-      routeOrigin,
-    ],
-  );
-
-  useEffect(() => {
-    Promise.all([
-      fetch(
-        'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
-      ).then(res => res.json()),
-      getProductionLines(),
-    ])
-      .then(([geoJsonData, lines]) => {
-        setLandPolygons(geoJsonData.features);
-        setFilteredLandPolygons(geoJsonData.features);
-        setProductionLines(lines);
-      })
-      .catch(err => console.error('Error fetching initial globe data:', err));
-  }, []);
-
   useEffect(() => {
     const newArcs: any[] = [];
     const newPoints: any[] = [];
     const newHighlightedCountries = new Set<string>();
 
     const processProduct = (product: Product, isSelected: boolean) => {
-      const pointColor = new Color(getPointColorForStatus(product.verificationStatus)).getHex();
+      const pointColor = getPointColorForStatus(product.verificationStatus);
       const factoryCountry = product.manufacturing?.country
         ? getCountryFromLocationString(product.manufacturing.country)
         : null;
@@ -395,13 +395,14 @@ export default function GlobalTrackerClient({
             const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
             
             if (originCoords) {
-              newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.2, color: 0xfbbf24, name: `Supplier: ${supplier?.name}` });
+              const materialColor = '#fbbf24';
+              newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.2, color: materialColor, name: `Supplier: ${supplier?.name}` });
               newArcs.push({
                 startLat: originCoords.lat,
                 startLng: originCoords.lng,
                 endLat: factoryCoords.lat,
                 endLng: factoryCoords.lng,
-                color: [0xfbbf24, 0xfbbf24],
+                color: [materialColor, materialColor],
                 stroke: 0.2,
                 label: `Material: ${material.name}`
               });
@@ -410,7 +411,6 @@ export default function GlobalTrackerClient({
           }
         });
       }
-
 
       // Final Product Transit Arc
       if (product.transit) {
