@@ -3,6 +3,7 @@ import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
 import type { Product } from '@/types';
+import { Suspense } from 'react';
 
 export default async function AdminGlobalTrackerPage() {
   // Admins see all products on the platform
@@ -17,6 +18,8 @@ export default async function AdminGlobalTrackerPage() {
   );
 
   return (
-    <GlobalTrackerClient products={transitProducts} alerts={relevantAlerts} />
+    <Suspense>
+      <GlobalTrackerClient products={transitProducts} alerts={relevantAlerts} />
+    </Suspense>
   );
 }

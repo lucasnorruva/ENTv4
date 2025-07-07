@@ -3,6 +3,7 @@ import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
 import type { Product } from '@/types';
+import { Suspense } from 'react';
 
 export default async function RetailerGlobalTrackerPage() {
   const allProducts: Product[] = await getProducts(); // Retailers can see all published products
@@ -16,6 +17,8 @@ export default async function RetailerGlobalTrackerPage() {
   );
 
   return (
-    <GlobalTrackerClient products={transitProducts} alerts={relevantAlerts} />
+    <Suspense>
+      <GlobalTrackerClient products={transitProducts} alerts={relevantAlerts} />
+    </Suspense>
   );
 }
