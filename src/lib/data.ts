@@ -72,10 +72,6 @@ export let products: Product[] = [
       transport: 'Truck',
       origin: 'Port of Gdansk, Poland',
       destination: 'Berlin, Germany',
-      waypoints: [
-        { location: 'Port of Gdansk, Poland', lat: 54.401, lng: 18.675, eta: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString() },
-        { location: 'Berlin, Germany', lat: 52.52, lng: 13.405, eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString() },
-      ],
     },
     customs: {
       status: 'Cleared',
@@ -171,7 +167,6 @@ export let products: Product[] = [
         transport: 'Ship',
         origin: 'Shenzhen, China',
         destination: 'Los Angeles, USA',
-        waypoints: [],
     },
     verificationStatus: 'Not Submitted',
     endOfLifeStatus: 'Active',
@@ -225,7 +220,6 @@ export let products: Product[] = [
         transport: 'Ship',
         origin: 'Mumbai, India',
         destination: 'Paris, France',
-        waypoints: [],
     },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 10),
@@ -261,7 +255,6 @@ export let products: Product[] = [
         transport: 'Plane',
         origin: 'Shenzhen, China',
         destination: 'Frankfurt, Germany',
-        waypoints: [],
     },
     customs: {
       status: 'Rejected',
@@ -323,7 +316,6 @@ export let products: Product[] = [
         transport: 'Ship',
         origin: 'Ho Chi Minh City, Vietnam',
         destination: 'Lyon, France',
-        waypoints: [],
     },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
@@ -356,7 +348,6 @@ export let products: Product[] = [
         transport: 'Ship',
         origin: 'Newark, USA',
         destination: 'Stuttgart, Germany',
-        waypoints: [],
     },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(

@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/compliance-tab.tsx
 'use client';
 
@@ -319,7 +318,7 @@ export default function ComplianceTab({
                                 rel="noopener noreferrer"
                                 className="text-xs text-primary hover:underline mt-2 flex items-center gap-1"
                             >
-                                View Document <LinkIcon className="h-3 w-3" />
+                                View Document <LinkIcon className="ml-1 h-3 w-3" />
                             </Link>
                         )}
                       </div>

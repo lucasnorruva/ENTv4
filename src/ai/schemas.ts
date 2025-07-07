@@ -1,7 +1,7 @@
 // src/ai/schemas.ts
 import { z } from 'zod';
 import { textileDataSchema } from '@/lib/schemas/textile';
-import type { AnalyzeConstructionMaterialOutput } from '@/types/ai-outputs';
+import type { AnalyzeConstructionMaterialOutput, GreenClaim } from '@/types';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
@@ -79,6 +79,11 @@ export const AiProductSchema = z.object({
       ce: z.object({ marked: z.boolean().optional() }).optional(),
       prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
       foodContact: z.object({ safe: z.boolean().optional(), standard: z.string().optional() }).optional(),
+      epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional(), wasteCategory: z.string().optional() }).optional(),
+      battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
+      pfas: z.object({ declared: z.boolean().optional() }).optional(),
+      conflictMinerals: z.object({ compliant: z.boolean().optional(), reportUrl: z.string().url().optional() }).optional(),
+      espr: z.object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().url().optional() }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),
@@ -94,6 +99,7 @@ export const AiProductSchema = z.object({
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
   constructionAnalysis: z.custom<AnalyzeConstructionMaterialOutput>().optional().describe('Construction-specific data.'),
+  greenClaims: z.custom<GreenClaim[]>().optional().describe('Environmental marketing claims and their substantiation.'),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;

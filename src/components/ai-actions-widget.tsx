@@ -31,7 +31,6 @@ import {
   generatePcdsForProduct,
   runDataValidationCheck,
   runComplianceCheck,
-  analyzeTextileData,
 } from '@/lib/actions/product-ai-actions';
 import {
   Dialog,

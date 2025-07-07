@@ -88,6 +88,15 @@ import type {
   AnalyzeProductTransitRiskInput,
   AnalyzeProductTransitRiskOutput,
 } from '@/ai/flows/analyze-product-transit-risk';
+import type {
+  AnalyzeSimulatedRouteInput,
+  AnalyzeSimulatedRouteOutput,
+} from '@/ai/flows/analyze-simulated-route';
+import type {
+  GenerateConformityDeclarationInput,
+  GenerateConformityDeclarationOutput,
+} from '@/ai/flows/generate-conformity-declaration';
+import type { GreenClaim } from '@/types';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -114,6 +123,9 @@ export type {
   AnalyzeConstructionMaterialInput,
   AnalyzeTransitRiskInput,
   AnalyzeProductTransitRiskInput,
+  AnalyzeSimulatedRouteInput,
+  GenerateConformityDeclarationInput,
+  GreenClaim,
 };
 
 // Export Output types
@@ -139,5 +151,7 @@ export type {
   AnalyzeConstructionMaterialOutput,
   AnalyzeTransitRiskOutput,
   AnalyzeProductTransitRiskOutput,
-  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis
+  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
+  AnalyzeSimulatedRouteOutput,
+  GenerateConformityDeclarationOutput,
 };

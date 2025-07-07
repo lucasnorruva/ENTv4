@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for generating a Declaration of Conformity document.
@@ -12,7 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '@/ai/schemas';
 
-const GenerateConformityDeclarationInputSchema = z.object({
+export const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
   companyName: z.string().describe('The legal name of the manufacturer.'),
 });
@@ -20,7 +19,7 @@ export type GenerateConformityDeclarationInput = z.infer<
   typeof GenerateConformityDeclarationInputSchema
 >;
 
-const GenerateConformityDeclarationOutputSchema = z.object({
+export const GenerateConformityDeclarationOutputSchema = z.object({
   declarationText: z
     .string()
     .describe(

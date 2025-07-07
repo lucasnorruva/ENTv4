@@ -432,4 +432,10 @@ export interface ApiRateLimit {
 
 export type { TransitInfo, CustomsAlert, CustomsStatus };
 
-export interface SimulatedRoute extends AnalyzeProductTransitRiskOutput {}
+export interface SimulatedRoute {
+  origin: string;
+  destination: string;
+  riskLevel: 'Low' | 'Medium' | 'High' | 'Very High';
+  summary: string;
+  keyConsiderations: string[];
+}
