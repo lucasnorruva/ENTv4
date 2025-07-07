@@ -124,6 +124,9 @@ export default function GlobalTrackerClient({
   const [clickedFactory, setClickedFactory] = useState<ProductionLine | null>(
     null,
   );
+  
+  // New state for click-to-analyze feature
+  const [routeOrigin, setRouteOrigin] = useState<CountryProperties | null>(null);
 
   const [countryFilter, setCountryFilter] = useState<
     'all' | 'eu' | 'supplyChain'
@@ -171,34 +174,12 @@ export default function GlobalTrackerClient({
       }),
     [theme],
   );
-
-  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
-    if (feat.properties) {
-      setClickedCountryInfo(feat.properties as CountryProperties);
-      setClickedFactory(null);
-      const countryName = (feat.properties as CountryProperties).ADMIN;
-      const coords = mockCountryCoordinates[countryName];
-      if (globeEl.current && coords) {
-        globeEl.current.pointOfView(
-          { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-          1000,
-        );
-      }
-    }
-  }, []);
   
-  const handleLabelClick = useCallback((label: any) => {
-    setClickedFactory(label.data as ProductionLine);
-    setClickedCountryInfo(null);
-    if(globeEl.current) {
-        globeEl.current.pointOfView({lat: label.lat, lng: label.lng, altitude: 1.5}, 1000);
-    }
-  }, []);
-
   const handleProductSelect = useCallback(
     (productId: string | null) => {
       setSimulatedRoute(null);
       setClickedFactory(null);
+      setRouteOrigin(null); // Cancel route selection
       setSelectedProductId(productId);
       setClickedCountryInfo(null);
       const params = new URLSearchParams(searchParams.toString());
@@ -213,8 +194,8 @@ export default function GlobalTrackerClient({
     },
     [pathname, router, searchParams],
   );
-
-  const handleSimulateRoute = (origin: string, destination: string) => {
+  
+  const handleSimulateRoute = useCallback((origin: string, destination: string) => {
     handleProductSelect(null);
     setClickedCountryInfo(null);
     setClickedFactory(null);
@@ -234,8 +215,59 @@ export default function GlobalTrackerClient({
         });
       }
     });
-  };
+  }, [handleProductSelect, toast]);
 
+  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
+    const countryProps = feat.properties as CountryProperties;
+    if (!countryProps) return;
+    
+    // Logic for route simulation
+    if (routeOrigin && routeOrigin.ADMIN !== countryProps.ADMIN) {
+      // This is the destination click
+      handleSimulateRoute(routeOrigin.ADMIN, countryProps.ADMIN);
+      setRouteOrigin(null); // Reset after simulation starts
+      setClickedCountryInfo(null);
+      return;
+    } else if (routeOrigin && routeOrigin.ADMIN === countryProps.ADMIN) {
+      // Clicked the same country again, cancel selection
+      setRouteOrigin(null);
+      setClickedCountryInfo(null);
+      return;
+    }
+
+    // Default click behavior
+    setClickedCountryInfo(countryProps);
+    setClickedFactory(null);
+    const countryName = countryProps.ADMIN;
+    const coords = mockCountryCoordinates[countryName];
+    if (globeEl.current && coords) {
+      globeEl.current.pointOfView(
+        { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
+        1000,
+      );
+    }
+  }, [routeOrigin, handleSimulateRoute]);
+
+  const handleLabelClick = useCallback((label: any) => {
+    setClickedFactory(label.data as ProductionLine);
+    setClickedCountryInfo(null);
+    setRouteOrigin(null); // Cancel route selection if a factory is clicked
+    if(globeEl.current) {
+        globeEl.current.pointOfView({lat: label.lat, lng: label.lng, altitude: 1.5}, 1000);
+    }
+  }, []);
+
+  const startRouteAnalysis = () => {
+    handleProductSelect(null); // Clear any selected product
+    setClickedCountryInfo(null);
+    setSimulatedRoute(null);
+    setRouteOrigin(null);
+    toast({
+        title: "Select Origin Country",
+        description: "Click a country on the globe to set it as the origin.",
+    })
+  }
+  
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
     [selectedProductId, allProducts],
@@ -269,7 +301,8 @@ export default function GlobalTrackerClient({
       const p = feat.properties as CountryProperties;
       const isDark = theme === 'dark';
       const countryNameLower = p.ADMIN.toLowerCase();
-
+      
+      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN) return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
       if (
         clickedCountryInfo &&
         (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
@@ -293,7 +326,7 @@ export default function GlobalTrackerClient({
 
       return isDark ? '#334155' : '#e2e8f0';
     },
-    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap],
+    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap, routeOrigin],
   );
 
   useEffect(() => {
@@ -508,8 +541,12 @@ export default function GlobalTrackerClient({
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}
-        onSimulateRoute={handleSimulateRoute}
-        isSimulating={isSimulating}
+        onStartRouteAnalysis={startRouteAnalysis}
+        isAnalyzing={!!routeOrigin || !!simulatedRoute}
+        onClearSimulation={() => {
+            setRouteOrigin(null);
+            setSimulatedRoute(null);
+        }}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
       />
@@ -556,7 +593,7 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       )}
-      {clickedCountryInfo && (
+      {clickedCountryInfo && !routeOrigin && (
         <ClickedCountryInfoCard
           countryInfo={clickedCountryInfo}
           productsTo={productsToCountry}

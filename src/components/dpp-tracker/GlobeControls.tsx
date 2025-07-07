@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/select';
 import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
-import RouteSimulator from './RouteSimulator';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
+import { Zap, X } from 'lucide-react';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -28,8 +28,9 @@ interface GlobeControlsProps {
   isAutoRotating: boolean;
   onToggleRotation: () => void;
   isProductSelected: boolean;
-  onSimulateRoute: (origin: string, destination: string) => void;
-  isSimulating: boolean;
+  onStartRouteAnalysis: () => void;
+  isAnalyzing: boolean;
+  onClearSimulation: () => void;
   showFactories: boolean;
   onToggleFactories: (checked: boolean) => void;
 }
@@ -45,8 +46,9 @@ export default function GlobeControls({
   isAutoRotating,
   onToggleRotation,
   isProductSelected,
-  onSimulateRoute,
-  isSimulating,
+  onStartRouteAnalysis,
+  isAnalyzing,
+  onClearSimulation,
   showFactories,
   onToggleFactories,
 }: GlobeControlsProps) {
@@ -59,10 +61,17 @@ export default function GlobeControls({
           onProductSelect={onProductSelect}
           className="w-full sm:w-[300px] bg-background/80 backdrop-blur-sm"
         />
-        <RouteSimulator
-          onSimulate={onSimulateRoute}
-          isSimulating={isSimulating}
-        />
+         {isAnalyzing ? (
+            <Button size="sm" variant="destructive" onClick={onClearSimulation} className="h-8">
+                <X className="mr-2 h-4 w-4" />
+                Cancel Analysis
+            </Button>
+         ) : (
+            <Button size="sm" variant="outline" onClick={onStartRouteAnalysis} className="h-8">
+                <Zap className="mr-2 h-4 w-4" />
+                Analyze New Route
+            </Button>
+         )}
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">
         <Select onValueChange={onCountryFilterChange} value={countryFilter}>
