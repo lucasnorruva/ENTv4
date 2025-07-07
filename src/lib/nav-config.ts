@@ -22,7 +22,6 @@ import {
   ShoppingBag,
   Globe,
   LifeBuoy,
-  Award,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -68,13 +67,6 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
-        { title: 'Customs Info', icon: FileText, href: 'customs' },
-      ],
-    },
-    {
-      label: 'Visualizations',
-      items: [
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -114,7 +106,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
-        { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
@@ -126,12 +117,6 @@ export const navConfig: NavConfig = {
           href: 'composition',
         },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
-      ],
-    },
-    {
-      label: 'Visualizations',
-      items: [
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -153,7 +138,6 @@ export const navConfig: NavConfig = {
         },
         { title: 'Reports', icon: FileText, href: 'reports' },
         { title: 'Customs Info', icon: Globe, href: 'customs' },
-        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
   ],
@@ -171,11 +155,6 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
-        {
-            title: 'Analytics',
-            icon: BarChart3,
-            href: 'analytics',
-        }
       ],
     },
     {
@@ -200,12 +179,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Product Catalog', icon: ShoppingBag, href: 'catalog' },
         { title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' },
-      ],
-    },
-    {
-      label: 'Visualizations',
-      items: [
-        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
       ],
     },
   ],
@@ -254,7 +227,6 @@ export const navConfig: NavConfig = {
       label: 'Operations',
       items: [
         { title: 'EOL Products', icon: Recycle, href: 'eol' },
-        { title: 'Credit History', icon: Award, href: 'credits' },
       ],
     },
     {
@@ -275,7 +247,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
         { title: 'Browse Products', icon: BookCopy, href: 'products' },
-        { title: 'Production Lines', icon: Factory, href: 'lines' },
       ],
     },
     {

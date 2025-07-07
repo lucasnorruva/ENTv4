@@ -5,17 +5,7 @@ import type {
   ClassifyProductOutput,
   DataQualityWarning,
   EsgScoreOutput,
-  PredictLifecycleOutput,
-  AnalyzeTextileOutput,
-  AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
-import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
-
-export * from './transit';
-
-// Re-exporting for easy access elsewhere
-export type ErpProduct = ErpProductType;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -33,24 +23,16 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   email: string;
   fullName: string;
-  avatarUrl?: string;
   companyId: string;
   roles: Role[];
   onboardingComplete: boolean;
   isMfaEnabled: boolean;
   readNotificationIds?: string[];
-  circularityCredits?: number;
   notificationPreferences?: {
     productUpdates?: boolean;
     complianceAlerts?: boolean;
     platformNews?: boolean;
   };
-}
-
-export interface CustomFieldDefinition {
-  id: string; // e.g., 'internal_sku'
-  label: string; // e.g., 'Internal SKU'
-  type: 'text' | 'number' | 'boolean';
 }
 
 /**
@@ -61,24 +43,6 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
-  isTrustedIssuer?: boolean;
-  revocationListUrl?: string;
-  settings?: {
-    aiEnabled?: boolean;
-    apiAccess?: boolean;
-    brandingCustomization?: boolean;
-    theme?: {
-      light?: {
-        primary?: string;
-        accent?: string;
-      };
-      dark?: {
-        primary?: string;
-        accent?: string;
-      };
-    };
-    customFields?: CustomFieldDefinition[];
-  };
 }
 
 // --- PRODUCT DATA STRUCTURES ---
@@ -94,7 +58,6 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
-  documentUrl?: string;
 }
 
 export interface Manufacturing {
@@ -107,7 +70,6 @@ export interface Packaging {
   type: string;
   recycledContent?: number;
   recyclable: boolean;
-  weight?: number; // in grams
 }
 
 export interface Lifecycle {
@@ -115,8 +77,6 @@ export interface Lifecycle {
   carbonFootprintMethod?: string;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
-  energyEfficiencyClass?: string;
-  recyclingInstructions?: string;
 }
 
 export interface Battery {
@@ -124,20 +84,6 @@ export interface Battery {
   capacityMah?: number;
   voltage?: number;
   isRemovable?: boolean;
-}
-
-export interface TextileData {
-  fiberComposition?: { name: string; percentage: number }[];
-  dyeProcess?: string;
-  weaveType?: string;
-}
-
-export interface TextileAnalysis extends AnalyzeTextileOutput {}
-
-export interface EprScheme {
-  schemeId: string;
-  producerRegistrationNumber: string;
-  wasteCategory?: string;
 }
 
 export interface Compliance {
@@ -167,27 +113,6 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
-  epr?: EprScheme;
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
-}
-
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
 }
 
 export interface ComplianceGap {
@@ -199,10 +124,11 @@ export interface ComplianceGap {
  * Represents a single service or repair record.
  */
 export interface ServiceRecord extends BaseEntity {
-  providerId: string;
-  providerName: string;
-  notes: string;
+    providerId: string;
+    providerName: string;
+    notes: string;
 }
+
 
 /**
  * Groups all AI-generated and compliance-related data.
@@ -210,7 +136,6 @@ export interface ServiceRecord extends BaseEntity {
 export interface SustainabilityData extends EsgScoreOutput {
   classification?: ClassifyProductOutput;
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
-  lifecyclePrediction?: PredictLifecycleOutput;
   isCompliant: boolean;
   complianceSummary: string;
   gaps?: ComplianceGap[];
@@ -234,14 +159,6 @@ export interface BlockchainProof {
   txHash: string;
   explorerUrl: string;
   blockHeight: number;
-  merkleRoot?: string;
-  proof?: string[]; // Array of hashes for Merkle proof
-}
-
-export interface ZkProof {
-  proofData: string; // Mock proof data
-  isVerified: boolean;
-  verifiedAt: string; // ISO 8601
 }
 
 /**
@@ -259,10 +176,7 @@ export interface Product extends BaseEntity {
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
-  manualFileName?: string;
-  manualFileSize?: number;
   model3dUrl?: string;
-  model3dFileName?: string;
   declarationOfConformity?: string;
 
   // Structured Data Fields
@@ -273,12 +187,6 @@ export interface Product extends BaseEntity {
   lifecycle?: Lifecycle;
   battery?: Battery;
   serviceHistory?: ServiceRecord[];
-  customs?: CustomsStatus;
-  transit?: TransitInfo;
-  customData?: Record<string, string | number | boolean>;
-  textile?: TextileData;
-  compliance?: Compliance;
-  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -286,22 +194,12 @@ export interface Product extends BaseEntity {
   dataQualityWarnings?: DataQualityWarning[];
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
-  textileAnalysis?: TextileAnalysis;
-  constructionAnalysis?: AnalyzeConstructionMaterialOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
-  verificationOverride?: {
-    reason: string;
-    userId: string;
-    date: string;
-  };
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: BlockchainProof;
-  zkProof?: ZkProof;
-  verifiableCredential?: any; // The signed VC object
-  ebsiVcId?: string;
 }
 
 /**
@@ -333,25 +231,23 @@ export interface AuditLog extends BaseEntity {
  * Represents a service ticket for product repair or issues.
  */
 export interface ServiceTicket extends BaseEntity {
-  productId?: string;
-  productionLineId?: string;
-  userId: string;
-  customerName: string;
-  issue: string;
-  status: 'Open' | 'In Progress' | 'Closed';
-  imageUrl?: string;
+    productId: string;
+    userId: string;
+    customerName: string;
+    issue: string;
+    status: 'Open' | 'In Progress' | 'Closed';
 }
 
 /**
  * Represents a platform support ticket submitted by a user.
  */
 export interface SupportTicket extends BaseEntity {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  status: 'Open' | 'Closed';
-  userId?: string; // Optional, for logged-in users
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    status: 'Open' | 'Closed';
+    userId?: string; // Optional, for logged-in users
 }
 
 /**
@@ -364,8 +260,6 @@ export interface ProductionLine extends BaseEntity {
   outputPerHour: number;
   currentProduct: string;
   lastMaintenance: string;
-  productId?: string;
-  companyId: string; // Foreign key to the Company
 }
 
 /**
@@ -408,13 +302,13 @@ export interface ApiSettings {
  * Represents a configurable integration with an external system.
  */
 export interface Integration extends BaseEntity {
-  name: string;
-  type: 'ERP' | 'PLM' | 'E-commerce';
-  logo: string;
-  dataAiHint: string;
-  description: string;
-  enabled: boolean;
-  config?: Record<string, any>;
+    name: string;
+    type: 'ERP' | 'PLM' | 'E-commerce';
+    logo: string;
+    dataAiHint: string;
+    description: string;
+    enabled: boolean;
+    config?: Record<string, any>;
 }
 
 /**
@@ -424,5 +318,3 @@ export interface ApiRateLimit {
   count: number;
   windowStart: number; // Unix timestamp (in seconds) for the start of the window
 }
-
-export type { TransitInfo, CustomsAlert, CustomsStatus };

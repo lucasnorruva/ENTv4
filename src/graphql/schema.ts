@@ -1,4 +1,3 @@
-
 // src/graphql/schema.ts
 import { gql } from 'graphql-tag';
 
@@ -30,7 +29,6 @@ export const typeDefs = gql`
     lifecycle: LifecycleInput
     battery: BatteryInput
     compliance: ComplianceInput
-    greenClaims: [GreenClaimInput!]
   }
 
   input MaterialInput {
@@ -50,14 +48,12 @@ export const typeDefs = gql`
     name: String!
     issuer: String!
     validUntil: String
-    documentUrl: String
   }
 
   input PackagingInput {
     type: String!
     recycledContent: Float
     recyclable: Boolean!
-    weight: Float
   }
 
   input LifecycleInput {
@@ -65,8 +61,6 @@ export const typeDefs = gql`
     carbonFootprintMethod: String
     repairabilityScore: Float
     expectedLifespan: Int
-    energyEfficiencyClass: String
-    recyclingInstructions: String
   }
 
   input BatteryInput {
@@ -74,12 +68,6 @@ export const typeDefs = gql`
     capacityMah: Float
     voltage: Float
     isRemovable: Boolean
-  }
-
-  input EprSchemeInput {
-    schemeId: String!
-    producerRegistrationNumber: String!
-    wasteCategory: String
   }
 
   input ComplianceInput {
@@ -90,11 +78,6 @@ export const typeDefs = gql`
     ce: CeInput
     prop65: Prop65Input
     foodContact: FoodContactInput
-    epr: EprSchemeInput
-    battery: BatteryComplianceInput
-    pfas: PfasComplianceInput
-    conflictMinerals: ConflictMineralsComplianceInput
-    espr: EsprInput
   }
 
   input RohsInput {
@@ -130,30 +113,6 @@ export const typeDefs = gql`
     standard: String
   }
 
-  input GreenClaimInput {
-    claim: String!
-    substantiation: String!
-  }
-
-  input BatteryComplianceInput {
-    compliant: Boolean
-    passportId: String
-  }
-
-  input PfasComplianceInput {
-    declared: Boolean
-  }
-
-  input ConflictMineralsComplianceInput {
-    compliant: Boolean
-    reportUrl: String
-  }
-
-  input EsprInput {
-    compliant: Boolean
-    delegatedActUrl: String
-  }
-
   input UserInput {
     fullName: String!
     email: String!
@@ -166,8 +125,6 @@ export const typeDefs = gql`
     ownerId: String!
     industry: String
     tier: String
-    isTrustedIssuer: Boolean
-    revocationListUrl: String
   }
 
   # --- OUTPUTS --- #
@@ -188,7 +145,6 @@ export const typeDefs = gql`
     manualUrl: String
     model3dUrl: String
     declarationOfConformity: String
-    isProcessing: Boolean
 
     materials: [Material!]
     manufacturing: Manufacturing
@@ -197,12 +153,8 @@ export const typeDefs = gql`
     lifecycle: Lifecycle
     battery: Battery
     compliance: Compliance
-    greenClaims: [GreenClaim!]
     sustainability: SustainabilityData
     blockchainProof: BlockchainProof
-    ebsiVcId: String
-    verifiableCredential: String
-    zkProof: ZkProof
     compliancePath: CompliancePath
     company: Company
   }
@@ -224,15 +176,12 @@ export const typeDefs = gql`
     name: String!
     issuer: String!
     validUntil: String
-    documentUrl: String
   }
 
   type Packaging {
     type: String
     recycledContent: Float
     recyclable: Boolean
-    recyclable: Boolean
-    weight: Float
   }
 
   type Lifecycle {
@@ -240,8 +189,6 @@ export const typeDefs = gql`
     carbonFootprintMethod: String
     repairabilityScore: Float
     expectedLifespan: Int
-    energyEfficiencyClass: String
-    recyclingInstructions: String
   }
 
   type Battery {
@@ -249,12 +196,6 @@ export const typeDefs = gql`
     capacityMah: Float
     voltage: Float
     isRemovable: Boolean
-  }
-
-  type EprScheme {
-    schemeId: String!
-    producerRegistrationNumber: String!
-    wasteCategory: String
   }
 
   type Compliance {
@@ -265,11 +206,6 @@ export const typeDefs = gql`
     ce: CeCompliance
     prop65: Prop65Compliance
     foodContact: FoodContactCompliance
-    epr: EprScheme
-    battery: BatteryCompliance
-    pfas: PfasCompliance
-    conflictMinerals: ConflictMineralsCompliance
-    espr: EsprCompliance
   }
 
   type RohsCompliance {
@@ -305,30 +241,6 @@ export const typeDefs = gql`
     standard: String
   }
 
-  type GreenClaim {
-    claim: String!
-    substantiation: String!
-  }
-
-  type BatteryCompliance {
-    compliant: Boolean
-    passportId: String
-  }
-
-  type PfasCompliance {
-    declared: Boolean
-  }
-
-  type ConflictMineralsCompliance {
-    compliant: Boolean
-    reportUrl: String
-  }
-
-  type EsprCompliance {
-    compliant: Boolean
-    delegatedActUrl: String
-  }
-
   type ComplianceGap {
     regulation: String!
     issue: String!
@@ -350,14 +262,6 @@ export const typeDefs = gql`
     txHash: String!
     explorerUrl: String!
     blockHeight: Int!
-    merkleRoot: String
-    proof: [String!]
-  }
-  
-  type ZkProof {
-    proofData: String!
-    isVerified: Boolean!
-    verifiedAt: String
   }
 
   type User {
@@ -377,8 +281,6 @@ export const typeDefs = gql`
     ownerId: ID!
     industry: String
     tier: String
-    isTrustedIssuer: Boolean
-    revocationListUrl: String
     users: [User!]
     products: [Product!]
   }
