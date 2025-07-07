@@ -18,6 +18,7 @@ import {
   Globe,
   Scale,
   Building2,
+  Fingerprint,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
