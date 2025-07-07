@@ -1,8 +1,8 @@
 // src/app/dashboard/developer/layout.tsx
 import React from 'react';
-import { UserRoles } from '@/lib/constants';
 import { getCurrentUser } from '@/lib/auth';
-import DashboardShell from '@/components/dashboard-shell';
+import { UserRoles } from '@/lib/constants';
+import DeveloperLayoutClient from '@/components/developer-layout-client';
 
 export default async function DeveloperLayout({
   children,
@@ -12,8 +12,8 @@ export default async function DeveloperLayout({
   const user = await getCurrentUser(UserRoles.DEVELOPER);
 
   return (
-    <DashboardShell user={user} role={UserRoles.DEVELOPER}>
+    <DeveloperLayoutClient user={user}>
       {children}
-    </DashboardShell>
+    </DeveloperLayoutClient>
   );
 }

@@ -1,11 +1,9 @@
 // src/app/dashboard/developer/page.tsx
-import DeveloperPortal from '@/components/dashboards/developer-dashboard';
-import { getCurrentUser } from '@/lib/auth';
-import { UserRoles } from '@/lib/constants';
+import DeveloperDashboardClient from '@/components/developer-dashboard-client';
 
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  const user = await getCurrentUser(UserRoles.DEVELOPER);
-  return <DeveloperPortal user={user} />;
+  // No data fetching needed here, the client component is self-contained for the dashboard view.
+  return <DeveloperDashboardClient />;
 }
