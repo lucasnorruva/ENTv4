@@ -1,3 +1,4 @@
+
 // src/components/dpp-tracker/global-tracker-client.tsx
 'use client';
 
@@ -28,7 +29,7 @@ import {
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full w-full bg-background">
+    <div className="flex items-center justify-center h-full w-full bg-globe-background">
       <Loader2 className="h-12 w-12 animate-spin text-primary" />
       <p className="ml-4 text-lg text-muted-foreground">Loading Globe...</p>
     </div>
@@ -83,6 +84,11 @@ export default function GlobalTrackerClient({
   const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
   
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
@@ -268,6 +274,10 @@ export default function GlobalTrackerClient({
   }, [pathname, router, searchParams]);
 
   const destinationCountry = selectedProduct?.transit ? getCountryFromLocationString(selectedProduct.transit.destination) : null;
+  
+  if (!isMounted) {
+    return null; // Return null on the server and initial client render to match, letting Suspense handle the fallback.
+  }
 
   return (
     <div className="absolute inset-0">
@@ -281,49 +291,41 @@ export default function GlobalTrackerClient({
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}
       />
-      {typeof window !== 'undefined' ? (
-        <>
-          <Globe
-            ref={globeEl}
-            backgroundColor="rgba(0,0,0,0)"
-            globeMaterial={globeMaterial}
-            polygonsData={filteredLandPolygons}
-            polygonCapColor={getPolygonCapColor}
-            polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
-            polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
-            polygonAltitude={0.01}
-            onPolygonClick={handlePolygonClick}
-            polygonsTransitionDuration={300}
-            arcsData={arcsData}
-            arcColor={'color'}
-            arcDashLength={0.4}
-            arcDashGap={0.1}
-            arcDashAnimateTime={2000}
-            arcStroke={0.5}
-            onGlobeReady={() => setGlobeReady(true)}
-            enablePointerInteraction={true}
-          />
-          {selectedProduct && (
-            <SelectedProductCustomsInfoCard
-              product={selectedProduct}
-              alerts={selectedProductAlerts}
-              onDismiss={() => handleProductSelect(null)}
-              destinationCountry={destinationCountry}
-              roleSlug={roleSlug}
-            />
-          )}
-          {clickedCountryInfo && (
-            <ClickedCountryInfoCard
-              countryInfo={clickedCountryInfo}
-              onDismiss={() => setClickedCountryInfo(null)}
-              roleSlug={roleSlug}
-            />
-          )}
-        </>
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-globe-background">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+      <Globe
+        ref={globeEl}
+        backgroundColor="rgba(0,0,0,0)"
+        globeMaterial={globeMaterial}
+        polygonsData={filteredLandPolygons}
+        polygonCapColor={getPolygonCapColor}
+        polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+        polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
+        polygonAltitude={0.01}
+        onPolygonClick={handlePolygonClick}
+        polygonsTransitionDuration={300}
+        arcsData={arcsData}
+        arcColor={'color'}
+        arcDashLength={0.4}
+        arcDashGap={0.1}
+        arcDashAnimateTime={2000}
+        arcStroke={0.5}
+        onGlobeReady={() => setGlobeReady(true)}
+        enablePointerInteraction={true}
+      />
+      {selectedProduct && (
+        <SelectedProductCustomsInfoCard
+          product={selectedProduct}
+          alerts={selectedProductAlerts}
+          onDismiss={() => handleProductSelect(null)}
+          destinationCountry={destinationCountry}
+          roleSlug={roleSlug}
+        />
+      )}
+      {clickedCountryInfo && (
+        <ClickedCountryInfoCard
+          countryInfo={clickedCountryInfo}
+          onDismiss={() => setClickedCountryInfo(null)}
+          roleSlug={roleSlug}
+        />
       )}
        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
         <Info className="inline h-3 w-3 mr-1" />
