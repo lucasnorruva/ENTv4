@@ -1,6 +1,6 @@
 // src/ai/schemas.ts
 import { z } from 'zod';
-import { textileDataSchema } from '@/lib/schemas';
+import { textileDataSchema } from '@/lib/schemas/textile';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
