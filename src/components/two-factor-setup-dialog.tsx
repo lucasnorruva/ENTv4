@@ -185,7 +185,7 @@ export default function TwoFactorSetupDialog({
             disabled={isPending || isLoading || verificationCode.length !== 6}
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Verify & Enable
+            Verify &amp; Enable
           </Button>
         </DialogFooter>
       </DialogContent>
