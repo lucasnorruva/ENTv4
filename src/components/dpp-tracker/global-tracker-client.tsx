@@ -12,7 +12,7 @@ import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
 import { MeshPhongMaterial } from 'three';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Package } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
@@ -20,7 +20,9 @@ import type { Product, CustomsAlert, User, ProductionLine } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
 import OperationalPointInfoCard from '@/components/dpp-tracker/OperationalPointInfoCard';
+import SimulatedRouteInfoCard from '@/components/dpp-tracker/SimulatedRouteInfoCard';
 import GlobeControls from './GlobeControls';
+import RouteAnalysisPanel from './RouteAnalysisPanel';
 import {
   mockCountryCoordinates,
   getCountryFromLocationString,
@@ -30,7 +32,9 @@ import {
   getPointColorForStatus,
   getFactoryColor,
 } from '@/lib/dppDisplayUtils';
-import { getProductionLines } from '@/lib/actions';
+import { getProductionLines, analyzeSimulatedRoute } from '@/lib/actions';
+import type { SimulatedRoute } from '@/types';
+import { cn } from '@/lib/utils';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -115,19 +119,22 @@ export default function GlobalTrackerClient({
   const [clickedFactory, setClickedFactory] = useState<ProductionLine | null>(
     null,
   );
+  const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
+  const [isAnalyzingRoute, setIsAnalyzingRoute] = useState(false);
+  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(
+    null,
+  );
 
-  const [countryFilter, setCountryFilter] = useState<
-    'all' | 'eu' | 'supplyChain'
-  >('all');
+  const [countryFilter, setCountryFilter] = useState<'all' | 'eu'>('all');
   const [riskFilter, setRiskFilter] = useState<
     'all' | 'High' | 'Medium' | 'Low'
   >('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
-
   const [isMounted, setIsMounted] = useState(false);
   const [arcsData, setArcsData] = useState<any[]>([]);
   const [pointsData, setPointsData] = useState<any[]>([]);
+  const [pucksData, setPucksData] = useState<any[]>([]);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
     [],
   );
@@ -196,7 +203,14 @@ export default function GlobalTrackerClient({
 
       return isDark ? '#334155' : '#e2e8f0';
     },
-    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap],
+    [
+      theme,
+      isEU,
+      highlightedCountries,
+      clickedCountryInfo,
+      riskFilter,
+      countryRiskMap,
+    ],
   );
 
   useEffect(() => {
@@ -219,13 +233,12 @@ export default function GlobalTrackerClient({
       setClickedFactory(null);
       setSelectedProductId(productId);
       setClickedCountryInfo(null);
+      setSimulatedRoute(null);
       const params = new URLSearchParams(searchParams.toString());
       if (productId) {
         params.set('productId', productId);
-        setCountryFilter('supplyChain');
       } else {
         params.delete('productId');
-        setCountryFilter('all');
       }
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
@@ -238,6 +251,8 @@ export default function GlobalTrackerClient({
 
     setClickedCountryInfo(countryProps);
     setClickedFactory(null);
+    setSimulatedRoute(null);
+
     const countryName = countryProps.ADMIN;
     const coords = mockCountryCoordinates[countryName];
     if (globeEl.current && coords) {
@@ -251,6 +266,7 @@ export default function GlobalTrackerClient({
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
+    setSimulatedRoute(null);
     if (globeEl.current) {
       globeEl.current.pointOfView(
         { lat: label.lat, lng: label.lng, altitude: 1.5 },
@@ -258,6 +274,36 @@ export default function GlobalTrackerClient({
       );
     }
   }, []);
+
+  const handleAnalyzeRoute = useCallback(
+    async (productId: string, origin: string, destination: string) => {
+      setIsAnalyzingRoute(true);
+      setClickedCountryInfo(null);
+      setClickedFactory(null);
+      handleProductSelect(null);
+      try {
+        const result = await analyzeSimulatedRoute(
+          productId,
+          origin,
+          destination,
+          user.id,
+        );
+        setSimulatedRoute(result);
+        const destCoords = mockCountryCoordinates[destination];
+        if (destCoords && globeEl.current) {
+          globeEl.current.pointOfView(
+            { lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 },
+            1000,
+          );
+        }
+      } catch (error) {
+        console.error('Failed to analyze route:', error);
+      } finally {
+        setIsAnalyzingRoute(false);
+      }
+    },
+    [user.id, handleProductSelect],
+  );
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
@@ -291,9 +337,10 @@ export default function GlobalTrackerClient({
   useEffect(() => {
     const newArcs: any[] = [];
     const newPoints: any[] = [];
+    const newPucks: any[] = [];
     const newHighlightedCountries = new Set<string>();
 
-    const processProduct = (product: Product) => {
+    const processProduct = (product: Product, isSelected: boolean) => {
       const pointColor = getPointColorForStatus(product.verificationStatus);
       if (product.transit) {
         const { transit } = product;
@@ -303,7 +350,8 @@ export default function GlobalTrackerClient({
           mockCountryCoordinates[
             getCountryFromLocationString(transit.destination) || ''
           ];
-        if (originCoords)
+
+        if (originCoords) {
           newPoints.push({
             lat: originCoords.lat,
             lng: originCoords.lng,
@@ -311,7 +359,8 @@ export default function GlobalTrackerClient({
             color: pointColor,
             name: `Origin: ${transit.origin}`,
           });
-        if (destinationCoords)
+        }
+        if (destinationCoords) {
           newPoints.push({
             lat: destinationCoords.lat,
             lng: destinationCoords.lng,
@@ -319,55 +368,103 @@ export default function GlobalTrackerClient({
             color: pointColor,
             name: `Destination: ${transit.destination}`,
           });
+        }
         if (originCoords && destinationCoords) {
-          newArcs.push({
+          const arcData = {
             startLat: originCoords.lat,
             startLng: originCoords.lng,
             endLat: destinationCoords.lat,
             endLng: destinationCoords.lng,
             color: [pointColor, pointColor],
-            label: `${product.productName} Transit`,
-          });
+          };
+          newArcs.push(arcData);
+          newPucks.push({ ...arcData, data: product });
         }
+      }
+
+      if (isSelected) {
+        product.materials.forEach(material => {
+          if (material.origin) {
+            const originCountry = getCountryFromLocationString(material.origin);
+            if (originCountry) newHighlightedCountries.add(originCountry);
+            const supplierCoords = mockCountryCoordinates[originCountry || ''];
+            const factoryCoords = mockCountryCoordinates[
+              getCountryFromLocationString(product.manufacturing?.country) || ''
+            ];
+            if (supplierCoords && factoryCoords) {
+              newArcs.push({
+                startLat: supplierCoords.lat,
+                startLng: supplierCoords.lng,
+                endLat: factoryCoords.lat,
+                endLng: factoryCoords.lng,
+                color: ['#f59e0b', '#f59e0b'],
+                label: `Material: ${material.name}`,
+                stroke: 2,
+                dashLength: 0.2,
+                dashGap: 0.2,
+                dashAnimateTime: 5000,
+              });
+            }
+          }
+        });
+        const mfgCountry = getCountryFromLocationString(
+          product.manufacturing?.country,
+        );
+        if (mfgCountry) newHighlightedCountries.add(mfgCountry);
       }
     };
 
     if (selectedProduct) {
-      processProduct(selectedProduct);
-      const originCountry = getCountryFromLocationString(
-        selectedProduct.transit?.origin,
-      );
+      processProduct(selectedProduct, true);
       const destCountry = getCountryFromLocationString(
         selectedProduct.transit?.destination,
       );
-      if (originCountry) newHighlightedCountries.add(originCountry);
       if (destCountry) newHighlightedCountries.add(destCountry);
+    } else if (simulatedRoute) {
+      const originCoords =
+        mockCountryCoordinates[simulatedRoute.origin];
+      const destCoords =
+        mockCountryCoordinates[simulatedRoute.destination];
+      if (originCoords && destCoords) {
+        newArcs.push({
+          startLat: originCoords.lat,
+          startLng: originCoords.lng,
+          endLat: destCoords.lat,
+          endLng: destCoords.lng,
+          color: ['#8b5cf6', '#a78bfa'],
+          stroke: 2.5,
+          dashLength: 0.3,
+          dashGap: 0.1,
+          dashAnimateTime: 1000,
+        });
+      }
     } else {
-      allProducts.forEach(processProduct);
+      allProducts.forEach(p => processProduct(p, false));
     }
 
     setArcsData(newArcs);
     setPointsData(newPoints);
+    setPucksData(newPucks);
     setHighlightedCountries(Array.from(newHighlightedCountries));
-    
-    // Process alerts for rings
+
     const alertColorMapping = {
-        High: 'rgba(239, 68, 68, 0.7)',
-        Medium: 'rgba(245, 158, 11, 0.7)',
-        Low: 'rgba(34, 197, 94, 0.7)',
+      High: 'rgba(239, 68, 68, 0.7)',
+      Medium: 'rgba(245, 158, 11, 0.7)',
+      Low: 'rgba(34, 197, 94, 0.7)',
     };
 
-    const newRings = showCustomsAlerts ? allAlerts.map(alert => ({
-        lat: alert.lat,
-        lng: alert.lng,
-        maxR: alert.severity === 'High' ? 10 : 5,
-        propagationSpeed: alert.severity === 'High' ? 2 : 1,
-        color: alertColorMapping[alert.severity],
-    })) : [];
-    
-    setRingsData(newRings);
+    const newRings = showCustomsAlerts
+      ? allAlerts.map(alert => ({
+          lat: alert.lat,
+          lng: alert.lng,
+          maxR: alert.severity === 'High' ? 10 : 5,
+          propagationSpeed: alert.severity === 'High' ? 2 : 1,
+          color: alertColorMapping[alert.severity],
+        }))
+      : [];
 
-  }, [selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts]);
+    setRingsData(newRings);
+  }, [selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -376,17 +473,6 @@ export default function GlobalTrackerClient({
       filtered = landPolygons.filter(feat =>
         isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3),
       );
-    } else if (
-      countryFilter === 'supplyChain' &&
-      highlightedCountries.length > 0
-    ) {
-      filtered = landPolygons.filter(feat => {
-        const p = feat.properties as CountryProperties;
-        const adminName = p.ADMIN || p.NAME_LONG || '';
-        return highlightedCountries.some(hc =>
-          adminName.toLowerCase().includes(hc.toLowerCase()),
-        );
-      });
     } else if (riskFilter !== 'all') {
       filtered = landPolygons.filter(feat => {
         const p = feat.properties as CountryProperties;
@@ -395,15 +481,7 @@ export default function GlobalTrackerClient({
       });
     }
     setFilteredLandPolygons(filtered);
-  }, [
-    countryFilter,
-    landPolygons,
-    highlightedCountries,
-    selectedProduct,
-    isEU,
-    riskFilter,
-    countryRiskMap,
-  ]);
+  }, [countryFilter, landPolygons, isEU, riskFilter, countryRiskMap]);
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -432,10 +510,10 @@ export default function GlobalTrackerClient({
           },
           1000,
         );
-    } else {
+    } else if (!simulatedRoute) {
       globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
     }
-  }, [globeReady, isAutoRotating, selectedProduct]);
+  }, [globeReady, isAutoRotating, selectedProduct, simulatedRoute]);
 
   const destinationCountry = selectedProduct?.transit
     ? getCountryFromLocationString(selectedProduct.transit.destination)
@@ -463,6 +541,7 @@ export default function GlobalTrackerClient({
         products={allProducts}
         selectedProductId={selectedProductId}
         onProductSelect={handleProductSelect}
+        onAnalyzeRouteClick={() => setIsAnalysisPanelOpen(prev => !prev)}
         countryFilter={countryFilter}
         onCountryFilterChange={setCountryFilter as any}
         riskFilter={riskFilter}
@@ -487,9 +566,10 @@ export default function GlobalTrackerClient({
         polygonsTransitionDuration={300}
         arcsData={arcsData}
         arcColor={'color'}
-        arcDashLength={0.4}
-        arcDashGap={0.1}
-        arcDashAnimateTime={2000}
+        arcDashLength="dashLength"
+        arcDashGap="dashGap"
+        arcDashAnimateTime="dashAnimateTime"
+        arcStroke={'stroke'}
         pointsData={pointsData}
         pointLat="lat"
         pointLng="lng"
@@ -510,11 +590,32 @@ export default function GlobalTrackerClient({
         ringColor={() => (d: any) => d.color}
         ringPropagationSpeed="propagationSpeed"
         ringRepeatPeriod={1000}
+        htmlElementsData={pucksData}
+        htmlElement={d => {
+          const { data } = d as any;
+          const color = getPointColorForStatus(data.verificationStatus);
+          return (
+            <div className="relative">
+              <Package
+                size={14}
+                style={{ color }}
+                className="transform -rotate-45"
+              />
+              <div
+                className={cn(
+                  'absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full',
+                )}
+                style={{ backgroundColor: color }}
+              ></div>
+            </div>
+          );
+        }}
         onGlobeReady={() => setGlobeReady(true)}
       />
       {selectedProduct && (
         <SelectedProductCustomsInfoCard
           product={selectedProduct}
+          user={user}
           alerts={selectedProductAlerts}
           onDismiss={() => handleProductSelect(null)}
           destinationCountry={destinationCountry}
@@ -538,6 +639,18 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       )}
+      {simulatedRoute && (
+        <SimulatedRouteInfoCard
+          route={simulatedRoute}
+          onDismiss={() => setSimulatedRoute(null)}
+        />
+      )}
+      <RouteAnalysisPanel
+        isOpen={isAnalysisPanelOpen}
+        products={allProducts}
+        isAnalyzing={isAnalyzingRoute}
+        onAnalyze={handleAnalyzeRoute}
+      />
     </div>
   );
 }

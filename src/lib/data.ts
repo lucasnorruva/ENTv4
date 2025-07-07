@@ -65,11 +65,16 @@ export let products: Product[] = [
       isRemovable: false,
     },
     transit: {
-      stage: 'Cleared - Inland Transit (DE)',
-      eta: '2024-08-02T12:00:00Z',
+      stage: 'In Transit',
+      departureDate: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
+      eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
       transport: 'Truck',
       origin: 'Port of Gdansk, Poland',
       destination: 'Berlin, Germany',
+      waypoints: [
+        { location: 'Port of Gdansk, Poland', lat: 54.401, lng: 18.675, eta: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString() },
+        { location: 'Berlin, Germany', lat: 52.52, lng: 13.405, eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString() },
+      ],
     },
     customs: {
       status: 'Cleared',
@@ -155,10 +160,12 @@ export let products: Product[] = [
     ).toISOString(),
     transit: {
         stage: 'Awaiting Port Departure',
+        departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
         eta: '2024-08-20T12:00:00Z',
         transport: 'Ship',
         origin: 'Shenzhen, China',
         destination: 'Los Angeles, USA',
+        waypoints: [],
     },
     verificationStatus: 'Not Submitted',
     endOfLifeStatus: 'Active',
@@ -207,10 +214,12 @@ export let products: Product[] = [
     },
     transit: {
         stage: 'At Customs (Rotterdam, NL)',
+        departureDate: new Date(new Date(now).setDate(now.getDate() - 12)).toISOString(),
         eta: '2024-08-05T12:00:00Z',
         transport: 'Ship',
         origin: 'Mumbai, India',
         destination: 'Paris, France',
+        waypoints: [],
     },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 10),
@@ -241,10 +250,12 @@ export let products: Product[] = [
     manufacturing: { facility: 'Milan Leathers', country: 'Italy' },
     transit: {
         stage: 'Airborne - Approaching EU',
+        departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
         eta: '2024-08-08T12:00:00Z',
         transport: 'Plane',
         origin: 'Shenzhen, China',
         destination: 'Frankfurt, Germany',
+        waypoints: [],
     },
     customs: {
       status: 'Rejected',
@@ -301,10 +312,12 @@ export let products: Product[] = [
     compliance: {},
     transit: {
         stage: 'Awaiting Customs Clearance (Antwerp, BE)',
+        departureDate: new Date(new Date(now).setDate(now.getDate() - 10)).toISOString(),
         eta: '2024-08-01T12:00:00Z',
         transport: 'Ship',
         origin: 'Ho Chi Minh City, Vietnam',
         destination: 'Lyon, France',
+        waypoints: [],
     },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
@@ -332,10 +345,12 @@ export let products: Product[] = [
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },
     transit: {
         stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
+        departureDate: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
         eta: '2024-08-15T12:00:00Z',
         transport: 'Ship',
         origin: 'Newark, USA',
         destination: 'Stuttgart, Germany',
+        waypoints: [],
     },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(
