@@ -52,6 +52,7 @@ import {
 import type { Product } from '@/types';
 import { getProducts } from '@/lib/actions/product-actions';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 const AnchorStatusBadge = ({ anchored }: { anchored: boolean }) => {
   const Icon = anchored ? Fingerprint : Unlink;
@@ -62,7 +63,7 @@ const AnchorStatusBadge = ({ anchored }: { anchored: boolean }) => {
     : '';
 
   return (
-    <Badge variant={variant} className={colorClass}>
+    <Badge variant={variant} className={cn('capitalize', colorClass)}>
       <Icon className="mr-1 h-3.5 w-3.5" />
       {text}
     </Badge>
@@ -161,31 +162,6 @@ export default function BlockchainManagementClient() {
       <h1 className="text-2xl font-bold tracking-tight">
         Blockchain Management
       </h1>
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>About Blockchain Management</AlertTitle>
-        <AlertDescription>
-          <p className="mb-2">
-            This page provides tools to manage on-chain aspects of your Digital Product Passports (DPPs). You can simulate:
-          </p>
-          <ul className="list-disc list-inside space-y-1 text-sm">
-            <li><strong>Anchoring DPPs:</strong> Recording DPP data hashes and key identifiers on a mock blockchain.</li>
-            <li><strong>Updating Chain of Custody:</strong> Documenting product transfers and lifecycle events.</li>
-            <li><strong>Transferring Ownership:</strong> Modifying DPP ownership records.</li>
-            <li><strong>Managing Verifiable Credentials:</strong> Viewing and retrieving product-related VCs.</li>
-            <li><strong>DPP Token Operations:</strong> Conceptual minting, metadata updates, and status checks for DPP tokens.</li>
-            <li><strong>Smart Contract Actions:</strong> Conceptual interactions for on-chain status updates and event logging.</li>
-            <li><strong>Authenticity & Ownership:</strong> Issuing conceptual VCs for authenticity and linking NFTs for ownership.</li>
-          </ul>
-          <p className="mt-2">
-            These operations interact with mock API endpoints. For technical details, refer to the{' '}
-            <a href="/docs/api" className="font-semibold text-primary hover:underline">
-              OpenAPI Specification <ExternalLink className="inline-block h-3 w-3" />
-            </a>
-            .
-          </p>
-        </AlertDescription>
-      </Alert>
       <Card>
         <CardHeader>
           <CardTitle>Digital Product Passports</CardTitle>
