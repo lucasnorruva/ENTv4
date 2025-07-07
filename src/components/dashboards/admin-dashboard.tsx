@@ -413,7 +413,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
                 hasRole(user, UserRoles.COMPLIANCE_MANAGER)) && (
                 <Button asChild variant="outline" size="sm">
                   <Link href="/dashboard/admin/customs">
-                    Customs Inspection
+                    Customs Dashboard
                     <Scale className="ml-auto h-4 w-4" />
                   </Link>
                 </Button>

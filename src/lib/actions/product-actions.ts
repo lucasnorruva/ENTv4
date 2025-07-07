@@ -21,6 +21,7 @@ import { getUserById } from '@/lib/auth';
 import { checkPermission, PermissionError } from '@/lib/permissions';
 import { logAuditEvent } from './audit-actions';
 import { products as mockProducts } from '@/lib/data';
+import { users as mockUsers } from '@/lib/user-data';
 import { newId } from './utils';
 import { onProductChange } from '@/triggers/on-product-change';
 import { getCompliancePathById } from './compliance-actions';
@@ -226,17 +227,13 @@ export async function approvePassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user && userId !== 'system') throw new Error('User not found');
+  if (!user && userId !== 'system' && !userId.startsWith('system:')) throw new Error('User not found');
   if (user) checkPermission(user, 'product:approve');
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
 
   const product = mockProducts[productIndex];
-  const company = await getCompanyById(product.companyId);
-  if (!company) throw new Error('Company not found');
-
-  const now = new Date().toISOString();
   
   // Set isMinting to true before starting the async anchoring process
   product.isMinting = true;
@@ -536,16 +533,26 @@ export async function markAsRecycled(
   productId: string,
   userId: string,
 ): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex === -1) throw new PermissionError('User not found.');
+  const user = mockUsers[userIndex];
+  
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found.');
   const product = mockProducts[productIndex];
+  
   checkPermission(user, 'product:recycle', product);
 
   product.endOfLifeStatus = 'Recycled';
   product.lastUpdated = new Date().toISOString();
+
+  // Award credits
+  const creditsAwarded = 10;
+  user.circularityCredits = (user.circularityCredits || 0) + creditsAwarded;
+  
   await logAuditEvent('product.recycled', productId, {}, userId);
+  await logAuditEvent('credits.minted', productId, { amount: creditsAwarded, recipient: userId }, userId);
+  
   return product;
 }
 

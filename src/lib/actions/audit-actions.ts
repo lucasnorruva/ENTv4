@@ -13,7 +13,7 @@ export async function logAuditEvent(
   userId: string,
 ): Promise<void> {
   // Allow 'system' and 'guest' users to log events without being in the user table.
-  if (userId !== 'system' && userId !== 'guest') {
+  if (userId !== 'system' && userId !== 'guest' && !userId.startsWith('system:')) {
     const user = await getUserById(userId);
     if (!user) {
       console.warn(`Audit log attempt for non-existent user: ${userId}`);
@@ -42,6 +42,10 @@ export async function getAuditLogs(filters?: { companyId?: string }): Promise<Au
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     ),
   );
+}
+
+export async function getAuditLogById(id: string): Promise<AuditLog | undefined> {
+  return Promise.resolve(mockAuditLogs.find(log => log.id === id));
 }
 
 export async function getAuditLogsForEntity(

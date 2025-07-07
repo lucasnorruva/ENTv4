@@ -57,7 +57,16 @@ export let auditLogs: AuditLog[] = [
       url: 'https://alerts.example.com/dpp-compliance-failures',
       payload: '{"event":"compliance.failed","payload":{"id":"pp-004", "name":"Leather Handbag"}}'
     },
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    createdAt: new Date(new Date(now).setHours(now.getHours() - 6)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 6)).toISOString(),
+  },
+  {
+    id: 'log-006',
+    userId: 'user-recycler',
+    action: 'credits.minted',
+    entityId: 'pp-004',
+    details: { amount: 10, recipient: 'user-recycler' },
+    createdAt: new Date(new Date(now).setHours(now.getHours() - 2)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 2)).toISOString(),
   },
 ];
