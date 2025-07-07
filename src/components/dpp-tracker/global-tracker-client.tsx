@@ -97,7 +97,7 @@ export default function GlobalTrackerClient({
 
   const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
   const [isAnalyzingRoute, startAnalyzingRoute] = useTransition();
-  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
+  const [simulatedRoute, setSimulatedRoute] = useState<(SimulatedRoute & { productName: string }) | null>(null);
   const [analysisOrigin, setAnalysisOrigin] = useState<CountryProperties | null>(null);
 
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
@@ -171,8 +171,6 @@ export default function GlobalTrackerClient({
             return relatedCountries.has(p.ADMIN);
         });
     }
-
-    // Default to all if no product selected for supplyChain filter
     return landPolygons;
   }, [landPolygons, countryFilter, selectedProduct, isEU]);
 
@@ -183,7 +181,7 @@ export default function GlobalTrackerClient({
         const isDark = theme === 'dark';
         const countryNameLower = p.ADMIN.toLowerCase();
     
-        if (analysisOrigin && analysisOrigin.ADM0_A3 === p.ADM0_A3) return '#8b5cf6'; // Violet for origin selection
+        if (analysisOrigin && analysisOrigin.ADM0_A3 === p.ADM0_A3) return '#8b5cf6';
         if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
         if (highlightedCountries.some(hc => countryNameLower.includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
     
@@ -254,9 +252,14 @@ export default function GlobalTrackerClient({
         setClickedCountryInfo(null);
         setClickedFactory(null);
         handleProductSelect(null);
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+            toast({ title: 'Product not found for analysis.', variant: 'destructive' });
+            return;
+        }
         try {
             const result = await analyzeSimulatedRouteAction(productId, origin, destination, user.id);
-            setSimulatedRoute(result);
+            setSimulatedRoute({ ...result, productName: product.productName });
             const destCoords = mockCountryCoordinates[destination];
             if (destCoords && globeEl.current) {
                 globeEl.current.pointOfView({ lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 }, 1000);
@@ -266,7 +269,7 @@ export default function GlobalTrackerClient({
             toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
         }
     });
-  }, [user.id, handleProductSelect, toast]);
+  }, [user.id, handleProductSelect, toast, allProducts]);
 
 
   const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
@@ -282,7 +285,7 @@ export default function GlobalTrackerClient({
                 handleAnalyzeRoute(productId, analysisOrigin.ADMIN, countryProps.ADMIN);
             }
             setAnalysisOrigin(null);
-            setIsAnalysisPanelOpen(false); // Close panel after analysis
+            setIsAnalysisPanelOpen(false);
         }
         return;
     }
@@ -324,12 +327,14 @@ export default function GlobalTrackerClient({
       if (product.transit) {
         const { transit } = product;
 
-        // Date and Coordinate validation
-        if (!transit.departureDate || !transit.eta) return;
+        if (!transit.departureDate || !transit.eta) {
+          console.warn(`Skipping product ${product.id} due to invalid transit dates.`);
+          return;
+        }
         const departure = new Date(transit.departureDate);
         const eta = new Date(transit.eta);
         if (isNaN(departure.getTime()) || isNaN(eta.getTime())) {
-          console.warn(`Skipping product ${product.id} due to invalid transit dates.`);
+          console.warn(`Skipping product ${product.id} due to invalid transit date strings.`);
           return;
         }
 
@@ -585,12 +590,14 @@ export default function GlobalTrackerClient({
         isAnalyzing={isAnalyzingRoute}
         onAnalyze={handleAnalyzeRoute}
       />
-      <div className="absolute bottom-4 right-4 z-10">
-        <Button onClick={() => setIsAnalysisPanelOpen(p => !p)}>
+      {!selectedProduct && !simulatedRoute && (
+        <div className="absolute bottom-4 right-4 z-10">
+          <Button onClick={() => setIsAnalysisPanelOpen(p => !p)}>
             <Zap className="mr-2 h-4 w-4" />
             Analyze New Route
-        </Button>
-      </div>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

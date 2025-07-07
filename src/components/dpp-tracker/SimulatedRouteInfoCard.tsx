@@ -1,15 +1,16 @@
+// src/components/dpp-tracker/SimulatedRouteInfoCard.tsx
 'use client';
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, Package } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import type { SimulatedRoute } from '@/types';
 import { cn } from '@/lib/utils';
 import { ShieldAlert, ShieldCheck } from 'lucide-react';
 
 interface SimulatedRouteInfoCardProps {
-  route: SimulatedRoute;
+  route: SimulatedRoute & { productName: string };
   onDismiss: () => void;
 }
 
@@ -49,7 +50,11 @@ export default function SimulatedRouteInfoCard({
           <CardTitle className="text-md font-semibold">
             Simulated Route Analysis
           </CardTitle>
-          <div className="flex items-center gap-2">
+          <CardDescription className="flex items-center gap-2 text-xs">
+            <Package className="h-3 w-3"/>
+            {route.productName}
+          </CardDescription>
+          <div className="flex items-center gap-2 pt-1">
             <p className="text-sm font-medium">{route.origin} → {route.destination}</p>
             <RiskLevelBadge level={route.riskLevel} />
           </div>
