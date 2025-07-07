@@ -8,10 +8,9 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  GreenClaim,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
@@ -22,6 +21,7 @@ export type {
   CustomsStatus,
   ModelHotspot,
   GreenClaim,
+  RegulationSource,
 };
 
 /**
@@ -430,13 +430,4 @@ export interface BlockchainProof {
   blockHeight: number;
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
-}
-
-// Represents a single step in the chain of custody.
-export interface CustodyEvent extends BaseEntity {
-    productId: string;
-    event: string;
-    location: string;
-    actor: string; // Could be a DID in a real system
-    date: string;
 }
