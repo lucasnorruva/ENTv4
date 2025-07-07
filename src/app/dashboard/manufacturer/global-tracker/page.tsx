@@ -12,16 +12,17 @@ export default async function ManufacturerGlobalTrackerPage() {
   const companyProducts: Product[] = await getProducts(user.id);
 
   // Filter for products that are actually in transit
-  const transitProducts = companyProducts.filter(p => p.transit);
+  const transitProducts = companyProducts.filter(
+    p => p.status === 'Published' && p.transit,
+  );
 
   // For this view, filter alerts related to the company's products
   const companyProductIds = new Set(companyProducts.map(p => p.id));
-  const companyAlerts = MOCK_CUSTOMS_ALERTS.filter(a => companyProductIds.has(a.productId));
+  const companyAlerts = MOCK_CUSTOMS_ALERTS.filter(a =>
+    companyProductIds.has(a.productId),
+  );
 
   return (
-    <GlobalTrackerClient
-      products={transitProducts}
-      alerts={companyAlerts}
-    />
+    <GlobalTrackerClient products={transitProducts} alerts={companyAlerts} />
   );
 }
