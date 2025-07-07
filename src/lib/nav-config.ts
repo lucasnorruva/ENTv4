@@ -17,11 +17,7 @@ import {
   Webhook,
   Globe,
   Scale,
-  LifeBuoy,
-  Ticket,
-  ShieldAlert,
-  ListChecks,
-  Fingerprint,
+  Building2,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -76,9 +72,8 @@ export const navConfig: NavConfig = {
     {
       label: 'Platform Management',
       items: [
-        { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Users', icon: Users, href: 'users' },
-        { title: 'Companies', icon: KeyRound, href: 'companies' },
+        { title: 'Companies', icon: Building2, href: 'companies' },
         {
           title: 'Compliance Paths',
           icon: FileQuestion,
@@ -108,16 +103,6 @@ export const navConfig: NavConfig = {
           icon: Scale,
           href: 'customs',
         },
-        {
-          title: 'Service Tickets',
-          icon: Wrench,
-          href: 'service-tickets',
-        },
-        {
-          title: 'Support Tickets',
-          icon: Ticket,
-          href: 'tickets',
-        },
       ],
     },
   ],
@@ -129,11 +114,6 @@ export const navConfig: NavConfig = {
           title: 'My Products',
           icon: BookCopy,
           href: 'products',
-        },
-        {
-          title: 'Data Quality',
-          icon: ListChecks,
-          href: 'data-quality',
         },
         {
           title: 'Compliance Report',
@@ -189,7 +169,6 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
-        { title: 'Customs Dashboard', icon: Scale, href: 'customs' },
         { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },
@@ -200,7 +179,7 @@ export const navConfig: NavConfig = {
       items: [
         {
           title: 'Flagged Products',
-          icon: ShieldAlert,
+          icon: ShieldCheck,
           href: 'flagged',
         },
         {
@@ -284,7 +263,6 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'Service Tickets', icon: Wrench, href: 'tickets' },
         { title: 'Product Catalog', icon: BookCopy, href: 'products' },
-        { title: 'Production Lines', icon: Factory, href: 'lines' },
       ],
     },
     {

@@ -7,23 +7,14 @@ import {
   Loader2,
   Fingerprint,
   Unlink,
-  BookCopy,
-  Users,
-  KeyRound,
   ShieldCheck,
   ShieldQuestion,
   Bot,
-  Edit,
 } from 'lucide-react';
 import {
   ColumnDef,
-  SortingState,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import Link from 'next/link';
