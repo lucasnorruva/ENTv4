@@ -37,7 +37,7 @@ export async function generateComplianceProof(
  * that checks the proof against public inputs and the circuit's verifying key.
  *
  * @param proof The ZkProof object to verify.
- * @returns A promise that resolves to true if the mock verification succeeds.
+ * @returns a promise that resolves to true if the mock verification succeeds.
  */
 export async function verifyComplianceProof(
   proof: ZkProof,

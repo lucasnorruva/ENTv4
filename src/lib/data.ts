@@ -65,24 +65,6 @@ export let products: Product[] = [
       voltage: 3.83,
       isRemovable: false,
     },
-    transit: {
-      stage: 'Cleared - Inland Transit (DE)',
-      departureDate: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
-      eta: '2024-08-02T12:00:00Z',
-      transport: 'Truck',
-      origin: 'Port of Gdansk, Poland',
-      destination: 'Berlin, Germany',
-    },
-    customs: {
-      status: 'Cleared',
-      authority: 'German Customs (Zoll)',
-      location: 'Frankfurt (Oder)',
-      date: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
-      notes: 'Standard spot check passed.',
-      history: [
-        { status: 'Detained', authority: 'Polish Customs', location: 'Port of Gdansk', date: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(), notes: "Awaiting final paperwork from exporter."},
-      ]
-    },
     compliance: {
       rohs: { compliant: true },
       ce: { marked: true },
@@ -113,22 +95,12 @@ export let products: Product[] = [
       txHash: '0x123abcde1234567890abcdef1234567890',
       explorerUrl: 'https://www.oklink.com/amoy/tx/0x123abcde1234567890abcdef1234567890',
       blockHeight: 123456,
-      merkleRoot: 'mock-merkle-root-for-pp-001',
     },
     ebsiDetails: {
       status: 'Verified',
       conformanceResultUrl: 'https://api.ebsi.eu/conformance/v4/results/12345',
     },
     verifiableCredential: `{"@context": ["https://www.w3.org/2018/credentials/v1"],"id": "urn:uuid:mock-vc-id","type": ["VerifiableCredential", "DigitalProductPassport"],"issuer": "did:web:norruva.com","issuanceDate": "${new Date().toISOString()}","credentialSubject": {"id": "did:dpp:product:pp-001","name": "Eco-Friendly Smart Watch Series 5"}}`,
-    chainOfCustody: [
-      { event: 'Manufactured', actor: 'Eco-Factory 1', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 7)).toISOString() },
-      { event: 'Shipped from Factory', actor: 'DHL', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 6)).toISOString() }
-    ],
-    ownershipNft: {
-      tokenId: '54321',
-      contractAddress: '0xNFT_CONTRACT_ADDRESS',
-      ownerAddress: '0xOWNER_WALLET_ADDRESS'
-    },
     zkProof: {
       proofData: 'zk_proof_data_string_for_product_001...',
       isVerified: true,
@@ -157,30 +129,10 @@ export let products: Product[] = [
     lastUpdated: new Date(
       new Date(now).setDate(now.getDate() - 3),
     ).toISOString(),
-    transit: {
-        stage: 'Awaiting Port Departure',
-        departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
-        eta: '2024-08-20T12:00:00Z',
-        transport: 'Ship',
-        origin: 'Shenzhen, China',
-        destination: 'Los Angeles, USA',
-    },
-    customs: {
-        status: 'Detained',
-        authority: 'US Customs & Border Protection',
-        location: 'Port of Long Beach',
-        date: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
-        notes: 'Random container inspection underway.'
-    },
-    verificationStatus: 'Not Submitted',
+    verificationStatus: 'Verified', // Changed to Verified to be ready for minting
     endOfLifeStatus: 'Active',
-    dataQualityWarnings: [
-      {
-        field: 'manufacturing.country',
-        warning: 'Country of manufacture is not specified.',
-      },
-    ],
     isProcessing: false,
+    isMinting: false,
   },
   {
     id: 'pp-003',
@@ -217,14 +169,6 @@ export let products: Product[] = [
       isCompliant: true,
       complianceSummary: '',
     },
-    transit: {
-        stage: 'At Customs (Rotterdam, NL)',
-        departureDate: new Date(new Date(now).setDate(now.getDate() - 12)).toISOString(),
-        eta: '2024-08-05T12:00:00Z',
-        transport: 'Ship',
-        origin: 'Mumbai, India',
-        destination: 'Paris, France',
-    },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 10),
     ).toISOString(),
@@ -252,21 +196,6 @@ export let products: Product[] = [
       { name: 'Lead-based dye' },
     ],
     manufacturing: { facility: 'Milan Leathers', country: 'Italy' },
-    transit: {
-        stage: 'Airborne - Approaching EU',
-        departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
-        eta: '2024-08-08T12:00:00Z',
-        transport: 'Plane',
-        origin: 'Shenzhen, China',
-        destination: 'Frankfurt, Germany',
-    },
-    customs: {
-      status: 'Rejected',
-      authority: 'German Customs (Zoll)',
-      location: 'Frankfurt Airport',
-      date: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
-      notes: 'Rejected due to non-compliant materials (lead) found during inspection.'
-    },
     compliance: { eudr: { compliant: false }, reach: { svhcDeclared: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 15),
@@ -313,14 +242,6 @@ export let products: Product[] = [
     ],
     manufacturing: { facility: 'Aero Plant 1', country: 'USA' },
     compliance: {},
-    transit: {
-        stage: 'Awaiting Customs Clearance (Antwerp, BE)',
-        departureDate: new Date(new Date(now).setDate(now.getDate() - 10)).toISOString(),
-        eta: '2024-08-01T12:00:00Z',
-        transport: 'Ship',
-        origin: 'Ho Chi Minh City, Vietnam',
-        destination: 'Lyon, France',
-    },
     createdAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
     updatedAt: new Date(
       new Date(now).setHours(now.getHours() - 12),
@@ -345,14 +266,6 @@ export let products: Product[] = [
     compliancePathId: 'cp-electronics-01',
     materials: [{ name: 'Lithium Battery', origin: 'USA' }, { name: 'Plastic Casing', origin: 'USA' }],
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },
-    transit: {
-        stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
-        departureDate: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
-        eta: '2024-08-15T12:00:00Z',
-        transport: 'Ship',
-        origin: 'Newark, USA',
-        destination: 'Stuttgart, Germany',
-    },
     compliance: { rohs: { compliant: false }, weee: { registered: false } },
     createdAt: new Date(
       new Date(now).setDate(now.getDate() - 1),
