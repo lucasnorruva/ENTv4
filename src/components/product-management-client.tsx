@@ -5,6 +5,9 @@ import React, { useState, useTransition, useEffect, useCallback, useMemo } from 
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -22,7 +25,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductTable from './product-table';
 import {
   deleteProduct,
-  getProducts,
   submitForReview,
   recalculateScore,
   bulkDeleteProducts,
@@ -55,20 +57,32 @@ export default function ProductManagementClient({
 
   const fetchProducts = useCallback(() => {
     setIsLoading(true);
-    getProducts(user.id)
-      .then(setProducts)
-      .catch(() => {
+
+    let q = query(collection(db, Collections.PRODUCTS));
+    if (!hasRole(user, UserRoles.ADMIN)) {
+        q = query(q, where('companyId', '==', user.companyId));
+    }
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        setProducts(productsData);
+        setIsLoading(false);
+    }, (error) => {
+        console.error('Error fetching products:', error);
         toast({
-          title: 'Error',
-          description: 'Failed to load products.',
-          variant: 'destructive',
-        });
-      })
-      .finally(() => setIsLoading(false));
-  }, [user.id, toast]);
+            title: 'Error',
+            description: 'Failed to load products in real-time.',
+            variant: 'destructive',
+          });
+        setIsLoading(false);
+    });
+
+    return unsubscribe;
+  }, [user, toast]);
 
   useEffect(() => {
-    fetchProducts();
+    const unsubscribe = fetchProducts();
+    return () => unsubscribe(); // Cleanup listener on unmount
   }, [fetchProducts]);
 
   const canCreate =
@@ -83,7 +97,7 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    fetchProducts();
+    // Real-time listener will handle the update.
   };
 
   const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
@@ -98,7 +112,7 @@ export default function ProductManagementClient({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id, user.id);
-      fetchProducts();
+      // No need to fetch, listener will update UI
       toast({ title: 'Product Deleted' });
     });
   };
@@ -106,7 +120,7 @@ export default function ProductManagementClient({
   const handleSubmitForReview = (id: string) => {
     startTransition(async () => {
       await submitForReview(id, user.id);
-      fetchProducts();
+      // No need to fetch, listener will update UI
       toast({ title: 'Product Submitted' });
     });
   };
@@ -114,8 +128,8 @@ export default function ProductManagementClient({
   const handleRecalculateScore = (id: string, name: string) => {
     startTransition(async () => {
       await recalculateScore(id, user.id);
+      // No need to fetch, listener will update UI
       toast({ title: `Recalculating score for ${name}...` });
-      fetchProducts();
     });
   };
 
@@ -126,8 +140,8 @@ export default function ProductManagementClient({
   ) => {
     startTransition(async () => {
       await action(productIds, user.id);
+      // No need to fetch, listener will update UI
       toast({ title: successMessage });
-      fetchProducts();
     });
   };
 

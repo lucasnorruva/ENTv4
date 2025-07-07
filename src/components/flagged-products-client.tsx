@@ -34,7 +34,7 @@ export default function FlaggedProductsClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const fetchFlaggedProducts = useCallback(() => {
+  useEffect(() => {
     setIsLoading(true);
     const q = query(
       collection(db, Collections.PRODUCTS),
@@ -60,13 +60,8 @@ export default function FlaggedProductsClient({
         setIsLoading(false);
       },
     );
-    return unsubscribe;
-  }, [toast]);
-
-  useEffect(() => {
-    const unsubscribe = fetchFlaggedProducts();
     return () => unsubscribe();
-  }, [fetchFlaggedProducts]);
+  }, [toast]);
 
   const handleResolve = (product: Product) => {
     startTransition(async () => {

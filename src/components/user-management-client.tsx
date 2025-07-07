@@ -1,8 +1,7 @@
 // src/components/user-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useCallback } from 'react';
-import { useDebounce } from 'use-debounce';
+import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -25,9 +24,11 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  PaginationState,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -70,7 +71,7 @@ import {
 import type { User, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions/user-actions';
-import { getUsers, getCompanies } from '@/lib/auth';
+import { getCompanies } from '@/lib/auth';
 import UserForm from './user-form';
 import UserImportDialog from './user-import-dialog';
 
@@ -81,10 +82,7 @@ interface UserManagementClientProps {
 export default function UserManagementClient({
   user: adminUser,
 }: UserManagementClientProps) {
-  const [data, setData] = useState<{ users: User[]; pageCount: number }>({
-    users: [],
-    pageCount: 0,
-  });
+  const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -96,49 +94,40 @@ export default function UserManagementClient({
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
   ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] =
     useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState('');
-  const [debouncedFilter] = useDebounce(globalFilter, 500);
-
-  const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 10,
-  });
-
-  const pagination = React.useMemo(
-    () => ({ pageIndex, pageSize }),
-    [pageIndex, pageSize],
-  );
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    try {
-      // We only fetch companies once, but users are fetched on every change.
-      if (companies.length === 0) {
+    // Fetch companies once
+    if (companies.length === 0) {
+      try {
         const companiesData = await getCompanies();
         setCompanies(companiesData);
+      } catch (error) {
+        toast({ title: 'Error fetching companies', variant: 'destructive' });
       }
-      const usersData = await getUsers({
-        pageIndex,
-        pageSize,
-        query: debouncedFilter,
-      });
-      setData(usersData);
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to load user data.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
     }
-  }, [pageIndex, pageSize, debouncedFilter, toast, companies.length]);
+  }, [companies.length, toast]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData(); // Fetch non-real-time data like companies
+
+    const q = query(collection(db, Collections.USERS), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, snapshot => {
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+      setUsers(usersData);
+      setIsLoading(false);
+    }, (error) => {
+        console.error('Error fetching users:', error);
+        toast({ title: 'Error fetching users', variant: 'destructive' });
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [fetchData, toast]);
 
   const handleCreateNew = () => {
     setSelectedUser(null);
@@ -152,7 +141,6 @@ export default function UserManagementClient({
       description: 'New users will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    setTimeout(fetchData, 1000);
   };
   
   const handleEdit = (user: User) => {
@@ -163,14 +151,11 @@ export default function UserManagementClient({
   const handleDelete = (userToDelete: User) => {
     startTransition(async () => {
       try {
-        const success = await deleteUser(userToDelete.id, adminUser.id);
-        if (success) {
-          toast({
-            title: 'User Deleted',
-            description: `User "${userToDelete.fullName}" has been successfully deleted.`,
-          });
-          fetchData(); // Refetch data on success
-        }
+        await deleteUser(userToDelete.id, adminUser.id);
+        toast({
+          title: 'User Deleted',
+          description: `User "${userToDelete.fullName}" has been successfully deleted.`,
+        });
       } catch (error) {
         toast({
           title: 'Error',
@@ -292,21 +277,37 @@ export default function UserManagementClient({
         },
       },
     ],
-    [isPending, adminUser.id, companyMap, handleDelete, handleEdit],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isPending, adminUser.id, companyMap],
   );
 
   const table = useReactTable({
-    data: data.users,
+    data: users,
     columns,
-    pageCount: data.pageCount ?? -1,
     onSortingChange: setSorting,
-    onPaginationChange: setPagination,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    manualPagination: true,
-    manualSorting: true,
-    manualFiltering: true,
-    state: { sorting, pagination },
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      globalFilter,
+    },
+    globalFilterFn: (row, columnId, filterValue) => {
+      const search = filterValue.toLowerCase();
+      const user = row.original;
+      const companyName = companyMap.get(user.companyId)?.toLowerCase() || '';
+      return (
+        user.fullName.toLowerCase().includes(search) ||
+        user.email.toLowerCase().includes(search) ||
+        companyName.includes(search)
+      );
+    },
   });
 
   return (
@@ -333,13 +334,39 @@ export default function UserManagementClient({
         <CardContent>
           <div className="flex items-center py-4">
             <Input
-              placeholder="Filter by name or email..."
+              placeholder="Filter by name, email, or company..."
               value={globalFilter ?? ''}
               onChange={event => setGlobalFilter(event.target.value)}
               className="max-w-sm"
             />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter(column => column.getCanHide())
+                  .map(column => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={value =>
+                          column.toggleVisibility(!!value)
+                        }
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    );
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          {isLoading && data.users.length === 0 ? (
+          {isLoading && users.length === 0 ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
@@ -349,16 +376,18 @@ export default function UserManagementClient({
                 <TableHeader>
                   {table.getHeaderGroups().map(headerGroup => (
                     <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map(header => (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      ))}
+                      {headerGroup.headers.map(header => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableHeader>
@@ -403,10 +432,6 @@ export default function UserManagementClient({
             </div>
           )}
           <div className="flex items-center justify-end space-x-2 py-4">
-             <span className="text-sm text-muted-foreground">
-                Page {table.getState().pagination.pageIndex + 1} of{' '}
-                {table.getPageCount()}
-            </span>
             <Button
               variant="outline"
               size="sm"
@@ -434,7 +459,7 @@ export default function UserManagementClient({
         onSave={fetchData}
         companies={companies}
       />
-      <UserImportDialog
+       <UserImportDialog
         isOpen={isImportOpen}
         onOpenChange={setIsImportOpen}
         onSave={handleImportSave}

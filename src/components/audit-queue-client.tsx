@@ -61,7 +61,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
     {},
   );
   
-  const fetchPendingProducts = useCallback(() => {
+  useEffect(() => {
     setIsLoading(true);
     const q = query(
       collection(db, Collections.PRODUCTS),
@@ -88,13 +88,8 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
       },
     );
 
-    return unsubscribe;
-  }, [toast]);
-
-  useEffect(() => {
-    const unsubscribe = fetchPendingProducts();
     return () => unsubscribe();
-  }, [fetchPendingProducts]);
+  }, [toast]);
 
 
   const handleReviewClick = (product: Product) => {

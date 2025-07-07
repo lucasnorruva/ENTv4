@@ -6,34 +6,13 @@ import type { User, Company, ApiKey } from '@/types';
 import { apiKeys } from './api-key-data';
 
 /**
- * Fetches all users from the mock database, with support for pagination and filtering.
- * @returns A promise that resolves to an object containing users and page count.
+ * Fetches all users from the mock database.
+ * @returns A promise that resolves to an array of all users.
  */
-export async function getUsers(options?: {
-  pageIndex?: number;
-  pageSize?: number;
-  query?: string;
-}): Promise<{ users: User[]; pageCount: number }> {
-  const { pageIndex = 0, pageSize = 10, query = '' } = options || {};
-  let filteredUsers = [...users];
-
-  if (query) {
-    const lowerCaseQuery = query.toLowerCase();
-    filteredUsers = filteredUsers.filter(
-      u =>
-        u.fullName.toLowerCase().includes(lowerCaseQuery) ||
-        u.email.toLowerCase().includes(lowerCaseQuery),
-    );
-  }
-
-  const pageCount = Math.ceil(filteredUsers.length / pageSize);
-  const paginatedUsers = filteredUsers.slice(
-    pageIndex * pageSize,
-    (pageIndex + 1) * pageSize,
-  );
-
-  return Promise.resolve({ users: paginatedUsers, pageCount });
+export async function getUsers(): Promise<User[]> {
+  return Promise.resolve([...users]);
 }
+
 
 /**
  * Fetches all companies from the mock database.
