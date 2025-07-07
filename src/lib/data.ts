@@ -66,7 +66,7 @@ export let products: Product[] = [
     },
     transit: {
       stage: 'Cleared - Inland Transit (DE)',
-      eta: '2024-08-02',
+      eta: '2024-08-02T12:00:00Z',
       transport: 'Truck',
       origin: 'Port of Gdansk, Poland',
       destination: 'Berlin, Germany',
@@ -155,7 +155,7 @@ export let products: Product[] = [
     ).toISOString(),
     transit: {
         stage: 'Awaiting Port Departure',
-        eta: '2024-08-20',
+        eta: '2024-08-20T12:00:00Z',
         transport: 'Ship',
         origin: 'Shenzhen, China',
         destination: 'Los Angeles, USA',
@@ -207,7 +207,7 @@ export let products: Product[] = [
     },
     transit: {
         stage: 'At Customs (Rotterdam, NL)',
-        eta: '2024-08-05',
+        eta: '2024-08-05T12:00:00Z',
         transport: 'Ship',
         origin: 'Mumbai, India',
         destination: 'Paris, France',
@@ -241,7 +241,7 @@ export let products: Product[] = [
     manufacturing: { facility: 'Milan Leathers', country: 'Italy' },
     transit: {
         stage: 'Airborne - Approaching EU',
-        eta: '2024-08-08',
+        eta: '2024-08-08T12:00:00Z',
         transport: 'Plane',
         origin: 'Shenzhen, China',
         destination: 'Frankfurt, Germany',
@@ -301,7 +301,7 @@ export let products: Product[] = [
     compliance: {},
     transit: {
         stage: 'Awaiting Customs Clearance (Antwerp, BE)',
-        eta: '2024-08-01',
+        eta: '2024-08-01T12:00:00Z',
         transport: 'Ship',
         origin: 'Ho Chi Minh City, Vietnam',
         destination: 'Lyon, France',
@@ -332,7 +332,7 @@ export let products: Product[] = [
     manufacturing: { facility: 'Newark Electronics', country: 'USA' },
     transit: {
         stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
-        eta: '2024-08-15',
+        eta: '2024-08-15T12:00:00Z',
         transport: 'Ship',
         origin: 'Newark, USA',
         destination: 'Stuttgart, Germany',

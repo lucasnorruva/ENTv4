@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -93,10 +94,14 @@ export default function SelectedProductCustomsInfoCard({
   const etaDate = new Date(transit.eta);
 
   const renderEta = () => {
+    const formattedDate = format(etaDate, 'PPP');
+
     if (!isMounted) {
-      // Render a static, non-relative date on the server and during hydration
-      return etaDate.toLocaleDateString();
+      // Render a static, consistently formatted date on the server to prevent mismatch
+      return formattedDate;
     }
+
+    // Client-side only rendering for time-sensitive badges
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isEtaPast = etaDate < today;
@@ -106,7 +111,7 @@ export default function SelectedProductCustomsInfoCard({
       return (
         <Badge variant="destructive" className="text-xs">
           <AlertTriangle className="mr-1 h-3 w-3" />
-          Overdue: {etaDate.toLocaleDateString()}
+          Overdue: {formattedDate}
         </Badge>
       );
     }
@@ -117,11 +122,11 @@ export default function SelectedProductCustomsInfoCard({
           className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700"
         >
           <CalendarDays className="mr-1 h-3 w-3" />
-          Due Today: {etaDate.toLocaleDateString()}
+          Due Today: {formattedDate}
         </Badge>
       );
     }
-    return etaDate.toLocaleDateString();
+    return formattedDate;
   };
 
   const DppStatusIcon = getStatusIcon(product.verificationStatus);
