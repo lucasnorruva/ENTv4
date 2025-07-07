@@ -9,11 +9,11 @@ import {
 import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 // Import the data directly for modification
-import { apiSettings, getApiSettings } from '@/lib/api-settings';
+import { apiSettings } from '@/lib/api-settings';
 import { logAuditEvent } from './audit-actions';
 
-export { getApiSettings };
-// The get function is now in api-settings.ts to break circular deps.
+// The getApiSettingsData function is fetched by server components directly from /lib/api-settings.ts
+// This file only needs to export the server action for saving.
 
 export async function saveApiSettings(
   values: ApiSettingsFormValues,
