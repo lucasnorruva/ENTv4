@@ -17,7 +17,7 @@ import { Loader2, Package, Zap } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
-import type { Product, CustomsAlert, User, ProductionLine } from '@/types';
+import type { Product, CustomsAlert, User, ProductionLine, SimulatedRoute } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
 import OperationalPointInfoCard from '@/components/dpp-tracker/OperationalPointInfoCard';
@@ -35,9 +35,8 @@ import {
 } from '@/lib/dppDisplayUtils';
 import {
   getProductionLines,
-  analyzeSimulatedRoute,
+  analyzeSimulatedRoute as analyzeSimulatedRouteAction,
 } from '@/lib/actions';
-import type { SimulatedRoute } from '@/types';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 
@@ -115,6 +114,21 @@ export default function GlobalTrackerClient({
     setIsMounted(true);
   }, []);
 
+  const globeMaterial = useMemo(
+    () => new MeshPhongMaterial({
+        color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
+        transparent: true,
+        opacity: 1,
+    }),
+    [theme],
+  );
+  
+  const isEU = useCallback(
+    (isoA3: string | undefined) =>
+      !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
+    [],
+  );
+
   const countryRiskMap = useMemo(() => {
     const map = new Map<string, 'Low' | 'Medium' | 'High'>();
     MOCK_CUSTOMS_DATA.forEach(data => {
@@ -124,21 +138,6 @@ export default function GlobalTrackerClient({
     });
     return map;
   }, []);
-
-  const globeMaterial = useMemo(
-    () => new MeshPhongMaterial({
-        color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
-        transparent: true,
-        opacity: 1,
-    }),
-    [theme],
-  );
-
-  const isEU = useCallback(
-    (isoA3: string | undefined) =>
-      !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
-    [],
-  );
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
@@ -178,6 +177,24 @@ export default function GlobalTrackerClient({
       .catch(err => console.error('Error fetching initial globe data:', err));
   }, []);
 
+  const factoryPoints = useMemo(() => {
+    if (!showFactories) return [];
+    return productionLines
+      .map(line => {
+        const coords =
+          mockCountryCoordinates[getCountryFromLocationString(line.location) || ''];
+        if (!coords) return null;
+        return {
+          ...coords,
+          name: line.name,
+          color: getFactoryColor(line.status),
+          size: 0.6,
+          data: line,
+        };
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null);
+  }, [showFactories, productionLines]);
+
   const handleProductSelect = useCallback(
     (productId: string | null) => {
       setClickedFactory(null);
@@ -201,7 +218,7 @@ export default function GlobalTrackerClient({
         setClickedFactory(null);
         handleProductSelect(null);
         try {
-            const result = await analyzeSimulatedRoute(productId, origin, destination, user.id);
+            const result = await analyzeSimulatedRouteAction(productId, origin, destination, user.id);
             setSimulatedRoute(result);
             const destCoords = mockCountryCoordinates[destination];
             if (destCoords && globeEl.current) {
@@ -261,22 +278,6 @@ export default function GlobalTrackerClient({
     () => allAlerts.filter(a => a.productId === selectedProductId),
     [selectedProductId, allAlerts],
   );
-
-  const factoryPoints = useMemo(() => {
-    if (!showFactories) return [];
-    return productionLines.map(line => {
-        const coords = mockCountryCoordinates[getCountryFromLocationString(line.location) || ''];
-        if (!coords) return null;
-        return {
-          ...coords,
-          name: line.name,
-          color: getFactoryColor(line.status),
-          size: 0.6,
-          data: line,
-        };
-      })
-      .filter(p => p !== null);
-  }, [showFactories, productionLines]);
 
   useEffect(() => {
     const newArcs: any[] = [];
@@ -425,17 +426,17 @@ export default function GlobalTrackerClient({
         products={allProducts}
         selectedProductId={selectedProductId}
         onProductSelect={handleProductSelect}
-        onAnalyzeRouteClick={() => setIsAnalysisPanelOpen(prev => !prev)}
         countryFilter={countryFilter}
-        onCountryFilterChange={setCountryFilter}
+        onCountryFilterChange={setCountryFilter as any}
         riskFilter={riskFilter}
-        onRiskFilterChange={setRiskFilter}
+        onRiskFilterChange={setRiskFilter as any}
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
         showCustomsAlerts={showCustomsAlerts}
         onToggleCustomsAlerts={setShowCustomsAlerts}
+        onAnalyzeRouteClick={() => setIsAnalysisPanelOpen(prev => !prev)}
       />
       <Globe
         ref={globeEl}
@@ -476,7 +477,7 @@ export default function GlobalTrackerClient({
         ringRepeatPeriod={1000}
         htmlElementsData={pucksData}
         htmlElement={(d: any) => {
-          const { data } = d as any;
+          const { data } = d;
           const color = getPointColorForStatus(data.verificationStatus);
           return (
             <div className="relative">
@@ -525,7 +526,7 @@ export default function GlobalTrackerClient({
         products={allProducts}
         isAnalyzing={isAnalyzingRoute}
         onAnalyze={handleAnalyzeRoute}
-        onSelectProduct={(id) => setSimulatedRoute(prev => ({ ...prev, productId: id } as SimulatedRoute))}
+        onSelectProduct={(id) => setSimulatedRoute(prev => ({ ...prev, productId: id } as unknown as SimulatedRoute))}
         onCancel={() => {
             setIsAnalysisPanelOpen(false);
             setAnalysisOrigin(null);
