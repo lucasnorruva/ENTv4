@@ -26,6 +26,9 @@ interface ProductTrackerSelectorProps {
   selectedProductId: string | null;
   onProductSelect: (productId: string | null) => void;
   className?: string;
+  // New props for controlled state
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ProductTrackerSelector({
@@ -33,19 +36,16 @@ export function ProductTrackerSelector({
   selectedProductId,
   onProductSelect,
   className,
+  open,
+  onOpenChange,
 }: ProductTrackerSelectorProps) {
-  const [open, setOpen] = React.useState(false);
-
-  // This is the correct handler that will be called by onValueChange
-  const handleSelect = (productId: string) => {
-    // If the same product is selected, clear the selection.
-    // Otherwise, select the new product.
-    onProductSelect(selectedProductId === productId ? null : productId);
-    setOpen(false);
+  const handleSelect = (productId: string | null) => {
+    onProductSelect(productId === selectedProductId ? null : productId);
+    onOpenChange(false);
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -65,16 +65,13 @@ export function ProductTrackerSelector({
           <CommandList>
             <CommandEmpty>No product found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem
-                onSelect={() => handleSelect('')}
-                value="clear-selection"
-              >
+              <CommandItem onSelect={() => handleSelect(null)}>
                 Clear Selection
               </CommandItem>
               {products.map(product => (
                 <CommandItem
                   key={product.id}
-                  value={product.productName} // Value is used for search
+                  value={product.productName}
                   onSelect={() => handleSelect(product.id)}
                 >
                   <Check
