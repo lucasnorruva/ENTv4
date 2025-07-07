@@ -22,8 +22,6 @@ interface GlobeControlsProps {
   isAutoRotating: boolean;
   onToggleRotation: () => void;
   isProductSelected: boolean;
-  isSelectorOpen: boolean; // New prop
-  onSelectorOpenChange: (open: boolean) => void; // New prop
 }
 
 export default function GlobeControls({
@@ -35,8 +33,6 @@ export default function GlobeControls({
   isAutoRotating,
   onToggleRotation,
   isProductSelected,
-  isSelectorOpen,
-  onSelectorOpenChange,
 }: GlobeControlsProps) {
   return (
     <div className="absolute top-4 left-4 right-4 z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -46,8 +42,6 @@ export default function GlobeControls({
           selectedProductId={selectedProductId}
           onProductSelect={onProductSelect}
           className="w-full sm:w-[300px]"
-          open={isSelectorOpen}
-          onOpenChange={onSelectorOpenChange}
         />
       </div>
       <div className="flex items-center gap-2 bg-background/80 p-2 rounded-lg backdrop-blur-sm">

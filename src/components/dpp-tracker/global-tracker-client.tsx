@@ -85,7 +85,6 @@ export default function GlobalTrackerClient({
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
 
   const [isMounted, setIsMounted] = useState(false);
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false); // State for the selector popover
 
   useEffect(() => {
     setIsMounted(true);
@@ -291,8 +290,6 @@ export default function GlobalTrackerClient({
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}
-        isSelectorOpen={isSelectorOpen} // Pass state down
-        onSelectorOpenChange={setIsSelectorOpen} // Pass handler down
       />
       <Globe
         ref={globeEl}
@@ -312,7 +309,6 @@ export default function GlobalTrackerClient({
         arcDashAnimateTime={2000}
         arcStroke={0.5}
         onGlobeReady={() => setGlobeReady(true)}
-        enablePointerInteraction={!isSelectorOpen} // Conditionally disable interaction
       />
       {selectedProduct && (
         <SelectedProductCustomsInfoCard
