@@ -159,7 +159,7 @@ export default function DashboardSidebar({
         <SidebarSeparator />
         <div className="p-2 flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={`https://i.pravatar.cc/150?u=${user.id}`} />
+            <AvatarImage src={user.avatarUrl} />
             <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">

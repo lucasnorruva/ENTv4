@@ -3,6 +3,37 @@ import { z } from 'zod';
 import type { Role } from './constants';
 import { UserRoles } from './constants';
 
+export const profileFormSchema = z.object({
+  fullName: z.string().min(2, 'Full name must be at least 2 characters.'),
+});
+export type ProfileFormValues = z.infer<typeof profileFormSchema>;
+
+export const passwordFormSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required.'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters.'),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ['confirmPassword'],
+  });
+export type PasswordFormValues = z.infer<typeof passwordFormSchema>;
+
+export const notificationsFormSchema = z.object({
+  productUpdates: z.boolean().default(false),
+  complianceAlerts: z.boolean().default(false),
+  platformNews: z.boolean().default(false),
+});
+export type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
+
+export const deleteAccountSchema = z.object({
+    confirmText: z.string().refine(val => val === 'DELETE MY ACCOUNT', {
+        message: 'You must type "DELETE MY ACCOUNT" to confirm.'
+    })
+});
+export type DeleteAccountValues = z.infer<typeof deleteAccountSchema>;
+
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
   percentage: z.coerce.number().optional(),
@@ -14,6 +45,7 @@ const certificationSchema = z.object({
   name: z.string().min(1, 'Certificate name is required.'),
   issuer: z.string().min(1, 'Issuer is required.'),
   validUntil: z.string().optional(),
+  documentUrl: z.string().url().optional().or(z.literal('')),
 });
 
 const manufacturingSchema = z.object({
@@ -49,6 +81,11 @@ const eprSchemeSchema = z.object({
   schemeId: z.string().optional(),
   producerRegistrationNumber: z.string().optional(),
   wasteCategory: z.string().optional(),
+});
+
+const greenClaimSchema = z.object({
+  claim: z.string().min(1, 'Claim is required'),
+  substantiation: z.string().min(1, 'Substantiation is required.'),
 });
 
 const complianceSchema = z.object({
@@ -93,6 +130,19 @@ const complianceSchema = z.object({
     })
     .optional(),
   epr: eprSchemeSchema.optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().optional(),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z.object({ declared: z.boolean().optional() }).optional(),
+  conflictMinerals: z
+    .object({ compliant: z.boolean().optional(), reportUrl: z.string().url().optional().or(z.literal('')) })
+    .optional(),
+  espr: z
+    .object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().url().optional().or(z.literal('')) })
+    .optional(),
 });
 
 export const customsInspectionFormSchema = z.object({
@@ -188,6 +238,7 @@ export const productFormSchema = z.object({
   verificationOverride: verificationOverrideSchema.optional(),
   textile: textileDataSchema.optional(),
   compliance: complianceSchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

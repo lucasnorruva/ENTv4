@@ -1,7 +1,7 @@
 // src/lib/actions/user-actions.ts
 'use server';
 
-import type { User } from '@/types';
+import type { User, Company } from '@/types';
 import { UserRoles, type Role } from '@/lib/constants';
 import {
   userFormSchema,
@@ -9,6 +9,9 @@ import {
   onboardingFormSchema,
   type OnboardingFormValues,
   type BulkUserImportValues,
+  type ProfileFormValues,
+  type PasswordFormValues,
+  type NotificationsFormValues,
 } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
@@ -63,7 +66,6 @@ export async function saveUser(
   return Promise.resolve(savedUser);
 }
 
-
 export async function deleteUser(
   userId: string,
   adminId: string,
@@ -80,22 +82,25 @@ export async function deleteUser(
   return Promise.resolve();
 }
 
-
 export async function createUserAndCompany(
   name: string,
   email: string,
   userId: string,
 ) {
-  const newCompany = await saveCompany({
-    name: `${name}'s Company`,
-    ownerId: userId,
-    industry: '',
-  }, 'system');
+  const newCompany = await saveCompany(
+    {
+      name: `${name}'s Company`,
+      ownerId: userId,
+      industry: '',
+    },
+    'system',
+  );
 
   const newUser: User = {
     id: userId,
     fullName: name,
     email: email,
+    avatarUrl: `https://i.pravatar.cc/150?u=${userId}`,
     companyId: newCompany.id,
     roles: [UserRoles.SUPPLIER],
     createdAt: new Date().toISOString(),
@@ -103,6 +108,11 @@ export async function createUserAndCompany(
     onboardingComplete: false,
     isMfaEnabled: false,
     readNotificationIds: [],
+    notificationPreferences: {
+      productUpdates: true,
+      complianceAlerts: true,
+      platformNews: false,
+    },
   };
   mockUsers.push(newUser);
   return Promise.resolve();
@@ -116,11 +126,15 @@ export async function completeOnboarding(
   if (userIndex === -1) throw new Error('User not found');
 
   // Update company with onboarding data
-  await saveCompany({
-    name: values.companyName,
-    ownerId: userId,
-    industry: values.industry
-  }, 'system', mockUsers[userIndex].companyId);
+  await saveCompany(
+    {
+      name: values.companyName,
+      ownerId: userId,
+      industry: values.industry,
+    },
+    'system',
+    mockUsers[userIndex].companyId,
+  );
 
   mockUsers[userIndex].onboardingComplete = true;
   mockUsers[userIndex].updatedAt = new Date().toISOString();
@@ -134,20 +148,24 @@ export async function completeOnboarding(
   return Promise.resolve();
 }
 
-
 export async function updateUserProfile(
   userId: string,
-  fullName: string,
+  values: { fullName?: string; avatarUrl?: string },
   actorId: string,
 ) {
   const userIndex = mockUsers.findIndex(u => u.id === userId);
   if (userIndex > -1) {
-    mockUsers[userIndex].fullName = fullName;
+    if (values.fullName) {
+      mockUsers[userIndex].fullName = values.fullName;
+    }
+    if (values.avatarUrl) {
+      mockUsers[userIndex].avatarUrl = values.avatarUrl;
+    }
     mockUsers[userIndex].updatedAt = new Date().toISOString();
     await logAuditEvent(
       'user.profile.updated',
       userId,
-      { fields: ['fullName'] },
+      { fields: Object.keys(values) },
       actorId,
     );
   }
@@ -169,7 +187,6 @@ export async function updateUserPassword(
   return Promise.resolve();
 }
 
-
 export async function setMfaStatus(
   userId: string,
   enabled: boolean,
@@ -184,38 +201,41 @@ export async function setMfaStatus(
 
 export async function saveNotificationPreferences(
   userId: string,
-  prefs: any,
+  prefs: NotificationsFormValues,
   actorId: string,
 ) {
-  console.log(`Saving notification preferences for ${userId}`, prefs);
-  await logAuditEvent('user.notifications.updated', userId, { prefs }, actorId);
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex > -1) {
+    mockUsers[userIndex].notificationPreferences = prefs;
+    mockUsers[userIndex].updatedAt = new Date().toISOString();
+    await logAuditEvent('user.notifications.updated', userId, { prefs }, actorId);
+  }
   return Promise.resolve();
 }
 
-
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-    const user = mockUsers.find(u => u.id === userId);
-    if (!user) throw new Error('User not found');
-    const { auditLogs: mockAuditLogs } = await import('@/lib/audit-log-data');
-    user.readNotificationIds = mockAuditLogs.map(log => log.id);
-    return Promise.resolve();
-  }
+  const user = mockUsers.find(u => u.id === userId);
+  if (!user) throw new Error('User not found');
+  const { auditLogs: mockAuditLogs } = await import('@/lib/audit-log-data');
+  user.readNotificationIds = mockAuditLogs.map(log => log.id);
+  return Promise.resolve();
+}
 
 export async function signInWithMockUser(email: string, pass: string) {
-    if (pass !== 'password123') {
-        return { success: false, error: "Invalid credentials" };
+  if (pass !== 'password123') {
+    return { success: false, error: 'Invalid credentials' };
+  }
+  const user = mockUsers.find(user => user.email === email);
+  if (user) {
+    try {
+      const customToken = await adminAuth.createCustomToken(user.id);
+      return { success: true, token: customToken };
+    } catch (error: any) {
+      console.error('Error creating custom token:', error);
+      return { success: false, error: error.message };
     }
-    const user = mockUsers.find(user => user.email === email);
-    if (user) {
-        try {
-        const customToken = await adminAuth.createCustomToken(user.id);
-        return { success: true, token: customToken };
-        } catch (error: any) {
-        console.error("Error creating custom token:", error);
-        return { success: false, error: error.message };
-        }
-    }
-    return { success: false, error: "User not found" };
+  }
+  return { success: false, error: 'User not found' };
 }
 
 export async function bulkCreateUsers(
@@ -233,11 +253,14 @@ export async function bulkCreateUsers(
       const mockUserId = newId('user');
 
       // Create company and user profile in our mock DB
-      const newCompany = await saveCompany({
-        name: `${userData.fullName}'s Company`,
-        ownerId: mockUserId,
-        industry: '',
-      }, 'system');
+      const newCompany = await saveCompany(
+        {
+          name: `${userData.fullName}'s Company`,
+          ownerId: mockUserId,
+          industry: '',
+        },
+        'system',
+      );
 
       const newUser: User = {
         id: mockUserId,
@@ -267,4 +290,18 @@ export async function bulkCreateUsers(
   );
 
   return { createdCount };
+}
+
+export async function deleteOwnAccount(userId: string): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) {
+      throw new Error('User not found.');
+  }
+  const userIndex = mockUsers.findIndex(u => u.id === userId);
+  if (userIndex > -1) {
+      mockUsers.splice(userIndex, 1);
+      // In a real app, you would also delete from Firebase Auth
+      console.log(`User ${userId} deleted from mock data.`);
+      await logAuditEvent('user.account.deleted', userId, {}, userId);
+  }
 }

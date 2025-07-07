@@ -7,6 +7,7 @@ import type {
   EsgScoreOutput,
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
+  AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -32,12 +33,18 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   email: string;
   fullName: string;
+  avatarUrl?: string;
   companyId: string;
   roles: Role[];
   onboardingComplete: boolean;
   isMfaEnabled: boolean;
   readNotificationIds?: string[];
   circularityCredits?: number;
+  notificationPreferences?: {
+    productUpdates?: boolean;
+    complianceAlerts?: boolean;
+    platformNews?: boolean;
+  };
 }
 
 export interface CustomFieldDefinition {
@@ -87,6 +94,7 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
+  documentUrl?: string;
 }
 
 export interface Manufacturing {
@@ -160,6 +168,26 @@ export interface Compliance {
     standard?: string;
   };
   epr?: EprScheme;
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
+  };
+}
+
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
 }
 
 export interface ComplianceGap {
@@ -249,6 +277,8 @@ export interface Product extends BaseEntity {
   transit?: TransitInfo;
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  compliance?: Compliance;
+  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -257,6 +287,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: TextileAnalysis;
+  constructionAnalysis?: AnalyzeConstructionMaterialOutput;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
