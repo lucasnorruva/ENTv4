@@ -23,6 +23,7 @@ import {
   TestTubeDiagonal,
   Ticket,
   Lock,
+  Award,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -278,9 +279,7 @@ export const navConfig: NavConfig = {
     },
     {
       label: 'Rewards',
-      items: [
-        { title: 'Credit History', icon: BookCopy, href: 'credits' },
-      ],
+      items: [{ title: 'Credit History', icon: Award, href: 'credits' }],
     },
   ],
   [UserRoles.SERVICE_PROVIDER]: [

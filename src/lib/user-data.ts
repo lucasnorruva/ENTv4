@@ -131,7 +131,7 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
+    circularityCredits: 20,
     notificationPreferences: {
       productUpdates: false,
       complianceAlerts: false,
