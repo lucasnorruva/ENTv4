@@ -10,6 +10,9 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'High',
     timestamp: '2 hours ago',
     regulation: 'Anti-Counterfeiting',
+    location: 'Paris, France',
+    lat: 48.8566,
+    lng: 2.3522,
   },
   {
     id: 'ALERT002',
@@ -19,6 +22,9 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'Medium',
     timestamp: '1 day ago',
     regulation: 'CBAM / Textile Import',
+    location: 'Rotterdam, Netherlands',
+    lat: 51.9225,
+    lng: 4.47917,
   },
   {
     id: 'ALERT003',
@@ -28,6 +34,9 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'Low',
     timestamp: '3 days ago',
     regulation: 'SPS Measures',
+    location: 'Los Angeles, USA',
+    lat: 34.0522,
+    lng: -118.2437,
   },
   {
     id: 'ALERT004',
@@ -37,6 +46,9 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'Medium',
     timestamp: '5 hours ago',
     regulation: 'Machinery Directive',
+    location: 'Bremerhaven, Germany',
+    lat: 53.5425,
+    lng: 8.5819,
   },
   {
     id: 'ALERT005',
@@ -46,6 +58,9 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'Medium',
     timestamp: '1 hour ago',
     regulation: 'Customs Union Tariff',
+    location: 'Port of Gdansk, Poland',
+    lat: 54.401,
+    lng: 18.675,
   },
   {
     id: 'ALERT006',
@@ -55,5 +70,8 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     severity: 'Medium',
     timestamp: 'Pending Arrival',
     regulation: 'ADR / Battery Safety',
+    location: 'Antwerp, Belgium',
+    lat: 51.2213,
+    lng: 4.4051,
   },
 ];

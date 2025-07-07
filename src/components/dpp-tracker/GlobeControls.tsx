@@ -15,7 +15,7 @@ import { ProductTrackerSelector } from '@/components/product-tracker-selector';
 import type { Product } from '@/types';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
-import { Map, X } from 'lucide-react';
+import { Map, X, AlertTriangle } from 'lucide-react';
 
 interface GlobeControlsProps {
   products: Product[];
@@ -29,6 +29,8 @@ interface GlobeControlsProps {
   onToggleRotation: () => void;
   showFactories: boolean;
   onToggleFactories: (checked: boolean) => void;
+  showCustomsAlerts: boolean;
+  onToggleCustomsAlerts: (checked: boolean) => void;
   onToggleAnalysisPanel: () => void;
 }
 
@@ -44,6 +46,8 @@ export default function GlobeControls({
   onToggleRotation,
   showFactories,
   onToggleFactories,
+  showCustomsAlerts,
+  onToggleCustomsAlerts,
   onToggleAnalysisPanel,
 }: GlobeControlsProps) {
   return (
@@ -88,6 +92,16 @@ export default function GlobeControls({
           />
           <Label htmlFor="factories-toggle" className="text-xs">
             Factories
+          </Label>
+        </div>
+        <div className="flex items-center space-x-2 pl-2">
+          <Switch
+            id="alerts-toggle"
+            checked={showCustomsAlerts}
+            onCheckedChange={onToggleCustomsAlerts}
+          />
+          <Label htmlFor="alerts-toggle" className="text-xs flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" /> Alerts
           </Label>
         </div>
         <Button

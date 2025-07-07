@@ -136,6 +136,7 @@ export default function GlobalTrackerClient({
     'all' | 'High' | 'Medium' | 'Low'
   >('all');
   const [showFactories, setShowFactories] = useState(true);
+  const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
 
   const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
   const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
@@ -147,6 +148,7 @@ export default function GlobalTrackerClient({
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
     [],
   );
+  const [ringsData, setRingsData] = useState<any[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -241,6 +243,7 @@ export default function GlobalTrackerClient({
       setClickedFactory(null);
       setSelectedProductId(productId);
       setClickedCountryInfo(null);
+      setSimulatedRoute(null);
       const params = new URLSearchParams(searchParams.toString());
       if (productId) {
         params.set('productId', productId);
@@ -424,7 +427,25 @@ export default function GlobalTrackerClient({
     setArcsData(newArcs);
     setPointsData(newPoints);
     setHighlightedCountries(Array.from(newHighlightedCountries));
-  }, [selectedProduct, allProducts, theme, simulatedRoute]);
+    
+    // Process alerts for rings
+    const alertColorMapping = {
+        High: 'rgba(239, 68, 68, 0.7)',
+        Medium: 'rgba(245, 158, 11, 0.7)',
+        Low: 'rgba(34, 197, 94, 0.7)',
+    };
+
+    const newRings = showCustomsAlerts ? allAlerts.map(alert => ({
+        lat: alert.lat,
+        lng: alert.lng,
+        maxR: alert.severity === 'High' ? 10 : 5,
+        propagationSpeed: alert.severity === 'High' ? 2 : 1,
+        color: alertColorMapping[alert.severity],
+    })) : [];
+    
+    setRingsData(newRings);
+
+  }, [selectedProduct, allProducts, theme, simulatedRoute, showCustomsAlerts, allAlerts]);
 
   useEffect(() => {
     if (!landPolygons.length) return;
@@ -563,6 +584,8 @@ export default function GlobalTrackerClient({
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
+        showCustomsAlerts={showCustomsAlerts}
+        onToggleCustomsAlerts={setShowCustomsAlerts}
         onToggleAnalysisPanel={() => setIsAnalysisPanelOpen(prev => !prev)}
       />
       <Globe
@@ -597,6 +620,11 @@ export default function GlobalTrackerClient({
         labelColor={(d: any) => d.color}
         labelDotRadius={() => 0.6}
         onLabelClick={handleLabelClick}
+        ringsData={ringsData}
+        ringMaxRadius="maxR"
+        ringColor={() => (d: any) => d.color}
+        ringPropagationSpeed="propagationSpeed"
+        ringRepeatPeriod={1000}
         onGlobeReady={() => setGlobeReady(true)}
       />
       {selectedProduct && (
