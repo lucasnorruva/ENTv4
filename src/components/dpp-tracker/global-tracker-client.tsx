@@ -35,7 +35,7 @@ import {
   getCountryFromLocationString,
 } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-import { getPointColorForStatus } from '@/lib/dppDisplayUtils';
+import { getPointColorForStatus, getFactoryColor } from '@/lib/dppDisplayUtils';
 import { analyzeTransitRisk } from '@/lib/actions/product-ai-actions';
 import { useToast } from '@/hooks/use-toast';
 import { getProductionLines } from '@/lib/actions';
@@ -94,19 +94,6 @@ interface GlobalTrackerClientProps {
   user: User;
   roleSlug: string;
 }
-
-const getFactoryColor = (status: ProductionLine['status']) => {
-  switch (status) {
-    case 'Active':
-      return '#22C55E'; // green-500
-    case 'Idle':
-      return '#F59E0B'; // amber-500
-    case 'Maintenance':
-      return '#EF4444'; // red-500
-    default:
-      return '#6B7280'; // gray-500
-  }
-};
 
 export default function GlobalTrackerClient({
   products: allProducts,
@@ -167,7 +154,7 @@ export default function GlobalTrackerClient({
   );
 
   const countryRiskMap = useMemo(() => {
-    const map = new Map<'Low' | 'Medium' | 'High'>();
+    const map = new Map<string, 'Low' | 'Medium' | 'High'>();
     MOCK_CUSTOMS_DATA.forEach(data => {
       data.keywords.forEach(keyword => {
         if (!map.has(keyword)) map.set(keyword, data.riskLevel);
@@ -542,11 +529,11 @@ export default function GlobalTrackerClient({
         pointRadius="size"
         pointLabel="name"
         labelsData={factoryPoints}
-        labelLat={d => d.lat}
-        labelLng={d => d.lng}
-        labelText={d => d.name}
+        labelLat={(d: any) => d.lat}
+        labelLng={(d: any) => d.lng}
+        labelText={(d: any) => d.name}
         labelSize={() => 0.5}
-        labelColor={d => d.color}
+        labelColor={(d: any) => d.color}
         labelDotRadius={() => 0.6}
         onLabelClick={handleLabelClick}
         onGlobeReady={() => setGlobeReady(true)}

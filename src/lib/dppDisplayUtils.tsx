@@ -1,3 +1,4 @@
+
 // src/lib/dppDisplayUtils.tsx
 import React from 'react';
 import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
@@ -57,3 +58,16 @@ export function getPointColorForStatus(status: string | undefined): string {
       return '#6B7280'; // gray-500
   }
 }
+
+export function getFactoryColor(status: string | undefined): string {
+    switch (status) {
+      case 'Active':
+        return '#22C55E'; // green-500
+      case 'Idle':
+        return '#F59E0B'; // amber-500
+      case 'Maintenance':
+        return '#EF4444'; // red-500
+      default:
+        return '#6B7280'; // gray-500
+    }
+  }
