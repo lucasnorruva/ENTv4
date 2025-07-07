@@ -9,10 +9,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, Fingerprint, History, CheckCircle, Wallet, Sparkles } from 'lucide-react';
+import { Loader2, Fingerprint, History, CheckCircle, Wallet, Sparkles, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { anchorProductOnChain, bulkAnchorProducts } from '@/lib/actions';
 import { Checkbox } from '../ui/checkbox';
+import Link from 'next/link';
 
 interface AnchoringTabProps {
   initialProducts: Product[];
@@ -152,6 +153,7 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
                 <TableHead>Status</TableHead>
                 <TableHead>Tx Hash</TableHead>
                 <TableHead>Timestamp</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -165,11 +167,19 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
                     {p.blockchainProof ? <a href={p.blockchainProof.explorerUrl} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-primary hover:underline">{p.blockchainProof.txHash.slice(0, 10)}...{p.blockchainProof.txHash.slice(-8)}</a> : 'N/A'}
                   </TableCell>
                   <TableCell>{formatDistanceToNow(new Date(p.lastUpdated), { addSuffix: true })}</TableCell>
+                   <TableCell className="text-right">
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/dashboard/admin/blockchain/${p.id}`}>
+                            <Edit className="h-3 w-3 mr-2"/>
+                            Manage
+                        </Link>
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
               {mintingActivity.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">No minting activity yet.</TableCell>
+                  <TableCell colSpan={5} className="h-24 text-center">No minting activity yet.</TableCell>
                 </TableRow>
               )}
             </TableBody>

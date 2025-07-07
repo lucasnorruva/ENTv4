@@ -52,6 +52,7 @@ import {
   addCustodyStep,
   transferOwnership,
   generateZkProofForProduct,
+  verifyZkProofForProduct,
 } from '@/lib/actions/product-actions';
 import {
   custodyStepSchema,
@@ -104,6 +105,7 @@ export default function BlockchainProductDetailClient({
   const [isZkpPending, startZkpTransition] = useTransition();
   const [isCustodyPending, startCustodyTransition] = useTransition();
   const [isTransferPending, startTransferTransition] = useTransition();
+  const [isVerifyPending, startVerifyTransition] = useTransition();
   const { toast } = useToast();
 
   const custodyForm = useForm<CustodyStepFormValues>({
@@ -125,6 +127,18 @@ export default function BlockchainProductDetailClient({
         );
         setProduct(updatedProduct);
         toast({ title: 'ZK Proof Generated' });
+      } catch (error: any) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      }
+    });
+  };
+
+  const handleVerifyProof = () => {
+    startVerifyTransition(async () => {
+      try {
+        const updatedProduct = await verifyZkProofForProduct(product.id, user.id);
+        setProduct(updatedProduct);
+        toast({ title: 'ZK Proof Verified' });
       } catch (error: any) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       }
@@ -221,15 +235,21 @@ export default function BlockchainProductDetailClient({
             label="ZK Proof Status"
             value={
               <Badge variant={product.zkProof ? 'default' : 'secondary'}>
-                {product.zkProof ? 'Generated' : 'Not Generated'}
+                {product.zkProof ? (product.zkProof.isVerified ? 'Verified' : 'Generated') : 'Not Generated'}
               </Badge>
             }
           />
-          <div className="mt-4">
+          <div className="mt-4 flex gap-2">
             {can(user, 'product:generate_zkp', product) && (
               <Button onClick={handleGenerateProof} disabled={isZkpPending} className="w-full">
                 {isZkpPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Bot className="mr-2 h-4 w-4" />}
                 {product.zkProof ? 'Regenerate Proof' : 'Generate Proof'}
+              </Button>
+            )}
+            {product.zkProof && !product.zkProof.isVerified && (
+               <Button onClick={handleVerifyProof} disabled={isVerifyPending} variant="secondary" className="w-full">
+                {isVerifyPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <ShieldCheck className="mr-2 h-4 w-4" />}
+                Verify Proof
               </Button>
             )}
           </div>
