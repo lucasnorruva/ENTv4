@@ -1,4 +1,3 @@
-
 // src/triggers/scheduled-verifications.ts
 'use server';
 

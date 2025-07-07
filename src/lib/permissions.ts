@@ -92,7 +92,6 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:submit':
     case 'product:recalculate':
     case 'product:validate_data':
-    case 'product:run_compliance':
     case 'product:generate_zkp':
       return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
 
@@ -101,6 +100,9 @@ export function can(user: User, action: Action, resource?: any): boolean {
     case 'product:customs_inspect':
       return hasRole(user, UserRoles.AUDITOR);
     
+    case 'product:run_compliance':
+      return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);
+
     case 'product:override_verification':
         return hasRole(user, UserRoles.ADMIN); // Explicitly defined for clarity, though covered by global admin check
 

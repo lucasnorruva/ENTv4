@@ -1,7 +1,7 @@
 // src/components/ai-actions-widget.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson } from 'lucide-react';
 import type { Product, User } from '@/types';
@@ -31,7 +31,7 @@ import {
   generatePcdsForProduct,
   runDataValidationCheck,
   runComplianceCheck,
-} from '@/lib/actions/product-actions';
+} from '@/lib/actions/product-ai-actions';
 import {
   Dialog,
   DialogContent,
