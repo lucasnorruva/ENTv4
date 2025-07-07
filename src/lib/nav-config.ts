@@ -23,6 +23,7 @@ import {
   Globe,
   LifeBuoy,
   Landmark,
+  BookOpen,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
