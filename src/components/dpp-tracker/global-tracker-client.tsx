@@ -151,6 +151,12 @@ export default function GlobalTrackerClient({
   const [showFactories, setShowFactories] = useState(true);
 
   const [isMounted, setIsMounted] = useState(false);
+  const [arcsData, setArcsData] = useState<any[]>([]);
+  const [pointsData, setPointsData] = useState<any[]>([]);
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
+    [],
+  );
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -318,12 +324,6 @@ export default function GlobalTrackerClient({
       })
       .catch(err => console.error('Error fetching initial globe data:', err));
   }, []);
-
-  const [arcsData, setArcsData] = useState<any[]>([]);
-  const [pointsData, setPointsData] = useState<any[]>([]);
-  const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
-    [],
-  );
 
   useEffect(() => {
     const newArcs: any[] = [];
