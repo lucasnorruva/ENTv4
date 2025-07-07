@@ -24,12 +24,24 @@ export default async function ManufacturerGlobalTrackerPage() {
   );
 
   return (
-    <Suspense>
-      <GlobalTrackerClient
-        products={transitProducts}
-        alerts={companyAlerts}
-        user={user}
-      />
-    </Suspense>
+    <div className="flex flex-col h-full">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          My Supply Chain Tracker
+        </h1>
+        <p className="text-muted-foreground">
+          Monitor your products' transit routes and customs status.
+        </p>
+      </div>
+      <div className="flex-1 relative">
+        <Suspense>
+          <GlobalTrackerClient
+            products={transitProducts}
+            alerts={companyAlerts}
+            user={user}
+          />
+        </Suspense>
+      </div>
+    </div>
   );
 }

@@ -384,7 +384,7 @@ export default function GlobalTrackerClient({
     : null;
 
   return (
-    <div className="relative h-[calc(100vh-10rem)] w-full" ref={containerRef}>
+    <div className="relative h-full w-full" ref={containerRef}>
       <GlobeControls
         products={allProducts}
         selectedProductId={selectedProductId}

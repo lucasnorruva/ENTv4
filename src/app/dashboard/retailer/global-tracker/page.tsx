@@ -20,12 +20,24 @@ export default async function RetailerGlobalTrackerPage() {
   );
 
   return (
-    <Suspense>
-      <GlobalTrackerClient
-        products={transitProducts}
-        alerts={relevantAlerts}
-        user={user}
-      />
-    </Suspense>
+    <div className="flex flex-col h-full">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Global Product Tracker
+        </h1>
+        <p className="text-muted-foreground">
+          Track products from all suppliers across the globe.
+        </p>
+      </div>
+      <div className="flex-1 relative">
+        <Suspense>
+          <GlobalTrackerClient
+            products={transitProducts}
+            alerts={relevantAlerts}
+            user={user}
+          />
+        </Suspense>
+      </div>
+    </div>
   );
 }

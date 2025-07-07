@@ -2,7 +2,7 @@
 import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product, User } from '@/types';
+import type { Product } from '@/types';
 import { Suspense } from 'react';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
@@ -21,12 +21,25 @@ export default async function AdminGlobalTrackerPage() {
   );
 
   return (
-    <Suspense>
-      <GlobalTrackerClient
-        products={transitProducts}
-        alerts={relevantAlerts}
-        user={user}
-      />
-    </Suspense>
+    <div className="flex flex-col h-full">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold tracking-tight">
+          Global Supply Chain Tracker
+        </h1>
+        <p className="text-muted-foreground">
+          Monitor product transit, supply chain routes, and customs alerts in
+          real-time.
+        </p>
+      </div>
+      <div className="flex-1 relative">
+        <Suspense>
+          <GlobalTrackerClient
+            products={transitProducts}
+            alerts={relevantAlerts}
+            user={user}
+          />
+        </Suspense>
+      </div>
+    </div>
   );
 }
