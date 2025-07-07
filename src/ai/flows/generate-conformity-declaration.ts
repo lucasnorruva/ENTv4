@@ -11,7 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '@/ai/schemas';
 
-export const GenerateConformityDeclarationInputSchema = z.object({
+const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
   companyName: z.string().describe('The legal name of the manufacturer.'),
 });
@@ -19,7 +19,7 @@ export type GenerateConformityDeclarationInput = z.infer<
   typeof GenerateConformityDeclarationInputSchema
 >;
 
-export const GenerateConformityDeclarationOutputSchema = z.object({
+const GenerateConformityDeclarationOutputSchema = z.object({
   declarationText: z
     .string()
     .describe(
@@ -47,8 +47,6 @@ const prompt = ai.definePrompt({
   input: { schema: PromptInputSchema },
   output: { schema: GenerateConformityDeclarationOutputSchema },
   prompt: `SYSTEM: You are a meticulous EU compliance documentation AI. Your task is to generate a standard EU Declaration of Conformity (DoC) in Markdown format based on the provided product data. The DoC must be formal and follow a standard structure. Your output must be a single markdown string.
-
-Use the following template. Fill in the placeholders \`[...]\` with the appropriate information from the USER_DATA. If a piece of information is not available, state "Not specified".
 
 **EU Declaration of Conformity**
 
