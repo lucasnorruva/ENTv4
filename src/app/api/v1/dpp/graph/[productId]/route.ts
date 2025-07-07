@@ -1,3 +1,4 @@
+
 // src/app/api/v1/dpp/graph/[productId]/route.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -34,15 +35,15 @@ export async function GET(
 
   const product = await getProductById(productId);
 
-  // Simulate a network delay
-  await new Promise(resolve => setTimeout(resolve, 180));
-
   if (!product) {
     return NextResponse.json(
       { error: `Product with ID ${productId} not found.` },
       { status: 404 },
     );
   }
+
+  // Simulate a slight delay
+  await new Promise(resolve => setTimeout(resolve, 250));
 
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
