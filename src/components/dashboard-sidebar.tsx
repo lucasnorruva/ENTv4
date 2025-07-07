@@ -21,7 +21,8 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import type { Role } from '@/lib/constants';
+import { UserRoles, type Role } from '@/lib/constants';
+import { hasRole } from '@/lib/auth-utils';
 import type { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,7 @@ export default function DashboardSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-
+        
         {menuConfig.map(group => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
@@ -119,6 +120,7 @@ export default function DashboardSidebar({
                 const destination = item.external
                   ? item.href
                   : `/dashboard/${roleSlug}/${item.href}`;
+
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton

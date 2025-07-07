@@ -15,6 +15,10 @@ import {
   BookOpen,
   Users,
   Webhook,
+  Globe,
+  Scale,
+  LifeBuoy,
+  Ticket,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -81,6 +85,27 @@ export const navConfig: NavConfig = {
           title: 'Integrations',
           icon: Wrench,
           href: 'integrations',
+        },
+      ],
+    },
+    {
+      label: 'Monitoring & Operations',
+      items: [
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+        {
+          title: 'Customs Requirements',
+          icon: Scale,
+          href: 'customs',
+        },
+        {
+          title: 'Service Tickets',
+          icon: Wrench,
+          href: 'service-tickets',
+        },
+        {
+          title: 'Support Tickets',
+          icon: Ticket,
+          href: 'tickets',
         },
       ],
     },
