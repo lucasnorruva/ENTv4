@@ -23,6 +23,7 @@ import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
+import { analyzeConstructionMaterial } from '@/ai/flows/analyze-construction-material';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -468,4 +469,45 @@ export async function analyzeTextileData(
   );
   
   return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeConstructionData(
+    productId: string,
+    userId: string,
+  ): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError('User not found.');
+  
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error('Product not found or permission denied.');
+    checkPermission(user, 'product:edit', product);
+  
+    if (product.category !== 'Construction') {
+      throw new Error('This analysis is only for construction products.');
+    }
+  
+    const primaryMaterial = product.materials[0];
+    if (!primaryMaterial) {
+      throw new Error('Product must have at least one material listed for analysis.');
+    }
+  
+    const analysisResult = await analyzeConstructionMaterial({
+      materialName: primaryMaterial.name,
+      recycledContentPercentage: primaryMaterial.recycledContent,
+    });
+  
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found in mock data');
+  
+    mockProducts[productIndex].constructionAnalysis = analysisResult;
+    mockProducts[productIndex].lastUpdated = new Date().toISOString();
+  
+    await logAuditEvent(
+      'product.construction_analysis',
+      productId,
+      { result: analysisResult },
+      userId,
+    );
+    
+    return Promise.resolve(mockProducts[productIndex]);
 }

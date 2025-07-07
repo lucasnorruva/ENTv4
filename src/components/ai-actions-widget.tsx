@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson } from 'lucide-react';
+import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson, Hammer } from 'lucide-react';
 import type { Product, User } from '@/types';
 import type {
   SuggestImprovementsOutput,
@@ -31,6 +31,8 @@ import {
   generatePcdsForProduct,
   runDataValidationCheck,
   runComplianceCheck,
+  analyzeTextileData,
+  analyzeConstructionData,
 } from '@/lib/actions/product-ai-actions';
 import {
   Dialog,
@@ -145,9 +147,34 @@ export default function AiActionsWidget({
     });
   };
 
+  const handleAnalyzeConstruction = () => {
+    setActiveAction('construction');
+    startTransition(async () => {
+      try {
+        await analyzeConstructionData(product.id, user.id);
+        toast({
+          title: 'Analysis Complete',
+          description:
+            'Construction material data has been analyzed. Refresh the product detail page to see results.',
+        });
+        router.refresh();
+      } catch (error: any) {
+        toast({
+          title: 'Analysis Failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } finally {
+        setActiveAction(null);
+      }
+    });
+  };
+
   if (!isAiEnabled) {
     return null; // Don't render the widget if AI is disabled for the company
   }
+
+  const showConstructionAnalysis = product.category === 'Construction';
 
   return (
     <>
@@ -236,6 +263,40 @@ export default function AiActionsWidget({
                     {isPending && activeAction === 'validation'
                       ? 'Validating...'
                       : 'Run Data Quality Check'}
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+            )}
+
+             {showConstructionAnalysis && (
+              <AccordionItem
+                value="construction"
+                className="border rounded-md px-3"
+              >
+                <AccordionTrigger className="py-3">
+                  <div className="flex items-center gap-2">
+                    <Hammer className="h-4 w-4" />
+                    <span className="font-semibold">Construction Analysis</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pb-3 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Analyze the primary material for embodied carbon,
+                    recyclability, and compliance notes.
+                  </p>
+                  <Button
+                    className="w-full"
+                    onClick={handleAnalyzeConstruction}
+                    disabled={!isAiEnabled || isPending}
+                  >
+                    {isPending && activeAction === 'construction' ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Bot className="mr-2 h-4 w-4" />
+                    )}
+                    {isPending && activeAction === 'construction'
+                      ? 'Analyzing...'
+                      : 'Analyze Construction Material'}
                   </Button>
                 </AccordionContent>
               </AccordionItem>
