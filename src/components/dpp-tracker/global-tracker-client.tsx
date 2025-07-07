@@ -100,8 +100,6 @@ export default function GlobalTrackerClient({
     [selectedProductId, allAlerts]
   );
   
-  // --- Callbacks and Memos (defined before useEffect hooks that use them) ---
-
   const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
 
   const globeMaterial = useMemo(() => new MeshPhongMaterial({
@@ -133,11 +131,11 @@ export default function GlobalTrackerClient({
 
   const handleProductSelect = useCallback((productId: string | null) => {
     setSelectedProductId(productId);
-    setClickedCountryInfo(null); // Clear country selection when product changes
+    setClickedCountryInfo(null);
     const params = new URLSearchParams(searchParams.toString());
     if (productId) {
       params.set('productId', productId);
-      setCountryFilter('supplyChain'); // Default to supply chain view when a product is selected
+      setCountryFilter('supplyChain'); 
     } else {
       params.delete('productId');
       setCountryFilter('all');
@@ -145,10 +143,6 @@ export default function GlobalTrackerClient({
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [pathname, router, searchParams]);
 
-
-  // --- Effects ---
-
-  // Effect 1: Fetch initial GeoJSON data for countries
   useEffect(() => {
     fetch(
       'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
@@ -156,12 +150,11 @@ export default function GlobalTrackerClient({
       .then(res => res.json())
       .then(geoJsonData => {
         setLandPolygons(geoJsonData.features);
-        setFilteredLandPolygons(geoJsonData.features); // Initially show all
+        setFilteredLandPolygons(geoJsonData.features);
       })
       .catch(err => console.error('Error fetching geo data:', err));
   }, []);
 
-  // Effect 2: Update arcs and highlights when the selected product changes
   useEffect(() => {
     if (!selectedProduct) {
       setArcsData([]);
@@ -178,7 +171,6 @@ export default function GlobalTrackerClient({
       return country;
     };
 
-    // Add final transit arc first
     if (selectedProduct.transit) {
       const { transit } = selectedProduct;
       const originCountry = addCountryHighlight(transit.origin);
@@ -190,13 +182,12 @@ export default function GlobalTrackerClient({
         newArcs.push({
           startLat: originCoords.lat, startLng: originCoords.lng,
           endLat: destinationCoords.lat, endLng: destinationCoords.lng,
-          color: theme === 'dark' ? '#60A5FA' : '#3B82F6', // Blue for transit
+          color: theme === 'dark' ? '#60A5FA' : '#3B82F6',
           label: `${selectedProduct.productName} Transit`,
         });
       }
     }
 
-    // Fetch and process supply chain graph for supplier arcs
     fetch(`/api/v1/dpp/graph/${selectedProduct.id}`)
       .then(res => (res.ok ? res.json() : Promise.reject(res)))
       .then(graph => {
@@ -215,7 +206,7 @@ export default function GlobalTrackerClient({
                 newArcs.push({
                   startLat: supplierCoords.lat, startLng: supplierCoords.lng,
                   endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
-                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B', // Amber for supply chain
+                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
                   label: `Supply from ${supplierCountry}`,
                 });
               }
@@ -227,14 +218,11 @@ export default function GlobalTrackerClient({
       })
       .catch(err => {
         console.error('Error fetching product graph:', err);
-        // Still set the transit arc and highlights if graph fails
         setArcsData(newArcs);
         setHighlightedCountries(Array.from(newHighlightedCountries));
       });
   }, [selectedProduct, theme]);
 
-
-  // Effect 3: Update filtered polygons when filter changes
   useEffect(() => {
     if (!landPolygons.length) return;
 
@@ -246,19 +234,18 @@ export default function GlobalTrackerClient({
         const p = feat.properties as CountryProperties;
         const adminName = p.ADMIN || p.NAME_LONG || '';
         const isoA3 = p.ADM0_A3 || p.ISO_A3 || '';
+        const lowerCaseAdminName = adminName.toLowerCase();
 
-        // Check if the polygon's admin name or ISO code is in our list of highlighted locations
-        return highlightedCountries.some(hc => 
-            adminName.toLowerCase().includes(hc.toLowerCase()) || 
-            isoA3 === Object.keys(mockCountryCoordinates).find(key => key.toLowerCase() === hc.toLowerCase())
-        );
+        return highlightedCountries.some(hc => {
+          const lowerHc = hc.toLowerCase();
+          return lowerCaseAdminName.includes(lowerHc) || 
+                 (mockCountryCoordinates[hc] && isoA3 === Object.keys(mockCountryCoordinates).find(key => key === hc));
+        });
       });
     }
     setFilteredLandPolygons(filtered);
   }, [countryFilter, landPolygons, highlightedCountries, selectedProduct, isEU]);
 
-
-  // Effect 4: Control globe instance (camera, rotation)
   useEffect(() => {
     const globe = globeEl.current;
     if (!globe || !globeReady) return;
@@ -278,16 +265,13 @@ export default function GlobalTrackerClient({
       if (destinationCoords) {
         globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
       }
-    } else if (!clickedCountryInfo) {
-      // Default view
-      // globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
     }
-  }, [globeReady, isAutoRotating, selectedProduct, clickedCountryInfo]);
+  }, [globeReady, isAutoRotating, selectedProduct]);
   
   const destinationCountry = selectedProduct?.transit ? getCountryFromLocationString(selectedProduct.transit.destination) : null;
   
   if (!isMounted) {
-    return null; // Return null on the server and initial client render to match, letting Suspense handle the fallback.
+    return null;
   }
 
   return (
