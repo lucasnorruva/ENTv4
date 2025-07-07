@@ -8,8 +8,6 @@ import type {
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
-  ProductTransitRiskAnalysis,
-  AnalyzeSimulatedRouteOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -35,12 +33,18 @@ export interface BaseEntity {
 export interface User extends BaseEntity {
   email: string;
   fullName: string;
+  avatarUrl?: string;
   companyId: string;
   roles: Role[];
   onboardingComplete: boolean;
   isMfaEnabled: boolean;
   readNotificationIds?: string[];
   circularityCredits?: number;
+  notificationPreferences?: {
+    productUpdates: boolean;
+    complianceAlerts: boolean;
+    platformNews: boolean;
+  };
 }
 
 export interface CustomFieldDefinition {
@@ -401,7 +405,3 @@ export interface ApiRateLimit {
 }
 
 export type { TransitInfo, CustomsAlert, CustomsStatus };
-
-export type SimulatedRoute = AnalyzeSimulatedRouteOutput & {
-  productId: string;
-};

@@ -78,11 +78,6 @@ const batterySchema = z.object({
   isRemovable: z.boolean().optional(),
 });
 
-const greenClaimSchema = z.object({
-    claim: z.string().min(1, 'Claim is required.'),
-    substantiation: z.string().min(1, 'Substantiation is required.'),
-});
-
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -124,36 +119,6 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
-  epr: z
-    .object({
-      schemeId: z.string().optional(),
-      producerRegistrationNumber: z.string().optional(),
-      wasteCategory: z.string().optional(),
-    })
-    .optional(),
-  battery: z
-    .object({
-      compliant: z.boolean().optional(),
-      passportId: z.string().optional(),
-    })
-    .optional(),
-  pfas: z
-    .object({
-      declared: z.boolean().optional(),
-    })
-    .optional(),
-  conflictMinerals: z
-    .object({
-      compliant: z.boolean().optional(),
-      reportUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-  espr: z
-    .object({
-      compliant: z.boolean().optional(),
-      delegatedActUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
 });
 
 export const productFormSchema = z.object({
@@ -188,7 +153,6 @@ export const productFormSchema = z.object({
   compliance: complianceSchema.optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
-  greenClaims: z.array(greenClaimSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
