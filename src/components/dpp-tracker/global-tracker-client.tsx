@@ -12,7 +12,7 @@ import React, {
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
-import { MeshPhongMaterial } from 'three';
+import { MeshPhongMaterial, Color } from 'three';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
@@ -34,10 +34,14 @@ import {
   getCountryFromLocationString,
 } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-import { getPointColorForStatus, getFactoryColor } from '@/lib/dppDisplayUtils';
+import {
+  getPointColorForStatus,
+  getFactoryColor,
+} from '@/lib/dppDisplayUtils';
 import { analyzeTransitRisk } from '@/lib/actions/product-ai-actions';
 import { useToast } from '@/hooks/use-toast';
 import { getProductionLines } from '@/lib/actions';
+import { MOCK_SUPPLIERS } from '@/lib/supplier-data';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -124,9 +128,11 @@ export default function GlobalTrackerClient({
   const [clickedFactory, setClickedFactory] = useState<ProductionLine | null>(
     null,
   );
-  
+
   // New state for click-to-analyze feature
-  const [routeOrigin, setRouteOrigin] = useState<CountryProperties | null>(null);
+  const [routeOrigin, setRouteOrigin] = useState<CountryProperties | null>(
+    null,
+  );
 
   const [countryFilter, setCountryFilter] = useState<
     'all' | 'eu' | 'supplyChain'
@@ -150,11 +156,6 @@ export default function GlobalTrackerClient({
     setIsMounted(true);
   }, []);
 
-  const isEU = useCallback(
-    (isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
-    [],
-  );
-
   const countryRiskMap = useMemo(() => {
     const map = new Map<string, 'Low' | 'Medium' | 'High'>();
     MOCK_CUSTOMS_DATA.forEach(data => {
@@ -174,7 +175,7 @@ export default function GlobalTrackerClient({
       }),
     [theme],
   );
-  
+
   const handleProductSelect = useCallback(
     (productId: string | null) => {
       setSimulatedRoute(null);
@@ -194,66 +195,75 @@ export default function GlobalTrackerClient({
     },
     [pathname, router, searchParams],
   );
-  
-  const handleSimulateRoute = useCallback((origin: string, destination: string) => {
-    handleProductSelect(null);
-    setClickedCountryInfo(null);
-    setClickedFactory(null);
-    setSimulatedRoute(null);
-    startSimulationTransition(async () => {
-      try {
-        const analysis = await analyzeTransitRisk({
-          originCountry: origin,
-          destinationCountry: destination,
-        });
-        setSimulatedRoute({ origin, destination, ...analysis });
-      } catch (error: any) {
-        toast({
-          title: 'Analysis Failed',
-          description: error.message,
-          variant: 'destructive',
-        });
+
+  const handleSimulateRoute = useCallback(
+    (origin: string, destination: string) => {
+      handleProductSelect(null);
+      setClickedCountryInfo(null);
+      setClickedFactory(null);
+      setSimulatedRoute(null);
+      startSimulationTransition(async () => {
+        try {
+          const analysis = await analyzeTransitRisk({
+            originCountry: origin,
+            destinationCountry: destination,
+          });
+          setSimulatedRoute({ origin, destination, ...analysis });
+        } catch (error: any) {
+          toast({
+            title: 'Analysis Failed',
+            description: error.message,
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [handleProductSelect, toast],
+  );
+
+  const handlePolygonClick = useCallback(
+    (feat: GeoJsonFeature) => {
+      const countryProps = feat.properties as CountryProperties;
+      if (!countryProps) return;
+
+      // Logic for route simulation
+      if (routeOrigin && routeOrigin.ADMIN !== countryProps.ADMIN) {
+        // This is the destination click
+        handleSimulateRoute(routeOrigin.ADMIN, countryProps.ADMIN);
+        setRouteOrigin(null); // Reset after simulation starts
+        setClickedCountryInfo(null);
+        return;
+      } else if (routeOrigin && routeOrigin.ADMIN === countryProps.ADMIN) {
+        // Clicked the same country again, cancel selection
+        setRouteOrigin(null);
+        setClickedCountryInfo(null);
+        return;
       }
-    });
-  }, [handleProductSelect, toast]);
 
-  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
-    const countryProps = feat.properties as CountryProperties;
-    if (!countryProps) return;
-    
-    // Logic for route simulation
-    if (routeOrigin && routeOrigin.ADMIN !== countryProps.ADMIN) {
-      // This is the destination click
-      handleSimulateRoute(routeOrigin.ADMIN, countryProps.ADMIN);
-      setRouteOrigin(null); // Reset after simulation starts
-      setClickedCountryInfo(null);
-      return;
-    } else if (routeOrigin && routeOrigin.ADMIN === countryProps.ADMIN) {
-      // Clicked the same country again, cancel selection
-      setRouteOrigin(null);
-      setClickedCountryInfo(null);
-      return;
-    }
-
-    // Default click behavior
-    setClickedCountryInfo(countryProps);
-    setClickedFactory(null);
-    const countryName = countryProps.ADMIN;
-    const coords = mockCountryCoordinates[countryName];
-    if (globeEl.current && coords) {
-      globeEl.current.pointOfView(
-        { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-        1000,
-      );
-    }
-  }, [routeOrigin, handleSimulateRoute]);
+      // Default click behavior
+      setClickedCountryInfo(countryProps);
+      setClickedFactory(null);
+      const countryName = countryProps.ADMIN;
+      const coords = mockCountryCoordinates[countryName];
+      if (globeEl.current && coords) {
+        globeEl.current.pointOfView(
+          { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
+          1000,
+        );
+      }
+    },
+    [routeOrigin, handleSimulateRoute],
+  );
 
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
     setRouteOrigin(null); // Cancel route selection if a factory is clicked
-    if(globeEl.current) {
-        globeEl.current.pointOfView({lat: label.lat, lng: label.lng, altitude: 1.5}, 1000);
+    if (globeEl.current) {
+      globeEl.current.pointOfView(
+        { lat: label.lat, lng: label.lng, altitude: 1.5 },
+        1000,
+      );
     }
   }, []);
 
@@ -263,11 +273,11 @@ export default function GlobalTrackerClient({
     setSimulatedRoute(null);
     setRouteOrigin(null);
     toast({
-        title: "Select Origin Country",
-        description: "Click a country on the globe to set it as the origin.",
-    })
-  }
-  
+      title: 'Select Origin Country',
+      description: 'Click a country on the globe to set it as the origin.',
+    });
+  };
+
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
     [selectedProductId, allProducts],
@@ -282,7 +292,9 @@ export default function GlobalTrackerClient({
     return productionLines
       .map(line => {
         const coords =
-          mockCountryCoordinates[getCountryFromLocationString(line.location) || ''];
+          mockCountryCoordinates[
+            getCountryFromLocationString(line.location) || ''
+          ];
         if (!coords) return null;
         return {
           ...coords,
@@ -295,14 +307,21 @@ export default function GlobalTrackerClient({
       .filter(p => p !== null);
   }, [showFactories, productionLines]);
 
+  const isEU = useCallback(
+    (isoA3: string | undefined) =>
+      !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
+    [],
+  );
+
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
       if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
       const p = feat.properties as CountryProperties;
       const isDark = theme === 'dark';
       const countryNameLower = p.ADMIN.toLowerCase();
-      
-      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN) return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
+
+      if (routeOrigin && routeOrigin.ADMIN === p.ADMIN)
+        return isDark ? '#A78BFA' : '#8B5CF6'; // Purple for origin selection
       if (
         clickedCountryInfo &&
         (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
@@ -316,7 +335,10 @@ export default function GlobalTrackerClient({
       )
         return isDark ? '#FBBF24' : '#F59E0B';
 
-      if (riskFilter !== 'all' && countryRiskMap.get(countryNameLower) === riskFilter) {
+      if (
+        riskFilter !== 'all' &&
+        countryRiskMap.get(countryNameLower) === riskFilter
+      ) {
         if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
         if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
         if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
@@ -326,7 +348,15 @@ export default function GlobalTrackerClient({
 
       return isDark ? '#334155' : '#e2e8f0';
     },
-    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap, routeOrigin],
+    [
+      theme,
+      isEU,
+      highlightedCountries,
+      clickedCountryInfo,
+      riskFilter,
+      countryRiskMap,
+      routeOrigin,
+    ],
   );
 
   useEffect(() => {
@@ -350,15 +380,47 @@ export default function GlobalTrackerClient({
     const newHighlightedCountries = new Set<string>();
 
     const processProduct = (product: Product, isSelected: boolean) => {
-      const pointColor = getPointColorForStatus(product.verificationStatus);
+      const pointColor = new Color(getPointColorForStatus(product.verificationStatus)).getHex();
+      const factoryCountry = product.manufacturing?.country
+        ? getCountryFromLocationString(product.manufacturing.country)
+        : null;
+      const factoryCoords = factoryCountry ? mockCountryCoordinates[factoryCountry] : null;
+
+      // Material Sourcing Arcs
+      if (isSelected && factoryCoords) {
+        product.materials.forEach(material => {
+          if (material.origin) {
+            const supplier = MOCK_SUPPLIERS.find(s => s.location.includes(material.origin!));
+            const originCountry = supplier ? getCountryFromLocationString(supplier.location) : null;
+            const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
+            
+            if (originCoords) {
+              newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.2, color: 0xfbbf24, name: `Supplier: ${supplier?.name}` });
+              newArcs.push({
+                startLat: originCoords.lat,
+                startLng: originCoords.lng,
+                endLat: factoryCoords.lat,
+                endLng: factoryCoords.lng,
+                color: [0xfbbf24, 0xfbbf24],
+                stroke: 0.2,
+                label: `Material: ${material.name}`
+              });
+              if(originCountry) newHighlightedCountries.add(originCountry);
+            }
+          }
+        });
+      }
+
+
+      // Final Product Transit Arc
       if (product.transit) {
         const { transit } = product;
-        const originCoords =
-          mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
+        const originCoords = factoryCoords || mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
         const destinationCoords =
           mockCountryCoordinates[
             getCountryFromLocationString(transit.destination) || ''
           ];
+        
         if (originCoords)
           newPoints.push({
             lat: originCoords.lat,
@@ -381,19 +443,16 @@ export default function GlobalTrackerClient({
             startLng: originCoords.lng,
             endLat: destinationCoords.lat,
             endLng: destinationCoords.lng,
-            color: pointColor,
+            color: [pointColor, pointColor],
             label: `${product.productName} Transit`,
           });
         }
       }
       if (isSelected) {
-        const originCountry = getCountryFromLocationString(
-          product.transit?.origin,
-        );
+        if(factoryCountry) newHighlightedCountries.add(factoryCountry);
         const destCountry = getCountryFromLocationString(
           product.transit?.destination,
         );
-        if (originCountry) newHighlightedCountries.add(originCountry);
         if (destCountry) newHighlightedCountries.add(destCountry);
       }
     };
@@ -450,7 +509,10 @@ export default function GlobalTrackerClient({
       filtered = landPolygons.filter(feat =>
         isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3),
       );
-    } else if (countryFilter === 'supplyChain' && highlightedCountries.length > 0) {
+    } else if (
+      countryFilter === 'supplyChain' &&
+      highlightedCountries.length > 0
+    ) {
       filtered = landPolygons.filter(feat => {
         const p = feat.properties as CountryProperties;
         const adminName = p.ADMIN || p.NAME_LONG || '';
@@ -492,7 +554,11 @@ export default function GlobalTrackerClient({
         mockCountryCoordinates[simulatedRoute.destination];
       if (destinationCoords)
         globe.pointOfView(
-          { lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 },
+          {
+            lat: destinationCoords.lat,
+            lng: destinationCoords.lng,
+            altitude: 1.5,
+          },
           1000,
         );
     } else if (selectedProduct && selectedProduct.transit) {
@@ -504,7 +570,11 @@ export default function GlobalTrackerClient({
         : null;
       if (destinationCoords)
         globe.pointOfView(
-          { lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 },
+          {
+            lat: destinationCoords.lat,
+            lng: destinationCoords.lng,
+            altitude: 1.5,
+          },
           1000,
         );
     } else {
@@ -518,12 +588,16 @@ export default function GlobalTrackerClient({
 
   const productsToCountry = useMemo(() => {
     if (!clickedCountryInfo) return [];
-    return allProducts.filter(p => p.transit?.destination.includes(clickedCountryInfo.ADMIN));
+    return allProducts.filter(p =>
+      p.transit?.destination.includes(clickedCountryInfo.ADMIN),
+    );
   }, [clickedCountryInfo, allProducts]);
 
   const productsFromCountry = useMemo(() => {
     if (!clickedCountryInfo) return [];
-    return allProducts.filter(p => p.transit?.origin.includes(clickedCountryInfo.ADMIN));
+    return allProducts.filter(p =>
+      p.transit?.origin.includes(clickedCountryInfo.ADMIN),
+    );
   }, [clickedCountryInfo, allProducts]);
 
   if (!isMounted) return null;
@@ -544,8 +618,8 @@ export default function GlobalTrackerClient({
         onStartRouteAnalysis={startRouteAnalysis}
         isAnalyzing={!!routeOrigin || !!simulatedRoute}
         onClearSimulation={() => {
-            setRouteOrigin(null);
-            setSimulatedRoute(null);
+          setRouteOrigin(null);
+          setSimulatedRoute(null);
         }}
         showFactories={showFactories}
         onToggleFactories={setShowFactories}
@@ -566,7 +640,7 @@ export default function GlobalTrackerClient({
         arcDashLength={d => d.dashLength || 0.4}
         arcDashGap={d => d.dashGap || 0.1}
         arcDashAnimateTime={2000}
-        arcStroke={0.5}
+        arcStroke={'stroke'}
         pointsData={pointsData}
         pointLat="lat"
         pointLng="lng"
@@ -621,23 +695,16 @@ export default function GlobalTrackerClient({
           <div className="flex items-center gap-1">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getPointColorForStatus('Verified') }}
+              style={{ backgroundColor: '#2563eb' }}
             />
-            Verified
+            Product Transit
           </div>
           <div className="flex items-center gap-1">
             <div
               className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getPointColorForStatus('Pending') }}
+              style={{ backgroundColor: '#fbbf24' }}
             />
-            Pending
-          </div>
-          <div className="flex items-center gap-1">
-            <div
-              className="w-2 h-2 rounded-full"
-              style={{ backgroundColor: getPointColorForStatus('Failed') }}
-            />
-            Failed
+            Material Sourcing
           </div>
         </div>
       </div>
