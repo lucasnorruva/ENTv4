@@ -69,7 +69,7 @@ export async function saveUser(
 export async function deleteUser(
   userId: string,
   adminId: string,
-): Promise<void> {
+): Promise<boolean> {
   const adminUser = await getUserById(adminId);
   if (!adminUser) throw new Error('Admin user not found');
   checkPermission(adminUser, 'user:manage');
@@ -78,8 +78,9 @@ export async function deleteUser(
   if (index > -1) {
     mockUsers.splice(index, 1);
     await logAuditEvent('user.deleted', userId, {}, adminId);
+    return true;
   }
-  return Promise.resolve();
+  return false;
 }
 
 export async function createUserAndCompany(

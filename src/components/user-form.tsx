@@ -44,7 +44,7 @@ interface UserFormProps {
   onOpenChange: (isOpen: boolean) => void;
   user: User | null;
   adminUser: User;
-  onSave: (user: User) => void;
+  onSave: () => void;
   companies: Company[];
 }
 
@@ -93,12 +93,12 @@ export default function UserForm({
   const onSubmit = (values: UserFormValues) => {
     startSavingTransition(async () => {
       try {
-        const saved = await saveUser(values, adminUser.id, user?.id);
+        await saveUser(values, adminUser.id, user?.id);
         toast({
           title: 'Success!',
-          description: `User "${saved.fullName}" has been saved.`,
+          description: `User "${values.fullName}" has been saved.`,
         });
-        onSave(saved);
+        onSave(); // This now triggers a refetch in the parent component
         onOpenChange(false);
       } catch (error) {
         toast({
