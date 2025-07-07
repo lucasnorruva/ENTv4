@@ -15,6 +15,14 @@ import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-json';
 import 'prismjs/components/prism-graphql';
 import 'prismjs/themes/prism-tomorrow.css';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { sampleQueries } from '@/lib/graphql-queries';
 
 // This is a simplified GraphQL client for the explorer.
 async function queryApi(query: string, variables: string, apiKey: string) {
@@ -47,18 +55,9 @@ async function queryApi(query: string, variables: string, apiKey: string) {
   return response.json();
 }
 
-const defaultQuery = `query GetProducts {
-  products(limit: 5) {
-    id
-    productName
-    category
-    status
-  }
-}`;
-
 export default function ApiExplorerClient({ user }: { user: User }) {
-  const [query, setQuery] = useState(defaultQuery);
-  const [variables, setVariables] = useState('{}');
+  const [query, setQuery] = useState(sampleQueries[0].query);
+  const [variables, setVariables] = useState(sampleQueries[0].variables || '{}');
   const [response, setResponse] = useState('');
   const [isPending, startTransition] = useTransition();
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -120,6 +119,14 @@ export default function ApiExplorerClient({ user }: { user: User }) {
       }
     });
   };
+  
+  const handleSampleQueryChange = (queryName: string) => {
+    const selected = sampleQueries.find(q => q.name === queryName);
+    if (selected) {
+      setQuery(selected.query);
+      setVariables(selected.variables || '{}');
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
@@ -127,10 +134,27 @@ export default function ApiExplorerClient({ user }: { user: User }) {
         <CardHeader>
           <CardTitle>GraphQL Query</CardTitle>
           <CardDescription>
-            Write and execute GraphQL queries against the API.
+            Write and execute GraphQL queries or select a sample query to get started.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4">
+          <div>
+            <label htmlFor="sample-query" className="text-sm font-medium mb-2 block">
+              Sample Queries
+            </label>
+            <Select onValueChange={handleSampleQueryChange}>
+                <SelectTrigger id="sample-query">
+                    <SelectValue placeholder="Select a sample query..." />
+                </SelectTrigger>
+                <SelectContent>
+                    {sampleQueries.map(q => (
+                        <SelectItem key={q.name} value={q.name}>
+                            {q.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
           <div className="flex-1 flex flex-col">
             <label htmlFor="query" className="text-sm font-medium mb-2">
               Query
