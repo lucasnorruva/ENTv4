@@ -2,7 +2,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import {
   Card,
@@ -28,6 +27,7 @@ import {
 import { Separator } from './ui/separator';
 import { cn } from '@/lib/utils';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
+import Link from 'next/link';
 
 const RiskLevelBadge = ({
   level,

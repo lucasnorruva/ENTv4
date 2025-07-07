@@ -396,18 +396,6 @@ export interface ProductionLine extends BaseEntity {
   lastMaintenance: string; // ISO 8601 string
 }
 
-/**
- * Represents a simulated transit route for risk analysis.
- */
-export interface SimulatedRoute {
-  origin: string;
-  destination: string;
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Very High';
-  summary: string;
-  keyConsiderations: string[];
-  productId: string;
-}
-
 export interface BlockchainProof {
   type: 'SINGLE_HASH' | 'MERKLE_PROOF';
   txHash: string;
