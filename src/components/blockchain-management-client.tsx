@@ -12,12 +12,15 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { getProducts } from '@/lib/actions';
 import { getCompanies } from '@/lib/auth';
 import AnchoringTab from './trust-hub/anchoring-tab';
 import IssuersTab from './trust-hub/issuers-tab';
 import ZkpTab from './trust-hub/zkp-tab';
+import { Button } from './ui/button';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 interface BlockchainManagementClientProps {
   user: User;
@@ -65,14 +68,22 @@ export default function BlockchainManagementClient({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          Trust & Verification Hub
-        </h1>
-        <p className="text-muted-foreground">
-          Manage the on-chain lifecycle of Digital Product Passports, issuer
-          trust, and advanced cryptographic proofs.
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Trust & Verification Hub
+          </h1>
+          <p className="text-muted-foreground">
+            Manage the on-chain lifecycle of Digital Product Passports, issuer
+            trust, and advanced cryptographic proofs.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={fetchData} disabled={isLoading}>
+                <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
+                Refresh Data
+            </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="anchoring">

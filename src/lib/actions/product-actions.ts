@@ -292,6 +292,14 @@ export async function bulkAnchorProducts(productIds: string[], userId: string): 
 
   await logAuditEvent('product.bulk_anchor.started', 'multiple', { count: productIds.length }, userId);
 
+  // Set isMinting for all selected products immediately
+  productIds.forEach(productId => {
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex !== -1) {
+      mockProducts[productIndex].isMinting = true;
+    }
+  });
+
   // We are not waiting for the result, just firing off the requests
   for (const productId of productIds) {
     anchorProductOnChain(productId, userId).catch(error => {

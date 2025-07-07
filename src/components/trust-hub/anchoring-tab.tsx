@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { Loader2, Fingerprint, History, CheckCircle, Hourglass, ShieldAlert, Wallet, Sparkles, AlertCircle } from 'lucide-react';
+import { Loader2, Fingerprint, History, CheckCircle, Wallet, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { anchorProductOnChain, bulkAnchorProducts } from '@/lib/actions';
 import { Checkbox } from '../ui/checkbox';
@@ -35,18 +35,6 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
       .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
   }, [initialProducts]);
 
-  const handleAnchorProduct = (productId: string) => {
-    startTransition(async () => {
-      toast({ title: 'Anchoring started...', description: `Product ID: ${productId}` });
-      try {
-        await anchorProductOnChain(productId, user.id);
-        toast({ title: 'Success!', description: 'Product successfully anchored.' });
-        onDataChange();
-      } catch (error: any) {
-        toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      }
-    });
-  };
 
   const handleBulkAnchor = () => {
     if (selectedProductIds.length === 0) return;
@@ -64,19 +52,13 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
   };
 
   const handleSelectProduct = (productId: string, checked: boolean | 'indeterminate') => {
-    if (checked) {
-      setSelectedProductIds(prev => [...prev, productId]);
-    } else {
-      setSelectedProductIds(prev => prev.filter(id => id !== productId));
-    }
+    setSelectedProductIds(prev =>
+        checked ? [...prev, productId] : prev.filter(id => id !== productId)
+    );
   };
 
   const handleSelectAll = (checked: boolean | 'indeterminate') => {
-    if (checked) {
-      setSelectedProductIds(productsReadyToMint.map(p => p.id));
-    } else {
-      setSelectedProductIds([]);
-    }
+    setSelectedProductIds(checked ? productsReadyToMint.map(p => p.id) : []);
   };
   
   return (
@@ -100,43 +82,54 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
           <CardDescription>Verified products ready to be anchored on the blockchain. Anchoring creates an immutable proof of the passport's data.</CardDescription>
         </CardHeader>
         <CardContent>
-          {productsReadyToMint.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No products are currently ready for minting.</p>
-          ) : (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {productsReadyToMint.map(product => (
-                  <Card key={product.id} className="relative">
-                    <div className="absolute top-2 left-2 z-10">
-                      <Checkbox
-                        checked={selectedProductIds.includes(product.id)}
-                        onCheckedChange={(checked) => handleSelectProduct(product.id, checked)}
-                        />
-                    </div>
-                    <CardContent className="p-0">
-                      <Image src={product.productImage} alt={product.productName} width={300} height={200} className="aspect-video object-cover rounded-t-lg" data-ai-hint="product photo" />
-                    </CardContent>
-                    <CardHeader className="p-3">
-                      <CardTitle className="text-sm font-medium line-clamp-1">{product.productName}</CardTitle>
-                      <CardDescription className="text-xs">{product.id}</CardDescription>
-                    </CardHeader>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
+          <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[50px]">
+                     <Checkbox
+                        checked={selectedProductIds.length > 0 && selectedProductIds.length === productsReadyToMint.length}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Supplier</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {productsReadyToMint.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      No products are currently ready for minting.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  productsReadyToMint.map(product => (
+                    <TableRow key={product.id}>
+                       <TableCell>
+                          <Checkbox
+                              checked={selectedProductIds.includes(product.id)}
+                              onCheckedChange={(checked) => handleSelectProduct(product.id, checked)}
+                          />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                            <Image src={product.productImage} alt={product.productName} width={40} height={40} className="rounded-md object-cover" data-ai-hint="product photo" />
+                            <span className="font-medium">{product.productName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{product.supplier}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+          </Table>
         </CardContent>
         {productsReadyToMint.length > 0 && (
             <CardFooter className="border-t pt-4">
-                <div className="flex w-full justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <Checkbox
-                            id="select-all"
-                            checked={selectedProductIds.length > 0 && selectedProductIds.length === productsReadyToMint.length}
-                            onCheckedChange={handleSelectAll}
-                        />
-                        <label htmlFor="select-all" className="text-sm font-medium">{selectedProductIds.length} selected</label>
-                    </div>
+                <div className="flex w-full justify-end items-center">
                     <Button onClick={handleBulkAnchor} disabled={isPending || selectedProductIds.length === 0}>
                         {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Fingerprint className="mr-2 h-4 w-4"/>}
                         Anchor Selected ({selectedProductIds.length})
