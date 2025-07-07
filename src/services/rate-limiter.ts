@@ -13,23 +13,22 @@ export class RateLimitError extends Error {
   }
 }
 
-const WINDOW_SIZE_IN_SECONDS = 60;
+// Refill rate is tokens per second.
+const REFILL_RATE = 2;
 
 export async function checkRateLimit(
-  keyId: string, // Can be a user ID or an API key ID
-  tier: 'free' | 'pro' | 'enterprise' = 'pro', // Default to 'pro' for mock
+  keyId: string,
+  tier: 'free' | 'pro' | 'enterprise' = 'pro',
 ): Promise<void> {
   const settings = await getApiSettingsData();
-  const limit = settings.rateLimits[tier];
-  
+  const bucketSize = settings.rateLimits[tier];
+
   // A limit of 0 means no limit is enforced
-  if (limit === 0) {
+  if (bucketSize === 0) {
     return;
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const windowStart = now - (now % WINDOW_SIZE_IN_SECONDS);
-
   const docRef = adminDb.collection(Collections.API_RATE_LIMITS).doc(keyId);
 
   try {
@@ -37,29 +36,39 @@ export async function checkRateLimit(
       const doc = await transaction.get(docRef);
 
       if (!doc.exists) {
-        transaction.set(docRef, { count: 1, windowStart });
+        // First request, create a full bucket.
+        transaction.set(docRef, {
+          tokens: bucketSize - 1,
+          lastRefilled: now,
+        });
         return;
       }
 
       const data = doc.data() as ApiRateLimit;
 
-      if (data.windowStart === windowStart) {
-        if (data.count >= limit) {
-          throw new RateLimitError(
-            `Rate limit of ${limit} requests per minute exceeded.`,
-          );
-        }
-        transaction.update(docRef, { count: data.count + 1 });
-      } else {
-        // New window, reset the count
-        transaction.set(docRef, { count: 1, windowStart });
+      // Calculate tokens to add since last request
+      const timeElapsed = now - data.lastRefilled;
+      const tokensToAdd = timeElapsed * REFILL_RATE;
+      
+      let currentTokens = Math.min(
+        data.tokens + tokensToAdd,
+        bucketSize, // Don't exceed the bucket size
+      );
+
+      if (currentTokens < 1) {
+        throw new RateLimitError(
+          `Rate limit exceeded. Try again in a few seconds.`,
+        );
       }
+
+      currentTokens -= 1;
+      transaction.update(docRef, { tokens: currentTokens, lastRefilled: now });
     });
   } catch (error) {
     if (error instanceof RateLimitError) {
       throw error;
     }
-    // For other transaction errors, we can choose to fail open to not block legit traffic
-    console.error('Firestore rate-limiting transaction failed: ', error);
+    console.error('Firestore rate-limiting transaction failed:', error);
+    // Fail open for other transaction errors to not block legitimate traffic
   }
 }

@@ -10,7 +10,7 @@ import type {
   AnalyzeConstructionMaterialOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, GreenClaim, RegulationSource, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
@@ -22,6 +22,7 @@ export type {
   ModelHotspot,
   GreenClaim,
   RegulationSource,
+  SimulatedRoute,
 };
 
 /**
@@ -402,11 +403,11 @@ export interface ApiSettings {
 }
 
 /**
- * Represents a rate limit counter for a specific key.
+ * Represents the state of the token bucket for a specific API key.
  */
 export interface ApiRateLimit {
-  count: number;
-  windowStart: number; // Unix timestamp
+  tokens: number;
+  lastRefilled: number; // Unix timestamp in seconds
 }
 
 /**
