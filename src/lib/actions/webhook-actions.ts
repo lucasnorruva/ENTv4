@@ -11,7 +11,7 @@ import { webhooks as mockWebhooks } from '@/lib/webhook-data';
 import { getAuditLogById, logAuditEvent } from './audit-actions';
 import { sendWebhook } from '@/services/webhooks';
 import { newId } from './utils';
-import { getApiSettingsData } from '../api-settings';
+import { getApiSettingsData } from '@/lib/api-settings';
 
 export async function getWebhooks(userId?: string): Promise<Webhook[]> {
   if (userId) {

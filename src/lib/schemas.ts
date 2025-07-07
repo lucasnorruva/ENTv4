@@ -2,7 +2,6 @@
 import { z } from 'zod';
 import type { Role } from './constants';
 import { UserRoles } from './constants';
-import { textileDataSchema } from './schemas/textile';
 
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
@@ -27,7 +26,6 @@ const packagingSchema = z.object({
   type: z.string().min(1, 'Packaging type is required.'),
   recyclable: z.boolean(),
   recycledContent: z.coerce.number().optional(),
-  weight: z.coerce.number().optional(),
 });
 
 const lifecycleSchema = z.object({
@@ -88,6 +86,15 @@ const complianceSchema = z.object({
     .optional(),
 });
 
+const textileDataSchema = z.object({
+  fiberComposition: z.array(z.object({
+    name: z.string().min(1, 'Fiber name is required.'),
+    percentage: z.number().min(0).max(100),
+  })).optional(),
+  dyeProcess: z.string().optional(),
+  weaveType: z.string().optional(),
+});
+
 export const productFormSchema = z.object({
   gtin: z
     .string()
@@ -102,7 +109,7 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
@@ -158,40 +165,23 @@ export type CompliancePathFormValues = z.infer<
 >;
 
 export const webhookFormSchema = z.object({
-  url: z.string().url({ message: 'Please enter a valid URL.' }),
-  events: z
-    .array(z.string())
-    .min(1, { message: 'You must select at least one event type.' }),
+  url: z.string().url({ message: "Please enter a valid URL." }),
+  events: z.array(z.string()).min(1, { message: "You must select at least one event type." }),
   status: z.enum(['active', 'inactive']),
 });
 export type WebhookFormValues = z.infer<typeof webhookFormSchema>;
 
+
 export const apiKeyFormSchema = z.object({
   label: z.string().min(3, 'Label must be at least 3 characters.'),
-  scopes: z
-    .array(z.string())
-    .min(1, { message: 'You must select at least one scope.' }),
+  scopes: z.array(z.string()).min(1, { message: 'You must select at least one scope.' }),
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
 export const serviceTicketFormSchema = z.object({
-  productId: z.string().min(1, 'Product ID is required.'),
-  customerName: z.string().min(2, 'Customer name is required.'),
-  issue: z
-    .string()
-    .min(10, 'Issue description must be at least 10 characters.'),
+  productId: z.string().min(1, "Product ID is required."),
+  customerName: z.string().min(2, "Customer name is required."),
+  issue: z.string().min(10, "Issue description must be at least 10 characters."),
   status: z.enum(['Open', 'In Progress', 'Closed']),
 });
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
-
-export const supportTicketFormSchema = z.object({
-  name: z.string().min(2, { message: 'Please enter your name.' }),
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  subject: z
-    .string()
-    .min(5, { message: 'Subject must be at least 5 characters.' }),
-  message: z
-    .string()
-    .min(20, { message: 'Message must be at least 20 characters.' }),
-});
-export type SupportTicketFormValues = z.infer<typeof supportTicketFormSchema>;

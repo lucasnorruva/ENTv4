@@ -5,7 +5,6 @@ import { users } from '../lib/user-data';
 import { companies } from '../lib/company-data';
 import { compliancePaths } from '../lib/compliance-data';
 import { serviceTickets } from '../lib/service-ticket-data';
-import { supportTickets } from '../lib/support-ticket-data';
 import { webhooks } from '../lib/webhook-data';
 import { apiKeys } from '../lib/api-key-data';
 import { Collections } from '../lib/constants';
@@ -17,7 +16,6 @@ const collectionsToSeed = {
   [Collections.COMPANIES]: companies,
   [Collections.COMPLIANCE_PATHS]: compliancePaths,
   [Collections.SERVICE_TICKETS]: serviceTickets,
-  [Collections.SUPPORT_TICKETS]: supportTickets,
   [Collections.WEBHOOKS]: webhooks,
   [Collections.API_KEYS]: apiKeys,
 };
