@@ -3,11 +3,11 @@
 
 import React, { Suspense, useState, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Stage, Html, useGLTF } from '@react-three/drei';
+import { OrbitControls, Html, useGLTF } from '@react-three/drei';
 import { Loader2 } from 'lucide-react';
 import { Vector3, Box3 } from 'three';
 import type { ModelHotspot } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { X } from 'lucide-react';
 
@@ -92,23 +92,24 @@ export default function Product3DViewer({
             </Html>
           }
         >
-          <Stage environment="city" intensity={0.6}>
-            <Model url={modelUrl} />
-            {hotspots?.map((hotspot, index) => (
-              <Hotspot
-                key={index}
-                position={[
-                  hotspot.position.x,
-                  hotspot.position.y,
-                  hotspot.position.z,
-                ]}
-                onClick={() => setSelectedHotspot(hotspot)}
-              />
-            ))}
-            {selectedHotspot && (
-                <Annotation hotspot={selectedHotspot} onClose={() => setSelectedHotspot(null)} />
-            )}
-          </Stage>
+          <ambientLight intensity={Math.PI / 2} />
+          <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI} />
+          <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI} />
+          <Model url={modelUrl} />
+          {hotspots?.map((hotspot, index) => (
+            <Hotspot
+              key={index}
+              position={[
+                hotspot.position.x,
+                hotspot.position.y,
+                hotspot.position.z,
+              ]}
+              onClick={() => setSelectedHotspot(hotspot)}
+            />
+          ))}
+          {selectedHotspot && (
+              <Annotation hotspot={selectedHotspot} onClose={() => setSelectedHotspot(null)} />
+          )}
         </Suspense>
         <OrbitControls autoRotate />
       </Canvas>
