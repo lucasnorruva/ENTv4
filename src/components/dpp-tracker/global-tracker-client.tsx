@@ -24,6 +24,7 @@ import OperationalPointInfoCard from '@/components/dpp-tracker/OperationalPointI
 import SimulatedRouteInfoCard from '@/components/dpp-tracker/SimulatedRouteInfoCard';
 import GlobeControls from './GlobeControls';
 import RouteAnalysisPanel from './RouteAnalysisPanel';
+import { Button } from '@/components/ui/button';
 import {
   mockCountryCoordinates,
   getCountryFromLocationString,
@@ -39,7 +40,6 @@ import {
 } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -82,7 +82,7 @@ export default function GlobalTrackerClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { theme } = useTheme();
+  const { theme } } from useTheme();
   const { toast } = useToast();
 
   const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
@@ -422,6 +422,65 @@ export default function GlobalTrackerClient({
     return allProducts.filter(p => p.transit?.origin.includes(clickedCountryInfo.ADMIN));
   }, [clickedCountryInfo, allProducts]);
 
+  const globeComponent = isClientMounted ? (
+    <Globe
+      ref={globeEl}
+      backgroundColor="rgba(0,0,0,0)"
+      globeMaterial={globeMaterial}
+      polygonsData={filteredPolygons}
+      polygonCapColor={getPolygonCapColor}
+      polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
+      polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
+      polygonAltitude={0.01}
+      onPolygonClick={handlePolygonClick}
+      polygonsTransitionDuration={300}
+      arcsData={arcsData}
+      arcColor={'color'}
+      arcDashLength="dashLength"
+      arcDashGap="dashGap"
+      arcDashAnimateTime="dashAnimateTime"
+      arcStroke={'stroke'}
+      pointsData={pointsData}
+      pointLat="lat"
+      pointLng="lng"
+      pointColor="color"
+      pointAltitude={0.02}
+      pointRadius="size"
+      pointLabel="name"
+      labelsData={factoryPoints}
+      labelLat={(d: any) => d.lat}
+      labelLng={(d: any) => d.lng}
+      labelText={(d: any) => d.name}
+      labelSize={() => 0.5}
+      labelColor={(d: any) => d.color}
+      labelDotRadius={() => 0.6}
+      onLabelClick={handleLabelClick}
+      ringsData={ringsData}
+      ringMaxRadius="maxR"
+      ringColor={() => (d: any) => d.color}
+      ringPropagationSpeed="propagationSpeed"
+      ringRepeatPeriod={1000}
+      htmlElementsData={pucksData}
+      htmlElement={(d: any) => {
+        const { data } = d;
+        const color = getPointColorForStatus(data.verificationStatus);
+        return (
+          <div className="relative">
+            <Package size={14} style={{ color }} className="transform -rotate-45" />
+            <div className={cn('absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full')} style={{ backgroundColor: color }}></div>
+          </div>
+        );
+      }}
+      onGlobeReady={() => setGlobeReady(true)}
+    />
+  ) : (
+    <div className="flex items-center justify-center h-full w-full bg-globe-background">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <p className="ml-4 text-lg text-muted-foreground">Loading Globe...</p>
+    </div>
+  );
+
+
   return (
     <div className="absolute inset-0">
       <GlobeControls
@@ -439,56 +498,9 @@ export default function GlobalTrackerClient({
         showCustomsAlerts={showCustomsAlerts}
         onToggleCustomsAlerts={setShowCustomsAlerts}
       />
-      <Globe
-        ref={globeEl}
-        backgroundColor="rgba(0,0,0,0)"
-        globeMaterial={globeMaterial}
-        polygonsData={filteredPolygons}
-        polygonCapColor={getPolygonCapColor}
-        polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
-        polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
-        polygonAltitude={0.01}
-        onPolygonClick={handlePolygonClick}
-        polygonsTransitionDuration={300}
-        arcsData={arcsData}
-        arcColor={'color'}
-        arcDashLength="dashLength"
-        arcDashGap="dashGap"
-        arcDashAnimateTime="dashAnimateTime"
-        arcStroke={'stroke'}
-        pointsData={pointsData}
-        pointLat="lat"
-        pointLng="lng"
-        pointColor="color"
-        pointAltitude={0.02}
-        pointRadius="size"
-        pointLabel="name"
-        labelsData={factoryPoints}
-        labelLat={(d: any) => d.lat}
-        labelLng={(d: any) => d.lng}
-        labelText={(d: any) => d.name}
-        labelSize={() => 0.5}
-        labelColor={(d: any) => d.color}
-        labelDotRadius={() => 0.6}
-        onLabelClick={handleLabelClick}
-        ringsData={ringsData}
-        ringMaxRadius="maxR"
-        ringColor={() => (d: any) => d.color}
-        ringPropagationSpeed="propagationSpeed"
-        ringRepeatPeriod={1000}
-        htmlElementsData={pucksData}
-        htmlElement={(d: any) => {
-          const { data } = d;
-          const color = getPointColorForStatus(data.verificationStatus);
-          return (
-            <div className="relative">
-              <Package size={14} style={{ color }} className="transform -rotate-45" />
-              <div className={cn('absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full')} style={{ backgroundColor: color }}></div>
-            </div>
-          );
-        }}
-        onGlobeReady={() => setGlobeReady(true)}
-      />
+      
+      {globeComponent}
+
       {selectedProduct && (
         <SelectedProductCustomsInfoCard
           product={selectedProduct}
