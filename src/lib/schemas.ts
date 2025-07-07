@@ -356,3 +356,12 @@ export const apiSettingsSchema = z.object({
   isWebhookSigningEnabled: z.boolean(),
 });
 export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
+
+export const productionLineFormSchema = z.object({
+    name: z.string().min(3, "Line name must be at least 3 characters."),
+    location: z.string().min(3, "Location is required."),
+    status: z.enum(['Active', 'Idle', 'Maintenance']),
+    outputPerHour: z.coerce.number().min(0, "Output must be a positive number."),
+    productId: z.string().optional(),
+});
+export type ProductionLineFormValues = z.infer<typeof productionLineFormSchema>;
