@@ -10,7 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const AnalyzeConstructionMaterialInputSchema = z.object({
+const AnalyzeConstructionMaterialInputSchema = z.object({
   materialName: z
     .string()
     .describe('The name of the construction material (e.g., "Portland Cement", "Structural Steel").'),
@@ -27,7 +27,7 @@ export type AnalyzeConstructionMaterialInput = z.infer<
   typeof AnalyzeConstructionMaterialInputSchema
 >;
 
-export const AnalyzeConstructionMaterialOutputSchema = z.object({
+const AnalyzeConstructionMaterialOutputSchema = z.object({
   embodiedCarbon: z.object({
       value: z.number().describe("The estimated embodied carbon value."),
       unit: z.string().default('kgCO2e/kg').describe('The unit for the embodied carbon.'),
