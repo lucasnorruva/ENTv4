@@ -22,6 +22,7 @@ import {
   RefreshCw,
   TestTubeDiagonal,
   Ticket,
+  Lock,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -103,6 +104,7 @@ export const navConfig: NavConfig = {
     {
       label: 'System Configuration',
       items: [
+        { title: 'Permissions', icon: Lock, href: 'permissions' },
         { title: 'API Settings', icon: Cog, href: 'api-settings' },
         {
           title: 'Integrations',

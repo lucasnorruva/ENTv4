@@ -1,7 +1,7 @@
 // src/lib/permissions.ts
 import type { User, Product } from '@/types';
 import { hasRole } from './auth-utils';
-import { UserRoles } from './constants';
+import { UserRoles, type Role } from './constants';
 
 /**
  * Custom error class for permission-related failures.
@@ -15,158 +15,167 @@ export class PermissionError extends Error {
   }
 }
 
-export type Action =
-  | 'product:create'
-  | 'product:edit'
-  | 'product:delete'
-  | 'product:archive'
-  | 'product:submit'
-  | 'product:approve'
-  | 'product:reject'
-  | 'product:recalculate'
-  | 'product:recycle'
-  | 'product:resolve'
-  | 'product:add_service_record'
-  | 'product:validate_data'
-  | 'product:run_compliance'
-  | 'product:customs_inspect'
-  | 'product:export_data'
-  | 'product:run_prediction'
-  | 'product:generate_zkp'
-  | 'product:override_verification'
-  | 'compliance:manage'
-  | 'user:manage'
-  | 'user:edit'
-  | 'user:change_password'
-  | 'company:manage'
-  | 'developer:manage_api'
-  | 'admin:manage_settings'
-  | 'ticket:create'
-  | 'ticket:manage'
-  | 'ticket:view_all'
-  | 'support:manage'
-  | 'manufacturer:manage_lines'
-  | 'integration:sync';
+// Centralized list of all possible actions in the system.
+export const allActions = [
+  // Product Lifecycle
+  'product:create',
+  'product:edit',
+  'product:delete',
+  'product:archive',
+  'product:submit', // Submit for verification
+  'product:add_service_record',
+
+  // Compliance & Auditing
+  'product:approve',
+  'product:reject',
+  'product:resolve', // Compliance Manager resolves a flagged product
+  'product:override_verification',
+  'compliance:manage', // Create/edit/delete compliance paths
+
+  // AI & Data Actions
+  'product:recalculate', // Recalculate AI scores/data
+  'product:validate_data',
+  'product:run_compliance',
+  'product:run_prediction',
+  'product:generate_zkp',
+
+  // Specialized Actions
+  'product:recycle', // Recycler action
+  'product:customs_inspect', // Auditor/Admin action
+  
+  // Data Export
+  'product:export_data',
+
+  // User Management
+  'user:manage', // Create/edit/delete other users
+  'user:edit', // Edit own profile
+
+  // Company & Settings Management
+  'company:manage',
+  'admin:manage_settings',
+
+  // Developer / API
+  'developer:manage_api',
+  'integration:sync',
+
+  // Ticketing
+  'ticket:create',
+  'ticket:manage',
+  'ticket:view_all',
+  'support:manage',
+
+  // Manufacturing
+  'manufacturer:manage_lines',
+] as const;
+
+export type Action = (typeof allActions)[number];
+
+// The definitive permission matrix for the entire platform.
+export const permissionMatrix: Record<Role, Action[]> = {
+  [UserRoles.ADMIN]: [...allActions], // Admin can do everything.
+
+  [UserRoles.SUPPLIER]: [
+    'product:create',
+    'product:edit',
+    'product:delete', // With resource-specific logic
+    'product:archive',
+    'product:submit',
+    'product:recalculate',
+    'product:validate_data',
+    'product:run_prediction',
+    'product:export_data',
+    'user:edit',
+  ],
+
+  [UserRoles.AUDITOR]: [
+    'product:approve',
+    'product:reject',
+    'product:customs_inspect',
+    'product:run_compliance',
+    'compliance:manage',
+    'user:edit',
+  ],
+
+  [UserRoles.COMPLIANCE_MANAGER]: [
+    'product:resolve',
+    'product:archive',
+    'product:run_compliance',
+    'compliance:manage',
+    'user:edit',
+  ],
+
+  [UserRoles.MANUFACTURER]: [
+    'product:add_service_record',
+    'manufacturer:manage_lines',
+    'ticket:create',
+    'ticket:manage',
+    'user:edit',
+  ],
+
+  [UserRoles.SERVICE_PROVIDER]: [
+    'product:add_service_record',
+    'ticket:create',
+    'ticket:manage',
+    'user:edit',
+  ],
+
+  [UserRoles.RECYCLER]: ['product:recycle', 'user:edit'],
+
+  [UserRoles.RETAILER]: ['product:export_data', 'user:edit'],
+
+  [UserRoles.DEVELOPER]: [
+    'developer:manage_api',
+    'integration:sync',
+    'product:generate_zkp',
+    'user:edit',
+  ],
+  
+  [UserRoles.BUSINESS_ANALYST]: ['product:export_data', 'user:edit'],
+};
 
 /**
  * Checks if a user has permission to perform a specific action.
+ * This is the central source of truth for authorization checks.
+ *
  * @param user The user performing the action.
  * @param action The action being performed.
- * @param resource Optional resource being acted upon (e.g., a Product or another User).
+ * @param resource Optional resource being acted upon for ownership checks.
  * @returns true if the user has permission, false otherwise.
  */
 export function can(user: User, action: Action, resource?: any): boolean {
-  // Admins can do anything.
+  // Global admin override
   if (hasRole(user, UserRoles.ADMIN)) {
     return true;
   }
 
-  const product = resource as Product | undefined;
-  const targetUser = resource as User | undefined;
+  // Check role-based permissions from the matrix
+  const hasBasePermission = user.roles.some(role =>
+    permissionMatrix[role]?.includes(action),
+  );
 
-  const isOwner = product ? user.companyId === product.companyId : false;
-  const isSelf = targetUser ? user.id === targetUser.id : false;
-
-  switch (action) {
-    case 'product:create':
-      return hasRole(user, UserRoles.SUPPLIER);
-
-    case 'product:edit':
-      return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
-
-    case 'product:delete':
-      // Suppliers can only delete their own draft products. Admins can delete anything (handled above).
-      return product
-        ? isOwner &&
-            hasRole(user, UserRoles.SUPPLIER) &&
-            product.status === 'Draft'
-        : false;
-
-    case 'product:archive':
-      return product
-        ? isOwner &&
-            (hasRole(user, UserRoles.SUPPLIER) ||
-              hasRole(user, UserRoles.COMPLIANCE_MANAGER))
-        : false;
-
-    case 'product:submit':
-    case 'product:recalculate':
-    case 'product:validate_data':
-      return product ? isOwner && hasRole(user, UserRoles.SUPPLIER) : false;
-
-    case 'product:approve':
-    case 'product:reject':
-    case 'product:customs_inspect':
-      return hasRole(user, UserRoles.AUDITOR);
-
-    case 'product:run_compliance':
-      return hasRole(user, UserRoles.AUDITOR) || hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-
-    case 'product:recycle':
-      return hasRole(user, UserRoles.RECYCLER);
-
-    case 'product:add_service_record':
-      return hasRole(user, UserRoles.SERVICE_PROVIDER);
-
-    case 'product:export_data':
-      return (
-        hasRole(user, UserRoles.ADMIN) ||
-        hasRole(user, UserRoles.BUSINESS_ANALYST) ||
-        hasRole(user, UserRoles.RETAILER) ||
-        isOwner
-      );
-    
-    case 'product:run_prediction':
-      return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
-    
-    case 'product:generate_zkp':
-      return hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.DEVELOPER);
-    
-    case 'product:override_verification':
-      return hasRole(user, UserRoles.ADMIN);
-
-    case 'product:resolve':
-      return hasRole(user, UserRoles.COMPLIANCE_MANAGER);
-
-    case 'compliance:manage':
-      return (
-        hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
-        hasRole(user, UserRoles.AUDITOR)
-      );
-
-    case 'user:manage':
-    case 'company:manage':
-    case 'admin:manage_settings':
-      return hasRole(user, UserRoles.ADMIN); // Handled by global admin check, but explicit here.
-
-    case 'user:edit':
-      return isSelf;
-
-    case 'user:change_password':
-      return isSelf;
-
-    case 'developer:manage_api':
-      return hasRole(user, UserRoles.DEVELOPER);
-
-    case 'ticket:create':
-    case 'ticket:manage':
-      return hasRole(user, UserRoles.SERVICE_PROVIDER) || hasRole(user, UserRoles.MANUFACTURER);
-      
-    case 'ticket:view_all':
-      return hasRole(user, UserRoles.ADMIN);
-
-    case 'support:manage':
-      return hasRole(user, UserRoles.ADMIN);
-      
-    case 'manufacturer:manage_lines':
-      return hasRole(user, UserRoles.MANUFACTURER);
-
-    case 'integration:sync':
-      return hasRole(user, UserRoles.DEVELOPER);
-
-    default:
-      return false;
+  if (!hasBasePermission) {
+    return false;
   }
+
+  // Handle resource-specific logic (ownership, status, etc.)
+  if (action === 'product:edit' || action === 'product:archive' || action === 'product:recalculate' || action === 'product:validate_data' || action === 'product:run_prediction') {
+    const product = resource as Product | undefined;
+    return !!product && user.companyId === product.companyId;
+  }
+
+  if (action === 'product:delete') {
+    const product = resource as Product | undefined;
+    // Only allow deleting own products, and only if they are in 'Draft' status.
+    return !!product && user.companyId === product.companyId && product.status === 'Draft';
+  }
+
+  if (action === 'user:edit') {
+    const targetUser = resource as User | undefined;
+    return !!targetUser && user.id === targetUser.id;
+  }
+
+  // If no specific resource logic is needed, the base permission is enough.
+  return true;
 }
 
 /**
