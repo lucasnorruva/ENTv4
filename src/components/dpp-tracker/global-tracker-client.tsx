@@ -7,12 +7,13 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  useTransition,
 } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import type { GlobeMethods } from 'react-globe.gl';
 import { MeshPhongMaterial } from 'three';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, Zap } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
@@ -32,9 +33,13 @@ import {
   getPointColorForStatus,
   getFactoryColor,
 } from '@/lib/dppDisplayUtils';
-import { getProductionLines, analyzeSimulatedRoute } from '@/lib/actions';
+import {
+  getProductionLines,
+  analyzeSimulatedRoute,
+} from '@/lib/actions';
 import type { SimulatedRoute } from '@/types';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -47,33 +52,9 @@ const Globe = dynamic(() => import('react-globe.gl'), {
 });
 
 const EU_COUNTRY_CODES = new Set([
-  'AUT',
-  'BEL',
-  'BGR',
-  'HRV',
-  'CYP',
-  'CZE',
-  'DNK',
-  'EST',
-  'FIN',
-  'FRA',
-  'DEU',
-  'GRC',
-  'HUN',
-  'IRL',
-  'ITA',
-  'LVA',
-  'LTU',
-  'LUX',
-  'MLT',
-  'NLD',
-  'POL',
-  'PRT',
-  'ROU',
-  'SVK',
-  'SVN',
-  'ESP',
-  'SWE',
+  'AUT', 'BEL', 'BGR', 'HRV', 'CYP', 'CZE', 'DNK', 'EST', 'FIN', 'FRA',
+  'DEU', 'GRC', 'HUN', 'IRL', 'ITA', 'LVA', 'LTU', 'LUX', 'MLT', 'NLD',
+  'POL', 'PRT', 'ROU', 'SVK', 'SVN', 'ESP', 'SWE',
 ]);
 
 interface CountryProperties {
@@ -102,44 +83,34 @@ export default function GlobalTrackerClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   const [productionLines, setProductionLines] = useState<ProductionLine[]>([]);
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
-  const [filteredLandPolygons, setFilteredLandPolygons] = useState<
-    GeoJsonFeature[]
-  >([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
 
   const productIdFromQuery = searchParams.get('productId');
-  const [selectedProductId, setSelectedProductId] =
-    useState<string | null>(productIdFromQuery);
-  const [clickedCountryInfo, setClickedCountryInfo] =
-    useState<CountryProperties | null>(null);
-  const [clickedFactory, setClickedFactory] = useState<ProductionLine | null>(
-    null,
-  );
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(productIdFromQuery);
+  const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
+  const [clickedFactory, setClickedFactory] = useState<ProductionLine | null>(null);
+
   const [isAnalysisPanelOpen, setIsAnalysisPanelOpen] = useState(false);
-  const [isAnalyzingRoute, setIsAnalyzingRoute] = useState(false);
-  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(
-    null,
-  );
+  const [isAnalyzingRoute, startAnalyzingRoute] = useTransition();
+  const [simulatedRoute, setSimulatedRoute] = useState<SimulatedRoute | null>(null);
+  const [analysisOrigin, setAnalysisOrigin] = useState<CountryProperties | null>(null);
 
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu'>('all');
-  const [riskFilter, setRiskFilter] = useState<
-    'all' | 'High' | 'Medium' | 'Low'
-  >('all');
+  const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [arcsData, setArcsData] = useState<any[]>([]);
   const [pointsData, setPointsData] = useState<any[]>([]);
   const [pucksData, setPucksData] = useState<any[]>([]);
-  const [highlightedCountries, setHighlightedCountries] = useState<string[]>(
-    [],
-  );
   const [ringsData, setRingsData] = useState<any[]>([]);
-
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -155,12 +126,11 @@ export default function GlobalTrackerClient({
   }, []);
 
   const globeMaterial = useMemo(
-    () =>
-      new MeshPhongMaterial({
+    () => new MeshPhongMaterial({
         color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
         transparent: true,
         opacity: 1,
-      }),
+    }),
     [theme],
   );
 
@@ -172,45 +142,26 @@ export default function GlobalTrackerClient({
 
   const getPolygonCapColor = useCallback(
     (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
-      const p = feat.properties as CountryProperties;
-      const isDark = theme === 'dark';
-      const countryNameLower = p.ADMIN.toLowerCase();
-
-      if (
-        clickedCountryInfo &&
-        (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
-          clickedCountryInfo.ADMIN === p.ADMIN)
-      )
-        return 'tomato';
-      if (
-        highlightedCountries.some(hc =>
-          countryNameLower.includes(hc.toLowerCase()),
-        )
-      )
-        return isDark ? '#FBBF24' : '#F59E0B';
-
-      if (
-        riskFilter !== 'all' &&
-        countryRiskMap.get(countryNameLower) === riskFilter
-      ) {
-        if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
-        if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
-        if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
-      }
-
-      if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
-
-      return isDark ? '#334155' : '#e2e8f0';
+        if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
+        const p = feat.properties as CountryProperties;
+        const isDark = theme === 'dark';
+        const countryNameLower = p.ADMIN.toLowerCase();
+    
+        if (analysisOrigin && analysisOrigin.ADM0_A3 === p.ADM0_A3) return '#8b5cf6'; // Violet for origin selection
+        if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
+        if (highlightedCountries.some(hc => countryNameLower.includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
+    
+        if (riskFilter !== 'all' && countryRiskMap.get(countryNameLower) === riskFilter) {
+            if (riskFilter === 'High') return isDark ? '#ef4444' : '#b91c1c';
+            if (riskFilter === 'Medium') return isDark ? '#f59e0b' : '#d97706';
+            if (riskFilter === 'Low') return isDark ? '#22c55e' : '#16a34a';
+        }
+    
+        if (isEU(p.ADM0_A3 || p.ISO_A3)) return isDark ? '#2563eb' : '#002D62';
+    
+        return isDark ? '#334155' : '#e2e8f0';
     },
-    [
-      theme,
-      isEU,
-      highlightedCountries,
-      clickedCountryInfo,
-      riskFilter,
-      countryRiskMap,
-    ],
+    [theme, isEU, highlightedCountries, clickedCountryInfo, riskFilter, countryRiskMap, analysisOrigin],
   );
 
   useEffect(() => {
@@ -222,7 +173,6 @@ export default function GlobalTrackerClient({
     ])
       .then(([geoJsonData, lines]) => {
         setLandPolygons(geoJsonData.features);
-        setFilteredLandPolygons(geoJsonData.features);
         setProductionLines(lines);
       })
       .catch(err => console.error('Error fetching initial globe data:', err));
@@ -245,65 +195,63 @@ export default function GlobalTrackerClient({
     [pathname, router, searchParams],
   );
 
+  const handleAnalyzeRoute = useCallback(async (productId: string, origin: string, destination: string) => {
+    startAnalyzingRoute(async () => {
+        setClickedCountryInfo(null);
+        setClickedFactory(null);
+        handleProductSelect(null);
+        try {
+            const result = await analyzeSimulatedRoute(productId, origin, destination, user.id);
+            setSimulatedRoute(result);
+            const destCoords = mockCountryCoordinates[destination];
+            if (destCoords && globeEl.current) {
+                globeEl.current.pointOfView({ lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 }, 1000);
+            }
+        } catch (error: any) {
+            console.error('Failed to analyze route:', error);
+            toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
+        }
+    });
+  }, [user.id, handleProductSelect, toast]);
+
+
   const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
     const countryProps = feat.properties as CountryProperties;
     if (!countryProps) return;
 
+    if (isAnalysisPanelOpen) {
+        if (!analysisOrigin) {
+            setAnalysisOrigin(countryProps);
+        } else {
+            const productId = simulatedRoute?.productId;
+            if (productId) {
+                handleAnalyzeRoute(productId, analysisOrigin.ADMIN, countryProps.ADMIN);
+            }
+            setAnalysisOrigin(null);
+            setIsAnalysisPanelOpen(false); // Close panel after analysis
+        }
+        return;
+    }
+    
     setClickedCountryInfo(countryProps);
     setClickedFactory(null);
     setSimulatedRoute(null);
-
+    
     const countryName = countryProps.ADMIN;
     const coords = mockCountryCoordinates[countryName];
     if (globeEl.current && coords) {
-      globeEl.current.pointOfView(
-        { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-        1000,
-      );
+      globeEl.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.5 }, 1000);
     }
-  }, []);
+  }, [isAnalysisPanelOpen, analysisOrigin, simulatedRoute, handleAnalyzeRoute]);
 
   const handleLabelClick = useCallback((label: any) => {
     setClickedFactory(label.data as ProductionLine);
     setClickedCountryInfo(null);
     setSimulatedRoute(null);
     if (globeEl.current) {
-      globeEl.current.pointOfView(
-        { lat: label.lat, lng: label.lng, altitude: 1.5 },
-        1000,
-      );
+      globeEl.current.pointOfView({ lat: label.lat, lng: label.lng, altitude: 1.5 }, 1000);
     }
   }, []);
-
-  const handleAnalyzeRoute = useCallback(
-    async (productId: string, origin: string, destination: string) => {
-      setIsAnalyzingRoute(true);
-      setClickedCountryInfo(null);
-      setClickedFactory(null);
-      handleProductSelect(null);
-      try {
-        const result = await analyzeSimulatedRoute(
-          productId,
-          origin,
-          destination,
-          user.id,
-        );
-        setSimulatedRoute(result);
-        const destCoords = mockCountryCoordinates[destination];
-        if (destCoords && globeEl.current) {
-          globeEl.current.pointOfView(
-            { lat: destCoords.lat, lng: destCoords.lng, altitude: 1.5 },
-            1000,
-          );
-        }
-      } catch (error) {
-        console.error('Failed to analyze route:', error);
-      } finally {
-        setIsAnalyzingRoute(false);
-      }
-    },
-    [user.id, handleProductSelect],
-  );
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
@@ -316,12 +264,8 @@ export default function GlobalTrackerClient({
 
   const factoryPoints = useMemo(() => {
     if (!showFactories) return [];
-    return productionLines
-      .map(line => {
-        const coords =
-          mockCountryCoordinates[
-            getCountryFromLocationString(line.location) || ''
-          ];
+    return productionLines.map(line => {
+        const coords = mockCountryCoordinates[getCountryFromLocationString(line.location) || ''];
         if (!coords) return null;
         return {
           ...coords,
@@ -344,41 +288,33 @@ export default function GlobalTrackerClient({
       const pointColor = getPointColorForStatus(product.verificationStatus);
       if (product.transit) {
         const { transit } = product;
-        const originCoords =
-          mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
-        const destinationCoords =
-          mockCountryCoordinates[
-            getCountryFromLocationString(transit.destination) || ''
-          ];
+        const originCoords = mockCountryCoordinates[getCountryFromLocationString(transit.origin) || ''];
+        const destinationCoords = mockCountryCoordinates[getCountryFromLocationString(transit.destination) || ''];
 
         if (originCoords) {
-          newPoints.push({
-            lat: originCoords.lat,
-            lng: originCoords.lng,
-            size: 0.3,
-            color: pointColor,
-            name: `Origin: ${transit.origin}`,
-          });
+          newPoints.push({ lat: originCoords.lat, lng: originCoords.lng, size: 0.3, color: pointColor, name: `Origin: ${transit.origin}` });
         }
         if (destinationCoords) {
-          newPoints.push({
-            lat: destinationCoords.lat,
-            lng: destinationCoords.lng,
-            size: 0.5,
-            color: pointColor,
-            name: `Destination: ${transit.destination}`,
-          });
+          newPoints.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, size: 0.5, color: pointColor, name: `Destination: ${transit.destination}` });
         }
         if (originCoords && destinationCoords) {
-          const arcData = {
-            startLat: originCoords.lat,
-            startLng: originCoords.lng,
-            endLat: destinationCoords.lat,
-            endLng: destinationCoords.lng,
-            color: [pointColor, pointColor],
-          };
+          const arcData = { startLat: originCoords.lat, startLng: originCoords.lng, endLat: destinationCoords.lat, endLng: destinationCoords.lng, color: [pointColor, pointColor] };
           newArcs.push(arcData);
-          newPucks.push({ ...arcData, data: product });
+
+          const departure = new Date(product.transit.departureDate);
+          const eta = new Date(product.transit.eta);
+          const now = new Date();
+          const totalDuration = eta.getTime() - departure.getTime();
+
+          if (totalDuration > 0) {
+            const elapsed = now.getTime() - departure.getTime();
+            const progress = Math.min(1, Math.max(0, elapsed / totalDuration));
+            const currentLat = originCoords.lat + (destinationCoords.lat - originCoords.lat) * progress;
+            const currentLng = originCoords.lng + (destinationCoords.lng - originCoords.lng) * progress;
+            newPucks.push({ lat: currentLat, lng: currentLng, alt: 0.05, data: product });
+          } else {
+            newPucks.push({ lat: destinationCoords.lat, lng: destinationCoords.lng, alt: 0.05, data: product });
+          }
         }
       }
 
@@ -388,54 +324,37 @@ export default function GlobalTrackerClient({
             const originCountry = getCountryFromLocationString(material.origin);
             if (originCountry) newHighlightedCountries.add(originCountry);
             const supplierCoords = mockCountryCoordinates[originCountry || ''];
-            const factoryCoords = mockCountryCoordinates[
-              getCountryFromLocationString(product.manufacturing?.country) || ''
-            ];
+            const factoryCoords = mockCountryCoordinates[getCountryFromLocationString(product.manufacturing?.country) || ''];
             if (supplierCoords && factoryCoords) {
               newArcs.push({
-                startLat: supplierCoords.lat,
-                startLng: supplierCoords.lng,
-                endLat: factoryCoords.lat,
-                endLng: factoryCoords.lng,
+                startLat: supplierCoords.lat, startLng: supplierCoords.lng,
+                endLat: factoryCoords.lat, endLng: factoryCoords.lng,
                 color: ['#f59e0b', '#f59e0b'],
                 label: `Material: ${material.name}`,
                 stroke: 2,
-                dashLength: 0.2,
-                dashGap: 0.2,
-                dashAnimateTime: 5000,
+                dashLength: 0.2, dashGap: 0.2, dashAnimateTime: 5000,
               });
             }
           }
         });
-        const mfgCountry = getCountryFromLocationString(
-          product.manufacturing?.country,
-        );
+        const mfgCountry = getCountryFromLocationString(product.manufacturing?.country);
         if (mfgCountry) newHighlightedCountries.add(mfgCountry);
       }
     };
 
     if (selectedProduct) {
       processProduct(selectedProduct, true);
-      const destCountry = getCountryFromLocationString(
-        selectedProduct.transit?.destination,
-      );
+      const destCountry = getCountryFromLocationString(selectedProduct.transit?.destination);
       if (destCountry) newHighlightedCountries.add(destCountry);
     } else if (simulatedRoute) {
-      const originCoords =
-        mockCountryCoordinates[simulatedRoute.origin];
-      const destCoords =
-        mockCountryCoordinates[simulatedRoute.destination];
+      const originCoords = mockCountryCoordinates[simulatedRoute.origin];
+      const destCoords = mockCountryCoordinates[simulatedRoute.destination];
       if (originCoords && destCoords) {
         newArcs.push({
-          startLat: originCoords.lat,
-          startLng: originCoords.lng,
-          endLat: destCoords.lat,
-          endLng: destCoords.lng,
+          startLat: originCoords.lat, startLng: originCoords.lng,
+          endLat: destCoords.lat, endLng: destCoords.lng,
           color: ['#8b5cf6', '#a78bfa'],
-          stroke: 2.5,
-          dashLength: 0.3,
-          dashGap: 0.1,
-          dashAnimateTime: 1000,
+          stroke: 2.5, dashLength: 0.3, dashGap: 0.1, dashAnimateTime: 1000,
         });
       }
     } else {
@@ -447,41 +366,22 @@ export default function GlobalTrackerClient({
     setPucksData(newPucks);
     setHighlightedCountries(Array.from(newHighlightedCountries));
 
-    const alertColorMapping = {
-      High: 'rgba(239, 68, 68, 0.7)',
-      Medium: 'rgba(245, 158, 11, 0.7)',
-      Low: 'rgba(34, 197, 94, 0.7)',
-    };
-
-    const newRings = showCustomsAlerts
-      ? allAlerts.map(alert => ({
-          lat: alert.lat,
-          lng: alert.lng,
-          maxR: alert.severity === 'High' ? 10 : 5,
-          propagationSpeed: alert.severity === 'High' ? 2 : 1,
-          color: alertColorMapping[alert.severity],
-        }))
-      : [];
-
+    const alertColorMapping = { High: 'rgba(239, 68, 68, 0.7)', Medium: 'rgba(245, 158, 11, 0.7)', Low: 'rgba(34, 197, 94, 0.7)' };
+    const newRings = showCustomsAlerts ? allAlerts.map(alert => ({
+      lat: alert.lat,
+      lng: alert.lng,
+      maxR: alert.severity === 'High' ? 10 : 5,
+      propagationSpeed: alert.severity === 'High' ? 2 : 1,
+      color: alertColorMapping[alert.severity],
+    })) : [];
     setRingsData(newRings);
   }, [selectedProduct, allProducts, theme, showCustomsAlerts, allAlerts, simulatedRoute]);
 
-  useEffect(() => {
-    if (!landPolygons.length) return;
-    let filtered = landPolygons;
-    if (countryFilter === 'eu') {
-      filtered = landPolygons.filter(feat =>
-        isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3),
-      );
-    } else if (riskFilter !== 'all') {
-      filtered = landPolygons.filter(feat => {
-        const p = feat.properties as CountryProperties;
-        const adminNameLower = p.ADMIN.toLowerCase();
-        return countryRiskMap.get(adminNameLower) === riskFilter;
-      });
-    }
-    setFilteredLandPolygons(filtered);
-  }, [countryFilter, landPolygons, isEU, riskFilter, countryRiskMap]);
+  const filteredPolygons = useMemo(() => {
+    if (!landPolygons.length) return [];
+    if (countryFilter === 'all') return landPolygons;
+    return landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
+  }, [countryFilter, landPolygons, isEU]);
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -495,21 +395,9 @@ export default function GlobalTrackerClient({
       controls.maxDistance = 1000;
     }
     if (selectedProduct && selectedProduct.transit) {
-      const destinationCountry = getCountryFromLocationString(
-        selectedProduct.transit.destination,
-      );
-      const destinationCoords = destinationCountry
-        ? mockCountryCoordinates[destinationCountry]
-        : null;
-      if (destinationCoords)
-        globe.pointOfView(
-          {
-            lat: destinationCoords.lat,
-            lng: destinationCoords.lng,
-            altitude: 1.5,
-          },
-          1000,
-        );
+      const destinationCountry = getCountryFromLocationString(selectedProduct.transit.destination);
+      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
+      if (destinationCoords) globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
     } else if (!simulatedRoute) {
       globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1000);
     }
@@ -521,16 +409,12 @@ export default function GlobalTrackerClient({
 
   const productsToCountry = useMemo(() => {
     if (!clickedCountryInfo) return [];
-    return allProducts.filter(p =>
-      p.transit?.destination.includes(clickedCountryInfo.ADMIN),
-    );
+    return allProducts.filter(p => p.transit?.destination.includes(clickedCountryInfo.ADMIN));
   }, [clickedCountryInfo, allProducts]);
 
   const productsFromCountry = useMemo(() => {
     if (!clickedCountryInfo) return [];
-    return allProducts.filter(p =>
-      p.transit?.origin.includes(clickedCountryInfo.ADMIN),
-    );
+    return allProducts.filter(p => p.transit?.origin.includes(clickedCountryInfo.ADMIN));
   }, [clickedCountryInfo, allProducts]);
 
   if (!isMounted) return null;
@@ -543,9 +427,9 @@ export default function GlobalTrackerClient({
         onProductSelect={handleProductSelect}
         onAnalyzeRouteClick={() => setIsAnalysisPanelOpen(prev => !prev)}
         countryFilter={countryFilter}
-        onCountryFilterChange={setCountryFilter as any}
+        onCountryFilterChange={setCountryFilter}
         riskFilter={riskFilter}
-        onRiskFilterChange={setRiskFilter as any}
+        onRiskFilterChange={setRiskFilter}
         isAutoRotating={isAutoRotating}
         onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         showFactories={showFactories}
@@ -557,7 +441,7 @@ export default function GlobalTrackerClient({
         ref={globeEl}
         backgroundColor="rgba(0,0,0,0)"
         globeMaterial={globeMaterial}
-        polygonsData={filteredLandPolygons}
+        polygonsData={filteredPolygons}
         polygonCapColor={getPolygonCapColor}
         polygonSideColor={() => 'rgba(0, 100, 0, 0.05)'}
         polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
@@ -591,22 +475,13 @@ export default function GlobalTrackerClient({
         ringPropagationSpeed="propagationSpeed"
         ringRepeatPeriod={1000}
         htmlElementsData={pucksData}
-        htmlElement={d => {
+        htmlElement={(d: any) => {
           const { data } = d as any;
           const color = getPointColorForStatus(data.verificationStatus);
           return (
             <div className="relative">
-              <Package
-                size={14}
-                style={{ color }}
-                className="transform -rotate-45"
-              />
-              <div
-                className={cn(
-                  'absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full',
-                )}
-                style={{ backgroundColor: color }}
-              ></div>
+              <Package size={14} style={{ color }} className="transform -rotate-45" />
+              <div className={cn('absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full')} style={{ backgroundColor: color }}></div>
             </div>
           );
         }}
@@ -622,7 +497,7 @@ export default function GlobalTrackerClient({
           roleSlug={roleSlug}
         />
       )}
-      {clickedCountryInfo && (
+      {clickedCountryInfo && !isAnalysisPanelOpen && (
         <ClickedCountryInfoCard
           countryInfo={clickedCountryInfo}
           productsTo={productsToCountry}
@@ -650,6 +525,11 @@ export default function GlobalTrackerClient({
         products={allProducts}
         isAnalyzing={isAnalyzingRoute}
         onAnalyze={handleAnalyzeRoute}
+        onSelectProduct={(id) => setSimulatedRoute(prev => ({ ...prev, productId: id } as SimulatedRoute))}
+        onCancel={() => {
+            setIsAnalysisPanelOpen(false);
+            setAnalysisOrigin(null);
+        }}
       />
     </div>
   );
