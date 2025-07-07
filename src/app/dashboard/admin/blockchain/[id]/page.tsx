@@ -7,8 +7,6 @@ import { UserRoles } from '@/lib/constants';
 import { notFound } from 'next/navigation';
 import BlockchainProductDetailClient from '@/components/blockchain-product-detail-client';
 
-export const dynamic = 'force-dynamic';
-
 export default async function BlockchainProductDetailPage({
   params,
 }: {
@@ -25,7 +23,6 @@ export default async function BlockchainProductDetailPage({
     <BlockchainProductDetailClient
       product={product}
       user={user}
-      roleSlug="admin"
     />
   );
 }

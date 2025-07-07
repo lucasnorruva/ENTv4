@@ -48,9 +48,9 @@ export let products: Product[] = [
       emissionsKgCo2e: 15.5,
     },
     certifications: [
-      { name: 'CE', issuer: 'TÜV SÜD' },
-      { name: 'FCC', issuer: 'FCC' },
-      { name: 'ISO 14001', issuer: 'BSI' },
+      { name: 'CE', issuer: 'TÜV SÜD', documentUrl: '#', validUntil: '2028-12-31' },
+      { name: 'FCC', issuer: 'FCC', documentUrl: '#', validUntil: '2029-01-01' },
+      { name: 'ISO 14001', issuer: 'BSI', documentUrl: '#', validUntil: '2026-05-20' },
     ],
     packaging: { type: 'Recycled Cardboard', recyclable: true },
     lifecycle: {
@@ -114,6 +114,28 @@ export let products: Product[] = [
       explorerUrl: 'https://www.oklink.com/amoy/tx/0x123abcde1234567890abcdef1234567890',
       blockHeight: 123456,
       merkleRoot: 'mock-merkle-root-for-pp-001',
+    },
+    ebsiDetails: {
+      status: 'Verified',
+      conformanceResultUrl: 'https://api.ebsi.eu/conformance/v4/results/12345',
+    },
+    verifiableCredentials: [
+      { id: 'vc-dpp-001', type: 'DPP', issuer: 'Norruva Platform', issueDate: new Date().toISOString() },
+      { id: 'vc-mat-001', type: 'Material Passport', issuer: 'German Components GmbH', issueDate: new Date().toISOString() }
+    ],
+    chainOfCustody: [
+      { event: 'Manufactured', actor: 'Eco-Factory 1', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 7)).toISOString() },
+      { event: 'Shipped from Factory', actor: 'DHL', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 6)).toISOString() }
+    ],
+    ownershipNft: {
+      tokenId: '54321',
+      contractAddress: '0xNFT_CONTRACT_ADDRESS',
+      ownerAddress: '0xOWNER_WALLET_ADDRESS'
+    },
+    zkProof: {
+      proofData: 'zk_proof_data_string_for_product_001...',
+      isVerified: true,
+      verifiedAt: new Date().toISOString(),
     },
     isProcessing: false,
   },

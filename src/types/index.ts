@@ -234,6 +234,19 @@ export interface VerificationOverride {
 
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 
+export interface ChainOfCustodyStep {
+  event: string;
+  actor: string;
+  location: string;
+  date: string;
+}
+
+export interface OwnershipNft {
+  tokenId: string;
+  contractAddress: string;
+  ownerAddress: string;
+}
+
 /**
  * The core Digital Product Passport entity.
  */
@@ -258,6 +271,18 @@ export interface Product extends BaseEntity {
   ebsiVcId?: string;
   zkProof?: ZkProof;
   modelHotspots?: ModelHotspot[];
+  chainOfCustody?: ChainOfCustodyStep[];
+  ownershipNft?: OwnershipNft;
+  ebsiDetails?: {
+    status: 'Verified' | 'Pending' | 'Failed';
+    conformanceResultUrl?: string;
+  };
+  verifiableCredentials?: {
+    id: string;
+    type: 'DPP' | 'Material Passport' | 'Compliance Certificate';
+    issuer: string;
+    issueDate: string;
+  }[];
 
   // Structured Data Fields
   materials: Material[];
