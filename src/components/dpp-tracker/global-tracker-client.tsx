@@ -77,33 +77,11 @@ export default function GlobalTrackerClient({
   const [selectedProductAlerts, setSelectedProductAlerts] = useState<CustomsAlert[]>([]);
   const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
   const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
-  const [filteredLandPolygons, setFilteredLandPolygons] = useState<GeoJsonFeature[]>([]);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [globeSize, setGlobeSize] = useState({ width: 0, height: 0 });
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
     [selectedProductId, allProducts],
   );
-
-  useEffect(() => {
-    const observer = new ResizeObserver(entries => {
-      const entry = entries[0];
-      if (entry) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setGlobeSize({ width, height });
-        }
-      }
-    });
-
-    const currentRef = containerRef.current;
-    if (currentRef) observer.observe(currentRef);
-    return () => {
-      if (currentRef) observer.unobserve(currentRef);
-    };
-  }, []);
 
   const mockCountryCoordinates: {
     [key: string]: { lat: number; lng: number };
@@ -404,7 +382,7 @@ export default function GlobalTrackerClient({
     : null;
 
   return (
-    <div className="relative h-full w-full" ref={containerRef}>
+    <div className="absolute inset-0">
       <GlobeControls
         products={allProducts}
         selectedProductId={selectedProductId}
@@ -415,12 +393,10 @@ export default function GlobalTrackerClient({
         onToggleRotation={() => setIsAutoRotating(!isAutoRotating)}
         isProductSelected={!!selectedProduct}
       />
-      {globeSize.width > 0 && typeof window !== 'undefined' ? (
+      {typeof window !== 'undefined' ? (
         <>
           <Globe
             ref={globeEl}
-            width={globeSize.width}
-            height={globeSize.height}
             backgroundColor="rgba(0,0,0,0)"
             globeMaterial={globeMaterial}
             polygonsData={filteredLandPolygons}
