@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating a Declaration of Conformity document.
@@ -51,7 +52,7 @@ const prompt = ai.definePrompt({
 **EU Declaration of Conformity**
 
 1.  **Product Model / Product:**
-    - Product: \`{{product.productName}}\`
+    - Product: \`{{{product.productName}}}\`
     - Model/Type: \`{{product.gtin}}\`
 
 2.  **Name and address of the manufacturer:**
