@@ -19,6 +19,8 @@ import {
   Scale,
   LifeBuoy,
   Ticket,
+  ShieldAlert,
+  ListChecks,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -44,6 +46,7 @@ export const developerNavItems = [
   },
   { href: `/dashboard/developer/keys`, icon: KeyRound, text: 'API Keys' },
   { href: `/dashboard/developer/webhooks`, icon: Webhook, text: 'Webhooks' },
+  { href: `/dashboard/developer/analytics`, icon: BarChart3, text: 'Analytics' },
   {
     href: `/docs`,
     icon: FileCode,
@@ -54,6 +57,11 @@ export const developerNavItems = [
     href: `/dashboard/developer/logs`,
     icon: FileText,
     text: 'Logs',
+  },
+   {
+    href: `/dashboard/developer/integrations`,
+    icon: Wrench,
+    text: 'Integrations',
   },
   {
     href: `/dashboard/developer/settings`,
@@ -67,6 +75,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Platform Management',
       items: [
+        { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Users', icon: Users, href: 'users' },
         { title: 'Companies', icon: KeyRound, href: 'companies' },
         {
@@ -115,12 +124,17 @@ export const navConfig: NavConfig = {
       label: 'Passport Management',
       items: [
         {
-          title: 'Manage Products',
+          title: 'My Products',
           icon: BookCopy,
           href: 'products',
         },
         {
-          title: 'Compliance Status',
+          title: 'Data Quality',
+          icon: ListChecks,
+          href: 'data-quality',
+        },
+        {
+          title: 'Compliance Report',
           icon: ShieldCheck,
           href: 'compliance',
         },
@@ -137,15 +151,24 @@ export const navConfig: NavConfig = {
   ],
   [UserRoles.MANUFACTURER]: [
     {
-      label: 'Production',
+      label: 'Operations',
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
+        { title: 'Service Tickets', icon: Wrench, href: 'tickets' },
       ],
     },
     {
       label: 'Analysis',
-      items: [{ title: 'Analytics', icon: BarChart3, href: 'analytics' }],
+      items: [
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        {
+          title: 'Material Composition',
+          icon: Recycle,
+          href: 'composition',
+        },
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+      ],
     },
   ],
   [UserRoles.AUDITOR]: [
@@ -164,6 +187,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        { title: 'Customs Rules', icon: Scale, href: 'customs' },
         { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },
@@ -174,7 +198,7 @@ export const navConfig: NavConfig = {
       items: [
         {
           title: 'Flagged Products',
-          icon: ShieldCheck,
+          icon: ShieldAlert,
           href: 'flagged',
         },
         {
@@ -200,19 +224,72 @@ export const navConfig: NavConfig = {
       ],
     },
   ],
-  [UserRoles.RETAILER]: [], // Placeholder, will be built out
-  [UserRoles.BUSINESS_ANALYST]: [], // Placeholder, will be built out
+  [UserRoles.RETAILER]: [
+    {
+      label: 'Procurement',
+      items: [
+        { title: 'Product Catalog', icon: BookCopy, href: 'catalog' },
+        { title: 'Global Tracker', icon: Globe, href: 'global-tracker' },
+      ],
+    },
+    {
+      label: 'Analysis',
+      items: [{ title: 'Supplier Analytics', icon: BarChart3, href: 'analytics' }],
+    },
+  ],
+  [UserRoles.BUSINESS_ANALYST]: [
+    {
+      label: 'Reporting',
+      items: [
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+        {
+          title: 'Sustainability',
+          icon: ShieldCheck,
+          href: 'sustainability',
+        },
+        {
+          title: 'Material Composition',
+          icon: Recycle,
+          href: 'composition',
+        },
+        { title: 'Data Export', icon: FileText, href: 'export' },
+      ],
+    },
+  ],
   [UserRoles.DEVELOPER]: [], // Uses a different layout/nav
   [UserRoles.RECYCLER]: [
     {
       label: 'Operations',
-      items: [{ title: 'EOL Products', icon: Recycle, href: 'eol' }],
+      items: [
+        { title: 'EOL Products', icon: Recycle, href: 'eol' },
+        {
+          title: 'Material Composition',
+          icon: Recycle,
+          href: 'composition',
+        },
+      ],
+    },
+    {
+      label: 'Rewards',
+      items: [
+        { title: 'Credit History', icon: ShieldCheck, href: 'credits' },
+      ],
     },
   ],
   [UserRoles.SERVICE_PROVIDER]: [
     {
       label: 'Operations',
-      items: [{ title: 'Service Tickets', icon: Wrench, href: 'tickets' }],
+      items: [
+        { title: 'Service Tickets', icon: Wrench, href: 'tickets' },
+        { title: 'Product Catalog', icon: BookCopy, href: 'products' },
+        { title: 'Production Lines', icon: Factory, href: 'lines' },
+      ],
+    },
+    {
+      label: 'Analysis',
+      items: [
+        { title: 'Service Analytics', icon: BarChart3, href: 'analytics' },
+      ],
     },
   ],
 };
