@@ -217,7 +217,7 @@ export default function SelectedProductCustomsInfoCard({
                     <p className="font-semibold text-destructive text-[0.7rem] leading-tight">
                       {alert.message}
                     </p>
-                    <p className="text-muted-foreground text-[0.65rem]">
+                    <p className="text-muted-foreground text-[0.65rem]" suppressHydrationWarning>
                       Severity: {alert.severity} - {alert.timestamp}
                     </p>
                   </li>
