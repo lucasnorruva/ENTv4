@@ -83,12 +83,6 @@ export interface Battery {
   isRemovable?: boolean;
 }
 
-export interface TextileData {
-  fiberComposition: { name: string; percentage: number }[];
-  dyeProcess: string;
-  weaveType?: string;
-}
-
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -174,7 +168,7 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction';
+  category: 'Electronics' | 'Fashion' | 'Home Goods';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
@@ -195,8 +189,6 @@ export interface Product extends BaseEntity {
   battery?: Battery;
   serviceHistory?: ServiceRecord[];
   customData?: Record<string, string | number | boolean>;
-  textile?: TextileData;
-  compliance?: Compliance;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -249,18 +241,6 @@ export interface ServiceTicket extends BaseEntity {
 }
 
 /**
- * Represents a platform support ticket submitted by a user.
- */
-export interface SupportTicket extends BaseEntity {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  status: 'Open' | 'Closed';
-  userId?: string; // Optional, for logged-in users
-}
-
-/**
  * Represents a developer API key for integrations.
  */
 export interface ApiKey extends BaseEntity {
@@ -271,4 +251,35 @@ export interface ApiKey extends BaseEntity {
   userId: string;
   scopes: string[];
   lastUsed?: string;
+}
+
+/**
+ * Represents a configurable webhook endpoint for integrations.
+ */
+export interface Webhook extends BaseEntity {
+  url: string;
+  events: string[]; // e.g., ['product.published', 'product.updated']
+  status: 'active' | 'inactive';
+  userId: string;
+}
+
+/**
+ * Represents the global settings for the API.
+ */
+export interface ApiSettings {
+  isPublicApiEnabled: boolean;
+  rateLimits: {
+    free: number;
+    pro: number;
+    enterprise: number;
+  };
+  isWebhookSigningEnabled: boolean;
+}
+
+/**
+ * Represents a rate limit counter for a specific key.
+ */
+export interface ApiRateLimit {
+  count: number;
+  windowStart: number; // Unix timestamp
 }
