@@ -65,6 +65,7 @@ export default function GlobalTrackerClient({
   const searchParams = useSearchParams();
   const { theme } = useTheme();
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
+  const [filteredLandPolygons, setFilteredLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
   const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
@@ -130,7 +131,10 @@ export default function GlobalTrackerClient({
       'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
     )
       .then(res => res.json())
-      .then(geoJsonData => setLandPolygons(geoJsonData.features))
+      .then(geoJsonData => {
+        setLandPolygons(geoJsonData.features);
+        setFilteredLandPolygons(geoJsonData.features);
+      })
       .catch(err => console.error('Error fetching geo data:', err));
   }, []);
 
