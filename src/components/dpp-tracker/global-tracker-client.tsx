@@ -1,4 +1,3 @@
-
 // src/components/dpp-tracker/global-tracker-client.tsx
 'use client';
 
@@ -21,6 +20,10 @@ import type { Product, CustomsAlert, User } from '@/types';
 import SelectedProductCustomsInfoCard from '@/components/dpp-tracker/SelectedProductCustomsInfoCard';
 import ClickedCountryInfoCard from '@/components/dpp-tracker/ClickedCountryInfoCard';
 import GlobeControls from './GlobeControls';
+import {
+  mockCountryCoordinates,
+  getCountryFromLocationString,
+} from '@/lib/country-coordinates';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -64,68 +67,36 @@ export default function GlobalTrackerClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
+
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [filteredLandPolygons, setFilteredLandPolygons] = useState<GeoJsonFeature[]>([]);
   const [globeReady, setGlobeReady] = useState(false);
-  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
   const [isAutoRotating, setIsAutoRotating] = useState(true);
-  const [arcsData, setArcsData] = useState<any[]>([]);
 
   const productIdFromQuery = searchParams.get('productId');
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     productIdFromQuery,
   );
-  const [selectedProductAlerts, setSelectedProductAlerts] = useState<CustomsAlert[]>([]);
-  const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
+  
+  const [arcsData, setArcsData] = useState<any[]>([]);
+  const [highlightedCountries, setHighlightedCountries] = useState<string[]>([]);
   const [clickedCountryInfo, setClickedCountryInfo] = useState<CountryProperties | null>(null);
+  
+  const [countryFilter, setCountryFilter] = useState<'all' | 'eu' | 'supplyChain'>('all');
 
   const selectedProduct = useMemo(
     () => allProducts.find(p => p.id === selectedProductId),
     [selectedProductId, allProducts],
   );
 
-  const mockCountryCoordinates: {
-    [key: string]: { lat: number; lng: number };
-  } = useMemo(
-    () => ({
-      Germany: { lat: 51.1657, lng: 10.4515 }, France: { lat: 46.6034, lng: 1.8883 },
-      Italy: { lat: 41.8719, lng: 12.5674 }, Spain: { lat: 40.4637, lng: -3.7492 },
-      Poland: { lat: 51.9194, lng: 19.1451 }, USA: { lat: 37.0902, lng: -95.7129 },
-      China: { lat: 35.8617, lng: 104.1954 }, Japan: { lat: 36.2048, lng: 138.2529 },
-      'United Kingdom': { lat: 55.3781, lng: -3.436 }, Canada: { lat: 56.1304, lng: -106.3468 },
-      India: { lat: 20.5937, lng: 78.9629 }, Netherlands: { lat: 52.1326, lng: 5.2913 },
-      Czechia: { lat: 49.8175, lng: 15.473 }, Belgium: { lat: 50.5039, lng: 4.4699 },
-      Switzerland: { lat: 46.8182, lng: 8.2275 }, Kenya: { lat: -0.0236, lng: 37.9062 },
-      Vietnam: { lat: 14.0583, lng: 108.2772 }, 'Hong Kong': { lat: 22.3193, lng: 114.1694 },
-      Australia: { lat: -25.2744, lng: 133.7751 }, 'South Korea': { lat: 35.9078, lng: 127.7669 },
-      Brazil: { lat: -14.235, lng: -51.9253 }, Austria: { lat: 47.5162, lng: 14.5501 },
-      Shanghai: { lat: 31.2304, lng: 121.4737 }, Mumbai: { lat: 19.076, lng: 72.8777 },
-      Shenzhen: { lat: 22.5431, lng: 114.0579 }, 'Ho Chi Minh City': { lat: 10.8231, lng: 106.6297 },
-      Newark: { lat: 40.7357, lng: -74.1724 }, Gdansk: { lat: 54.372158, lng: 18.638306 },
-      Milan: { lat: 45.4642, lng: 9.19 }, Zurich: { lat: 47.3769, lng: 8.5417 },
-      Prague: { lat: 50.0755, lng: 14.4378 }, Nairobi: { lat: -1.2921, lng: 36.8219 },
-      'Port of Gdansk': { lat: 54.401, lng: 18.675 }, Rotterdam: { lat: 51.9225, lng: 4.47917 },
-      Antwerp: { lat: 51.2213, lng: 4.4051 }, Bremerhaven: { lat: 53.5425, lng: 8.5819 },
-      'Los Angeles': { lat: 34.0522, lng: -118.2437 }, Berlin: { lat: 52.5200, lng: 13.4050 },
-      Paris: { lat: 48.8566, lng: 2.3522 }, Frankfurt: { lat: 50.1109, lng: 8.6821 },
-      Lyon: { lat: 45.7640, lng: 4.8357 }, Stuttgart: { lat: 48.7758, lng: 9.1829 },
-    }),
-    [],
+  const selectedProductAlerts = useMemo(
+    () => allAlerts.filter(a => a.productId === selectedProductId),
+    [selectedProductId, allAlerts]
   );
+  
+  // --- Effects ---
 
-  const getCountryFromLocationString = useCallback(
-    (locationString?: string): string | null => {
-      if (!locationString) return null;
-      const parts = locationString.split(',').map(p => p.trim());
-      const country = parts.pop();
-      if (country && (mockCountryCoordinates[country] || EU_COUNTRY_CODES.has(country.toUpperCase()))) return country;
-      const city = parts.pop();
-      if (city && mockCountryCoordinates[city]) return city;
-      return country || null;
-    },
-    [mockCountryCoordinates],
-  );
-
+  // Effect 1: Fetch initial GeoJSON data for countries
   useEffect(() => {
     fetch(
       'https://raw.githubusercontent.com/vasturiano/react-globe.gl/master/example/datasets/ne_110m_admin_0_countries.geojson',
@@ -133,173 +104,105 @@ export default function GlobalTrackerClient({
       .then(res => res.json())
       .then(geoJsonData => {
         setLandPolygons(geoJsonData.features);
-        setFilteredLandPolygons(geoJsonData.features);
+        setFilteredLandPolygons(geoJsonData.features); // Initially show all
       })
       .catch(err => console.error('Error fetching geo data:', err));
   }, []);
 
-  const handlePolygonClick = useCallback(
-    (feat: GeoJsonFeature) => {
-      if (feat.properties) {
-        setClickedCountryInfo(feat.properties as CountryProperties);
-        const countryName = (feat.properties as CountryProperties).ADMIN;
-        const coords = mockCountryCoordinates[countryName];
-        if (globeEl.current && coords) {
-          globeEl.current.pointOfView(
-            { lat: coords.lat, lng: coords.lng, altitude: 1.5 },
-            1000,
-          );
-        }
-      }
-    },
-    [mockCountryCoordinates],
-  );
-
+  // Effect 2: Update arcs and highlights when the selected product changes
   useEffect(() => {
-    setHighlightedCountries([]);
-    setArcsData([]);
-    setSelectedProductAlerts([]);
-    setClickedCountryInfo(null);
-
     if (!selectedProduct) {
-      if (globeEl.current)
-        globeEl.current.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
+      setArcsData([]);
+      setHighlightedCountries([]);
       return;
     }
 
-    const alerts = allAlerts.filter(a => a.productId === selectedProduct.id);
-    setSelectedProductAlerts(alerts);
+    const newArcs: any[] = [];
+    const newHighlightedCountries = new Set<string>();
 
-    const allArcs: any[] = [];
-    const allHighlightedCountries = new Set<string>();
+    const addCountryHighlight = (location?: string) => {
+      const country = getCountryFromLocationString(location);
+      if (country) newHighlightedCountries.add(country);
+      return country;
+    };
 
+    // Add transit arc and countries
     if (selectedProduct.transit) {
       const { transit } = selectedProduct;
-      const originCountry = getCountryFromLocationString(transit.origin);
-      const destinationCountry = getCountryFromLocationString(
-        transit.destination,
-      );
-      const originCoords = originCountry
-        ? mockCountryCoordinates[originCountry]
-        : null;
-      const destinationCoords = destinationCountry
-        ? mockCountryCoordinates[destinationCountry]
-        : null;
-
-      if (originCountry) allHighlightedCountries.add(originCountry);
-      if (destinationCountry) allHighlightedCountries.add(destinationCountry);
+      const originCountry = addCountryHighlight(transit.origin);
+      const destinationCountry = addCountryHighlight(transit.destination);
+      const originCoords = originCountry ? mockCountryCoordinates[originCountry] : null;
+      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
 
       if (originCoords && destinationCoords) {
-        allArcs.push({
-          startLat: originCoords.lat,
-          startLng: originCoords.lng,
-          endLat: destinationCoords.lat,
-          endLng: destinationCoords.lng,
-          color: theme === 'dark' ? '#60A5FA' : '#3B82F6',
+        newArcs.push({
+          startLat: originCoords.lat, startLng: originCoords.lng,
+          endLat: destinationCoords.lat, endLng: destinationCoords.lng,
+          color: theme === 'dark' ? '#60A5FA' : '#3B82F6', // Blue
           label: `${selectedProduct.productName} Transit`,
         });
       }
     }
 
+    // Fetch and process supply chain graph
     fetch(`/api/v1/dpp/graph/${selectedProduct.id}`)
       .then(res => (res.ok ? res.json() : Promise.reject(res)))
       .then(graph => {
         if (!graph || !graph.nodes) return;
 
-        const manufacturerNode = graph.nodes.find(
-          (n: any) => n.type === 'manufacturer',
-        );
-        const manufacturerCountry = getCountryFromLocationString(
-          manufacturerNode?.data?.location,
-        );
-        const manufacturerCoords = manufacturerCountry
-          ? mockCountryCoordinates[manufacturerCountry]
-          : null;
-
-        if (manufacturerCountry) allHighlightedCountries.add(manufacturerCountry);
+        const manufacturerNode = graph.nodes.find((n: any) => n.type === 'manufacturer');
+        const manufacturerCountry = addCountryHighlight(manufacturerNode?.data?.location);
+        const manufacturerCoords = manufacturerCountry ? mockCountryCoordinates[manufacturerCountry] : null;
 
         if (manufacturerCoords) {
           graph.nodes.forEach((node: any) => {
             if (node.type === 'supplier') {
-              const supplierCountry = getCountryFromLocationString(
-                node.data.location,
-              );
-              if (supplierCountry) {
-                allHighlightedCountries.add(supplierCountry);
-                const supplierCoords = mockCountryCoordinates[supplierCountry];
-                if (supplierCoords && supplierCountry !== manufacturerCountry) {
-                  allArcs.push({
-                    startLat: supplierCoords.lat,
-                    startLng: supplierCoords.lng,
-                    endLat: manufacturerCoords.lat,
-                    endLng: manufacturerCoords.lng,
-                    color: theme === 'dark' ? '#FBBF24' : '#F59E0B',
-                    label: `Supply from ${supplierCountry}`,
-                  });
-                }
+              const supplierCountry = addCountryHighlight(node.data.location);
+              const supplierCoords = supplierCountry ? mockCountryCoordinates[supplierCountry] : null;
+              if (supplierCoords && supplierCountry !== manufacturerCountry) {
+                newArcs.push({
+                  startLat: supplierCoords.lat, startLng: supplierCoords.lng,
+                  endLat: manufacturerCoords.lat, endLng: manufacturerCoords.lng,
+                  color: theme === 'dark' ? '#FBBF24' : '#F59E0B', // Amber
+                  label: `Supply from ${supplierCountry}`,
+                });
               }
             }
           });
         }
-        setArcsData(allArcs);
-        setHighlightedCountries(Array.from(allHighlightedCountries));
+        setArcsData(newArcs);
+        setHighlightedCountries(Array.from(newHighlightedCountries));
       })
       .catch(err => {
         console.error('Error fetching product graph:', err);
-        // Set arcs/highlights even if graph fails
-        setArcsData(allArcs);
-        setHighlightedCountries(Array.from(allHighlightedCountries));
+        setArcsData(newArcs);
+        setHighlightedCountries(Array.from(newHighlightedCountries));
       });
-  }, [
-    selectedProduct,
-    mockCountryCoordinates,
-    getCountryFromLocationString,
-    theme,
-    allAlerts,
-  ]);
+  }, [selectedProduct, theme]);
 
-  const isEU = useCallback(
-    (isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()),
-    [],
-  );
 
+  // Effect 3: Update filtered polygons when filter changes
   useEffect(() => {
     if (!landPolygons.length) return;
+
     let filtered = landPolygons;
     if (countryFilter === 'eu') {
-      filtered = landPolygons.filter(
-        feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3),
-      );
-    } else if (
-      countryFilter === 'supplyChain' &&
-      selectedProduct &&
-      highlightedCountries.length > 0
-    ) {
+      filtered = landPolygons.filter(feat => isEU(feat.properties?.ADM0_A3 || feat.properties?.ISO_A3));
+    } else if (countryFilter === 'supplyChain' && selectedProduct && highlightedCountries.length > 0) {
       filtered = landPolygons.filter(feat => {
-        const adminName =
-          feat.properties?.ADMIN || feat.properties?.NAME_LONG || '';
-        return highlightedCountries.some(hc =>
-          adminName.toLowerCase().includes(hc.toLowerCase()),
-        );
+        const adminName = feat.properties?.ADMIN || feat.properties?.NAME_LONG || '';
+        return highlightedCountries.some(hc => adminName.toLowerCase().includes(hc.toLowerCase()));
       });
     }
     setFilteredLandPolygons(filtered);
-  }, [countryFilter, landPolygons, highlightedCountries, isEU, selectedProduct]);
+  }, [countryFilter, landPolygons, highlightedCountries, selectedProduct]);
 
-  const globeMaterial = useMemo(() => {
-    return new MeshPhongMaterial({
-      color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
-      transparent: true,
-      opacity: 1,
-    });
-  }, [theme]);
-  
-  // Consolidate all globe instance effects
+
+  // Effect 4: Control globe instance (camera, rotation)
   useEffect(() => {
     const globe = globeEl.current;
     if (!globe || !globeReady) return;
 
-    // Set controls
     const controls = globe.controls();
     if (controls) {
       controls.autoRotate = isAutoRotating;
@@ -309,81 +212,62 @@ export default function GlobalTrackerClient({
       controls.maxDistance = 1000;
     }
 
-    // Set point of view
     if (selectedProduct && selectedProduct.transit) {
-      const destinationCountry = getCountryFromLocationString(
-        selectedProduct.transit.destination,
-      );
-      const destinationCoords = destinationCountry
-        ? mockCountryCoordinates[destinationCountry]
-        : null;
-
+      const destinationCountry = getCountryFromLocationString(selectedProduct.transit.destination);
+      const destinationCoords = destinationCountry ? mockCountryCoordinates[destinationCountry] : null;
       if (destinationCoords) {
         globe.pointOfView({ lat: destinationCoords.lat, lng: destinationCoords.lng, altitude: 1.5 }, 1000);
       }
-    } else {
+    } else if (!clickedCountryInfo) {
       globe.pointOfView({ lat: 50, lng: 15, altitude: 2.5 }, 1000);
     }
-  }, [globeReady, isAutoRotating, selectedProduct, getCountryFromLocationString, mockCountryCoordinates]);
+  }, [globeReady, isAutoRotating, selectedProduct, clickedCountryInfo]);
 
+  
+  // --- Callbacks and Memos ---
 
-  const getPolygonCapColor = useCallback(
-    (feat: GeoJsonFeature) => {
-      if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
-      const p = feat.properties as CountryProperties;
-      const isDark = theme === 'dark';
-      if (
-        clickedCountryInfo &&
-        (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 ||
-          clickedCountryInfo.ADMIN === p.ADMIN)
-      )
-        return 'tomato';
-      if (
-        highlightedCountries.some(hc =>
-          p.ADMIN.toLowerCase().includes(hc.toLowerCase()),
-        )
-      )
-        return isDark ? '#FBBF24' : '#F59E0B';
-      if (isEU(p.ADM0_A3)) return isDark ? '#2563eb' : '#002D62';
-      return isDark ? '#334155' : '#e2e8f0';
-    },
-    [theme, isEU, highlightedCountries, clickedCountryInfo],
-  );
+  const isEU = useCallback((isoA3: string | undefined) => !!isoA3 && EU_COUNTRY_CODES.has(isoA3.toUpperCase()), []);
 
-  const getPolygonLabel = useCallback(
-    (feat: GeoJsonFeature) => {
-      if (!feat.properties) return '';
-      const p = feat.properties as CountryProperties;
-      const name = p.ADMIN;
-      let roles = [];
-      if (isEU(p.ADM0_A3)) roles.push('EU Member');
-      if (selectedProduct) {
-        if (getCountryFromLocationString(selectedProduct.transit?.origin) === name)
-          roles.push('Transit Origin');
-        if (
-          getCountryFromLocationString(selectedProduct.transit?.destination) === name
-        )
-          roles.push('Transit Destination');
+  const globeMaterial = useMemo(() => new MeshPhongMaterial({
+    color: theme === 'dark' ? '#0f172a' : '#e0f2fe',
+    transparent: true,
+    opacity: 1,
+  }), [theme]);
+
+  const getPolygonCapColor = useCallback((feat: GeoJsonFeature) => {
+    if (!feat.properties) return theme === 'dark' ? '#334155' : '#e2e8f0';
+    const p = feat.properties as CountryProperties;
+    const isDark = theme === 'dark';
+    if (clickedCountryInfo && (clickedCountryInfo.ADM0_A3 === p.ADM0_A3 || clickedCountryInfo.ADMIN === p.ADMIN)) return 'tomato';
+    if (highlightedCountries.some(hc => p.ADMIN.toLowerCase().includes(hc.toLowerCase()))) return isDark ? '#FBBF24' : '#F59E0B';
+    if (isEU(p.ADM0_A3)) return isDark ? '#2563eb' : '#002D62';
+    return isDark ? '#334155' : '#e2e8f0';
+  }, [theme, isEU, highlightedCountries, clickedCountryInfo]);
+  
+  const handlePolygonClick = useCallback((feat: GeoJsonFeature) => {
+    if (feat.properties) {
+      setClickedCountryInfo(feat.properties as CountryProperties);
+      const countryName = (feat.properties as CountryProperties).ADMIN;
+      const coords = mockCountryCoordinates[countryName];
+      if (globeEl.current && coords) {
+        globeEl.current.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 1.5 }, 1000);
       }
-      return `<div style="background: rgba(40,40,40,0.8); color: white; padding: 5px 8px; border-radius: 4px; font-size: 12px;"><b>${name}</b><br/>${roles.join(', ')}</div>`;
-    },
-    [isEU, selectedProduct, getCountryFromLocationString],
-  );
+    }
+  }, []);
 
-  const handleProductSelect = (productId: string | null) => {
+  const handleProductSelect = useCallback((productId: string | null) => {
     setSelectedProductId(productId);
     const params = new URLSearchParams(searchParams.toString());
     if (productId) {
       params.set('productId', productId);
     } else {
       params.delete('productId');
+      setClickedCountryInfo(null);
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  };
+  }, [pathname, router, searchParams]);
 
-  const destinationCountry = selectedProduct?.transit
-    ? getCountryFromLocationString(selectedProduct.transit.destination)
-    : null;
+  const destinationCountry = selectedProduct?.transit ? getCountryFromLocationString(selectedProduct.transit.destination) : null;
 
   return (
     <div className="absolute inset-0">
@@ -394,7 +278,7 @@ export default function GlobalTrackerClient({
         countryFilter={countryFilter}
         onCountryFilterChange={setCountryFilter as any}
         isAutoRotating={isAutoRotating}
-        onToggleRotation={() => setIsAutoRotating(!isAutoRotating)}
+        onToggleRotation={() => setIsAutoRotating(prev => !prev)}
         isProductSelected={!!selectedProduct}
       />
       {typeof window !== 'undefined' ? (
@@ -409,7 +293,6 @@ export default function GlobalTrackerClient({
             polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#000000')}
             polygonAltitude={0.01}
             onPolygonClick={handlePolygonClick}
-            polygonLabel={getPolygonLabel}
             polygonsTransitionDuration={300}
             arcsData={arcsData}
             arcColor={'color'}
@@ -417,7 +300,6 @@ export default function GlobalTrackerClient({
             arcDashGap={0.1}
             arcDashAnimateTime={2000}
             arcStroke={0.5}
-            arcLabel="label"
             onGlobeReady={() => setGlobeReady(true)}
             enablePointerInteraction={true}
           />
@@ -443,7 +325,7 @@ export default function GlobalTrackerClient({
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
+       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-background/80 text-foreground text-xs p-2 rounded-md shadow-lg pointer-events-none backdrop-blur-sm border">
         <Info className="inline h-3 w-3 mr-1" />
         <span className="font-bold">Legend:</span> EU Countries:{' '}
         <span className="text-blue-600 dark:text-blue-400 font-semibold">

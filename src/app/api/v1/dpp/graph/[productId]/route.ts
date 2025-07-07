@@ -1,4 +1,3 @@
-
 // src/app/api/v1/dpp/graph/[productId]/route.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -31,7 +30,7 @@ export async function GET(
   const productId = params.productId;
 
   // In a real app, you would validate an API key or session here.
-  // For now, it's a public endpoint for the demo.
+  // For this mock, it's a public endpoint for the demo.
 
   const product = await getProductById(productId);
 
