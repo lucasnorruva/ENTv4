@@ -26,7 +26,7 @@ import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
-
+import { Button } from './ui/button';
 
 export default function PublicPassportView({
   product,
@@ -161,6 +161,13 @@ export default function PublicPassportView({
               <p className="text-muted-foreground text-sm">
                 No customs events recorded.
               </p>
+            )}
+            {product.transit && (
+                <Button asChild variant="secondary" size="sm" className="w-full mt-4">
+                  <Link href={`/dashboard/retailer/global-tracker?productId=${product.id}`}>
+                    <Globe className="mr-2 h-4 w-4" /> Track Shipment
+                  </Link>
+                </Button>
             )}
           </Card>
         </div>
