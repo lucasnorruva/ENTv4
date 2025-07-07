@@ -1,28 +1,285 @@
 // src/lib/actions/product-actions.ts
 'use server';
 
+import { z } from 'zod';
+import { createHash } from 'crypto';
 import type {
   Product,
   User,
   SustainabilityData,
   ServiceRecord,
+  CompliancePath,
+  ComplianceGap,
   ZkProof,
+  VerificationOverride,
+  ProductFormValues,
+  CustodyStepFormValues,
+  OwnershipTransferFormValues,
 } from '@/types';
-import {
-  type ProductFormValues,
-  type CustodyStepFormValues,
-  type OwnershipTransferFormValues,
-} from '@/lib/schemas';
+import { productFormSchema } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
 import { checkPermission, PermissionError } from '@/lib/permissions';
 import { logAuditEvent } from './audit-actions';
 import { products as mockProducts } from '@/lib/data';
+import { newId } from './utils';
+import { onProductChange } from '@/triggers/on-product-change';
+import { getCompliancePathById } from './compliance-actions';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
+import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
+import { validateProductData } from '@/ai/flows/validate-product-data';
+import { anchorToPolygon } from '@/services/blockchain';
+import { createVerifiableCredential } from '@/services/credential';
+import { getCompanyById } from '../auth';
 import { generateZkProof } from '@/services/zkp-service';
 
-// --- Re-export workflow actions ---
-export * from './product-workflow-actions';
+// --- Data Access Functions ---
 
-// --- Single Product Actions ---
+export async function getProducts(
+  userId?: string,
+  filters?: {
+    searchQuery?: string;
+    category?: string;
+    verificationStatus?: string;
+  },
+): Promise<Product[]> {
+  let user: User | undefined;
+  if (userId) {
+    user = await getUserById(userId);
+  }
+
+  let results = [...mockProducts];
+
+  if (!user || !user.roles.includes('Admin')) {
+    const userCompanyId = user?.companyId;
+    results = results.filter(
+      p => p.status === 'Published' || p.companyId === userCompanyId,
+    );
+  }
+
+  if (filters) {
+    if (filters.searchQuery) {
+      const q = filters.searchQuery.toLowerCase();
+      results = results.filter(
+        p =>
+          p.productName.toLowerCase().includes(q) ||
+          p.supplier.toLowerCase().includes(q) ||
+          p.gtin?.toLowerCase().includes(q),
+      );
+    }
+    if (filters.category) {
+      results = results.filter(p => p.category === filters.category);
+    }
+    if (filters.verificationStatus) {
+      results = results.filter(
+        p => (p.verificationStatus || 'Not Submitted') === filters.verificationStatus,
+      );
+    }
+  }
+  return Promise.resolve(results);
+}
+
+export async function getProductById(
+  id: string,
+  userId?: string,
+): Promise<Product | undefined> {
+  const product = mockProducts.find(p => p.id === id);
+  if (!product) return undefined;
+
+  if (product.status !== 'Published' && userId) {
+    const user = await getUserById(userId);
+    if (!user) return undefined;
+    if (user.roles.includes('Admin') || user.companyId === product.companyId) {
+      return product;
+    }
+    return undefined;
+  }
+  return product.status === 'Published' ? product : undefined;
+}
+
+export async function getProductByGtin(
+  gtin: string,
+  userId?: string,
+): Promise<Product | undefined> {
+  return mockProducts.find(p => p.gtin === gtin);
+}
+
+// --- Workflow Actions ---
+
+async function processProductAi(
+  product: Product,
+): Promise<
+  Pick<Product, 'sustainability' | 'qrLabelText' | 'dataQualityWarnings'>
+> {
+  const company = await getCompanyById(product.companyId);
+  const aiProductInput = {
+    ...product,
+    supplier: company?.name || product.supplier,
+  };
+
+  const [sustainability, qrLabel, validation] = await Promise.all([
+    calculateSustainability({ product: aiProductInput }),
+    generateQRLabelText({ product: aiProductInput }),
+    validateProductData({ product: aiProductInput }),
+  ]);
+
+  return {
+    sustainability: {
+      ...sustainability,
+      isCompliant: true,
+      complianceSummary: 'Awaiting compliance path assignment.',
+    },
+    qrLabelText: qrLabel.qrLabelText,
+    dataQualityWarnings: validation.warnings,
+  };
+}
+
+export async function saveProduct(
+  values: ProductFormValues,
+  userId: string,
+  productId?: string,
+): Promise<Product> {
+  const validatedData = productFormSchema.parse(values);
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+
+  const now = new Date().toISOString();
+  let savedProduct: Product;
+  const oldProductData = productId ? mockProducts.find(p => p.id === productId) : null;
+
+  if (productId) {
+    if (!oldProductData) throw new Error('Product not found');
+    checkPermission(user, 'product:edit', oldProductData);
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    savedProduct = {
+      ...mockProducts[productIndex],
+      ...validatedData,
+      companyId: user.companyId,
+      supplier: (await getCompanyById(user.companyId))?.name || 'Unknown',
+      lastUpdated: now,
+      updatedAt: now,
+    };
+    mockProducts[productIndex] = savedProduct;
+    await logAuditEvent('product.updated', productId, {}, userId);
+  } else {
+    checkPermission(user, 'product:create');
+    savedProduct = {
+      id: newId('pp'),
+      ...validatedData,
+      companyId: user.companyId,
+      supplier: (await getCompanyById(user.companyId))?.name || 'Unknown',
+      createdAt: now,
+      updatedAt: now,
+      lastUpdated: now,
+      materials: validatedData.materials || [],
+      verificationStatus: 'Not Submitted',
+      endOfLifeStatus: 'Active',
+    };
+    mockProducts.unshift(savedProduct);
+    await logAuditEvent('product.created', savedProduct.id, {}, userId);
+  }
+  
+  // Trigger mock 'onProductChange' function to process AI data asynchronously
+  onProductChange(savedProduct.id, oldProductData, savedProduct).catch(console.error);
+
+  return Promise.resolve(savedProduct);
+}
+
+export async function deleteProduct(
+  productId: string,
+  userId: string,
+): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+
+  checkPermission(user, 'product:delete', mockProducts[productIndex]);
+
+  mockProducts.splice(productIndex, 1);
+  await logAuditEvent('product.deleted', productId, {}, userId);
+  return Promise.resolve();
+}
+
+export async function submitForReview(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:submit', product);
+
+  product.verificationStatus = 'Pending';
+  product.updatedAt = new Date().toISOString();
+  product.lastUpdated = new Date().toISOString();
+  await logAuditEvent('passport.submitted', productId, {}, userId);
+  return product;
+}
+
+export async function approvePassport(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:approve', product);
+
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found');
+
+  const now = new Date().toISOString();
+  const dataToHash = {
+    productId: product.id,
+    gtin: product.gtin,
+    materials: product.materials,
+    timestamp: now,
+  };
+  const hash = await hashData(dataToHash);
+  const blockchainProof = await anchorToPolygon(hash);
+
+  const vc = await createVerifiableCredential(product, company);
+  product.verifiableCredential = JSON.stringify(vc);
+
+  product.verificationStatus = 'Verified';
+  product.lastVerificationDate = now;
+  product.lastUpdated = now;
+  product.blockchainProof = { type: 'SINGLE_HASH', ...blockchainProof, merkleRoot: hash };
+  product.status = 'Published';
+  await logAuditEvent('passport.approved', productId, { txHash: blockchainProof.txHash }, userId);
+  return product;
+}
+
+export async function rejectPassport(
+  productId: string,
+  reason: string,
+  gaps: ComplianceGap[],
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:reject', product);
+
+  const now = new Date().toISOString();
+  product.verificationStatus = 'Failed';
+  product.lastVerificationDate = now;
+  product.lastUpdated = now;
+  if (product.sustainability) {
+    product.sustainability.complianceSummary = reason;
+    product.sustainability.gaps = gaps;
+  }
+  await logAuditEvent('passport.rejected', productId, { reason, gaps }, userId);
+  return product;
+}
 
 export async function addCustodyStep(
   productId: string,
@@ -61,7 +318,7 @@ export async function transferOwnership(
   const product = mockProducts[productIndex];
   if (!product.ownershipNft)
     throw new Error('Product does not have an ownership NFT.');
-  
+
   product.ownershipNft.ownerAddress = values.newOwnerAddress;
   await logAuditEvent(
     'product.ownership.transferred',
@@ -70,6 +327,24 @@ export async function transferOwnership(
     userId,
   );
   return product;
+}
+
+export async function generateZkProofForProduct(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+  checkPermission(user, 'product:generate_zkp');
+
+  const proof = await generateZkProof(product);
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  mockProducts[productIndex].zkProof = proof;
+
+  await logAuditEvent('product.zkp.generated', productId, {}, userId);
+  return mockProducts[productIndex];
 }
 
 // --- Bulk Actions ---
@@ -114,7 +389,6 @@ export async function bulkSubmitForReview(
   productIds: string[],
   userId: string,
 ): Promise<void> {
-  const { submitForReview } = await import('./product-workflow-actions');
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 
@@ -178,4 +452,64 @@ export async function bulkArchiveProducts(
       userId,
     );
   }
+}
+
+export async function markAsRecycled(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:recycle', product);
+
+  product.endOfLifeStatus = 'Recycled';
+  product.lastUpdated = new Date().toISOString();
+  await logAuditEvent('product.recycled', productId, {}, userId);
+  return product;
+}
+
+export async function resolveComplianceIssue(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:resolve', product);
+
+  product.verificationStatus = 'Not Submitted';
+  product.status = 'Draft';
+  product.lastUpdated = new Date().toISOString();
+  await logAuditEvent('compliance.resolved', productId, {}, userId);
+  return product;
+}
+
+export async function overrideVerification(
+  productId: string,
+  reason: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:override_verification', product);
+
+  product.verificationStatus = 'Verified';
+  product.verificationOverride = {
+    userId,
+    reason,
+    date: new Date().toISOString(),
+  };
+  product.lastUpdated = new Date().toISOString();
+  
+  await logAuditEvent('product.verification.overridden', productId, { reason }, userId);
+  return product;
 }

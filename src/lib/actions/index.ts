@@ -1,5 +1,4 @@
-// This barrel file is intentionally left empty to prevent circular dependencies.
-// Please import from specific action files directly, e.g., '@/lib/actions/product-actions'.
+// This barrel file re-exports actions for easier importing.
 
 export * from './product-actions';
 export * from './user-actions';
@@ -8,3 +7,10 @@ export * from './audit-actions';
 export * from './compliance-actions';
 export * from './api-key-actions';
 export * from './webhook-actions';
+export * from './settings-actions';
+export * from './report-actions';
+export * from './integration-actions';
+export * from './manufacturing-actions';
+export * from './ticket-actions';
+export * from './search-actions';
+export * from './product-ai-actions';

@@ -119,10 +119,7 @@ export let products: Product[] = [
       status: 'Verified',
       conformanceResultUrl: 'https://api.ebsi.eu/conformance/v4/results/12345',
     },
-    verifiableCredentials: [
-      { id: 'vc-dpp-001', type: 'DPP', issuer: 'Norruva Platform', issueDate: new Date().toISOString() },
-      { id: 'vc-mat-001', type: 'Material Passport', issuer: 'German Components GmbH', issueDate: new Date().toISOString() }
-    ],
+    verifiableCredential: `{"@context": ["https://www.w3.org/2018/credentials/v1"],"id": "urn:uuid:mock-vc-id","type": ["VerifiableCredential", "DigitalProductPassport"],"issuer": "did:web:norruva.com","issuanceDate": "${new Date().toISOString()}","credentialSubject": {"id": "did:dpp:product:pp-001","name": "Eco-Friendly Smart Watch Series 5"}}`,
     chainOfCustody: [
       { event: 'Manufactured', actor: 'Eco-Factory 1', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 7)).toISOString() },
       { event: 'Shipped from Factory', actor: 'DHL', location: 'Germany', date: new Date(new Date(now).setDate(now.getDate() - 6)).toISOString() }

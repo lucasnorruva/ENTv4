@@ -10,7 +10,7 @@ import { productionLines as mockProductionLines } from '../manufacturing-data';
 import { getUserById } from '../auth';
 import { checkPermission } from '../permissions';
 import { logAuditEvent } from './audit-actions';
-import { getProductById } from './product-workflow-actions';
+import { getProductById } from './product-actions';
 import { newId } from './utils';
 
 export async function getProductionLines(): Promise<ProductionLine[]> {

@@ -2,8 +2,9 @@
 import {
   getProducts,
   getProductById,
+  saveProduct,
+  deleteProduct,
 } from '@/lib/actions/product-actions';
-import { saveProduct, deleteProduct } from '@/lib/actions/product-workflow-actions';
 import {
   getCompliancePaths,
   getCompliancePathById,
