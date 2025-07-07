@@ -279,30 +279,6 @@ export const supportTicketFormSchema = z.object({
 });
 export type SupportTicketFormValues = z.infer<typeof supportTicketFormSchema>;
 
-export const profileFormSchema = z.object({
-  fullName: z.string().min(2, 'Full name is required.'),
-});
-export type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
-export const passwordFormSchema = z
-  .object({
-    currentPassword: z.string().min(1, 'Current password is required.'),
-    newPassword: z.string().min(8, 'New password must be at least 8 characters.'),
-    confirmPassword: z.string(),
-  })
-  .refine(data => data.newPassword === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
-export type PasswordFormValues = z.infer<typeof passwordFormSchema>;
-
-export const notificationsFormSchema = z.object({
-    productUpdates: z.boolean(),
-    complianceAlerts: z.boolean(),
-    platformNews: z.boolean(),
-});
-export type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
-
 export const bulkProductImportSchema = z.object({
     productName: z.string().min(3),
     productDescription: z.string().min(10),

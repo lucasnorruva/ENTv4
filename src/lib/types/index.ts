@@ -11,11 +11,13 @@ import type {
   AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
+import type { ModelHotspot } from './3d';
+
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus };
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot };
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -94,6 +96,7 @@ export interface Certification {
 export interface Manufacturing {
   facility: string;
   country: string;
+  manufacturingProcess?: string;
   emissionsKgCo2e?: number;
 }
 
@@ -131,6 +134,11 @@ export interface FoodSafetyData {
   allergens?: string;
 }
 
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -157,6 +165,26 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
+  };
+  epr?: {
+    schemeId?: string;
+    producerRegistrationNumber?: string;
+    wasteCategory?: string;
+  };
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
   };
 }
 
@@ -235,6 +263,7 @@ export interface Product extends BaseEntity {
   model3dUrl?: string;
   model3dFileName?: string;
   model3dFileHash?: string;
+  modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
@@ -243,6 +272,17 @@ export interface Product extends BaseEntity {
     status: 'Verified' | 'Pending' | 'Failed';
     conformanceResultUrl?: string;
   };
+  ownershipNft?: {
+    tokenId: string;
+    contractAddress: string;
+    ownerAddress: string;
+  }
+  chainOfCustody?: {
+    date: string;
+    event: string;
+    location: string;
+    actor: string;
+  }[];
 
   // Structured Data Fields
   materials: Material[];
@@ -258,6 +298,7 @@ export interface Product extends BaseEntity {
   constructionAnalysis?: ConstructionAnalysis;
   transit?: TransitInfo;
   customs?: CustomsStatus;
+  greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

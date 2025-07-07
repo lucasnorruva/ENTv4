@@ -7,7 +7,6 @@ import type {
   Product,
   User,
   SustainabilityData,
-  ServiceRecord,
   CompliancePath,
   ComplianceGap,
   ZkProof,
@@ -15,6 +14,7 @@ import type {
   ProductFormValues,
   CustodyStepFormValues,
   OwnershipTransferFormValues,
+  CustomsInspectionFormValues,
 } from '@/types';
 import { productFormSchema } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
@@ -596,5 +596,31 @@ export async function overrideVerification(
   product.lastUpdated = new Date().toISOString();
   
   await logAuditEvent('product.verification.overridden', productId, { reason }, userId);
+  return product;
+}
+
+export async function performCustomsInspection(
+  productId: string,
+  values: CustomsInspectionFormValues,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:customs_inspect', product);
+
+  const newEvent = { ...values, date: new Date().toISOString() };
+
+  if (!product.customs) {
+    product.customs = { ...newEvent, history: [] };
+  } else {
+    product.customs = { ...newEvent, history: [ ...product.customs.history || [], newEvent] };
+  }
+
+  await logAuditEvent('customs.inspected', productId, { status: values.status, location: values.location }, userId);
+
   return product;
 }

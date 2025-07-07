@@ -14,6 +14,7 @@ export const Collections = {
   API_KEYS: 'apiKeys',
   API_RATE_LIMITS: 'apiRateLimits',
   SERVICE_TICKETS: 'serviceTickets',
+  SUPPORT_TICKETS: 'supportTickets',
   PRODUCTION_LINES: 'productionLines',
 };
 

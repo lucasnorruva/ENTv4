@@ -21,6 +21,7 @@ import {
   Fingerprint,
   RefreshCw,
   TestTubeDiagonal,
+  Ticket,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -90,6 +91,13 @@ export const navConfig: NavConfig = {
         { title: 'Trust Hub', icon: Fingerprint, href: 'blockchain' },
         { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
         { title: 'Platform Logs', icon: Clock, href: 'logs' },
+      ],
+    },
+    {
+      label: 'Operations',
+      items: [
+          { title: 'Service Tickets', icon: Wrench, href: 'service-tickets'},
+          { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
