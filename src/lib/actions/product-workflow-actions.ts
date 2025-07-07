@@ -1,4 +1,4 @@
-// src/lib/actions/product-actions.ts
+// src/lib/actions/product-workflow-actions.ts
 'use server';
 
 import type {
@@ -38,6 +38,7 @@ import { hashData, anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { generateComplianceProof } from '@/services/zkp-service';
 import { getWebhooks } from './webhook-actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 import { getApiSettings } from './settings-actions';
 
 // --- AI Processing ---
