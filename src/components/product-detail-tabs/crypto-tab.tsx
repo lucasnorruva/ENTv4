@@ -111,7 +111,7 @@ export default function CryptoTab({
           <InfoRow
             icon={FileJson}
             label="Verifiable Credential (VC)"
-            value="W3C Data Integrity Proof (BBS+)"
+            value="W3C Data Integrity Proof (EdDSA)"
           >
             <ScrollArea className="h-48 mt-2 w-full rounded-md border bg-muted p-4">
               <pre className="text-xs break-all whitespace-pre-wrap">

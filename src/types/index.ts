@@ -64,8 +64,6 @@ export interface Company extends BaseEntity {
   ownerId: string; // ID of the user who created the company
   industry?: string;
   tier?: 'free' | 'pro' | 'enterprise';
-  isTrustedIssuer: boolean;
-  revocationListUrl?: string;
   settings?: {
     aiEnabled: boolean;
     apiAccess: boolean;
@@ -286,12 +284,6 @@ export interface Product extends BaseEntity {
     status: 'Verified' | 'Pending' | 'Failed';
     conformanceResultUrl?: string;
   };
-  verifiableCredentials?: {
-    id: string;
-    type: 'DPP' | 'Material Passport' | 'Compliance Certificate';
-    issuer: string;
-    issueDate: string;
-  }[];
 
   // Structured Data Fields
   materials: Material[];

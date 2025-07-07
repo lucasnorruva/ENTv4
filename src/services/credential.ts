@@ -14,11 +14,10 @@ const account = privateKeyToAccount(SIGNING_KEY);
 
 /**
  * Creates a W3C Verifiable Credential for a given product.
- * This mock now includes a bbs+ cryptosuite and a credentialStatus field
- * to align with the advanced cryptographic infrastructure goals.
+ * In a real app, this would use a proper JWS/JSON-LD Signature library.
  *
  * @param product The product data to include in the credential.
- * @param company The company issuing the credential, used for revocation list.
+ * @param company The company data to include in the credential.
  * @returns A signed Verifiable Credential object.
  */
 export async function createVerifiableCredential(
@@ -41,7 +40,7 @@ export async function createVerifiableCredential(
 
   const credentialId = `urn:uuid:${crypto.randomUUID()}`;
 
-  const credentialPayload: any = {
+  const credentialPayload = {
     '@context': [
       'https://www.w3.org/2018/credentials/v1',
       'https://schema.org',
@@ -57,16 +56,7 @@ export async function createVerifiableCredential(
     credentialSubject,
   };
 
-  // Add credentialStatus for revocation, pointing to a hypothetical status list.
-  if (company.revocationListUrl) {
-    credentialPayload.credentialStatus = {
-      id: `${company.revocationListUrl}#${product.id}`, // Simplified index
-      type: 'StatusList2021Credential',
-    };
-  }
-  
-  // For this mock, we'll sign the stringified payload.
-  // A real implementation would use a proper JWS/JSON-LD Signature library.
+  // For this mock, we'll just sign the stringified payload.
   const payloadHash = await hashData(credentialPayload);
   const signature = await account.signMessage({
     message: payloadHash,
@@ -74,15 +64,13 @@ export async function createVerifiableCredential(
 
   const vc = {
     ...credentialPayload,
-    // Using a DataIntegrityProof with a BBS+ cryptosuite to signal
-    // support for selective disclosure.
     proof: {
       type: 'DataIntegrityProof',
-      cryptosuite: 'bbs-bls12381-sha-256',
+      cryptosuite: 'eddsa-jcs-2022',
       created: issuanceDate,
       proofPurpose: 'assertionMethod',
       verificationMethod: `${ISSUER_DID}#keys-1`,
-      proofValue: signature, // In a real BBS+ proof, this would be a derived proof.
+      proofValue: signature,
     },
   };
 

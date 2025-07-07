@@ -31,6 +31,7 @@ import { anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
 import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
+import { hashData } from '@/services/blockchain';
 
 // --- Data Access Functions ---
 
@@ -589,20 +590,4 @@ export async function overrideVerification(
   
   await logAuditEvent('product.verification.overridden', productId, { reason }, userId);
   return product;
-}
-
-async function hashData(data: object): Promise<string> {
-  const stableStringify = (obj: any): string => {
-    if (obj === null) return 'null';
-    if (typeof obj !== 'object') return JSON.stringify(obj);
-    if (Array.isArray(obj)) {
-      return `[${obj.map(stableStringify).join(',')}]`;
-    }
-    const keys = Object.keys(obj).sort();
-    const kvPairs = keys.map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
-    return `{${kvPairs.join(',')}}`;
-  };
-
-  const dataString = stableStringify(data);
-  return createHash("sha256").update(dataString).digest("hex");
 }
