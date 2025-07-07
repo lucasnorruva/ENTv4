@@ -282,7 +282,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Native SAP Connector**
 - [x] **Real-time Data Synchronization**
 
-#### 4.1.2 Microsoft Dynamics 356 Plugin
+#### 4.1.2 Microsoft Dynamics 365 Plugin
 - [x] **Power Platform Integration**
 
 #### 4.1.3 Oracle NetSuite Connector

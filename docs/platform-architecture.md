@@ -49,16 +49,27 @@ Below is an example of a tenant configuration snippet with feature flags in JSON
 ```json
 {
   "tenantId": "acme-corp",
-  "features": {
-    "GeminiAI_Enabled": true,
-    "CSRD_Compliance_Module": false,
-    "Oracle_ERP_Integration": true,
-    "UI_Branding_Customization": true
-  },
-  "region": "EU"
+  "settings": {
+    "aiEnabled": true,
+    "apiAccess": true,
+    "brandingCustomization": true,
+    "theme": {
+      "light": {
+        "primary": "262.1 83.3% 57.8%",
+        "accent": "262.1 83.3% 95%"
+      },
+      "dark": {
+        "primary": "262.1 83.3% 67.8%",
+        "accent": "262.1 83.3% 20%"
+      }
+    },
+    "customFields": [
+      { "id": "internal_sku", "label": "Internal SKU", "type": "text" }
+    ]
+  }
 }
 ```
-*In this example, Acme Corp has Gemini AI features enabled, the CSRD module disabled (perhaps they are not in scope for CSRD yet), Oracle ERP integration enabled, and some UI customization feature enabled. Such a configuration can be updated dynamically as the client’s needs evolve or new regulations come into effect.*
+*In this example, Acme Corp has enabled AI features, API access, and UI branding, including custom colors and a custom data field. Such a configuration can be updated dynamically as the client’s needs evolve.*
 
 ### Multi-Tenancy and RBAC Workspaces
 The platform is built as a multi-tenant system from the ground up, meaning multiple client organizations (tenants) share the platform securely. Each tenant operates in an isolated workspace with strict RBAC enforcement:

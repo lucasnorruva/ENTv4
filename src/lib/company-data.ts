@@ -14,6 +14,16 @@ export let companies: Company[] = [
     revocationListUrl: 'https://api.norruva.com/vc/status/eco-innovate/1',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: false,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
+    },
   },
   {
     id: 'comp-thread',
@@ -25,6 +35,16 @@ export let companies: Company[] = [
     revocationListUrl: '',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
+    settings: {
+      aiEnabled: false,
+      apiAccess: false,
+      brandingCustomization: false,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
+    },
   },
   {
     id: 'comp-norruva',
@@ -36,5 +56,18 @@ export let companies: Company[] = [
     revocationListUrl: 'https://api.norruva.com/vc/status/norruva/1',
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 6)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: true,
+      theme: {
+        light: { primary: '262.1 83.3% 57.8%', accent: '262.1 83.3% 95%' },
+        dark: { primary: '262.1 83.3% 67.8%', accent: '262.1 83.3% 20%' },
+      },
+      customFields: [
+        { id: 'internal_sku', label: 'Internal SKU', type: 'text' },
+        { id: 'is_fragile', label: 'Is Fragile?', type: 'boolean' },
+      ],
+    },
   },
 ];
