@@ -3,40 +3,28 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   AlertTriangle,
   BookOpen,
   CheckCircle,
-  Code2,
-  Cpu,
-  Database,
   ExternalLink,
-  FileCode,
   KeyRound,
   LayoutGrid,
-  LayoutTemplate,
-  RefreshCw,
-  Search,
-  Server,
   Settings,
-  ToyBrick,
   Webhook,
-  Blocks,
+  BarChart,
+  History,
+  Wrench,
+  Cog,
+  FileCode,
 } from 'lucide-react';
 import Link from 'next/link';
+import type { User } from '@/types';
 
 const StatusBadge = ({
   status,
@@ -68,148 +56,109 @@ const StatusBadge = ({
   );
 };
 
-export default function DeveloperDashboard() {
-  const navItems = [
-    { name: 'Dashboard', icon: LayoutGrid, href: '/dashboard/developer', active: true },
-    { name: 'API Keys', icon: KeyRound, href: '/dashboard/developer/keys' },
-    { name: 'Webhooks', icon: Webhook, href: '/dashboard/developer/webhooks' },
-    { name: 'Playground', icon: ToyBrick, href: '#' },
-    { name: 'Docs', icon: BookOpen, href: '/docs', external: true },
-    { name: 'Resources', icon: Code2, href: '#' },
-    { name: 'Settings', icon: Settings, href: '/dashboard/developer/settings' },
-  ];
-
-  const apiMetrics = [
-    { label: 'API Calls (Last 24h):', value: '1,234' },
-    { label: 'Error Rate (Last 24h):', value: '0.2%' },
-    { label: 'Avg. Latency:', value: '120ms' },
-    { label: 'API Uptime (Last 7d):', value: '99.95%' },
-    { label: 'Peak Requests/Sec:', value: '15' },
-  ];
-
+export default function DeveloperDashboard({ user }: { user: User }) {
   const announcements = [
     {
-      title: 'New API Version v1.1 Released',
+      title: 'New API Version v2 Released',
       date: 'Aug 1, 2024',
       content:
-        'Version 1.1 of the DPP API is now live, featuring enhanced query parameters for lifecycle events and new endpoints for supplier data management. Check the API Reference for details.',
+        'Version 2 of the DPP REST API is now live, featuring HATEOAS links and an improved data structure. The v1 API is now deprecated. Check the API Reference for details.',
     },
     {
-      title: 'Webinar: Navigating EU Battery Regulation',
+      title: 'Webhook Signature Verification Now Enabled',
       date: 'Jul 25, 2024',
       content:
-        'Join us next week for a deep dive into using the Norruva platform to comply with the new EU Battery Regulation requirements. Registration is open.',
-    },
-    {
-      title: 'Sandbox Environment Maintenance',
-      date: 'Jul 15, 2024',
-      content:
-        'Scheduled maintenance for the Sandbox environment will occur on July 20th, 02:00-04:00 UTC. Production environment will not be affected.',
+        'All outgoing webhooks are now signed with a secret key to ensure authenticity. Please see the documentation for instructions on how to verify signatures.',
     },
   ];
 
   const serviceStatus = [
-    { name: 'DPP Core API', status: 'Operational', icon: Database },
-    { name: 'AI Services (Genkit Flows)', status: 'Operational', icon: Cpu },
-    { name: 'Data Extraction Service (Mock)', status: 'Degraded Performance', icon: Server },
-    { name: 'EBSI Mock Interface', status: 'Operational', icon: Blocks },
-    { name: 'Developer Portal Site', status: 'Operational', icon: LayoutTemplate },
-    { name: 'Sandbox Environment API', status: 'Under Maintenance', icon: FileCode },
+    { name: 'GraphQL API', status: 'Operational', icon: Cog },
+    { name: 'REST API v2', status: 'Operational', icon: Cog },
+    { name: 'REST API v1 (Deprecated)', status: 'Degraded Performance', icon: AlertTriangle },
+    { name: 'Webhook Service', status: 'Operational', icon: Webhook },
+    { name: 'Developer Portal Site', status: 'Operational', icon: LayoutGrid },
+    { name: 'Sandbox Environment API', status: 'Operational', icon: FileCode },
     { name: 'Documentation Site', status: 'Operational', icon: BookOpen },
   ] as const;
+
 
   return (
     <div className="space-y-6">
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Developer Portal
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Welcome to the Developer Portal
         </h1>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <div className="relative flex-grow sm:flex-grow-0">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search Portal (API docs, guides...)"
-              className="pl-8 sm:w-[300px]"
-            />
-          </div>
-          <div className="hidden md:flex items-center gap-2 rounded-md border p-2 text-sm">
-            <span className="text-muted-foreground">Org:</span>
-            <span className="font-semibold">Acme Innovations</span>
-          </div>
-          <div className="hidden md:flex items-center gap-2 rounded-md border p-2 text-sm">
-            <span className="text-muted-foreground">Environment:</span>
-            <Select defaultValue="sandbox">
-              <SelectTrigger className="h-auto border-none p-0 focus:ring-0">
-                <SelectValue placeholder="Select environment" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sandbox">Sandbox</SelectItem>
-                <SelectItem value="production">Production</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
       </header>
-
-      <Card>
-        <CardContent className="p-2">
-          <nav className="flex flex-wrap gap-1">
-            {navItems.map(item => (
-              <Button
-                key={item.name}
-                variant={item.active ? 'secondary' : 'ghost'}
-                asChild
-              >
-                <Link href={item.href}>
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.name}
-                </Link>
-              </Button>
-            ))}
-          </nav>
-        </CardContent>
-      </Card>
-
+    
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <KeyRound className="h-5 w-5" />
-                Key API Metrics & Health (Sandbox)
-              </CardTitle>
-              <CardDescription>
-                Mock conceptual API metrics for the current environment.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {apiMetrics.map((metric, i) => (
-                  <li
-                    key={i}
-                    className="flex justify-between items-center text-sm py-2 border-b last:border-0"
-                  >
-                    <span className="text-muted-foreground">{metric.label}</span>
-                    <span className="font-semibold">{metric.value}</span>
-                  </li>
-                ))}
-                <li className="flex justify-between items-center text-sm py-2 text-amber-600 dark:text-amber-400">
-                  <span className="font-semibold flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" /> Overall API Status:
-                  </span>
-                  <span className="font-semibold">Some Systems Impacted</span>
-                </li>
-              </ul>
-            </CardContent>
-            <CardFooter>
-              <Button variant="link" asChild className="p-0 h-auto">
-                <Link href="/dashboard/developer/analytics">
-                  View Full Usage Report <ExternalLink className="ml-1 h-3 w-3" />
-                </Link>
-              </Button>
-            </CardFooter>
-          </Card>
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <KeyRound className="h-5 w-5" />
+                        API Keys & Access
+                    </CardTitle>
+                    <CardDescription>
+                        Manage your API keys to authenticate your requests.
+                    </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                        <Link href="/dashboard/developer/keys">Manage API Keys</Link>
+                    </Button>
+                </CardFooter>
+             </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Webhook className="h-5 w-5" />
+                        Webhooks
+                    </CardTitle>
+                    <CardDescription>
+                        Configure endpoints to receive real-time notifications.
+                    </CardDescription>
+                </CardHeader>
+                 <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                        <Link href="/dashboard/developer/webhooks">Manage Webhooks</Link>
+                    </Button>
+                </CardFooter>
+             </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <BarChart className="h-5 w-5" />
+                        API Analytics
+                    </CardTitle>
+                    <CardDescription>
+                        Monitor your API usage and performance metrics.
+                    </CardDescription>
+                </CardHeader>
+                 <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                        <Link href="/dashboard/developer/analytics">View Analytics</Link>
+                    </Button>
+                </CardFooter>
+             </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        API Logs
+                    </CardTitle>
+                    <CardDescription>
+                        View a detailed history of your recent API requests.
+                    </CardDescription>
+                </CardHeader>
+                 <CardFooter>
+                    <Button asChild variant="outline" className="w-full">
+                        <Link href="/dashboard/developer/logs">View Logs</Link>
+                    </Button>
+                </CardFooter>
+             </Card>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle>Platform News & Announcements</CardTitle>
@@ -233,7 +182,7 @@ export default function DeveloperDashboard() {
                       asChild
                       className="p-0 h-auto text-sm mt-1"
                     >
-                      <Link href="#">
+                      <Link href="/docs/api">
                         Learn More <ExternalLink className="ml-1 h-3 w-3" />
                       </Link>
                     </Button>
@@ -247,11 +196,7 @@ export default function DeveloperDashboard() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
-                <CardTitle>System & Service Status</CardTitle>
-                <Button variant="outline" size="sm">
-                  <RefreshCw className="mr-2 h-3 w-3" />
-                  Refresh
-                </Button>
+                <CardTitle>System Status</CardTitle>
               </div>
               <CardDescription>
                 Current operational status of Norruva platform components.
@@ -259,12 +204,6 @@ export default function DeveloperDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-3 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 flex items-center gap-3">
-                  <AlertTriangle className="h-5 w-5" />
-                  <p className="font-semibold text-sm">
-                    Overall: Some Systems Impacted
-                  </p>
-                </div>
                 <ul className="space-y-3">
                   {serviceStatus.map(service => (
                     <li
@@ -281,12 +220,6 @@ export default function DeveloperDashboard() {
                 </ul>
               </div>
             </CardContent>
-            <CardFooter>
-              <p className="text-xs text-muted-foreground">
-                Last checked: 4:41:42 PM. For detailed incidents, visit
-                status.norruva.com (conceptual).
-              </p>
-            </CardFooter>
           </Card>
         </div>
       </div>

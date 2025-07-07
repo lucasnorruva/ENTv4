@@ -216,10 +216,29 @@ export const navConfig: NavConfig = {
     },
   ],
   [UserRoles.DEVELOPER]: [
-    // The navigation for the developer role is now handled by the horizontal
-    // navigation bar within the Developer Dashboard page itself.
-    // The main "Dashboard" link and the "General" group (Settings, Support)
-    // are rendered by default in the sidebar shell, so this can be empty.
+    {
+      label: 'API & Services',
+      items: [
+        { title: 'API Keys', icon: KeyRound, href: 'keys' },
+        { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
+        { title: 'Integrations', icon: Wrench, href: 'integrations' },
+        { title: 'API Settings', icon: Cog, href: 'api-settings' },
+      ]
+    },
+    {
+      label: 'Monitoring',
+      items: [
+        { title: 'API Logs', icon: History, href: 'logs' },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
+      ],
+    },
+    {
+      label: 'Resources',
+      items: [
+        { title: 'API Reference', icon: FileCode, href: '/docs/api', external: true },
+        { title: 'Documentation', icon: BookOpen, href: '/docs', external: true },
+      ],
+    }
   ],
   [UserRoles.RECYCLER]: [
     {
