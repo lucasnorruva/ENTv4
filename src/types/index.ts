@@ -433,5 +433,3 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
-
-    

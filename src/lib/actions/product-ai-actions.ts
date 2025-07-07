@@ -27,7 +27,7 @@ import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import type { AnalyzeSimulatedRouteOutput, AnalyzeProductTransitRiskOutput } from '@/types/ai-outputs';
-import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
+import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
