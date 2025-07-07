@@ -174,6 +174,7 @@ export const productFormSchema = z.object({
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
   foodSafety: foodSafetyDataSchema.optional(),
+  constructionAnalysis: z.any().optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
 });
 

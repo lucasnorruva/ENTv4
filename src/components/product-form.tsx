@@ -125,6 +125,7 @@ export default function ProductForm({
     customData: {},
     textile: { fiberComposition: [] },
     foodSafety: { ingredients: [], allergens: '' },
+    constructionAnalysis: undefined,
   };
 
   const form = useForm<ProductFormValues>({

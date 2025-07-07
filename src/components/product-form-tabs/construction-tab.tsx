@@ -36,7 +36,7 @@ export default function ConstructionTab({ form, user, productId, isAiEnabled }: 
     startAnalysisTransition(async () => {
       try {
         await analyzeConstructionData(productId, user.id);
-        toast({ title: 'Analysis Complete', description: 'Construction properties have been analyzed. View them on the product detail page.' });
+        toast({ title: 'Analysis Complete', description: 'Construction properties have been analyzed. Refresh the product detail page to see results.' });
       } catch (error: any) {
         toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
       }

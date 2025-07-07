@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Landmark,
   ShieldAlert,
-  Fingerprint
 } from 'lucide-react';
 import { format } from 'date-fns';
 

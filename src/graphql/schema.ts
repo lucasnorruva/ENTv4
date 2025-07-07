@@ -41,6 +41,7 @@ export const typeDefs = gql`
   input ManufacturingInput {
     facility: String!
     country: String!
+    manufacturingProcess: String
     emissionsKgCo2e: Float
   }
 
@@ -169,6 +170,7 @@ export const typeDefs = gql`
   type Manufacturing {
     facility: String
     country: String
+    manufacturingProcess: String
     emissionsKgCo2e: Float
   }
 
