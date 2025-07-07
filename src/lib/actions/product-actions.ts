@@ -30,7 +30,7 @@ import { validateProductData } from '@/ai/flows/validate-product-data';
 import { anchorToPolygon } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
-import { generateZkProof } from '@/services/zkp-service';
+import { generateComplianceProof } from '@/services/zkp-service';
 
 // --- Data Access Functions ---
 
@@ -93,7 +93,7 @@ export async function getProductById(
     }
     return undefined;
   }
-  return product.status === 'Published' ? product : undefined;
+  return product.status === 'Published' || userId ? product : undefined;
 }
 
 export async function getProductByGtin(
@@ -225,16 +225,42 @@ export async function approvePassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
+  if (!user && userId !== 'system') throw new Error('User not found');
+  if (user) checkPermission(user, 'product:approve');
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
-  const product = mockProducts[productIndex];
-  checkPermission(user, 'product:approve', product);
 
+  const product = mockProducts[productIndex];
   const company = await getCompanyById(product.companyId);
   if (!company) throw new Error('Company not found');
 
   const now = new Date().toISOString();
+  
+  // Set isMinting to true before starting the async anchoring process
+  product.isMinting = true;
+  await logAuditEvent('passport.approved', productId, {}, userId);
+
+  // Don't wait for this to finish, let it run in the background
+  anchorProductOnChain(productId, userId).catch(console.error);
+
+  return product;
+}
+
+
+export async function anchorProductOnChain(
+  productId: string,
+  userId: string
+): Promise<Product> {
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found');
+
+  const product = mockProducts[productIndex];
+  const company = await getCompanyById(product.companyId);
+  if (!company) throw new Error('Company not found');
+
+  const now = new Date().toISOString();
+
   const dataToHash = {
     productId: product.id,
     gtin: product.gtin,
@@ -252,8 +278,27 @@ export async function approvePassport(
   product.lastUpdated = now;
   product.blockchainProof = { type: 'SINGLE_HASH', ...blockchainProof, merkleRoot: hash };
   product.status = 'Published';
-  await logAuditEvent('passport.approved', productId, { txHash: blockchainProof.txHash }, userId);
+  product.isMinting = false;
+  
+  await logAuditEvent('product.anchored', productId, { txHash: blockchainProof.txHash }, userId);
   return product;
+}
+
+export async function bulkAnchorProducts(productIds: string[], userId: string): Promise<void> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  checkPermission(user, 'product:approve'); // Use approve permission for bulk minting
+
+  await logAuditEvent('product.bulk_anchor.started', 'multiple', { count: productIds.length }, userId);
+
+  // We are not waiting for the result, just firing off the requests
+  for (const productId of productIds) {
+    anchorProductOnChain(productId, userId).catch(error => {
+      console.error(`Failed to anchor product ${productId}:`, error);
+      logAuditEvent('product.bulk_anchor.failed_item', productId, { error: error.message }, userId);
+    });
+  }
 }
 
 export async function rejectPassport(
@@ -263,11 +308,12 @@ export async function rejectPassport(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
+  if (!user && userId !== 'system' && !userId.startsWith('system:')) throw new Error('User not found');
+  if (user) checkPermission(user, 'product:reject');
+
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
   const product = mockProducts[productIndex];
-  checkPermission(user, 'product:reject', product);
 
   const now = new Date().toISOString();
   product.verificationStatus = 'Failed';
@@ -339,7 +385,7 @@ export async function generateZkProofForProduct(
   if (!product) throw new Error('Product not found');
   checkPermission(user, 'product:generate_zkp');
 
-  const proof = await generateZkProof(product);
+  const proof = await generateComplianceProof(product);
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   mockProducts[productIndex].zkProof = proof;
 
@@ -512,4 +558,20 @@ export async function overrideVerification(
   
   await logAuditEvent('product.verification.overridden', productId, { reason }, userId);
   return product;
+}
+
+async function hashData(data: object): Promise<string> {
+  const stableStringify = (obj: any): string => {
+    if (obj === null) return 'null';
+    if (typeof obj !== 'object') return JSON.stringify(obj);
+    if (Array.isArray(obj)) {
+      return `[${obj.map(stableStringify).join(',')}]`;
+    }
+    const keys = Object.keys(obj).sort();
+    const kvPairs = keys.map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
+    return `{${kvPairs.join(',')}}`;
+  };
+
+  const dataString = stableStringify(data);
+  return createHash("sha256").update(dataString).digest("hex");
 }

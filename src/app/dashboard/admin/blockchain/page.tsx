@@ -6,6 +6,8 @@ import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
 import BlockchainManagementClient from '@/components/blockchain-management-client';
 
+// This page now simply acts as a server-side entry point
+// for the real-time client component that handles all logic.
 export default async function BlockchainManagementPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
@@ -13,6 +15,5 @@ export default async function BlockchainManagementPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // The client component will handle fetching and filtering the data.
   return <BlockchainManagementClient user={user} />;
 }
