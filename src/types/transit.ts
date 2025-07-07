@@ -1,4 +1,7 @@
 // src/types/transit.ts
+import type { AnalyzeSimulatedRouteOutput as SimulatedRoute } from "./ai-outputs";
+
+export type { SimulatedRoute };
 
 export interface TransitInfo {
   stage: string;

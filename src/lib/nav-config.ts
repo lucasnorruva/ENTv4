@@ -172,6 +172,11 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
+        {
+          title: 'Customs Dashboard',
+          icon: Scale,
+          href: 'customs',
+        },
         { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },
