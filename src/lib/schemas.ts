@@ -359,5 +359,3 @@ export const customsInspectionFormSchema = z.object({
   notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
-
-    

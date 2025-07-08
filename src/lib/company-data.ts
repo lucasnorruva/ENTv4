@@ -17,10 +17,12 @@ export let companies: Company[] = [
     settings: {
       aiEnabled: true,
       apiAccess: true,
-      brandingCustomization: false,
+      brandingCustomization: true,
+      logoUrl: 'https://placehold.co/120x40.png',
+      logoFileName: 'eco-innovate-logo.png',
       theme: {
-        light: { primary: '', accent: '' },
-        dark: { primary: '', accent: '' },
+        light: { primary: '174 80% 30%', accent: '174 80% 92%' },
+        dark: { primary: '174 70% 50%', accent: '174 100% 15%' },
       },
       customFields: [],
     },
