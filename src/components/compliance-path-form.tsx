@@ -1,3 +1,4 @@
+
 // src/components/compliance-path-form.tsx
 'use client';
 
@@ -115,6 +116,7 @@ export default function CompliancePathForm({
       name: '',
       description: '',
       category: '',
+      jurisdiction: '',
       regulations: [{ value: 'ESPR' }],
       minSustainabilityScore: 0,
       requiredKeywords: [],
@@ -129,6 +131,7 @@ export default function CompliancePathForm({
           name: path.name,
           description: path.description,
           category: path.category,
+          jurisdiction: path.jurisdiction,
           regulations: path.regulations.map(value => ({ value })),
           minSustainabilityScore: path.rules.minSustainabilityScore,
           requiredKeywords:
@@ -141,6 +144,7 @@ export default function CompliancePathForm({
           name: '',
           description: '',
           category: '',
+          jurisdiction: '',
           regulations: [{ value: '' }],
           minSustainabilityScore: 0,
           requiredKeywords: [],
@@ -264,22 +268,40 @@ export default function CompliancePathForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Category</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Electronics" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    This path will apply to products in this category.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Product Category</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Electronics" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      This path will apply to products in this category.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="jurisdiction"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jurisdiction</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., EU, USA, Global" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      The primary legal jurisdiction this path applies to.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Separator />
             <div className="flex justify-between items-center pt-2">
               <h4 className="text-md font-semibold">Rules</h4>

@@ -1,3 +1,4 @@
+
 // src/components/compliance-path-management.tsx
 'use client';
 
@@ -18,6 +19,7 @@ import {
   Search,
   BookCopy,
   FileCode,
+  Globe,
 } from 'lucide-react';
 
 import type { CompliancePath, User, Product } from '@/types';
@@ -146,6 +148,7 @@ export default function CompliancePathManagement({
       path =>
         path.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         path.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        path.jurisdiction.toLowerCase().includes(searchTerm.toLowerCase()) ||
         path.regulations.some(r =>
           r.toLowerCase().includes(searchTerm.toLowerCase()),
         ),
@@ -332,8 +335,14 @@ export default function CompliancePathManagement({
                 </CardHeader>
                 <CardContent className="flex-grow space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm mb-2">Category</h4>
-                    <Badge variant="outline">{path.category}</Badge>
+                    <h4 className="font-semibold text-sm mb-2">Metadata</h4>
+                    <div className="flex flex-wrap gap-2">
+                        <Badge variant="outline">{path.category}</Badge>
+                        <Badge variant="outline" className="border-sky-500/50 text-sky-700 dark:text-sky-400">
+                            <Globe className="h-3 w-3 mr-1" />
+                            {path.jurisdiction}
+                        </Badge>
+                    </div>
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Regulations</h4>

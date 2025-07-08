@@ -329,6 +329,7 @@ export interface CompliancePath extends BaseEntity {
   description: string;
   regulations: string[];
   category: string;
+  jurisdiction: string;
   rules: {
     minSustainabilityScore?: number;
     requiredKeywords?: string[];

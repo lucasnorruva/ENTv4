@@ -1,3 +1,4 @@
+
 // src/lib/compliance-data.ts
 import type { CompliancePath } from '@/types';
 
@@ -18,6 +19,7 @@ export let compliancePaths: CompliancePath[] = [
       'Conflict Minerals',
     ],
     category: 'Electronics',
+    jurisdiction: 'EU',
     rules: {
       minSustainabilityScore: 60,
       bannedKeywords: ['Lead', 'Mercury', 'Cadmium', 'Hexavalent Chromium'],
@@ -32,6 +34,7 @@ export let compliancePaths: CompliancePath[] = [
       'Ensures organic status of textiles, from harvesting of raw materials, through environmentally and socially responsible manufacturing.',
     regulations: ['GOTS'],
     category: 'Fashion',
+    jurisdiction: 'Global',
     rules: {
       minSustainabilityScore: 75,
       requiredKeywords: ['Organic Cotton'],
@@ -47,6 +50,7 @@ export let compliancePaths: CompliancePath[] = [
       'Requires leather goods to comply with EU Deforestation-Free Regulation and REACH substance safety.',
     regulations: ['EUDR', 'REACH'],
     category: 'Fashion',
+    jurisdiction: 'EU',
     rules: {
       minSustainabilityScore: 50,
       requiredKeywords: ['Leather'],
@@ -61,6 +65,7 @@ export let compliancePaths: CompliancePath[] = [
       'Baseline safety requirements for all consumer goods sold in the EU.',
     regulations: ['GPSR'],
     category: 'Home Goods',
+    jurisdiction: 'EU',
     rules: {
       minSustainabilityScore: 40,
     },
@@ -73,6 +78,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'Compliance path for construction materials sold in the EU, covering CPR and future ESPR requirements. Focuses on safety, performance, and environmental impact.',
     regulations: ['CPR', 'ESPR', 'REACH'],
     category: 'Construction',
+    jurisdiction: 'EU',
     rules: {
       minSustainabilityScore: 55,
       bannedKeywords: ['Asbestos', 'Lead Paint'],
@@ -86,6 +92,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'Compliance for consumer electronics sold in the USA, covering FCC, CPSC safety, and Dodd-Frank conflict mineral reporting.',
     regulations: ['FCC', 'CPSC', 'Conflict Minerals (Dodd-Frank)'],
     category: 'Electronics',
+    jurisdiction: 'USA',
     rules: {
       minSustainabilityScore: 50,
     },
@@ -98,6 +105,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'Focuses on compliance with the EU Packaging Directive and Extended Producer Responsibility (EPR) schemes.',
     regulations: ['Packaging Directive (EU 94/62/EC)', 'EPR'],
     category: 'Home Goods',
+    jurisdiction: 'EU',
     rules: {
       requiredKeywords: ['Recyclable'],
     },
@@ -110,6 +118,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'Requirements for materials intended to come into contact with food, covering key EU and US FDA regulations.',
     regulations: ['Food Contact (EU 10/2011)', 'FDA Food Contact'],
     category: 'Home Goods',
+    jurisdiction: 'Global',
     rules: {
       requiredKeywords: ['Food Grade'],
       bannedKeywords: ['BPA', 'Bisphenol A'],
@@ -123,6 +132,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'General product safety requirements for goods placed on the market in Great Britain (England, Scotland, Wales).',
     regulations: ['UKCA', 'UK RoHS'],
     category: 'Electronics',
+    jurisdiction: 'UK',
     rules: {
       requiredKeywords: ['UKCA Declaration'],
     },
@@ -135,6 +145,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'Compliance for automotive components sold in the EU, covering End-of-Life Vehicles Directive and functional safety standards.',
     regulations: ['ELV Directive', 'ISO 26262', 'REACH'],
     category: 'Electronics',
+    jurisdiction: 'EU',
     rules: {
       minSustainabilityScore: 65,
     },
@@ -147,6 +158,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'General compliance for consumer goods in the US & Canada, covering CPSC safety standards and Canadian EPR.',
     regulations: ['CPSC', 'CCME EPR', 'Prop 65'],
     category: 'Home Goods',
+    jurisdiction: 'North America',
     rules: {
       requiredKeywords: ['Safety Data Sheet'],
       bannedKeywords: ['Phthalates'],
@@ -160,6 +172,7 @@ export let compliancePaths: CompliancePath[] = [
     description: 'General compliance framework for electronics sold in key APAC markets, including substance restrictions and e-waste laws.',
     regulations: ['China RoHS', 'Japan E-Waste', 'India E-Waste Rules'],
     category: 'Electronics',
+    jurisdiction: 'APAC',
     rules: {},
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),

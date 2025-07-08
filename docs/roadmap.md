@@ -166,6 +166,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 1.4.2 Advanced Encryption
 - [x] **3D Model Hashing**
+- [x] **File Integrity Hashing**
 - [ ] **Encryption Strategy**
 - [ ] **Key Management System**
 
@@ -262,6 +263,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 3.3.1 DPP Token Economy Design
 - [x] **Token Distribution Model**
+- [x] **Circularity Credits**
 - [ ] **Staking Mechanism**
 
 #### 3.3.2 NFT Passport System
@@ -309,7 +311,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 ### 4.4 Enterprise Security Features
 
-#### 4.4.1 Advanced Identity Management
+#### 4.4.1 Zero-Trust Identity Platform
 - [x] **Zero-Trust Identity Platform**
 
 #### 4.4.2 Data Loss Prevention
@@ -324,7 +326,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 ### 5.1 Global Compliance Framework
 
 #### 5.1.1 Multi-Jurisdiction Engine
-- [ ] **Regulatory Mapping System**
+- [x] **Regulatory Mapping System**
 - [x] **Green Claims Substantiation (FTC)**
 
 #### 5.1.2 Automated Trade Compliance
