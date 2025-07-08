@@ -1,3 +1,4 @@
+
 // This barrel file re-exports actions for easier importing.
 
 export * from './product-actions';
@@ -16,3 +17,4 @@ export * from './search-actions';
 export * from './product-ai-actions';
 export * from './regulation-sync-actions';
 export * from './dev-tool-actions';
+export * from './sync-actions';

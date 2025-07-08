@@ -1,11 +1,15 @@
+
 // src/components/integration-management-client.tsx
 'use client';
 
 import React, { useState, useTransition, useEffect } from 'react';
 import type { Integration, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { getIntegrations, updateIntegrationStatus } from '@/lib/actions/integration-actions';
-import { syncWithErp } from '@/lib/actions/sync-actions';
+import {
+  getIntegrations,
+  updateIntegrationStatus,
+  syncWithErp,
+} from '@/lib/actions';
 
 import {
   Card,
