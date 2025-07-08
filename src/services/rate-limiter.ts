@@ -19,6 +19,7 @@ const REFILL_RATE = 2;
 export async function checkRateLimit(
   keyId: string,
   tier: 'free' | 'pro' | 'enterprise' = 'pro',
+  cost: number = 1,
 ): Promise<void> {
   const settings = await getApiSettingsData();
   const bucketSize = settings.rateLimits[tier];
@@ -38,7 +39,7 @@ export async function checkRateLimit(
       if (!doc.exists) {
         // First request, create a full bucket.
         transaction.set(docRef, {
-          tokens: bucketSize - 1,
+          tokens: bucketSize - cost,
           lastRefilled: now,
         });
         return;
@@ -49,19 +50,19 @@ export async function checkRateLimit(
       // Calculate tokens to add since last request
       const timeElapsed = now - data.lastRefilled;
       const tokensToAdd = timeElapsed * REFILL_RATE;
-      
+
       let currentTokens = Math.min(
         data.tokens + tokensToAdd,
         bucketSize, // Don't exceed the bucket size
       );
 
-      if (currentTokens < 1) {
+      if (currentTokens < cost) {
         throw new RateLimitError(
           `Rate limit exceeded. Try again in a few seconds.`,
         );
       }
 
-      currentTokens -= 1;
+      currentTokens -= cost;
       transaction.update(docRef, { tokens: currentTokens, lastRefilled: now });
     });
   } catch (error) {

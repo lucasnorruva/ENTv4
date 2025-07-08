@@ -7,13 +7,16 @@ import {
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
-import { RateLimitError } from '@/services/rate-limiter';
+import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
 
 export async function GET(request: NextRequest) {
   let user;
   const endpoint = '/api/v1/products';
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 1);
+
     const products = await getProducts(user.id);
     const productsWithLinks = products.map(product => ({
       ...product,
@@ -55,7 +58,9 @@ export async function POST(request: NextRequest) {
   let user;
   const endpoint = '/api/v1/products';
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 10); // Higher cost for creating products
   } catch (error: any) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });

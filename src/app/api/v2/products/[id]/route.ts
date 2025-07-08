@@ -8,7 +8,7 @@ import {
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
-import { RateLimitError } from '@/services/rate-limiter';
+import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
 import type { Product } from '@/types';
 
 function formatProductResponse(product: Product) {
@@ -29,7 +29,10 @@ export async function GET(
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 1);
+
     const product = await getProductById(params.id, user.id);
 
     if (!product) {
@@ -81,7 +84,9 @@ export async function PUT(
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 5);
   } catch (error: any) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });
@@ -146,7 +151,9 @@ export async function DELETE(
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 5);
   } catch (error: any) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });

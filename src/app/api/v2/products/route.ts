@@ -4,7 +4,7 @@ import { getProducts, saveProduct } from '@/lib/actions/product-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
-import { RateLimitError } from '@/services/rate-limiter';
+import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
 import type { Product } from '@/types';
 
 function formatProductResponse(product: Product) {
@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
   let user;
   const endpoint = '/api/v2/products';
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 1);
+
     const products = await getProducts(user.id);
     const productsWithLinks = products.map(formatProductResponse);
     await logAuditEvent(
@@ -58,7 +61,9 @@ export async function POST(request: NextRequest) {
   let user;
   const endpoint = '/api/v2/products';
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    await checkRateLimit(apiKey.id, company.tier, 10);
   } catch (error: any) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-    
+
     errorDetails.status = 500;
     console.error('API v2 Product Creation Error:', error);
     await logAuditEvent('api.v2.post', 'N/A', errorDetails, user.id);

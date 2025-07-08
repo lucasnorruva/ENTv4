@@ -5,7 +5,7 @@ import { runComplianceCheck } from '@/lib/actions/product-ai-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import { PermissionError } from '@/lib/permissions';
-import { RateLimitError } from '@/services/rate-limiter';
+import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
 
 export async function POST(
   request: NextRequest,
@@ -15,7 +15,10 @@ export async function POST(
   const endpoint = `/api/v1/compliance/check/${params.productId}`;
 
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser, apiKey, company } = await authenticateApiRequest();
+    user = authUser;
+    // This is an expensive, AI-powered action, so it has a high cost.
+    await checkRateLimit(apiKey.id, company.tier, 20);
   } catch (error: any) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });

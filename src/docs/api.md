@@ -10,6 +10,14 @@ All API requests must be authenticated using an API key. Include your key in the
 
 ---
 
+## Rate Limiting
+
+Our API uses a token bucket algorithm to handle rate limiting. Different requests have different "costs" based on their complexity. For example, simple `GET` requests might cost 1 token, while complex `POST` requests or GraphQL mutations might cost 10 tokens.
+
+Your API key is associated with a tier (e.g., Free, Pro, Enterprise) which determines your bucket size and token refill rate. If you exceed your limit, you will receive a `429 Too Many Requests` error.
+
+---
+
 ## GraphQL API (Recommended)
 
 For complex data retrieval and mutations, our GraphQL API is the most powerful and efficient way to interact with the Norruva platform. It allows you to fetch exactly the data you need in a single request, reducing latency and simplifying client-side logic.
