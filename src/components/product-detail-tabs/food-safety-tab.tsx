@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/food-safety-tab.tsx
 'use client';
 
