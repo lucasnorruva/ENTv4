@@ -265,7 +265,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 #### 3.3.1 DPP Token Economy Design
 - [x] **Token Distribution Model**
 - [x] **Circularity Credits**
-- [x] **Dynamic NFT Passport System**
+- [ ] **Dynamic NFT Passport System**
 
 #### 3.3.2 NFT Passport System
 - [x] **Dynamic NFT Implementation**
@@ -478,3 +478,5 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 
 
+
+    

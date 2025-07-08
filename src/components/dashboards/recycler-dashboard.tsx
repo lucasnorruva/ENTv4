@@ -1,4 +1,3 @@
-
 // src/components/dashboards/recycler-dashboard.tsx
 import {
   Card,
@@ -105,3 +104,5 @@ export default async function RecyclerDashboard({ user }: { user: User }) {
     </div>
   );
 }
+
+    
