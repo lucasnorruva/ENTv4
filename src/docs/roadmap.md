@@ -226,8 +226,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [ ] **Continuous Testing Platform**
 
 #### 2.3.3 Workflow Automation Engine
-- [x] **No-Code Workflow Builder**
-- [x] **Pre-built Automation Templates**
+- [ ] **No-Code Workflow Builder**
+- [ ] **Pre-built Automation Templates**
 
 ---
 

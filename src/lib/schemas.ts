@@ -276,7 +276,9 @@ export const apiKeyFormSchema = z.object({
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
 
-const serviceTicketBaseSchema = z.object({
+export const serviceTicketFormSchema = z.object({
+  productId: z.string().optional(),
+  productionLineId: z.string().optional(),
   customerName: z.string().min(2, 'Customer name is required.'),
   issue: z
     .string()
@@ -284,19 +286,6 @@ const serviceTicketBaseSchema = z.object({
   status: z.enum(['Open', 'In Progress', 'Closed']),
   imageUrl: z.string().url().optional().or(z.literal('')),
 });
-
-export const serviceTicketFormSchema = z.discriminatedUnion('type', [
-  serviceTicketBaseSchema.extend({
-    type: z.literal('product'),
-    productId: z.string().min(1, 'Product must be selected.'),
-    productionLineId: z.string().optional(),
-  }),
-  serviceTicketBaseSchema.extend({
-    type: z.literal('line'),
-    productionLineId: z.string().min(1, 'Production line must be selected.'),
-    productId: z.string().optional(),
-  }),
-]);
 
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
 
@@ -395,3 +384,12 @@ export const customsInspectionFormSchema = z.object({
     notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
+
+export const productionLineFormSchema = z.object({
+  name: z.string().min(3, 'Line name is required.'),
+  location: z.string().min(3, 'Location is required.'),
+  status: z.enum(['Active', 'Idle', 'Maintenance']),
+  outputPerHour: z.coerce.number().min(0),
+  productId: z.string().optional(),
+});
+export type ProductionLineFormValues = z.infer<typeof productionLineFormSchema>;
