@@ -1,12 +1,10 @@
-
-'use server';
-
 // src/app/dashboard/admin/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts, getAuditLogs, getServiceTickets } from '@/lib/actions/product-actions';
-import { UserRoles, type Role } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -17,7 +15,6 @@ import {
 import {
   Activity,
   BookCopy,
-  ShieldCheck,
   Users,
   Clock,
   Edit,
@@ -35,12 +32,13 @@ import {
   Wrench,
   Ticket,
   BrainCircuit,
+  Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
+import type { AuditLog, Product, User, Company, ServiceTicket } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 import CustomsStatusChart from '@/components/charts/customs-status-chart';
 
@@ -66,7 +64,6 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-// Helper to generate mock compliance rate data
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
   const sortedProducts = products.sort(
@@ -85,21 +82,54 @@ const generateComplianceRateData = (products: Product[]) => {
   return data;
 };
 
-export default async function AnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.ADMIN);
+export default function AnalyticsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.ADMIN)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    const productQuery = query(collection(db, Collections.PRODUCTS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    }));
+
+    const userQuery = query(collection(db, Collections.USERS));
+    unsubscribes.push(onSnapshot(userQuery, snapshot => {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+    }));
+
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
+      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
+    }));
+    
+    const companyQuery = query(collection(db, Collections.COMPANIES));
+    unsubscribes.push(onSnapshot(companyQuery, snapshot => {
+      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)));
+    }));
+
+    const serviceTicketQuery = query(collection(db, Collections.SERVICE_TICKETS));
+    unsubscribes.push(onSnapshot(serviceTicketQuery, snapshot => {
+      setServiceTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTicket)));
+    }));
+
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, users, auditLogs, companies, serviceTickets] =
-    await Promise.all([
-      getProducts(user.id),
-      getUsers(),
-      getAuditLogs(),
-      getCompanies(),
-      getServiceTickets(user.id),
-    ]);
 
   const complianceData = {
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
@@ -123,7 +153,6 @@ export default async function AnalyticsPage() {
   const totalInspections =
     customsData.cleared + customsData.detained + customsData.rejected;
 
-  // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
       const date = format(new Date(product.createdAt), 'yyyy-MM-dd');
@@ -146,7 +175,6 @@ export default async function AnalyticsPage() {
   const productMap = new Map(products.map(p => [p.id, p.productName]));
   const userMap = new Map(users.map(u => [u.id, u.fullName]));
 
-  // NEW: Calculate predictive stats
   const predictedProducts = products.filter(
     p => p.sustainability?.lifecyclePrediction,
   );
@@ -168,7 +196,7 @@ export default async function AnalyticsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">System Analytics</h1>
         <p className="text-muted-foreground">
-          An overview of platform activity and key metrics.
+          An overview of platform activity and key metrics. Data is updated in real-time.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
