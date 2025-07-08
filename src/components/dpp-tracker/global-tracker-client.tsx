@@ -7,6 +7,7 @@ import React, {
   useRef,
   useCallback,
   useMemo,
+  useTransition,
 } from 'react';
 import dynamic from 'next/dynamic';
 import type { GlobeMethods } from 'react-globe.gl';
@@ -15,7 +16,7 @@ import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import type { GeoJsonFeature } from 'geojson';
 
-import type { Product, CustomsAlert, User, ProductionLine } from '@/types';
+import type { Product, CustomsAlert, User, ProductionLine, SimulatedRoute } from '@/types';
 import { mockCountryCoordinates } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import { getFactoryColor } from '@/lib/dppDisplayUtils';
@@ -24,6 +25,9 @@ import ClickedCountryInfoCard from './ClickedCountryInfoCard';
 import SelectedProductCustomsInfoCard from './SelectedProductCustomsInfoCard';
 import OperationalPointInfoCard from './OperationalPointInfoCard';
 import RouteAnalysisPanel from './RouteAnalysisPanel';
+import { useToast } from '@/hooks/use-toast';
+import { analyzeSimulatedTransitRoute } from '@/lib/actions/product-ai-actions';
+import SimulatedRouteInfoCard from './SimulatedRouteInfoCard';
 
 const Globe = dynamic(() => import('react-globe.gl'), {
   ssr: false,
@@ -67,6 +71,7 @@ export default function GlobalTrackerClient({
 }: GlobalTrackerClientProps) {
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
   const { theme } = useTheme();
+  const { toast } = useToast();
 
   // State
   const [landPolygons, setLandPolygons] = useState<GeoJsonFeature[]>([]);
@@ -80,6 +85,10 @@ export default function GlobalTrackerClient({
   const [riskFilter, setRiskFilter] = useState<'all' | 'High' | 'Medium' | 'Low'>('all');
   const [showFactories, setShowFactories] = useState(true);
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
+  
+  const [isAnalyzerOpen, setIsAnalyzerOpen] = useState(false);
+  const [simulatedRoute, setSimulatedRoute] = useState<(SimulatedRoute & { productName: string }) | null>(null);
+  const [isAnalyzing, startAnalysisTransition] = useTransition();
 
   useEffect(() => setIsClientMounted(true), []);
 
@@ -104,6 +113,7 @@ export default function GlobalTrackerClient({
     setSelectedProductId(productId);
     setClickedCountry(null);
     setClickedPoint(null);
+    setSimulatedRoute(null);
     if(productId) {
       setCountryFilter('supplyChain');
     }
@@ -113,19 +123,31 @@ export default function GlobalTrackerClient({
     setClickedCountry(polygon.properties);
     setSelectedProductId(null);
     setClickedPoint(null);
+    setSimulatedRoute(null);
   }, []);
   
   const handlePointClick = useCallback((point: any) => {
     setClickedPoint(point);
     setSelectedProductId(null);
     setClickedCountry(null);
+    setSimulatedRoute(null);
   }, []);
 
   useEffect(() => {
     const globe = globeEl.current;
     if (!globe || !globeReady) return;
 
-    if (selectedProduct?.transit) {
+    if (simulatedRoute) {
+        const origin = mockCountryCoordinates[simulatedRoute.origin];
+        const dest = mockCountryCoordinates[simulatedRoute.destination];
+        if (origin && dest) {
+          globe.pointOfView({
+            lat: (origin.lat + dest.lat) / 2,
+            lng: (origin.lng + dest.lng) / 2,
+            altitude: 1.5,
+          }, 1500);
+        }
+    } else if (selectedProduct?.transit) {
       const origin = mockCountryCoordinates[selectedProduct.transit.origin];
       const dest = mockCountryCoordinates[selectedProduct.transit.destination];
       if (origin && dest) {
@@ -145,7 +167,7 @@ export default function GlobalTrackerClient({
         // Reset view
         globe.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 1500);
     }
-  }, [selectedProduct, clickedCountry, globeReady]);
+  }, [selectedProduct, clickedCountry, simulatedRoute, globeReady]);
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -153,6 +175,23 @@ export default function GlobalTrackerClient({
       (globe.controls() as any).autoRotate = isAutoRotating;
     }
   }, [isAutoRotating]);
+
+  const handleAnalyzeRoute = (productId: string, origin: string, destination: string) => {
+    startAnalysisTransition(async () => {
+      try {
+        const result = await analyzeSimulatedTransitRoute(productId, origin, destination, user.id);
+        const product = products.find(p => p.id === productId);
+        setSimulatedRoute({ ...result, productName: product?.productName || 'Unknown Product' });
+        setIsAnalyzerOpen(false); // Close panel on success
+      } catch (error: any) {
+        toast({
+          title: 'Analysis Failed',
+          description: error.message || 'Could not analyze the simulated route.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
   
   const filteredCountryData = useMemo(() => {
     if (countryFilter === 'all') return MOCK_CUSTOMS_DATA;
@@ -275,6 +314,7 @@ export default function GlobalTrackerClient({
         onToggleFactories={setShowFactories}
         showCustomsAlerts={showCustomsAlerts}
         onToggleCustomsAlerts={setShowCustomsAlerts}
+        onToggleAnalyzer={() => setIsAnalyzerOpen(prev => !prev)}
       />
       {clickedCountry &&
         <ClickedCountryInfoCard 
@@ -302,6 +342,15 @@ export default function GlobalTrackerClient({
           onDismiss={() => setClickedPoint(null)}
           roleSlug={roleSlug}
         />
+      )}
+      <RouteAnalysisPanel
+        isOpen={isAnalyzerOpen}
+        products={products}
+        isAnalyzing={isAnalyzing}
+        onAnalyze={handleAnalyzeRoute}
+      />
+      {simulatedRoute && (
+        <SimulatedRouteInfoCard route={simulatedRoute} onDismiss={() => setSimulatedRoute(null)} />
       )}
     </div>
   );

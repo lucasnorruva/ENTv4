@@ -1,7 +1,7 @@
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
-import type { Product, User } from '@/types';
+import type { Product, User, SimulatedRoute } from '@/types';
 import { products as mockProducts } from '@/lib/data';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
@@ -16,7 +16,7 @@ import { checkPermission, PermissionError } from '../permissions';
 import { getProductById } from './product-actions';
 import { getCompliancePathById } from './compliance-actions';
 import { logAuditEvent } from './audit-actions';
-import type { AiProduct } from '@/types/ai-outputs';
+import type { AiProduct, ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
@@ -26,9 +26,8 @@ import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai
 import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
 import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from '@/ai/flows/analyze-electronics-compliance';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
-import { runSubmissionValidation } from '@/services/validation';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { validateProductData } from '@/ai/flows/validate-product-data';
+import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
+import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -584,4 +583,54 @@ export async function analyzeFoodSafetyData(productId: string, userId: string): 
 
     await logAuditEvent('product.analysis.food_safety', productId, {}, userId);
     return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeProductTransitRoute(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+  if (!product.transit) throw new Error('Product is not currently in transit.');
+
+  checkPermission(user, 'product:run_compliance');
+
+  const analysisResult = await analyzeProductTransitRiskFlow({
+    product,
+    originCountry: product.transit.origin,
+    destinationCountry: product.transit.destination,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].transitRiskAnalysis = analysisResult;
+  await logAuditEvent('product.analysis.transit_risk', productId, {}, userId);
+
+  return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeSimulatedTransitRoute(
+  productId: string,
+  origin: string,
+  destination: string,
+  userId: string
+): Promise<SimulatedRoute> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:run_compliance');
+
+  await logAuditEvent('product.analysis.simulated_route', productId, { origin, destination }, userId);
+  return analyzeSimulatedRouteFlow({
+    product,
+    originCountry: origin,
+    destinationCountry: destination,
+  });
 }

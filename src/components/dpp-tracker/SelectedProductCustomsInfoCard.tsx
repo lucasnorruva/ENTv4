@@ -1,7 +1,7 @@
 // src/components/dpp-tracker/SelectedProductCustomsInfoCard.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
@@ -26,6 +26,8 @@ import {
   Globe,
   Loader2,
   Bot,
+  ShieldAlert,
+  ShieldCheck,
 } from 'lucide-react';
 import type { Product, CustomsAlert, User } from '@/types';
 import { cn } from '@/lib/utils';
@@ -35,6 +37,8 @@ import {
   getStatusBadgeClasses,
 } from '@/lib/dppDisplayUtils';
 import { ScrollArea } from '../ui/scroll-area';
+import { analyzeProductTransitRoute } from '@/lib/actions/product-ai-actions';
+import { useToast } from '@/hooks/use-toast';
 
 interface SelectedProductCustomsInfoCardProps {
   product: Product;
@@ -45,20 +49,61 @@ interface SelectedProductCustomsInfoCardProps {
   roleSlug: string;
 }
 
+const RiskLevelBadge = ({ level }: { level: 'Low' | 'Medium' | 'High' | 'Very High' }) => {
+  const Icon = level === 'Low' ? ShieldCheck : ShieldAlert;
+
+  const colorClass = {
+    Low: 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700',
+    Medium: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700',
+    High: 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700',
+    'Very High': 'bg-red-200 text-red-900 border-red-300 dark:bg-red-900/70 dark:text-red-200 dark:border-red-800',
+  };
+
+  return (
+    <Badge variant={'outline'} className={cn('capitalize text-xs', colorClass[level])}>
+      <Icon className="mr-1 h-3.5 w-3.5" />
+      {level} Risk
+    </Badge>
+  );
+};
+
+
 export default function SelectedProductCustomsInfoCard({
-  product,
+  product: initialProduct,
   user,
   alerts,
   onDismiss,
   destinationCountry,
   roleSlug,
 }: SelectedProductCustomsInfoCardProps) {
+  const [product, setProduct] = useState(initialProduct);
+  const { toast } = useToast();
+  const [isAnalyzing, startAnalysisTransition] = useTransition();
+
   const { transit } = product;
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    setProduct(initialProduct);
+  }, [initialProduct]);
+
+  const handleAnalyzeRoute = () => {
+    startAnalysisTransition(async () => {
+      try {
+        const updatedProduct = await analyzeProductTransitRoute(product.id, user.id);
+        setProduct(updatedProduct);
+        toast({
+          title: 'Analysis Complete',
+          description: 'The transit route risk has been assessed.',
+        });
+      } catch (error: any) {
+        toast({
+          title: 'Analysis Failed',
+          description: error.message || 'Could not analyze the route.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
 
   if (!transit) {
     return (
@@ -97,42 +142,6 @@ export default function SelectedProductCustomsInfoCard({
       : Plane;
 
   const etaDate = new Date(transit.eta);
-
-  const renderEta = () => {
-    const formattedDate = format(etaDate, 'PPP');
-
-    if (!isMounted) {
-      // Render a static, consistently formatted date on the server to prevent mismatch
-      return formattedDate;
-    }
-
-    // Client-side only rendering for time-sensitive badges
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isEtaPast = etaDate < today;
-    const isEtaToday = etaDate.toDateString() === today.toDateString();
-
-    if (isEtaPast) {
-      return (
-        <Badge variant="destructive" className="text-xs">
-          <AlertTriangle className="mr-1 h-3 w-3" />
-          Overdue: {formattedDate}
-        </Badge>
-      );
-    }
-    if (isEtaToday) {
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-900/50 dark:text-yellow-300 dark:border-yellow-700"
-        >
-          <CalendarDays className="mr-1 h-3 w-3" />
-          Due Today: {formattedDate}
-        </Badge>
-      );
-    }
-    return formattedDate;
-  };
 
   const DppStatusIcon = getStatusIcon(product.verificationStatus);
   const dppStatusBadgeVariant = getStatusBadgeVariant(
@@ -188,9 +197,9 @@ export default function SelectedProductCustomsInfoCard({
               <strong className="text-muted-foreground">Destination:</strong>{' '}
               {transit.destination}
             </p>
-            <div className="flex items-center" suppressHydrationWarning>
+            <div className="flex items-center">
               <strong className="text-muted-foreground mr-1">ETA:</strong>
-              {renderEta()}
+              {format(etaDate, 'PPP')}
             </div>
             <p className="flex items-center">
               <strong className="text-muted-foreground mr-1">
@@ -230,6 +239,23 @@ export default function SelectedProductCustomsInfoCard({
               </ul>
             </div>
           )}
+          {product.transitRiskAnalysis && (
+            <div className="mt-2 pt-2 border-t border-border/50">
+              <h4 className="font-medium text-foreground mb-1">Risk Analysis:</h4>
+              <div className="p-2 border rounded-md bg-muted/30 space-y-1.5">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-sm">Overall Risk</span>
+                  <RiskLevelBadge level={product.transitRiskAnalysis.riskLevel} />
+                </div>
+                <p className="text-xs text-muted-foreground italic">{product.transitRiskAnalysis.summary}</p>
+                <ul className="text-xs text-muted-foreground list-disc list-inside pt-1">
+                  {product.transitRiskAnalysis.keyConsiderations.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
           <div className="flex flex-wrap gap-2 pt-2">
             <Button
               variant="link"
@@ -265,9 +291,9 @@ export default function SelectedProductCustomsInfoCard({
         </CardContent>
       </ScrollArea>
       <CardFooter className="p-2 border-t">
-        <Button className="w-full">
-          <Bot className="mr-2 h-4 w-4" />
-          Analyze Route Risk
+        <Button className="w-full" onClick={handleAnalyzeRoute} disabled={isAnalyzing}>
+          {isAnalyzing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Bot className="mr-2 h-4 w-4" />}
+          {product.transitRiskAnalysis ? 'Re-analyze Route' : 'Analyze Route Risk'}
         </Button>
       </CardFooter>
     </Card>
