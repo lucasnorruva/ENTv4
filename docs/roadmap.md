@@ -325,6 +325,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 5.1.1 Multi-Jurisdiction Engine
 - [ ] **Regulatory Mapping System**
+- [x] **Green Claims Substantiation (FTC)**
 
 #### 5.1.2 Automated Trade Compliance
 - [ ] **HS Code Classification AI**

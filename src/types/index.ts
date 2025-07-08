@@ -269,10 +269,6 @@ export interface Product extends BaseEntity {
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
-  ebsiDetails?: {
-    status: 'Verified' | 'Pending' | 'Failed';
-    conformanceResultUrl?: string;
-  };
   ownershipNft?: {
     tokenId: string;
     contractAddress: string;
@@ -284,7 +280,11 @@ export interface Product extends BaseEntity {
     location: string;
     actor: string;
   }[];
-
+  ebsiDetails?: {
+    status: 'Verified' | 'Pending' | 'Failed';
+    conformanceResultUrl?: string;
+  };
+  
   // Structured Data Fields
   materials: Material[];
   manufacturing?: Manufacturing;
@@ -296,9 +296,6 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
-  constructionAnalysis?: ConstructionAnalysis;
-  transit?: TransitInfo;
-  customs?: CustomsStatus;
   greenClaims?: GreenClaim[];
 
   // AI-Generated & Compliance Data
@@ -308,6 +305,7 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
+  constructionAnalysis?: ConstructionAnalysis;
   foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
   transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
@@ -318,6 +316,8 @@ export interface Product extends BaseEntity {
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
   blockchainProof?: BlockchainProof;
   isMinting?: boolean;
+  transit?: TransitInfo;
+  customs?: CustomsStatus;
 }
 
 /**
