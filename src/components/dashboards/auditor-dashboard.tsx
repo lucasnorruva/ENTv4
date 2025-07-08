@@ -7,9 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import type { User } from '@/types';
+import type { User, Product } from '@/types';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle, Hourglass } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle,
+  Hourglass,
+  BarChart3,
+  List,
+} from 'lucide-react';
 import Link from 'next/link';
 import { getProducts } from '@/lib/actions/product-actions';
 import { formatDistanceToNow } from 'date-fns';
@@ -19,13 +25,19 @@ export default async function AuditorDashboard({ user }: { user: User }) {
   const stats = {
     pending: products.filter(p => p.verificationStatus === 'Pending').length,
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
+    total: products.length,
   };
 
-  const recentPending = products
-    .filter(p => p.verificationStatus === 'Pending')
+  const recentlyAudited = products
+    .filter(
+      p =>
+        p.verificationStatus === 'Verified' ||
+        p.verificationStatus === 'Failed',
+    )
     .sort(
       (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        new Date(b.lastVerificationDate!).getTime() -
+        new Date(a.lastVerificationDate!).getTime(),
     )
     .slice(0, 5);
 
@@ -35,11 +47,11 @@ export default async function AuditorDashboard({ user }: { user: User }) {
         <h1 className="text-2xl font-bold tracking-tight">Auditor Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome back, {user.fullName}. Here is an overview of the current
-          audit queue.
+          audit queue and platform status.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Review</CardTitle>
@@ -51,13 +63,6 @@ export default async function AuditorDashboard({ user }: { user: User }) {
               Products awaiting verification
             </p>
           </CardContent>
-          <CardFooter>
-            <Button asChild size="sm" className="w-full">
-              <Link href="/dashboard/auditor/audit">
-                Go to Full Audit Queue <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardFooter>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -73,19 +78,53 @@ export default async function AuditorDashboard({ user }: { user: User }) {
             </p>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Passports
+            </CardTitle>
+            <List className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+            <p className="text-xs text-muted-foreground">
+              Across the entire platform
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Full Analytics
+            </CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-muted-foreground">
+              Dive deeper into platform trends and audit metrics.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild size="sm" className="w-full">
+              <Link href="/dashboard/auditor/analytics">
+                View Analytics <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Recently Submitted for Review</CardTitle>
+          <CardTitle>Recently Audited Products</CardTitle>
           <CardDescription>
-            The latest products added to the audit queue.
+            The latest products you and other auditors have reviewed.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {recentPending.length > 0 ? (
+          {recentlyAudited.length > 0 ? (
             <div className="space-y-4">
-              {recentPending.map(product => (
+              {recentlyAudited.map(product => (
                 <div
                   key={product.id}
                   className="flex items-center justify-between"
@@ -93,28 +132,44 @@ export default async function AuditorDashboard({ user }: { user: User }) {
                   <div>
                     <p className="font-medium">{product.productName}</p>
                     <p className="text-sm text-muted-foreground">
-                      From {product.supplier}
+                      From {product.supplier} - Status:{' '}
+                      <span
+                        className={
+                          product.verificationStatus === 'Verified'
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }
+                      >
+                        {product.verificationStatus}
+                      </span>
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className="text-xs text-muted-foreground"
-                      suppressHydrationWarning
-                    >
-                      {formatDistanceToNow(new Date(product.updatedAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                  <div
+                    className="text-right text-xs text-muted-foreground"
+                    suppressHydrationWarning
+                  >
+                    {product.lastVerificationDate &&
+                      formatDistanceToNow(
+                        new Date(product.lastVerificationDate),
+                        { addSuffix: true },
+                      )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-6 text-muted-foreground">
-              <p>The audit queue is clear. Great job!</p>
+              <p>No products have been audited yet.</p>
             </div>
           )}
         </CardContent>
+        <CardFooter>
+          <Button asChild className="w-full" variant="secondary">
+            <Link href="/dashboard/auditor/audit">
+              Go to Full Audit Queue <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
