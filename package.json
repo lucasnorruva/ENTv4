@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "turbo run dev:web dev:ai",
-    "dev:web": "next dev --port 9002 --hostname 0.0.0.0",
+    "dev": "turbo run dev:web dev:ai --",
+    "dev:web": "next dev",
     "dev:ai": "genkit start",
     "build": "next build",
     "start": "next start",
