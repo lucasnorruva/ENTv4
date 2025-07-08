@@ -152,6 +152,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Supply Chain Visualization**
 - [x] **Compliance Automation Suite**
 - [x] **Production Line Management**
+- [x] **Service Ticket Management**
 
 #### 1.3.3 Advanced Analytics Suite
 - [x] **Business Intelligence Integration**
@@ -196,9 +197,9 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 2.1.3 Industry-Specific AI Models
 - [x] **Electronics Compliance AI**
-- [x] **Textile AI Specialist**
-- [x] **Food & Beverage AI**
-- [x] **Construction Materials AI**
+- [ ] **Textile AI Specialist**
+- [ ] **Food & Beverage AI**
+- [ ] **Construction Materials AI**
 - [x] **AI-Powered Q&A Chatbot**
 
 ### 2.2 Advanced Data Quality & Enrichment
@@ -328,7 +329,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 5.1.1 Multi-Jurisdiction Engine
 - [x] **Regulatory Mapping System**
-- [x] **Green Claims Substantiation (FTC)**
+- [ ] **Green Claims Substantiation (FTC)**
 
 #### 5.1.2 Automated Trade Compliance
 - [ ] **HS Code Classification AI**

@@ -86,7 +86,7 @@ import type {
 } from '@/ai/flows/analyze-transit-risk';
 import type {
   AnalyzeProductTransitRiskInput,
-  AnalyzeProductTransitRiskOutput,
+  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
 } from '@/ai/flows/analyze-product-transit-risk';
 import type {
   AnalyzeSimulatedRouteInput,
@@ -152,7 +152,7 @@ export type {
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeTransitRiskOutput,
-  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
+  ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
   AnalyzeFoodSafetyOutput,
   GenerateSmartContractOutput,
