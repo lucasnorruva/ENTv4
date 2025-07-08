@@ -1,10 +1,12 @@
 // src/services/rate-limiter.ts
 'use server';
 
-import { adminDb } from '@/lib/firebase-admin';
-import { Collections } from '@/lib/constants';
-import { getApiSettingsData } from '@/lib/api-settings';
+import { apiSettings as mockApiSettings } from '@/lib/api-settings';
 import type { ApiRateLimit } from '@/types';
+
+// This is a mock in-memory store for rate limits.
+// In a real application, this would use Redis or Firestore.
+const rateLimitStore: Record<string, ApiRateLimit> = {};
 
 export class RateLimitError extends Error {
   constructor(message: string = 'Rate limit exceeded.') {
@@ -21,7 +23,8 @@ export async function checkRateLimit(
   tier: 'free' | 'pro' | 'enterprise' = 'pro',
   cost: number = 1,
 ): Promise<void> {
-  const settings = await getApiSettingsData();
+  // Use the mock settings data
+  const settings = mockApiSettings;
   const bucketSize = settings.rateLimits[tier];
 
   // A limit of 0 means no limit is enforced
@@ -30,46 +33,32 @@ export async function checkRateLimit(
   }
 
   const now = Math.floor(Date.now() / 1000);
-  const docRef = adminDb.collection(Collections.API_RATE_LIMITS).doc(keyId);
+  const rateLimitData = rateLimitStore[keyId];
 
-  try {
-    await adminDb.runTransaction(async transaction => {
-      const doc = await transaction.get(docRef);
-
-      if (!doc.exists) {
-        // First request, create a full bucket.
-        transaction.set(docRef, {
-          tokens: bucketSize - cost,
-          lastRefilled: now,
-        });
-        return;
-      }
-
-      const data = doc.data() as ApiRateLimit;
-
-      // Calculate tokens to add since last request
-      const timeElapsed = now - data.lastRefilled;
-      const tokensToAdd = timeElapsed * REFILL_RATE;
-
-      let currentTokens = Math.min(
-        data.tokens + tokensToAdd,
-        bucketSize, // Don't exceed the bucket size
-      );
-
-      if (currentTokens < cost) {
-        throw new RateLimitError(
-          `Rate limit exceeded. Try again in a few seconds.`,
-        );
-      }
-
-      currentTokens -= cost;
-      transaction.update(docRef, { tokens: currentTokens, lastRefilled: now });
-    });
-  } catch (error) {
-    if (error instanceof RateLimitError) {
-      throw error;
-    }
-    console.error('Firestore rate-limiting transaction failed:', error);
-    // Fail open for other transaction errors to not block legitimate traffic
+  if (!rateLimitData) {
+    // First request, create a full bucket.
+    rateLimitStore[keyId] = {
+      tokens: bucketSize - cost,
+      lastRefilled: now,
+    };
+    return;
   }
+
+  // Calculate tokens to add since last request
+  const timeElapsed = now - rateLimitData.lastRefilled;
+  const tokensToAdd = timeElapsed * REFILL_RATE;
+
+  let currentTokens = Math.min(
+    rateLimitData.tokens + tokensToAdd,
+    bucketSize, // Don't exceed the bucket size
+  );
+
+  if (currentTokens < cost) {
+    throw new RateLimitError(
+      `Rate limit exceeded. Try again in a few seconds.`,
+    );
+  }
+
+  currentTokens -= cost;
+  rateLimitStore[keyId] = { tokens: currentTokens, lastRefilled: now };
 }

@@ -6,7 +6,9 @@ import { PermissionError } from './permissions';
 import { RateLimitError } from '@/services/rate-limiter';
 
 /**
- * Authenticates an API request using a Bearer token but does NOT check rate limits.
+ * Authenticates an API request using a Bearer token.
+ * This function handles authentication and basic key validation but delegates
+ * rate limiting to the calling endpoint.
  *
  * This function performs the following steps:
  * 1. Extracts the token from the Authorization header.
