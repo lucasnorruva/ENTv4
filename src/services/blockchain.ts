@@ -50,7 +50,7 @@ export async function hashData(data: object): Promise<string> {
  * @returns A promise that resolves to the mock CID (which is the file's hash).
  */
 export async function storeOnIpfs(file: File): Promise<string> {
-  // In a real app, you'd upload the file buffer to IPFS.
+  // In a real app, you'd upload the file buffer to an IPFS node.
   // For this mock, we just hash the content to get a CID.
   return mockStoreOnIpfs(file);
 }
