@@ -30,9 +30,9 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
     // Use a flag to ensure we only connect once.
     if (!(window as any).__firebase_emulators_connected) {
       console.log("✅ Client SDK: Connecting to Firebase Emulators...");
-      connectFirestoreEmulator(db, "127.0.0.1", 8080);
-      connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-      connectStorageEmulator(storage, "127.0.0.1", 9199);
+      connectFirestoreEmulator(db, "localhost", 8080);
+      connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+      connectStorageEmulator(storage, "localhost", 9199);
       console.log("✅ Client SDK: Connected to emulators successfully.");
       (window as any).__firebase_emulators_connected = true;
     }

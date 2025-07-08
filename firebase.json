@@ -14,32 +14,32 @@
   "emulators": {
     "auth": {
       "port": 9099,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "functions": {
       "port": 5001,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "firestore": {
       "port": 8080,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "database": {
       "port": 9000,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "hosting": {
       "port": 5000,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "storage": {
       "port": 9199,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "ui": {
       "enabled": true,
       "port": 4001,
-      "host": "127.0.0.1"
+      "host": "localhost"
     },
     "singleProjectMode": true
   }
