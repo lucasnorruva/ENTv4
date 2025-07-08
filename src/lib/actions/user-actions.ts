@@ -1,3 +1,4 @@
+
 // src/lib/actions/user-actions.ts
 'use server';
 
@@ -20,6 +21,17 @@ import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { adminAuth } from '@/lib/firebase-admin';
 import { saveCompany } from './company-actions';
+
+/**
+ * Fetches a user by their email address from the mock database.
+ * This is a Server Action and can be called from client components.
+ * @param email The email of the user to fetch.
+ * @returns A promise that resolves to the user or undefined if not found.
+ */
+export async function getUserByEmail(email: string): Promise<User | undefined> {
+  return Promise.resolve(mockUsers.find(user => user.email === email));
+}
+
 
 export async function saveUser(
   values: UserFormValues,

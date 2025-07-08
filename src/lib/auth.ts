@@ -1,3 +1,4 @@
+
 // src/lib/auth.ts
 import { users } from './user-data';
 import { companies } from './company-data';
@@ -39,16 +40,6 @@ export async function getUsersByCompanyId(companyId: string): Promise<User[]> {
 export async function getUserById(id: string): Promise<User | undefined> {
   return Promise.resolve(users.find(user => user.id === id));
 }
-
-/**
- * Fetches a user by their email address from the mock database.
- * @param email The email of the user to fetch.
- * @returns A promise that resolves to the user or undefined if not found.
- */
-export async function getUserByEmail(email: string): Promise<User | undefined> {
-  return Promise.resolve(users.find(user => user.email === email));
-}
-
 
 /**
  * Fetches an API key by its raw token string.
