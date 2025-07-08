@@ -36,6 +36,7 @@ import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
+import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -84,6 +85,7 @@ export default function ProductDetailView({
   };
   
   const showElectronicsTab = product.category === 'Electronics';
+  const showFoodTab = product.category === 'Food & Beverage';
 
   return (
     <>
@@ -151,6 +153,7 @@ export default function ProductDetailView({
               <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
+                {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -166,6 +169,11 @@ export default function ProductDetailView({
                {showElectronicsTab && (
                 <TabsContent value="electronics" className="mt-4">
                     <ElectronicsTab product={product} />
+                </TabsContent>
+               )}
+               {showFoodTab && (
+                <TabsContent value="food" className="mt-4">
+                    <FoodSafetyTab product={product} />
                 </TabsContent>
                )}
               <TabsContent value="sustainability" className="mt-4">
