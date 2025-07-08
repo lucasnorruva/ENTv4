@@ -43,6 +43,7 @@ export async function saveCompliancePath(
     name: validatedData.name,
     description: validatedData.description,
     category: validatedData.category,
+    jurisdiction: validatedData.jurisdiction,
     regulations: validatedData.regulations
       .map(item => item.value)
       .filter(Boolean),
