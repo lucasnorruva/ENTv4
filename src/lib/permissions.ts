@@ -117,6 +117,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'product:add_service_record',
     'ticket:create',
     'ticket:manage',
+    'ticket:view_all',
     'user:edit',
   ],
 
@@ -195,3 +196,5 @@ export function checkPermission(user: User, action: Action, resource?: any) {
     );
   }
 }
+
+    

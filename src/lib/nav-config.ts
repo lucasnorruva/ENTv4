@@ -1,4 +1,3 @@
-
 // src/lib/nav-config.ts
 import {
   BookCopy,
@@ -340,3 +339,5 @@ export const navConfig: NavConfig = {
     },
   ],
 };
+
+    
