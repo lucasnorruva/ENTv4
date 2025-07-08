@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/lifecycle-tab.tsx
 'use client';
 
