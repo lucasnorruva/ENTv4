@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, Fingerprint, History, CheckCircle, Wallet, Sparkles, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { anchorProductOnChain, bulkAnchorProducts } from '@/lib/actions';
+import { bulkAnchorProducts } from '@/lib/actions';
 import { Checkbox } from '../ui/checkbox';
 import Link from 'next/link';
 
