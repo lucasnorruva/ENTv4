@@ -15,6 +15,17 @@ export class PermissionError extends Error {
   }
 }
 
+/**
+ * Custom error class for rate limit exceeded failures.
+ */
+export class RateLimitError extends Error {
+  constructor(message: string = 'Rate limit exceeded.') {
+    super(message);
+    this.name = 'RateLimitError';
+  }
+}
+
+
 // Centralized list of all possible actions in the system.
 export const allActions = [
   // Product Lifecycle

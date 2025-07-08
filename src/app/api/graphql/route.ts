@@ -7,8 +7,7 @@ import { NextRequest } from 'next/server';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import type { User, Company, ApiKey } from '@/types';
 import { GraphQLError } from 'graphql';
-import { PermissionError } from '@/lib/permissions';
-import { RateLimitError } from '@/services/rate-limiter';
+import { PermissionError, RateLimitError } from '@/lib/permissions';
 import { checkRateLimit } from '@/services/rate-limiter';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 

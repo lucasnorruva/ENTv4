@@ -3,8 +3,8 @@ import { NextResponse, NextRequest } from 'next/server';
 import { getProducts, saveProduct } from '@/lib/actions/product-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
-import { PermissionError } from '@/lib/permissions';
-import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
+import { PermissionError, RateLimitError } from '@/lib/permissions';
+import { checkRateLimit } from '@/services/rate-limiter';
 import type { Product } from '@/types';
 
 function formatProductResponse(product: Product) {

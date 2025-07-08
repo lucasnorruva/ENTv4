@@ -3,17 +3,11 @@
 
 import { apiSettings as mockApiSettings } from '@/lib/api-settings';
 import type { ApiRateLimit } from '@/types';
+import { RateLimitError } from '@/lib/permissions';
 
 // This is a mock in-memory store for rate limits.
 // In a real application, this would use Redis or Firestore.
 const rateLimitStore: Record<string, ApiRateLimit> = {};
-
-export class RateLimitError extends Error {
-  constructor(message: string = 'Rate limit exceeded.') {
-    super(message);
-    this.name = 'RateLimitError';
-  }
-}
 
 // Refill rate is tokens per second.
 const REFILL_RATE = 2;

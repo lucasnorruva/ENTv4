@@ -6,8 +6,8 @@ import {
 } from '@/lib/actions/product-actions';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
-import { PermissionError } from '@/lib/permissions';
-import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
+import { PermissionError, RateLimitError } from '@/lib/permissions';
+import { checkRateLimit } from '@/services/rate-limiter';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
