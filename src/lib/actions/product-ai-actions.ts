@@ -28,6 +28,9 @@ import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/a
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import type { AnalyzeSimulatedRouteOutput, ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
+import { runSubmissionValidation } from '@/services/validation';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
+import { validateProductData } from '@/ai/flows/validate-product-data';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -253,6 +256,7 @@ export async function generateConformityDeclarationText(
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
     foodSafety: product.foodSafety,
+    greenClaims: product.greenClaims,
   };
 
   const { declarationText } = await generateConformityDeclarationFlow({
@@ -326,6 +330,7 @@ export async function generatePcdsForProduct(
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
     foodSafety: product.foodSafety,
+    greenClaims: product.greenClaims,
   };
 
   const pcdsData = await generatePcdsFlow({ product: aiProductInput });
@@ -376,6 +381,7 @@ export async function runLifecyclePrediction(
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
     foodSafety: product.foodSafety,
+    greenClaims: product.greenClaims,
   };
 
   const predictionResult = await predictProductLifecycleFlow({
@@ -430,6 +436,7 @@ export async function askQuestionAboutProduct(
     complianceSummary: product.sustainability?.complianceSummary,
     textile: product.textile,
     foodSafety: product.foodSafety,
+    greenClaims: product.greenClaims,
   };
 
   return await productQa({ productContext, question });

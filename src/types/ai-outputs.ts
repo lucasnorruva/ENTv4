@@ -145,7 +145,7 @@ export type {
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeTransitRiskOutput,
-  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
+  AnalyzeProductTransitRiskOutput,
   AnalyzeSimulatedRouteOutput,
   AnalyzeFoodSafetyOutput,
 };
