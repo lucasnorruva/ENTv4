@@ -563,7 +563,7 @@ export async function resolveComplianceIssue(
   userId: string,
 ): Promise<Product> {
   const user = await getUserById(userId);
-  if (!user) throw new Error('User not found.');
+  if (!user) throw new Error('User not found');
   const productIndex = mockProducts.findIndex(p => p.id === productId);
   if (productIndex === -1) throw new Error('Product not found');
   const product = mockProducts[productIndex];
