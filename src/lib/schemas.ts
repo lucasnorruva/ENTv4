@@ -19,16 +19,16 @@ export const foodSafetyDataSchema = z.object({
   allergens: z.string().optional(),
 });
 
+const greenClaimSchema = z.object({
+  claim: z.string().min(1, 'Claim text is required.'),
+  substantiation: z.string().min(1, 'Substantiation is required.'),
+});
+
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
   percentage: z.coerce.number().optional(),
   recycledContent: z.coerce.number().optional(),
   origin: z.string().optional(),
-});
-
-const greenClaimSchema = z.object({
-  claim: z.string().min(1, 'Claim text is required.'),
-  substantiation: z.string().min(1, 'Substantiation is required.'),
 });
 
 const certificationSchema = z.object({
