@@ -27,8 +27,9 @@ export function getStatusBadgeVariant(
       return 'secondary';
     case 'Failed':
     case 'Rejected':
-    default:
       return 'destructive';
+    default:
+        return 'outline';
   }
 }
 
