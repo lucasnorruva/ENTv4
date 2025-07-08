@@ -2,8 +2,9 @@
   "name": "norruva",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.8.1",
   "scripts": {
-    "dev": "turbo run dev:web dev:ai --",
+    "dev": "turbo run dev:web dev:ai -- --port 9002 --hostname 0.0.0.0",
     "dev:web": "next dev",
     "dev:ai": "genkit start",
     "build": "next build",
