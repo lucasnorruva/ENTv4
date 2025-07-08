@@ -12,6 +12,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { polygonAmoy } from "viem/chains";
+import { storeOnIpfs as mockStoreOnIpfs } from "./ipfs";
 
 // --- HASHING ---
 
@@ -41,6 +42,19 @@ export async function hashData(data: object): Promise<string> {
   const dataString = stableStringify(data);
   return createHash("sha256").update(dataString).digest("hex");
 }
+
+// --- IPFS (MOCK) ---
+/**
+ * Simulates storing a file on IPFS and returns its CID.
+ * @param file The file to store.
+ * @returns A promise that resolves to the mock CID (which is the file's hash).
+ */
+export async function storeOnIpfs(file: File): Promise<string> {
+  // In a real app, you'd upload the file buffer to IPFS.
+  // For this mock, we just hash the content to get a CID.
+  return mockStoreOnIpfs(file);
+}
+
 
 // --- BLOCKCHAIN INTEGRATION (VIEM) ---
 

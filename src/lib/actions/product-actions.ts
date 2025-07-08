@@ -28,7 +28,7 @@ import { getCompliancePathById } from './compliance-actions';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
 import { validateProductData } from '@/ai/flows/validate-product-data';
-import { anchorToPolygon } from '@/services/blockchain';
+import { anchorToPolygon, storeOnIpfs } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
 import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
