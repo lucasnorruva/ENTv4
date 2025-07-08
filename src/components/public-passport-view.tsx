@@ -1,4 +1,6 @@
 // src/components/public-passport-view.tsx
+'use client';
+
 import type { Product, CompliancePath, Company } from '@/types';
 import Image from 'next/image';
 import {
@@ -219,5 +221,3 @@ export default function PublicPassportView({
     </Card>
   );
 }
-
-    

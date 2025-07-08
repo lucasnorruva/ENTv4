@@ -1,4 +1,6 @@
 // src/components/product-card.tsx
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Product } from '@/types';
