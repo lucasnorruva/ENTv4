@@ -21,6 +21,9 @@ import type { ModelHotspot } from './3d';
 export type ErpProduct = ErpProductType;
 export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
+export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
+export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
+export type TextileAnalysis = AnalyzeTextileOutput;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -244,9 +247,6 @@ export interface VerificationOverride {
   date: string;
 }
 
-export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
-
-
 /**
  * The core Digital Product Passport entity.
  */
@@ -302,6 +302,10 @@ export interface Product extends BaseEntity {
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
   constructionAnalysis?: ConstructionAnalysis;
+  electronicsAnalysis?: ElectronicsAnalysis;
+  textileAnalysis?: TextileAnalysis;
+  foodSafetyAnalysis?: FoodSafetyAnalysis;
+  transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -309,10 +313,6 @@ export interface Product extends BaseEntity {
   dataQualityWarnings?: DataQualityWarning[];
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
-  textileAnalysis?: AnalyzeTextileOutput;
-  foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
-  electronicsAnalysis?: ElectronicsAnalysis;
-  transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;

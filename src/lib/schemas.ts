@@ -173,6 +173,9 @@ export const productFormSchema = z.object({
   textile: textileDataSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   constructionAnalysis: z.any().optional(),
+  electronicsAnalysis: z.any().optional(),
+  textileAnalysis: z.any().optional(),
+  foodSafetyAnalysis: z.any().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
