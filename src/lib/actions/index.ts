@@ -1,19 +1,135 @@
 // src/lib/actions/index.ts
 // This barrel file re-exports actions for easier importing.
+// It uses explicit exports to avoid issues with the Next.js server action bundler.
 
-export * from './product-actions';
-export * from './product-ai-actions';
-export * from './user-actions';
-export * from './company-actions';
-export * from './audit-actions';
-export * from './compliance-actions';
-export * from './api-key-actions';
-export * from './webhook-actions';
-export * from './settings-actions';
-export * from './report-actions';
-export * from './integration-actions';
-export * from './manufacturing-actions';
-export * from './ticket-actions';
-export * from './search-actions';
-export * from './dev-tool-actions';
-export * from './sync-actions';
+export {
+  getProducts,
+  getProductById,
+  getProductByGtin,
+  processProductAi,
+  saveProduct,
+  deleteProduct,
+  submitForReview,
+  approvePassport,
+  anchorProductOnChain,
+  bulkAnchorProducts,
+  rejectPassport,
+  addCustodyStep,
+  transferOwnership,
+  generateZkProofForProduct,
+  verifyZkProofForProduct,
+  bulkDeleteProducts,
+  bulkSubmitForReview,
+  bulkArchiveProducts,
+  markAsRecycled,
+  resolveComplianceIssue,
+  overrideVerification,
+  performCustomsInspection,
+  bulkCreateProducts,
+} from './product-actions';
+
+export {
+  recalculateScore,
+  runDataValidationCheck,
+  runComplianceCheck,
+  generateAndSaveProductImage,
+  generateAndSaveConformityDeclaration,
+  generateConformityDeclarationText,
+  createProductFromImage,
+  analyzeBillOfMaterials,
+  suggestImprovements,
+  generateProductDescription,
+  generatePcdsForProduct,
+  runLifecyclePrediction,
+  askQuestionAboutProduct,
+  getFriendlyError,
+  analyzeElectronicsData,
+  analyzeTextileData,
+  analyzeFoodSafetyData,
+  analyzeConstructionData,
+  analyzeProductTransitRoute,
+  analyzeSimulatedTransitRoute,
+  runHsCodeClassification,
+} from './product-ai-actions';
+
+export {
+  saveUser,
+  deleteUser,
+  createUserAndCompany,
+  completeOnboarding,
+  updateUserProfile,
+  updateUserPassword,
+  setMfaStatus,
+  saveNotificationPreferences,
+  markAllNotificationsAsRead,
+  signInWithMockUser,
+  bulkCreateUsers,
+  deleteOwnAccount,
+} from './user-actions';
+
+export { saveCompany, deleteCompany } from './company-actions';
+
+export {
+  logAuditEvent,
+  getAuditLogs,
+  getAuditLogById,
+  getAuditLogsForEntity,
+  getAuditLogsForUser,
+} from './audit-actions';
+
+export {
+  getCompliancePaths,
+  getCompliancePathById,
+  saveCompliancePath,
+  deleteCompliancePath,
+  generateCompliancePathRules,
+  generateSmartContractForPath,
+} from './compliance-actions';
+
+export {
+  getApiKeys,
+  saveApiKey,
+  revokeApiKey,
+  deleteApiKey,
+} from './api-key-actions';
+
+export {
+  getWebhooks,
+  getWebhookById,
+  saveWebhook,
+  deleteWebhook,
+  replayWebhook,
+} from './webhook-actions';
+
+export { saveApiSettings, saveCompanySettings } from './settings-actions';
+
+export {
+  exportProducts,
+  exportComplianceReport,
+  exportFullAuditTrail,
+} from './report-actions';
+
+export { getIntegrations, updateIntegrationStatus, syncWithErp } from './integration-actions';
+
+export {
+  getProductionLines,
+  getProductionLineById,
+  saveProductionLine,
+  deleteProductionLine,
+} from './manufacturing-actions';
+
+export {
+  getServiceTickets,
+  getServiceTicketById,
+  saveServiceTicket,
+  updateServiceTicketStatus,
+  getSupportTickets,
+  updateSupportTicketStatus,
+  saveSupportTicket,
+} from './ticket-actions';
+
+export { globalSearch } from './search-actions';
+
+export { generateComponentTest } from './dev-tool-actions';
+
+export { runDailyReferenceDataSync } from './sync-actions';
