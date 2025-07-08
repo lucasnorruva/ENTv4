@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "npm@10.8.1",
   "scripts": {
-    "dev": "turbo run dev:web dev:ai -- --port 9002 --hostname 0.0.0.0",
-    "dev:web": "next dev",
+    "dev": "turbo run dev:web dev:ai",
+    "dev:web": "next dev --port 9002 --hostname 0.0.0.0",
     "dev:ai": "genkit start",
     "build": "next build",
     "start": "next start",

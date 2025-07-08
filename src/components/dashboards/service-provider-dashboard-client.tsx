@@ -5,9 +5,9 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
 import { Button } from '../ui/button';
 import type { User, Product, ServiceTicket, ProductionLine } from '@/types';

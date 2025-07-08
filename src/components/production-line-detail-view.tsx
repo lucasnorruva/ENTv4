@@ -68,9 +68,9 @@ export default function ProductionLineDetailView({
             <Activity className="h-4 w-4" />
             <span>{line.outputPerHour} units/hr</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground" suppressHydrationWarning>
             <Clock className="h-4 w-4" />
-            <span suppressHydrationWarning>
+            <span>
               Last Maintenance:{' '}
               {formatDistanceToNow(new Date(line.lastMaintenance), {
                 addSuffix: true,

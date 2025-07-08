@@ -216,13 +216,13 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                           <span className="flex items-center gap-1 text-xs">
+                           <span suppressHydrationWarning className="flex items-center gap-1 text-xs">
                             <Calendar className="h-4 w-4"/>
                             {formatDistanceToNow(new Date(key.expiresAt), { addSuffix: true })}
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {format(new Date(key.expiresAt), 'PPP')}
+                          <p>{format(new Date(key.expiresAt), 'PPP')}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -241,13 +241,13 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
-                          {key.ipRestrictions.join(', ')}
+                          <p>{key.ipRestrictions.join(', ')}</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   ) : 'Any'}
                 </TableCell>
-                <TableCell>
+                <TableCell suppressHydrationWarning>
                     {key.lastUsed ? formatDistanceToNow(new Date(key.lastUsed), { addSuffix: true }) : 'Never'}
                 </TableCell>
                 <TableCell className="text-right">

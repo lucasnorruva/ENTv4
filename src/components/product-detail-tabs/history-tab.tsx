@@ -21,9 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
-
 
 interface LifecycleEvent {
   date: Date;
@@ -168,5 +165,3 @@ const HistoryTab = ({ product }: { product: Product }) => {
     </Card>
   );
 };
-
-export default HistoryTab;
