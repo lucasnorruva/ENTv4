@@ -196,5 +196,3 @@ export function checkPermission(user: User, action: Action, resource?: any) {
     );
   }
 }
-
-    

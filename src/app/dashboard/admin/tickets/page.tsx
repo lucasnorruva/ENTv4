@@ -17,5 +17,3 @@ export default async function AdminSupportTicketsPage() {
   // The client component will handle fetching and real-time updates.
   return <SupportTicketManagementClient user={user} />;
 }
-
-    

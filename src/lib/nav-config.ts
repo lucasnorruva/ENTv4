@@ -25,6 +25,7 @@ import {
   Lock,
   Award,
   Beaker,
+  LifeBuoy,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -339,5 +340,3 @@ export const navConfig: NavConfig = {
     },
   ],
 };
-
-    
