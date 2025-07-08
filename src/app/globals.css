@@ -8,103 +8,83 @@
     scroll-behavior: smooth;
   }
   :root {
-    --background: 240 10% 98%;
-    --foreground: 224 71% 4%;
+    --background: 231 30% 98%;
+    --foreground: 231 40% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 224 71% 4%;
+    --card-foreground: 231 40% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 224 71% 4%;
+    --popover-foreground: 231 40% 10%;
 
-    --primary: 221 83% 53%;
+    --primary: 231 48% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 224 71% 4%;
+    --secondary: 231 20% 91%;
+    --secondary-foreground: 231 40% 10%;
 
-    --muted: 220 15% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 231 20% 96%;
+    --muted-foreground: 231 10% 46%;
 
-    --accent: 90 100% 92%;
-    --accent-foreground: 90 60% 8%;
+    --accent: 174 80% 40%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 221 83% 53%;
+    --border: 231 20% 91%;
+    --input: 231 20% 91%;
+    --ring: 231 48% 54%;
 
     --radius: 0.5rem;
-
-    /* Sidebar - Light Mode (Deep Blue Sidebar) */
-    --sidebar-background: 231 48% 54%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 231 48% 54%;
-    --sidebar-accent: 231 48% 60%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 231 48% 45%;
-    --sidebar-ring: 0 0% 100%;
-
-    /* Chart colors - Light Mode */
-    --chart-1: 221 83% 53%; /* Primary Blue */
-    --chart-2: 90 85% 60%; /* Accent Lime/Green */
-    --chart-3: 221 83% 75%; /* Lighter Blue */
-    --chart-4: 90 85% 80%; /* Lighter Lime */
-    --chart-5: 220 9% 46%; /* Muted Foreground */
     
-    --globe-background: 220 13% 91%; /* slate-200 */
+    /* Chart colors - Using PRD colors */
+    --chart-1: 231 48% 54%; /* Primary Blue */
+    --chart-2: 174 80% 40%; /* Accent Teal */
+    --chart-3: 231 48% 75%; /* Lighter Blue */
+    --chart-4: 174 80% 60%; /* Lighter Teal */
+    --chart-5: 231 10% 46%; /* Muted Foreground */
+    
+    --globe-background: 231 20% 91%; /* Secondary */
   }
 
   .dark {
-    --background: 224 71% 4%;
-    --foreground: 210 40% 98%;
+    --background: 231 30% 8%;
+    --foreground: 231 20% 95%;
 
-    --card: 224 71% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 231 30% 12%;
+    --card-foreground: 231 20% 95%;
 
-    --popover: 224 71% 4%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 231 30% 8%;
+    --popover-foreground: 231 20% 95%;
 
-    --primary: 221 83% 63%;
-    --primary-foreground: 221 83% 10%;
+    --primary: 231 60% 65%;
+    --primary-foreground: 231 40% 10%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 231 20% 17.5%;
+    --secondary-foreground: 231 20% 95%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 231 20% 17.5%;
+    --muted-foreground: 231 15% 65%;
 
-    --accent: 90 100% 15%;
-    --accent-foreground: 90 80% 80%;
+    --accent: 174 70% 50%;
+    --accent-foreground: 174 95% 10%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 221 83% 63%;
-
-    /* Sidebar - Dark Mode (Blends with BG) */
-    --sidebar-background: 224 71% 4%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 40% 98%;
-    --sidebar-primary-foreground: 217.2 32.6% 17.5%;
-    --sidebar-accent: 217.2 32.6% 17.5%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217.2 32.6% 17.5%;
-    --sidebar-ring: 212.7 26.8% 83.9%;
+    --border: 231 20% 17.5%;
+    --input: 231 20% 17.5%;
+    --ring: 231 60% 65%;
     
     /* Chart colors - Dark Mode */
-    --chart-1: 221 83% 63%; /* Primary Light Blue */
-    --chart-2: 90 80% 80%; /* Accent Light Lime */
-    --chart-3: 215 20.2% 65.1%;   /* Slate 400 */
-    --chart-4: 217.2 32.6% 17.5%; /* Slate 800 */
-    --chart-5: 210 40% 98%;   /* Slate 50 */
+    --chart-1: 231 60% 65%; /* Primary Light Blue */
+    --chart-2: 174 70% 50%; /* Accent Light Teal */
+    --chart-3: 231 15% 65%;   
+    --chart-4: 231 20% 17.5%; 
+    --chart-5: 231 20% 95%;
 
-    --globe-background: 222.2 47.4% 11.2%; /* slate-800 */
+    --globe-background: 231 30% 12%; /* Card */
   }
 
   /* Global base styles */
