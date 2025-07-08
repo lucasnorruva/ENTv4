@@ -210,8 +210,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Technical Specification Extraction**
 
 #### 2.2.3 Anomaly Detection System
-- [x] **Real-time Monitoring**
 - [x] **Supply Chain Fraud Detection**
+- [x] **Real-time Monitoring**
 
 ### 2.3 Intelligent Automation
 
@@ -397,8 +397,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **AI-Driven Lifespan Forecasting**
 
 #### 6.5.3 Swarm Intelligence for Supply Chains
-- [ ] **Distributed Decision Making**
 - [x] **AI Transit Risk Analysis**
+- [ ] **Distributed Decision Making**
 
 ---
 
