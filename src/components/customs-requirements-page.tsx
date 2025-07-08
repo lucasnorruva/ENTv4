@@ -48,7 +48,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format, formatDistanceToNow } from 'date-fns';
-import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dppDisplayUtils.tsx';
+import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 
 const RiskLevelBadge = ({
   level,

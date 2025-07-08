@@ -35,7 +35,7 @@ import {
   getStatusIcon,
   getStatusBadgeVariant,
   getStatusBadgeClasses,
-} from '@/lib/dppDisplayUtils';
+} from '@/lib/dpp-display-utils';
 import { ScrollArea } from '../ui/scroll-area';
 import { analyzeProductTransitRoute } from '@/lib/actions/product-ai-actions';
 import { useToast } from '@/hooks/use-toast';

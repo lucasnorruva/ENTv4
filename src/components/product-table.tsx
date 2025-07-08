@@ -70,7 +70,7 @@ import {
 } from "./ui/tooltip";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
-import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dppDisplayUtils";
+import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dpp-display-utils";
 import { cn } from "@/lib/utils";
 
 interface ProductTableProps {

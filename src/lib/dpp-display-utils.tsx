@@ -1,4 +1,4 @@
-// src/lib/dppDisplayUtils.tsx
+// src/lib/dpp-display-utils.tsx
 'use client';
 
 import React from 'react';
