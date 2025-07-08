@@ -350,3 +350,12 @@ export const ownershipTransferSchema = z.object({
   newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
 });
 export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
+
+export const productionLineFormSchema = z.object({
+    name: z.string().min(3, "Line name is required."),
+    location: z.string().min(3, "Location is required."),
+    status: z.enum(['Active', 'Idle', 'Maintenance']),
+    outputPerHour: z.coerce.number().min(0, "Output cannot be negative."),
+    productId: z.string().optional(),
+});
+export type ProductionLineFormValues = z.infer<typeof productionLineFormSchema>;

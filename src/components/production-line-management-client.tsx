@@ -55,6 +55,7 @@ import {
   deleteProductionLine,
 } from '@/lib/actions/manufacturing-actions';
 import ProductionLineForm from './production-line-form';
+import Link from 'next/link';
 
 interface ProductionLineManagementClientProps {
   user: User;
@@ -180,7 +181,9 @@ export default function ProductionLineManagementClient({
                 {lines.map(line => (
                   <TableRow key={line.id}>
                     <TableCell className="font-medium">
-                      {line.name}
+                      <Link href={`/dashboard/manufacturer/lines/${line.id}`} className="hover:underline">
+                        {line.name}
+                      </Link>
                       <p className="text-xs text-muted-foreground font-normal">
                         {line.location}
                       </p>

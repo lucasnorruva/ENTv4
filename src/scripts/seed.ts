@@ -7,6 +7,7 @@ import { serviceTickets } from '../lib/service-ticket-data';
 import { webhooks } from '../lib/webhook-data';
 import { apiKeys } from '../lib/api-key-data';
 import { Collections } from '../lib/constants';
+import { productionLines } from '../lib/manufacturing-data';
 
 // A map of collection names to their data arrays
 const collectionsToSeed = {
@@ -17,6 +18,7 @@ const collectionsToSeed = {
   [Collections.SERVICE_TICKETS]: serviceTickets,
   [Collections.WEBHOOKS]: webhooks,
   [Collections.API_KEYS]: apiKeys,
+  [Collections.PRODUCTION_LINES]: productionLines,
 };
 
 // In a real Firebase project, you'd use the Admin SDK. For this mock,
