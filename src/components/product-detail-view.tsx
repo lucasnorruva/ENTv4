@@ -153,7 +153,7 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                 {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
