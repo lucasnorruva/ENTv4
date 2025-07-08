@@ -60,3 +60,4 @@ const generateSmartContractFlow = ai.defineFlow(
     return output!;
   },
 );
+

@@ -1,4 +1,3 @@
-
 // src/components/compliance-path-management.tsx
 'use client';
 
@@ -420,3 +419,4 @@ export default function CompliancePathManagement({
     </>
   );
 }
+

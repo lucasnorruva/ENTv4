@@ -103,7 +103,7 @@ export async function generateCompliancePathRules(
   if (!user) throw new PermissionError('User not found.');
   checkPermission(user, 'compliance:manage');
 
-  if (!name || regulations.length === 0 || !regulations[0].value) {
+  if (!name || regulations.length === 0 || !regulations[0]) {
     throw new Error('Path name and at least one regulation are required.');
   }
 
@@ -130,3 +130,4 @@ export async function generateSmartContractForPath(
     rules: path.rules,
   });
 }
+
