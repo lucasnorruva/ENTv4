@@ -10,6 +10,7 @@ import { PermissionError } from '@/lib/permissions';
 import { RateLimitError, checkRateLimit } from '@/services/rate-limiter';
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   let user;
   const endpoint = '/api/v1/products';
   try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
     await logAuditEvent(
       'api.get',
       'all_products',
-      { endpoint, status: 200, method: 'GET' },
+      { endpoint, status: 200, method: 'GET', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(productsWithLinks);
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       await logAuditEvent(
         'api.get',
         'all_products',
-        { endpoint, status: 500, error: error.message, method: 'GET' },
+        { endpoint, status: 500, error: error.message, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
     }
@@ -55,6 +56,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
   let user;
   const endpoint = '/api/v1/products';
   try {
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
     await logAuditEvent(
       'api.post',
       newProduct.id,
-      { endpoint, status: 201, method: 'POST' },
+      { endpoint, status: 201, method: 'POST', latencyMs: Date.now() - startTime },
       user.id,
     );
     const productWithLinks = {
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest) {
       await logAuditEvent(
         'api.post',
         'N/A',
-        { endpoint, status: 403, error: error.message, method: 'POST' },
+        { endpoint, status: 403, error: error.message, method: 'POST', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -105,7 +107,7 @@ export async function POST(request: NextRequest) {
       await logAuditEvent(
         'api.post',
         'N/A',
-        { endpoint, status: 400, error: 'Invalid data', method: 'POST' },
+        { endpoint, status: 400, error: 'Invalid data', method: 'POST', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json(
@@ -117,7 +119,7 @@ export async function POST(request: NextRequest) {
     await logAuditEvent(
       'api.post',
       'N/A',
-      { endpoint, status: 500, error: 'Internal Server Error', method: 'POST' },
+      { endpoint, status: 500, error: 'Internal Server Error', method: 'POST', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(

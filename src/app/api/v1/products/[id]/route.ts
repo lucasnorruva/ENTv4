@@ -14,6 +14,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/products/${params.id}`;
   try {
@@ -27,7 +28,7 @@ export async function GET(
       await logAuditEvent(
         'api.get',
         params.id,
-        { endpoint, status: 404, method: 'GET' },
+        { endpoint, status: 404, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -44,7 +45,7 @@ export async function GET(
     await logAuditEvent(
       'api.get',
       params.id,
-      { endpoint, status: 200, method: 'GET' },
+      { endpoint, status: 200, method: 'GET', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(productWithLinks);
@@ -60,7 +61,7 @@ export async function GET(
       await logAuditEvent(
         'api.get',
         params.id,
-        { endpoint, status: 500, error: error.message, method: 'GET' },
+        { endpoint, status: 500, error: error.message, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
     }
@@ -75,6 +76,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/products/${params.id}`;
   try {
@@ -101,7 +103,7 @@ export async function PUT(
     await logAuditEvent(
       'api.put',
       params.id,
-      { endpoint, status: 200, method: 'PUT' },
+      { endpoint, status: 200, method: 'PUT', latencyMs: Date.now() - startTime },
       user.id,
     );
     const productWithLinks = {
@@ -116,7 +118,7 @@ export async function PUT(
       await logAuditEvent(
         'api.put',
         params.id,
-        { endpoint, status: 403, error: error.message, method: 'PUT' },
+        { endpoint, status: 403, error: error.message, method: 'PUT', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -125,7 +127,7 @@ export async function PUT(
       await logAuditEvent(
         'api.put',
         params.id,
-        { endpoint, status: 400, error: 'Invalid data', method: 'PUT' },
+        { endpoint, status: 400, error: 'Invalid data', method: 'PUT', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json(
@@ -142,6 +144,7 @@ export async function PUT(
         status: 500,
         error: 'Internal Server Error',
         method: 'PUT',
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );
@@ -156,6 +159,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/products/${params.id}`;
   try {
@@ -181,7 +185,7 @@ export async function DELETE(
       await logAuditEvent(
         'api.delete',
         params.id,
-        { endpoint, status: 404, error: 'Not Found', method: 'DELETE' },
+        { endpoint, status: 404, error: 'Not Found', method: 'DELETE', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -191,7 +195,7 @@ export async function DELETE(
     await logAuditEvent(
       'api.delete',
       params.id,
-      { endpoint, status: 204, method: 'DELETE' },
+      { endpoint, status: 204, method: 'DELETE', latencyMs: Date.now() - startTime },
       user.id,
     );
     return new NextResponse(null, { status: 204 });
@@ -200,7 +204,7 @@ export async function DELETE(
       await logAuditEvent(
         'api.delete',
         params.id,
-        { endpoint, status: 403, error: error.message, method: 'DELETE' },
+        { endpoint, status: 403, error: error.message, method: 'DELETE', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -214,6 +218,7 @@ export async function DELETE(
         status: 500,
         error: 'Internal Server Error',
         method: 'DELETE',
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );

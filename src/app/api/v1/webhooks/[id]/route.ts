@@ -13,17 +13,19 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/webhooks/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser } = await authenticateApiRequest();
+    user = authUser;
     const webhook = await getWebhookById(params.id, user.id);
 
     if (!webhook) {
       await logAuditEvent(
         'api.webhook.get',
         params.id,
-        { endpoint, status: 404, method: 'GET' },
+        { endpoint, status: 404, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Webhook not found' }, { status: 404 });
@@ -39,7 +41,7 @@ export async function GET(
     await logAuditEvent(
       'api.webhook.get',
       params.id,
-      { endpoint, status: 200, method: 'GET' },
+      { endpoint, status: 200, method: 'GET', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(webhookWithLinks);
@@ -51,7 +53,7 @@ export async function GET(
       await logAuditEvent(
         'api.webhook.get',
         params.id,
-        { endpoint, status: 500, error: 'Internal Server Error', method: 'GET' },
+        { endpoint, status: 500, error: 'Internal Server Error', method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
     }
@@ -66,10 +68,12 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/webhooks/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser } = await authenticateApiRequest();
+    user = authUser;
   } catch (error: any) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -87,7 +91,7 @@ export async function PUT(
     await logAuditEvent(
       'api.webhook.put',
       params.id,
-      { endpoint, status: 200, method: 'PUT' },
+      { endpoint, status: 200, method: 'PUT', latencyMs: Date.now() - startTime },
       user.id,
     );
     const webhookWithLinks = {
@@ -102,7 +106,7 @@ export async function PUT(
       await logAuditEvent(
         'api.webhook.put',
         params.id,
-        { endpoint, status: 403, error: error.message, method: 'PUT' },
+        { endpoint, status: 403, error: error.message, method: 'PUT', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -111,7 +115,7 @@ export async function PUT(
       await logAuditEvent(
         'api.webhook.put',
         params.id,
-        { endpoint, status: 400, error: 'Invalid data', method: 'PUT' },
+        { endpoint, status: 400, error: 'Invalid data', method: 'PUT', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json(
@@ -127,6 +131,7 @@ export async function PUT(
         status: 500,
         error: 'Internal Server Error',
         method: 'PUT',
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );
@@ -141,10 +146,12 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/webhooks/${params.id}`;
   try {
-    user = await authenticateApiRequest();
+    const { user: authUser } = await authenticateApiRequest();
+    user = authUser;
   } catch (error: any) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
@@ -160,7 +167,7 @@ export async function DELETE(
     await logAuditEvent(
       'api.webhook.delete',
       params.id,
-      { endpoint, status: 204, method: 'DELETE' },
+      { endpoint, status: 204, method: 'DELETE', latencyMs: Date.now() - startTime },
       user.id,
     );
     return new NextResponse(null, { status: 204 });
@@ -169,7 +176,7 @@ export async function DELETE(
       await logAuditEvent(
         'api.webhook.delete',
         params.id,
-        { endpoint, status: 403, error: error.message, method: 'DELETE' },
+        { endpoint, status: 403, error: error.message, method: 'DELETE', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: error.message }, { status: 403 });
@@ -182,6 +189,7 @@ export async function DELETE(
         status: 500,
         error: 'Internal Server Error',
         method: 'DELETE',
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );

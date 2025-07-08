@@ -11,6 +11,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { productId: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v1/compliance/check/${params.productId}`;
 
@@ -38,7 +39,7 @@ export async function POST(
       await logAuditEvent(
         'api.compliance.check',
         params.productId,
-        { error: 'Product not found', endpoint, method: 'POST', status: 404 },
+        { error: 'Product not found', endpoint, method: 'POST', status: 404, latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -52,6 +53,7 @@ export async function POST(
           endpoint,
           method: 'POST',
           status: 400,
+          latencyMs: Date.now() - startTime
         },
         user.id,
       );
@@ -80,6 +82,7 @@ export async function POST(
         endpoint,
         method: 'POST',
         status: 202,
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );
@@ -95,6 +98,7 @@ export async function POST(
         endpoint,
         method: 'POST',
         status: 500,
+        latencyMs: Date.now() - startTime
       },
       user.id,
     );

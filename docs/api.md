@@ -10,6 +10,14 @@ All API requests must be authenticated using an API key. Include your key in the
 
 ---
 
+## Rate Limiting
+
+Our API uses a token bucket algorithm to handle rate limiting. Different requests have different "costs" based on their complexity. For example, simple `GET` requests might cost 1 token, while complex `POST` requests or GraphQL mutations might cost 10 tokens.
+
+Your API key is associated with a tier (e.g., Free, Pro, Enterprise) which determines your bucket size and token refill rate. If you exceed your limit, you will receive a `429 Too Many Requests` error.
+
+---
+
 ## GraphQL API (Recommended)
 
 For complex data retrieval and mutations, our GraphQL API is the most powerful and efficient way to interact with the Norruva platform. It allows you to fetch exactly the data you need in a single request, reducing latency and simplifying client-side logic.
@@ -34,63 +42,6 @@ query GetElectronicsProducts {
       id
       name
     }
-  }
-}
-```
-
-### Example Query: Fetch a Company and its Users
-
-This query retrieves a specific company by its ID and lists all users associated with it, demonstrating how to use variables.
-
-```graphql
-query GetCompanyUsers($companyId: ID!) {
-  company(id: $companyId) {
-    id
-    name
-    users {
-      id
-      fullName
-      email
-      roles
-    }
-  }
-}
-```
-
-**Variables:**
-```json
-{
-  "companyId": "comp-eco"
-}
-```
-
-### Example Mutation: Create a User
-
-This mutation creates a new user and assigns them to a company.
-
-```graphql
-mutation CreateNewUser($input: UserInput!) {
-  createUser(input: $input) {
-    id
-    fullName
-    email
-    roles
-    company {
-      id
-      name
-    }
-  }
-}
-```
-
-**Variables:**
-```json
-{
-  "input": {
-    "fullName": "API User",
-    "email": "api.user@example.com",
-    "companyId": "comp-eco",
-    "roles": ["Supplier"]
   }
 }
 ```
@@ -192,20 +143,74 @@ Retrieves a single product passport by its ID.
     }
     ```
 
-#### `PUT /api/v2/products/{id}`
+---
 
-Updates an existing product passport.
+## Webhooks
 
--   **Method**: `PUT`
--   **Body**: A JSON object with the fields to update.
--   **Success Response**: `200 OK`
+Webhooks allow you to receive real-time notifications about events that happen on the Norruva platform, such as a product being published or a compliance check failing.
 
-#### `DELETE /api/v2/products/{id}`
+### Event Payload
 
-Deletes a product passport.
+All webhook events are sent as `POST` requests with a JSON body structured as follows:
 
--   **Method**: `DELETE`
--   **Success Response**: `204 No Content`
+```json
+{
+  "event": "product.published",
+  "createdAt": "2024-07-30T10:00:00Z",
+  "payload": {
+    "id": "pp-001",
+    "productName": "Eco-Friendly Smart Watch",
+    "status": "Published",
+    "..."
+  }
+}
+```
+
+### Verifying Signatures
+
+To ensure the integrity and authenticity of webhook payloads, we sign each request with an HMAC-SHA256 signature. The signature is included in the `X-Norruva-Signature` header.
+
+You should verify this signature on your server using your webhook's secret key (available in the developer dashboard).
+
+#### Example: Verifying a signature in Node.js
+
+```javascript
+const crypto = require('crypto');
+
+// This is a simplified example. In a real application, you would use a middleware
+// to read the raw body of the request, as JSON parsing can alter the content.
+function verifyWebhookSignature(req) {
+  const secret = 'your_webhook_secret'; // Keep this secret!
+  const receivedSignature = req.headers['x-norruva-signature'];
+  const payload = req.rawBody; // The raw request body as a buffer or string.
+
+  if (!receivedSignature || !payload) {
+    return false;
+  }
+
+  const computedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(receivedSignature),
+    Buffer.from(computedSignature)
+  );
+}
+
+// In your Express route handler:
+// app.post('/webhook-handler', (req, res) => {
+//   if (!verifyWebhookSignature(req)) {
+//     return res.status(400).send('Invalid signature.');
+//   }
+//
+//   // Signature is valid, process the event
+//   console.log('Webhook verified successfully!');
+//   res.status(200).send('Acknowledged');
+// });
+
+```
 
 ---
 

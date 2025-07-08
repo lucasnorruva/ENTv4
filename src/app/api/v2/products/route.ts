@@ -19,6 +19,7 @@ function formatProductResponse(product: Product) {
 }
 
 export async function GET(request: NextRequest) {
+  const startTime = Date.now();
   let user;
   const endpoint = '/api/v2/products';
   try {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
     await logAuditEvent(
       'api.v2.get',
       'all_products',
-      { endpoint, status: 200, method: 'GET' },
+      { endpoint, status: 200, method: 'GET', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(productsWithLinks);
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       await logAuditEvent(
         'api.v2.get',
         'all_products',
-        { endpoint, status: 500, error: error.message, method: 'GET' },
+        { endpoint, status: 500, error: error.message, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
     }
@@ -58,6 +59,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
   let user;
   const endpoint = '/api/v2/products';
   try {
@@ -84,7 +86,7 @@ export async function POST(request: NextRequest) {
     await logAuditEvent(
       'api.v2.post',
       newProduct.id,
-      { endpoint, status: 201, method: 'POST' },
+      { endpoint, status: 201, method: 'POST', latencyMs: Date.now() - startTime },
       user.id,
     );
     const productWithLinks = formatProductResponse(newProduct);
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
       endpoint,
       method: 'POST',
       error: error.message || 'Internal Server Error',
+      latencyMs: Date.now() - startTime
     };
 
     if (error instanceof PermissionError) {

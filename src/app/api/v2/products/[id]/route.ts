@@ -26,6 +26,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
@@ -39,7 +40,7 @@ export async function GET(
       await logAuditEvent(
         'api.v2.get.id',
         params.id,
-        { endpoint, status: 404, method: 'GET' },
+        { endpoint, status: 404, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -50,7 +51,7 @@ export async function GET(
     await logAuditEvent(
       'api.v2.get.id',
       params.id,
-      { endpoint, status: 200, method: 'GET' },
+      { endpoint, status: 200, method: 'GET', latencyMs: Date.now() - startTime },
       user.id,
     );
     return NextResponse.json(productWithLinks);
@@ -66,7 +67,7 @@ export async function GET(
       await logAuditEvent(
         'api.v2.get.id',
         params.id,
-        { endpoint, status: 500, error: error.message, method: 'GET' },
+        { endpoint, status: 500, error: error.message, method: 'GET', latencyMs: Date.now() - startTime },
         user.id,
       );
     }
@@ -81,6 +82,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
@@ -107,7 +109,7 @@ export async function PUT(
     await logAuditEvent(
       'api.v2.put',
       params.id,
-      { endpoint, status: 200, method: 'PUT' },
+      { endpoint, status: 200, method: 'PUT', latencyMs: Date.now() - startTime },
       user.id,
     );
     const productWithLinks = formatProductResponse(updatedProduct);
@@ -117,6 +119,7 @@ export async function PUT(
       endpoint,
       method: 'PUT',
       error: error.message || 'Internal Server Error',
+      latencyMs: Date.now() - startTime
     };
 
     if (error instanceof PermissionError) {
@@ -148,6 +151,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const startTime = Date.now();
   let user;
   const endpoint = `/api/v2/products/${params.id}`;
   try {
@@ -173,7 +177,7 @@ export async function DELETE(
       await logAuditEvent(
         'api.v2.delete',
         params.id,
-        { endpoint, status: 404, error: 'Not Found', method: 'DELETE' },
+        { endpoint, status: 404, error: 'Not Found', method: 'DELETE', latencyMs: Date.now() - startTime },
         user.id,
       );
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -183,7 +187,7 @@ export async function DELETE(
     await logAuditEvent(
       'api.v2.delete',
       params.id,
-      { endpoint, status: 204, method: 'DELETE' },
+      { endpoint, status: 204, method: 'DELETE', latencyMs: Date.now() - startTime },
       user.id,
     );
     return new NextResponse(null, { status: 204 });
@@ -192,6 +196,7 @@ export async function DELETE(
       endpoint,
       method: 'DELETE',
       error: error.message || 'Internal Server Error',
+      latencyMs: Date.now() - startTime
     };
 
     if (error instanceof PermissionError) {
