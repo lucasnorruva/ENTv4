@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -298,6 +297,7 @@ export interface Product extends BaseEntity {
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
+  constructionAnalysis?: ConstructionAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -306,7 +306,6 @@ export interface Product extends BaseEntity {
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
-  constructionAnalysis?: ConstructionAnalysis;
   foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
   transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
