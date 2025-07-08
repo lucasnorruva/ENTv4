@@ -3,10 +3,11 @@
 // In a real Firebase project, this would be a Cloud Function.
 'use server';
 
-import { getWebhooks, processProductAi } from '@/lib/actions';
 import { getApiSettingsData } from '@/lib/api-settings';
 import { products as mockProducts } from '@/lib/data';
 import { sendWebhook } from '@/services/webhooks';
+import { getWebhooks } from '@/lib/actions/webhook-actions';
+import { processProductAi } from '@/lib/actions/product-ai-actions';
 
 // NOTE: This mock function simulates the behavior of a Firestore trigger.
 // It's called from saveProduct in product-actions.ts for demonstration.
