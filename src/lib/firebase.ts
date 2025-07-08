@@ -1,18 +1,18 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // This is the client-side configuration for your Firebase project.
 // It's used by the browser part of your application.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key",
   authDomain:
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "passportflow.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "passportflow",
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "norruva.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "norruva",
   storageBucket:
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "passportflow.appspot.com",
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "norruva.appspot.com",
   messagingSenderId:
     process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "mock-sender-id",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "mock-app-id",
