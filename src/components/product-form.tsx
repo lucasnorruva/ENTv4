@@ -1,3 +1,4 @@
+
 // src/components/product-form.tsx
 'use client';
 
@@ -315,10 +316,8 @@ export default function ProductForm({
       let manualUrl = initialData?.manualUrl;
       let manualFileName = initialData?.manualFileName;
       let manualFileSize = initialData?.manualFileSize;
-      let manualFileHash = initialData?.manualFileHash;
       let model3dUrl = initialData?.model3dUrl;
       let model3dFileName = initialData?.model3dFileName;
-      let model3dFileHash = initialData?.model3dFileHash;
 
       if (imageFile) {
         setIsUploading(true);
@@ -393,7 +392,6 @@ export default function ProductForm({
           });
           manualFileName = manualFile.name;
           manualFileSize = manualFile.size;
-          manualFileHash = await hashFile(manualFile);
         } catch (error) {
           toast({ title: 'Manual Upload Failed', variant: 'destructive' });
           return;
@@ -425,7 +423,6 @@ export default function ProductForm({
             );
           });
           model3dFileName = modelFile.name;
-          model3dFileHash = await hashFile(modelFile);
         } catch (error) {
           toast({ title: '3D Model Upload Failed', variant: 'destructive' });
           return;
@@ -439,10 +436,8 @@ export default function ProductForm({
           manualUrl,
           manualFileName,
           manualFileSize,
-          manualFileHash: manualFileHash || values.manualFileHash,
           model3dUrl,
           model3dFileName,
-          model3dFileHash: model3dFileHash || values.model3dFileHash,
         };
         const saved = await saveProduct(
           productData,

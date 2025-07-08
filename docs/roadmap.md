@@ -313,7 +313,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Zero-Trust Identity Platform**
 
 #### 4.4.2 Data Loss Prevention
-- [ ] **DLP Implementation**
+- [x] **File Integrity Hashing**
 
 ---
 
