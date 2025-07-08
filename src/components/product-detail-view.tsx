@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
-  ShieldAlert,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -36,11 +35,6 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
-import OverrideVerificationDialog from './override-verification-dialog';
-import TextileTab from './product-detail-tabs/textile-tab';
-import ConstructionTab from './product-detail-tabs/construction-tab';
-import CryptoTab from './product-detail-tabs/crypto-tab';
-import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -60,7 +54,6 @@ export default function ProductDetailView({
   const [product, setProduct] = useState(productProp);
   const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
   const [isCustomsFormOpen, setIsCustomsFormOpen] = useState(false);
-  const [isOverrideOpen, setIsOverrideOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -80,10 +73,6 @@ export default function ProductDetailView({
   const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
-  const showTextileTab = product.category === 'Fashion';
-  const showConstructionTab = product.category === 'Construction';
-  const showFoodTab = product.category === 'Food & Beverage';
-  const show3dTab = !!product.model3dUrl;
 
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
@@ -106,15 +95,6 @@ export default function ProductDetailView({
             </Button>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {can(user, 'product:override_verification', product) && product.verificationStatus === 'Failed' && (
-              <Button
-                variant="destructive"
-                onClick={() => setIsOverrideOpen(true)}
-              >
-                <ShieldAlert className="mr-2 h-4 w-4" />
-                Override Verification
-              </Button>
-            )}
             {canEditProduct && (
               <Button asChild>
                 <Link
@@ -145,18 +125,6 @@ export default function ProductDetailView({
           </div>
         </header>
 
-        {product.verificationOverride && (
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Verification Manually Overridden</AlertTitle>
-            <AlertDescription>
-              This product was manually approved by an administrator on{' '}
-              {format(new Date(product.verificationOverride.date), 'PPP')}.
-              Reason: "{product.verificationOverride.reason}"
-            </AlertDescription>
-          </Alert>
-        )}
-
         {product.dataQualityWarnings &&
           product.dataQualityWarnings.length > 0 && (
             <Alert variant="destructive">
@@ -177,18 +145,13 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full h-auto flex-wrap justify-start">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
-                {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="crypto">Crypto &amp; On-Chain</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
-                 {show3dTab && <TabsTrigger value="3d_viewer">3D Viewer</TabsTrigger>}
               </TabsList>
               <TabsContent value="overview" className="mt-4">
                 <OverviewTab
@@ -196,21 +159,6 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
-              {showTextileTab && (
-                <TabsContent value="textile" className="mt-4">
-                  <TextileTab product={product} />
-                </TabsContent>
-              )}
-               {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                    <ConstructionTab product={product} />
-                </TabsContent>
-              )}
-              {showFoodTab && (
-                <TabsContent value="food" className="mt-4">
-                  <FoodSafetyTab product={product} />
-                </TabsContent>
-              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
@@ -223,29 +171,22 @@ export default function ProductDetailView({
                   compliancePath={compliancePath}
                 />
               </TabsContent>
-              <TabsContent value="crypto" className="mt-4">
-                <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh}/>
-              </TabsContent>
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />
               </TabsContent>
               <TabsContent value="supply_chain" className="mt-4">
                 <SupplyChainTab product={product} />
               </TabsContent>
-              {show3dTab && (
-                 <TabsContent value="3d_viewer" className="mt-4">
-                    <ThreeDViewerTab product={product} />
-                 </TabsContent>
-              )}
             </Tabs>
-             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
+            <ThreeDViewerTab product={product} />
+            <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
             <DppQrCodeWidget productId={product.id} />
-             {canRunPrediction && isAiEnabled && (
+            {canRunPrediction && isAiEnabled && (
               <PredictiveAnalyticsWidget
                 product={product}
                 user={user}
@@ -277,13 +218,6 @@ export default function ProductDetailView({
         product={product}
         user={user}
         onSave={handleUpdateAndRefresh}
-      />
-      <OverrideVerificationDialog
-        isOpen={isOverrideOpen}
-        onOpenChange={setIsOverrideOpen}
-        product={product}
-        user={user}
-        onSuccess={handleUpdateAndRefresh}
       />
     </>
   );

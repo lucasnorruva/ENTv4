@@ -22,15 +22,6 @@ import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
-import { analyzeTextileComposition } from '@/ai/flows/analyze-textile-composition';
-import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
-import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
-import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
-import type { AnalyzeSimulatedRouteOutput, ProductTransitRiskAnalysis } from '@/types/ai-outputs';
-import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
-import { runSubmissionValidation } from '@/services/validation';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { validateProductData } from '@/ai/flows/validate-product-data';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -254,9 +245,6 @@ export async function generateConformityDeclarationText(
     compliance: product.compliance,
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
-    textile: product.textile,
-    foodSafety: product.foodSafety,
-    greenClaims: product.greenClaims,
   };
 
   const { declarationText } = await generateConformityDeclarationFlow({
@@ -328,9 +316,6 @@ export async function generatePcdsForProduct(
     compliance: product.compliance,
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
-    textile: product.textile,
-    foodSafety: product.foodSafety,
-    greenClaims: product.greenClaims,
   };
 
   const pcdsData = await generatePcdsFlow({ product: aiProductInput });
@@ -379,9 +364,6 @@ export async function runLifecyclePrediction(
     compliance: product.compliance,
     verificationStatus: product.verificationStatus ?? 'Not Submitted',
     complianceSummary: product.sustainability?.complianceSummary,
-    textile: product.textile,
-    foodSafety: product.foodSafety,
-    greenClaims: product.greenClaims,
   };
 
   const predictionResult = await predictProductLifecycleFlow({
@@ -434,9 +416,6 @@ export async function askQuestionAboutProduct(
     compliance: product.compliance,
     verificationStatus: product.verificationStatus,
     complianceSummary: product.sustainability?.complianceSummary,
-    textile: product.textile,
-    foodSafety: product.foodSafety,
-    greenClaims: product.greenClaims,
   };
 
   return await productQa({ productContext, question });
@@ -459,157 +438,4 @@ export async function getFriendlyError(
     context,
     userRole: user.roles.join(', '),
   });
-}
-
-export async function analyzeTextileData(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-  checkPermission(user, 'product:edit', product);
-
-  if (!product.textile || !product.textile.fiberComposition || product.textile.fiberComposition.length === 0) {
-    throw new Error('No textile data available to analyze.');
-  }
-
-  const analysisResult = await analyzeTextileComposition(product.textile);
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].textileAnalysis = analysisResult;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent(
-    'product.textile_analysis',
-    productId,
-    { result: analysisResult },
-    userId,
-  );
-  
-  return Promise.resolve(mockProducts[productIndex]);
-}
-
-export async function analyzeConstructionData(productId: string, userId: string): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-  checkPermission(user, 'product:edit', product);
-
-  if (!product.materials || product.materials.length === 0) {
-    throw new Error('Product has no materials to analyze.');
-  }
-
-  // Use the first material as the primary one for analysis in this mock
-  const primaryMaterial = product.materials[0];
-
-  const analysisResult = await analyzeConstructionMaterialFlow({
-    materialName: primaryMaterial.name,
-    manufacturingProcess: product.manufacturing?.manufacturingProcess,
-    recycledContentPercentage: primaryMaterial.recycledContent,
-  });
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-  
-  mockProducts[productIndex].constructionAnalysis = analysisResult;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent(
-    'product.construction_analysis',
-    productId,
-    { result: analysisResult },
-    userId,
-  );
-  
-  return Promise.resolve(mockProducts[productIndex]);
-}
-
-export async function analyzeSimulatedRoute(
-  productId: string,
-  originCountry: string,
-  destinationCountry: string,
-  userId: string,
-): Promise<AnalyzeSimulatedRouteOutput> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-  checkPermission(user, 'admin:manage_settings'); // Example permission
-
-  const product = await getProductById(productId, user.id);
-  if (!product) {
-    throw new Error('Product not found.');
-  }
-
-  return analyzeSimulatedRouteFlow({
-    product,
-    originCountry,
-    destinationCountry,
-  });
-}
-
-export async function analyzeProductTransitRisk(
-  productId: string,
-  userId: string,
-): Promise<ProductTransitRiskAnalysis> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-  checkPermission(user, 'admin:manage_settings'); // Example permission
-
-  const product = await getProductById(productId, user.id);
-  if (!product || !product.transit) {
-    throw new Error('Product or its transit information not found.');
-  }
-
-  return analyzeProductTransitRiskFlow({
-    product,
-    originCountry: product.transit.origin,
-    destinationCountry: product.transit.destination,
-  });
-}
-
-export async function analyzeFoodSafetyData(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-  checkPermission(user, 'product:edit', product);
-
-  if (
-    !product.foodSafety ||
-    !product.foodSafety.ingredients ||
-    product.foodSafety.ingredients.length === 0
-  ) {
-    throw new Error('No ingredients provided to analyze for food safety.');
-  }
-
-  const analysisResult = await analyzeFoodSafetyFlow({
-    productName: product.productName,
-    ingredients: product.foodSafety.ingredients.map(i => i.value),
-    packagingMaterials: product.packaging ? [product.packaging.type] : [],
-  });
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].foodSafetyAnalysis = analysisResult;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent(
-    'product.food_safety_analysis',
-    productId,
-    { result: analysisResult },
-    userId,
-  );
-
-  return Promise.resolve(mockProducts[productIndex]);
 }

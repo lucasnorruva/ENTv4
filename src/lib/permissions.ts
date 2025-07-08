@@ -111,7 +111,6 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'ticket:create',
     'ticket:manage',
     'user:edit',
-    'product:run_prediction',
   ],
 
   [UserRoles.SERVICE_PROVIDER]: [
