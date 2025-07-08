@@ -64,7 +64,7 @@ export default function BlockchainManagementClient({
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Trust & Verification Hub
+            Trust &amp; Verification Hub
           </h1>
           <p className="text-muted-foreground">
             Manage the on-chain lifecycle of Digital Product Passports, issuer
@@ -82,7 +82,7 @@ export default function BlockchainManagementClient({
       <Tabs defaultValue="anchoring">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="anchoring">Anchoring</TabsTrigger>
-          <TabsTrigger value="issuers">Issuers & Revocation</TabsTrigger>
+          <TabsTrigger value="issuers">Issuers &amp; Revocation</TabsTrigger>
           <TabsTrigger value="zkp">Zero-Knowledge Proofs</TabsTrigger>
         </TabsList>
         <TabsContent value="anchoring" className="mt-4">

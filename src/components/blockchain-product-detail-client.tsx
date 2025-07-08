@@ -198,7 +198,7 @@ export default function BlockchainProductDetailClient({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InfoCard
-          title="Blockchain & EBSI Details"
+          title="Blockchain &amp; EBSI Details"
           description="Status of on-chain anchoring and credentialing."
         >
           <DetailRow
