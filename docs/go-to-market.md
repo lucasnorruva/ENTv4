@@ -5,29 +5,29 @@
 The platform must bridge multiple regulatory schemes. This section outlines the specific GTM strategy for key international markets.
 
 ### European Union (EU)
-The EU's Ecodesign for Sustainable Products Regulation (ESPR) is a primary driver for DPP adoption.
-- **Mandate**: ESPR enforces DPPs for products starting from 2026 (textiles first), with other categories to follow.
-- **Platform Alignment**: The Norruva data model includes all ESPR-mandated fields, such as material composition, recyclability info, repairability scores, and carbon footprint data.
+- **Mandate**: The Ecodesign for Sustainable Products Regulation (ESPR) enforces DPPs, requiring products to carry them from 2026 onward (textiles first).
+- **Platform Alignment**: The Norruva data model includes all ESPR-mandated fields, such as material composition, recyclability info, and carbon footprint data. EU rules apply equally to imports, broadening our scope to global suppliers.
 - **GTM Focus**: Target EU-based companies and global suppliers who import into the EU, emphasizing turnkey ESPR compliance.
 
 ### United States (US)
-While there is no federal DPP law yet, regulations like the FTC’s Green Guides govern environmental claims on marketing. Though not a DPP law, they
-demand substantiation of “eco-friendly” claims (recyclability, carbon offsets, etc.).
-- **Mandate**: The FTC Green Guides demand substantiation for claims like "eco-friendly," "recyclable," or "carbon neutral."
+- **Mandate**: The FTC’s Green Guides demand substantiation for environmental marketing claims like "eco-friendly" or "recyclable."
 - **Platform Alignment**: The `greenClaims` data structure in our product schema allows companies to link marketing claims directly to verifiable data (e.g., certification documents, LCA reports) within the DPP.
 - **GTM Focus**: Position Norruva as a tool for "greenwashing" prevention and brand trust, helping companies meet FTC guidelines and build consumer confidence.
 
 ### Canada
-Provincial Extended Producer Responsibility (EPR) programs (aligned under CCME) assign end-of-life responsibility to producers.
-- **Mandate**: Producers are financially responsible for the end-of-life management of their products.
+- **Mandate**: Provincial Extended Producer Responsibility (EPR) programs, aligned under the Canadian Council of Ministers of the Environment (CCME), assign end-of-life responsibility to producers.
 - **Platform Alignment**: The `compliance.epr` field in our data model captures the necessary data (scheme ID, producer number, waste category) for streamlined EPR reporting and fee calculation.
 - **GTM Focus**: Target producers in regulated sectors (e.g., electronics, packaging) by offering a solution to simplify and automate their EPR compliance across different provinces.
 
 ### Asia-Pacific (APAC)
-Emerging EPR laws in countries like Japan, South Korea, and India create a growing need for product data management.
-- **Mandate**: EPR laws for electronics and plastics are increasingly common.
+- **Mandate**: EPR laws for electronics and plastics are emerging in countries like Japan, South Korea, and India.
 - **Platform Alignment**: The generic EPR fields in the DPP data model are flexible enough to accommodate the specific requirements of various APAC nations.
 - **GTM Focus**: Offer a future-proof solution for multinational companies that need to manage compliance across a fragmented but growing regulatory landscape in Asia.
+
+### Construction & Building Materials
+- **Mandate**: The EU is phasing in DPP requirements for construction products starting in 2024 to address the sector's substantial environmental footprint.
+- **Platform Alignment**: Our data model supports key metrics for building materials, such as embodied carbon, recycled content, and end-of-life options. The platform is designed to integrate with industry standards like BIMobject or RIBA data, allowing Building Information Models (BIM) to automatically populate the DPP.
+- **GTM Focus**: Collaborate with construction industry groups and circular economy initiatives (e.g., EU BAMB project) to provide tools for manufacturers of cement, steel, and insulation to generate compliant passports.
 
 ## Data Interoperability Strategy
 
@@ -40,9 +40,35 @@ To enable global traceability and cross-certification, the platform uses common 
 
 To make the value proposition more concrete, this section maps specific platform features to the needs of each key stakeholder.
 
+### For the Supplier
+This persona is responsible for creating and maintaining product passports.
+- **Guided Product Creation**: An intuitive form-based UI to create new DPPs, with AI assistance for generating descriptions (`generateProductDescription`) and parsing unstructured Bills of Materials (`analyzeBillOfMaterials`).
+- **Data Quality Dashboard**: A dedicated view to see all products with AI-flagged data issues (`validateProductData`), with clear warnings and links to edit.
+- **Pre-Submission Checklist**: An automated checklist that shows what data is missing before a passport can be submitted for verification, preventing simple errors.
+- **Compliance Status Tracking**: A centralized dashboard to view the verification status of all products (Draft, Pending, Verified, Failed).
+
+### For the Manufacturer
+This persona is focused on production efficiency, supply chain visibility, and material management.
+- **Production Line Dashboard**: A dashboard to monitor the status, output, and maintenance history of all manufacturing lines.
+- **Material Composition Analytics**: Tools to analyze material usage across all products, track recycled content, and identify opportunities for more sustainable sourcing.
+- **Supply Chain Provenance Viewer**: An interactive graph that visualizes the relationships between suppliers, components, and the final product.
+- **Service Ticket Management**: The ability to create and track service tickets for production line maintenance.
+- **Global Supply Chain Tracker**: Provides visibility into the transit of finished goods from factory to destination port, with real-time customs alerts visualized directly on the globe.
+
+### For the Fashion & Textile Specialist
+This persona requires deep, industry-specific insights into garment manufacturing.
+- **Specialized Data Entry**: A dedicated "Textile" tab for entering fiber composition, dye processes, and weave types.
+- **AI-Powered Textile Analysis**: The `analyzeTextileComposition` flow assesses materials for microplastic shedding risk and evaluates dye safety against standards like ZDHC MRSL.
+- **Targeted Compliance**: Helps address textile-specific regulations under ESPR, such as recycled content verification and end-of-life process management.
+
+### For the Food & Beverage Specialist
+This persona is concerned with food safety, allergen management, and regulatory compliance for consumables.
+- **Specialized Data Entry**: A dedicated "Food &amp; Beverage" tab for inputting ingredients and allergen statements.
+- **AI-Powered Safety Analysis**: The `analyzeFoodSafety` flow scans ingredients for common allergens and evaluates packaging materials for compliance with food-contact standards (e.g., BPA, phthalates).
+- **Targeted Compliance**: Helps address regulations like the EU's Food Contact Materials Regulation (1935/2004) and provides a clear basis for allergen labeling.
+
 ### For the Compliance Officer & Auditor
 This persona requires tools for risk mitigation, verification, and reporting.
-- **Compliance Paths Dashboard**: Define and manage rule sets for different regulations and product categories.
 - **Automated Validation Engine**: The AI-powered `summarizeComplianceGaps` flow automatically checks products against assigned paths.
 - **Flagged Products Queue**: A dedicated dashboard to view and manage all products that have failed verification.
 - **Immutable Audit Logs**: A complete, verifiable history of every action taken on a product passport, crucial for regulatory inquiries.
@@ -57,6 +83,21 @@ This persona is focused on data-driven sustainability, transparency, and reporti
 - **AI-Powered Lifecycle Analysis**: The `analyzeProductLifecycle` flow provides insights into a product's carbon footprint and highlights stages with the highest environmental impact.
 - **Public Passport Page**: A consumer-facing page generated for each product, allowing the company to transparently share sustainability credentials with customers.
 - **Verifiable Credentials (VCs)**: The ability to cryptographically link sustainability claims (e.g., "GOTS Certified Organic Cotton") to a trusted third-party issuer (e.g., a certification body).
+
+### For the Recycler & Service Provider
+These circular economy partners need access to specific EOL and repair information.
+- **EOL Scanner**: A mobile-friendly interface to scan product QR codes and mark items as 'Recycled' or 'Disposed', closing the loop on the product lifecycle.
+- **Circularity Credits**: An incentive system that rewards recyclers with digital credits for processing end-of-life products.
+- **Service Manual Access**: Easy access to downloadable PDF service and repair manuals attached to each product passport.
+- **Service Ticket Management**: A system for creating, viewing, and updating maintenance and repair tickets for products and production lines.
+- **Global Supply Chain Tracker**: Provides visibility into incoming product streams, helping recyclers anticipate material flow and plan capacity.
+- **Material Composition View**: Quick access to the detailed bill of materials to identify valuable or hazardous materials during disassembly.
+
+### For the Retailer
+This persona needs to verify the compliance and sustainability of the products they sell.
+- **Product Catalog**: A searchable and filterable view of all published products from all suppliers on the platform.
+- **Supplier Analytics**: Dashboards to compare the average ESG and compliance rates of different suppliers, informing purchasing decisions.
+- **Public Passport Integration**: Easy access to the consumer-facing DPP page for each product, which can be linked from the retailer's e-commerce site.
 
 ### For the IT Integrator & CIO/CTO
 This persona values robust APIs, security, scalability, and ease of integration.
