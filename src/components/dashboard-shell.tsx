@@ -30,6 +30,8 @@ export default async function DashboardShell({
   const company = await getCompanyById(user.companyId);
   const theme = company?.settings?.theme;
   const useCustomTheme = company?.settings?.brandingCustomization && theme;
+  const logoUrl = company?.settings?.logoUrl;
+  const companyName = company?.name;
 
   const customThemeStyles = useCustomTheme
     ? `
@@ -49,7 +51,12 @@ export default async function DashboardShell({
       {useCustomTheme && <style>{customThemeStyles}</style>}
       <SidebarProvider>
         <Sidebar>
-          <DashboardSidebar userRole={role} user={user} />
+          <DashboardSidebar
+            userRole={role}
+            user={user}
+            logoUrl={logoUrl}
+            companyName={companyName}
+          />
           <SidebarRail />
         </Sidebar>
         <SidebarInset>

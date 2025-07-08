@@ -64,6 +64,8 @@ export interface Company extends BaseEntity {
     aiEnabled: boolean;
     apiAccess: boolean;
     brandingCustomization: boolean;
+    logoUrl?: string;
+    logoFileName?: string;
     theme?: {
       light: { primary: string; accent: string };
       dark: { primary: string; accent: string };

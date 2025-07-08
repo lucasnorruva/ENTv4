@@ -21,8 +21,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { UserRoles, type Role } from '@/lib/constants';
-import { hasRole } from '@/lib/auth-utils';
+import type { Role } from '@/lib/constants';
 import type { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -35,11 +34,15 @@ import { navConfig } from '@/lib/nav-config';
 interface DashboardSidebarProps {
   userRole: Role;
   user: User;
+  logoUrl?: string;
+  companyName?: string;
 }
 
 export default function DashboardSidebar({
   userRole,
   user,
+  logoUrl,
+  companyName,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -96,7 +99,11 @@ export default function DashboardSidebar({
   return (
     <Sidebar>
       <SidebarHeader>
-        <Logo className="text-xl group-data-[collapsible=icon]:hidden" />
+        <Logo
+          className="text-xl group-data-[collapsible=icon]:hidden"
+          logoUrl={logoUrl}
+          companyName={companyName}
+        />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>

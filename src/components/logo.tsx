@@ -2,12 +2,30 @@
 
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 interface LogoProps {
   className?: string;
+  logoUrl?: string;
+  companyName?: string;
 }
 
-export default function Logo({ className }: LogoProps) {
+export default function Logo({ className, logoUrl, companyName }: LogoProps) {
+  if (logoUrl) {
+    return (
+      <Link href="/" className="flex items-center">
+        <Image
+          src={logoUrl}
+          alt={`${companyName || 'Custom'} Logo`}
+          width={120}
+          height={40}
+          className={cn("object-contain h-8", className)}
+          data-ai-hint="logo"
+        />
+      </Link>
+    );
+  }
+
   return (
     <Link href="/" className="flex items-center gap-2">
       <svg
