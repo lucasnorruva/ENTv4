@@ -37,21 +37,12 @@ import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
 import CustomDataTab from './product-form-tabs/custom-data-tab';
 import TextileTab from './product-form-tabs/textile-tab';
-import FoodTab from './product-form-tabs/food-tab';
-import ConstructionTab from './product-form-tabs/construction-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
   user: User;
   compliancePaths: CompliancePath[];
   roleSlug: string;
-}
-
-async function hashFile(file: File): Promise<string> {
-    const buffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export default function ProductForm({
@@ -85,7 +76,7 @@ export default function ProductForm({
 
   const isEditMode = !!initialData?.id;
 
-  const defaultNewValues: ProductFormValues = {
+  const defaultNewValues = {
     gtin: '',
     productName: '',
     productDescription: '',
@@ -93,39 +84,21 @@ export default function ProductForm({
     category: 'Electronics',
     status: 'Draft',
     materials: [],
-    manufacturing: { facility: '', country: '', manufacturingProcess: '' },
+    manufacturing: { facility: '', country: '' },
     certifications: [],
     packaging: { type: '', recyclable: false },
     lifecycle: {},
     battery: {},
-    compliance: {
-      rohs: { compliant: false },
-      reach: { svhcDeclared: false },
-      weee: { registered: false },
-      eudr: { compliant: false },
-      ce: { marked: false },
-      prop65: { warningRequired: false },
-      foodContact: { safe: false },
-      epr: { schemeId: '', producerRegistrationNumber: '', wasteCategory: '' },
-      battery: { compliant: false },
-      pfas: { declared: false },
-      conflictMinerals: { compliant: false },
-      espr: { compliant: false },
-    },
-    greenClaims: [],
+    compliance: {},
     manualUrl: '',
     manualFileName: '',
     manualFileSize: 0,
-    manualFileHash: '',
     model3dUrl: '',
     model3dFileName: '',
-    model3dFileHash: '',
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
     textile: { fiberComposition: [] },
-    foodSafety: { ingredients: [], allergens: '' },
-    constructionAnalysis: undefined,
   };
 
   const form = useForm<ProductFormValues>({
@@ -133,16 +106,6 @@ export default function ProductForm({
     defaultValues: {
       ...defaultNewValues,
       ...initialData,
-      // Ensure nested objects are not undefined
-      compliance: {
-        ...defaultNewValues.compliance,
-        ...initialData?.compliance,
-      },
-      greenClaims: initialData?.greenClaims || [],
-      foodSafety: {
-        ...defaultNewValues.foodSafety,
-        ...initialData?.foodSafety,
-      },
     },
   });
 
@@ -170,12 +133,6 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
-  
-  const {
-    fields: greenClaimFields,
-    append: appendGreenClaim,
-    remove: removeGreenClaim,
-  } = useFieldArray({ control: form.control, name: 'greenClaims' });
 
   const {
     fields: fiberFields,
@@ -194,12 +151,10 @@ export default function ProductForm({
     }
   };
 
-  const handleManualChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setManualFile(file);
-      const fileHash = await hashFile(file);
-      form.setValue('manualFileHash', fileHash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -209,12 +164,10 @@ export default function ProductForm({
     }
   };
   
-  const handleModelChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
       setModelFile(file);
-      const fileHash = await hashFile(file);
-      form.setValue('model3dFileHash', fileHash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -480,16 +433,12 @@ export default function ProductForm({
 
   const hasCustomFields = customFields.length > 0;
   const showTextileTab = category === 'Fashion';
-  const showFoodTab = category === 'Food & Beverage';
-  const showConstructionTab = category === 'Construction';
 
   const getTabCols = () => {
     let cols = 4;
     if (hasCustomFields) cols++;
     if (showTextileTab) cols++;
-    if (showFoodTab) cols++;
-    if (showConstructionTab) cols++;
-    return `grid-cols-${cols > 6 ? 6 : cols}`;
+    return `grid-cols-${cols}`;
   };
 
   return (
@@ -551,15 +500,7 @@ export default function ProductForm({
             <TabsList className={cn('grid w-full', getTabCols())}>
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="data">Data</TabsTrigger>
-              {showTextileTab && (
-                <TabsTrigger value="textile">Textile</TabsTrigger>
-              )}
-              {showConstructionTab && (
-                <TabsTrigger value="construction">Construction</TabsTrigger>
-              )}
-               {showFoodTab && (
-                <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>
-              )}
+              {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
               <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
               <TabsTrigger value="compliance">Compliance</TabsTrigger>
               {hasCustomFields && (
@@ -591,8 +532,6 @@ export default function ProductForm({
                 certFields={certFields}
                 appendCert={appendCert}
                 removeCert={removeCert}
-                isAiEnabled={isAiEnabled}
-                user={user}
               />
             </TabsContent>
              {showTextileTab && (
@@ -602,26 +541,6 @@ export default function ProductForm({
                   fiberFields={fiberFields}
                   appendFiber={appendFiber}
                   removeFiber={removeFiber}
-                  user={user}
-                  productId={initialData?.id}
-                  isAiEnabled={isAiEnabled}
-                />
-              </TabsContent>
-            )}
-            {showConstructionTab && (
-              <TabsContent value="construction">
-                <ConstructionTab
-                  form={form}
-                  user={user}
-                  productId={initialData?.id}
-                  isAiEnabled={isAiEnabled}
-                />
-              </TabsContent>
-            )}
-            {showFoodTab && (
-              <TabsContent value="food">
-                <FoodTab
-                  form={form}
                   user={user}
                   productId={initialData?.id}
                   isAiEnabled={isAiEnabled}
@@ -641,13 +560,7 @@ export default function ProductForm({
               />
             </TabsContent>
             <TabsContent value="compliance">
-              <ComplianceTab
-                form={form}
-                compliancePaths={compliancePaths}
-                greenClaimFields={greenClaimFields}
-                appendGreenClaim={appendGreenClaim}
-                removeGreenClaim={removeGreenClaim}
-              />
+              <ComplianceTab form={form} compliancePaths={compliancePaths} />
             </TabsContent>
             {hasCustomFields && (
               <TabsContent value="custom">

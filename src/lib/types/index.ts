@@ -7,9 +7,6 @@ import type {
   EsgScoreOutput,
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
-  AnalyzeConstructionMaterialOutput,
-  AnalyzeFoodSafetyOutput,
-  ProductTransitRiskAnalysis,
   AnalyzeElectronicsComplianceOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
@@ -19,10 +16,8 @@ import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis };
-export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot };
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
-export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
 export type TextileAnalysis = AnalyzeTextileOutput;
 
 /**
@@ -98,21 +93,17 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
-  documentUrl?: string;
 }
 
 export interface Manufacturing {
   facility: string;
   country: string;
-  manufacturingProcess?: string;
-  emissionsKgCo2e?: number;
 }
 
 export interface Packaging {
   type: string;
   recycledContent?: number;
   recyclable: boolean;
-  weight?: number;
 }
 
 export interface Lifecycle {
@@ -121,7 +112,6 @@ export interface Lifecycle {
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
-  energyEfficiencyClass?: string;
 }
 
 export interface Battery {
@@ -135,16 +125,6 @@ export interface TextileData {
   fiberComposition: { name: string; percentage: number }[];
   dyeProcess: string;
   weaveType?: string;
-}
-
-export interface FoodSafetyData {
-  ingredients: { value: string }[];
-  allergens?: string;
-}
-
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
 }
 
 export interface Compliance {
@@ -173,26 +153,6 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
-  };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
   };
 }
 
@@ -256,7 +216,7 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage';
+  category: 'Electronics' | 'Fashion' | 'Home Goods';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
@@ -264,11 +224,8 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
-  manualFileHash?: string;
   model3dUrl?: string;
   model3dFileName?: string;
-  model3dFileHash?: string;
-  modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
@@ -299,13 +256,8 @@ export interface Product extends BaseEntity {
   serviceHistory?: ServiceRecord[];
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
-  foodSafety?: FoodSafetyData;
-  greenClaims?: GreenClaim[];
-  constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
-  foodSafetyAnalysis?: FoodSafetyAnalysis;
-  transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -361,7 +313,6 @@ export interface ServiceTicket extends BaseEntity {
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
-  imageUrl?: string;
 }
 
 export interface SupportTicket extends BaseEntity {

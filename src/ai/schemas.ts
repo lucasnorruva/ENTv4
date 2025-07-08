@@ -1,8 +1,6 @@
-
 // src/ai/schemas.ts
 import { z } from 'zod';
 import { textileDataSchema } from '@/lib/schemas/textile';
-import type { ConstructionAnalysis, FoodSafetyData, GreenClaim } from '@/types';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
@@ -14,7 +12,7 @@ export const AiProductSchema = z.object({
   gtin: z.string().optional().describe('The Global Trade Item Number (GTIN) of the product.'),
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A description of the product.'),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']).describe('The product category.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods']).describe('The product category.'),
   supplier: z.string().describe('The name of the product supplier or brand.'),
   materials: z
     .array(
@@ -30,8 +28,6 @@ export const AiProductSchema = z.object({
     .object({
       facility: z.string(),
       country: z.string(),
-      manufacturingProcess: z.string().optional(),
-      emissionsKgCo2e: z.number().optional(),
     })
     .describe('Manufacturing details.')
     .optional(),
@@ -49,8 +45,6 @@ export const AiProductSchema = z.object({
     .object({
       type: z.string(),
       recyclable: z.boolean(),
-      recycledContent: z.number().optional(),
-      weight: z.number().optional(),
     })
     .describe('Packaging details.')
     .optional(),
@@ -74,18 +68,12 @@ export const AiProductSchema = z.object({
     .optional(),
   compliance: z
     .object({
-      rohs: z.object({ compliant: z.boolean().optional(), exemption: z.string().optional() }).optional(),
-      reach: z.object({ svhcDeclared: z.boolean().optional(), scipReference: z.string().optional() }).optional(),
-      weee: z.object({ registered: z.boolean().optional(), registrationNumber: z.string().optional() }).optional(),
-      eudr: z.object({ compliant: z.boolean().optional(), diligenceId: z.string().optional() }).optional(),
+      rohs: z.object({ compliant: z.boolean().optional() }).optional(),
+      reach: z.object({ svhcDeclared: z.boolean().optional() }).optional(),
+      weee: z.object({ registered: z.boolean().optional() }).optional(),
+      eudr: z.object({ compliant: z.boolean().optional() }).optional(),
       ce: z.object({ marked: z.boolean().optional() }).optional(),
       prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
-      foodContact: z.object({ safe: z.boolean().optional(), standard: z.string().optional() }).optional(),
-      epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional(), wasteCategory: z.string().optional() }).optional(),
-      battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
-      pfas: z.object({ declared: z.boolean().optional() }).optional(),
-      conflictMinerals: z.object({ compliant: z.boolean().optional(), reportUrl: z.string().url().optional() }).optional(),
-      espr: z.object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().url().optional() }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),
@@ -100,9 +88,6 @@ export const AiProductSchema = z.object({
     .optional()
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
-  constructionAnalysis: z.custom<ConstructionAnalysis>().optional().describe('Construction-specific data.'),
-  greenClaims: z.custom<GreenClaim[]>().optional().describe('Environmental marketing claims and their substantiation.'),
-  foodSafety: z.custom<FoodSafetyData>().optional().describe('Food & beverage specific data.'),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;

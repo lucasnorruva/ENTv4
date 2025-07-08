@@ -21,14 +21,12 @@ const certificationSchema = z.object({
 const manufacturingSchema = z.object({
   facility: z.string().min(1, 'Facility name is required.'),
   country: z.string().min(1, 'Country is required.'),
-  manufacturingProcess: z.string().optional(),
 });
 
 const packagingSchema = z.object({
   type: z.string().min(1, 'Packaging type is required.'),
   recycledContent: z.coerce.number().optional(),
   recyclable: z.boolean(),
-  weight: z.coerce.number().optional(),
 });
 
 const lifecycleSchema = z.object({
@@ -37,7 +35,6 @@ const lifecycleSchema = z.object({
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
-  energyEfficiencyClass: z.string().optional(),
 });
 
 const batterySchema = z.object({
@@ -88,46 +85,6 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
-  epr: z
-    .object({
-      schemeId: z.string().optional(),
-      producerRegistrationNumber: z.string().optional(),
-      wasteCategory: z.string().optional(),
-    })
-    .optional(),
-  battery: z
-    .object({
-      compliant: z.boolean().optional(),
-      passportId: z.string().optional(),
-    })
-    .optional(),
-  pfas: z
-    .object({
-      declared: z.boolean().optional(),
-    })
-    .optional(),
-  conflictMinerals: z
-    .object({
-      compliant: z.boolean().optional(),
-      reportUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-  espr: z
-    .object({
-      compliant: z.boolean().optional(),
-      delegatedActUrl: z.string().url().optional().or(z.literal('')),
-    })
-    .optional(),
-});
-
-const greenClaimSchema = z.object({
-  claim: z.string().min(1, 'Claim is required'),
-  substantiation: z.string().min(1, 'Substantiation is required'),
-});
-
-const foodSafetySchema = z.object({
-  ingredients: z.array(z.object({ value: z.string() })).optional(),
-  allergens: z.string().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -144,22 +101,14 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  category: z.enum([
-    'Electronics',
-    'Fashion',
-    'Home Goods',
-    'Construction',
-    'Food & Beverage',
-  ]),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
   manualFileName: z.string().optional(),
   manualFileSize: z.number().optional(),
-  manualFileHash: z.string().optional(),
   model3dUrl: z.string().url().optional().or(z.literal('')),
   model3dFileName: z.string().optional(),
-  model3dFileHash: z.string().optional(),
   declarationOfConformity: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
@@ -168,12 +117,8 @@ export const productFormSchema = z.object({
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
   compliance: complianceSchema.optional(),
-  greenClaims: z.array(greenClaimSchema).optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
-  foodSafety: foodSafetySchema.optional(),
-  constructionAnalysis: z.any().optional(),
-  electronicsAnalysis: z.any().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -282,7 +227,6 @@ export const serviceTicketFormSchema = z.object({
     .string()
     .min(10, 'Issue description must be at least 10 characters.'),
   status: z.enum(['Open', 'In Progress', 'Closed']),
-  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
@@ -374,14 +318,6 @@ export const ownershipTransferSchema = z.object({
     newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
 });
 export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
-
-export const customsInspectionFormSchema = z.object({
-    status: z.enum(['Cleared', 'Detained', 'Rejected']),
-    authority: z.string().min(3, 'Authority is required.'),
-    location: z.string().min(3, 'Location is required.'),
-    notes: z.string().optional(),
-});
-export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
 
 export const productionLineFormSchema = z.object({
   name: z.string().min(3, 'Line name is required.'),

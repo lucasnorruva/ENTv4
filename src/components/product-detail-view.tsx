@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
-  Hammer,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -37,8 +36,7 @@ import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
-import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
-import ConstructionTab from './product-detail-tabs/construction-tab';
+import TextileTab from './product-detail-tabs/textile-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -87,8 +85,7 @@ export default function ProductDetailView({
   };
   
   const showElectronicsTab = product.category === 'Electronics';
-  const showFoodTab = product.category === 'Food & Beverage';
-  const showConstructionTab = product.category === 'Construction';
+  const showTextileTab = product.category === 'Fashion';
 
   return (
     <>
@@ -156,8 +153,7 @@ export default function ProductDetailView({
               <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
-                {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
-                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
+                {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -175,14 +171,9 @@ export default function ProductDetailView({
                     <ElectronicsTab product={product} />
                 </TabsContent>
                )}
-               {showFoodTab && (
-                <TabsContent value="food" className="mt-4">
-                    <FoodSafetyTab product={product} />
-                </TabsContent>
-               )}
-               {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                    <ConstructionTab product={product} />
+               {showTextileTab && (
+                <TabsContent value="textile" className="mt-4">
+                    <TextileTab product={product} />
                 </TabsContent>
                )}
               <TabsContent value="sustainability" className="mt-4">

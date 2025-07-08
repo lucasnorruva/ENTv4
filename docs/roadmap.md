@@ -197,7 +197,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 2.1.3 Industry-Specific AI Models
 - [x] **Electronics Compliance AI**
-- [ ] **Textile AI Specialist**
+- [x] **Textile AI Specialist**
 - [ ] **Food & Beverage AI**
 - [ ] **Construction Materials AI**
 - [x] **AI-Powered Q&A Chatbot**

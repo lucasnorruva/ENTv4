@@ -77,26 +77,9 @@ import type {
   AnalyzeTextileOutput,
 } from '@/ai/flows/analyze-textile-composition';
 import type {
-  AnalyzeConstructionMaterialInput,
-  AnalyzeConstructionMaterialOutput,
-} from '@/ai/flows/analyze-construction-material';
-import type {
-  AnalyzeTransitRiskInput,
-  AnalyzeTransitRiskOutput,
-} from '@/ai/flows/analyze-transit-risk';
-import type {
-  AnalyzeProductTransitRiskInput,
-  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
-} from '@/ai/flows/analyze-product-transit-risk';
-import type {
-  AnalyzeSimulatedRouteInput,
-  AnalyzeSimulatedRouteOutput,
-} from '@/ai/flows/analyze-simulated-route';
-import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
-import type { GenerateSmartContractInput, GenerateSmartContractOutput } from "@/ai/flows/generate-smart-contract";
-import type { GenerateComponentTestsInput, GenerateComponentTestsOutput } from "@/ai/flows/generate-component-tests";
-import type { AnalyzeElectronicsComplianceInput, AnalyzeElectronicsComplianceOutput } from '@/ai/flows/analyze-electronics-compliance';
-
+  AnalyzeElectronicsComplianceInput,
+  AnalyzeElectronicsComplianceOutput,
+} from '@/ai/flows/analyze-electronics-compliance';
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -120,13 +103,6 @@ export type {
   PredictLifecycleInput,
   ExplainErrorInput,
   AnalyzeTextileInput,
-  AnalyzeConstructionMaterialInput,
-  AnalyzeTransitRiskInput,
-  AnalyzeProductTransitRiskInput,
-  AnalyzeSimulatedRouteInput,
-  AnalyzeFoodSafetyInput,
-  GenerateSmartContractInput,
-  GenerateComponentTestsInput,
   AnalyzeElectronicsComplianceInput,
 };
 
@@ -150,12 +126,5 @@ export type {
   PredictLifecycleOutput,
   ExplainErrorOutput,
   AnalyzeTextileOutput,
-  AnalyzeConstructionMaterialOutput,
-  AnalyzeTransitRiskOutput,
-  ProductTransitRiskAnalysis,
-  AnalyzeSimulatedRouteOutput,
-  AnalyzeFoodSafetyOutput,
-  GenerateSmartContractOutput,
-  GenerateComponentTestsOutput,
   AnalyzeElectronicsComplianceOutput,
 };
