@@ -57,6 +57,7 @@ const lifecycleSchema = z.object({
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
+  energyEfficiencyClass: z.string().optional(),
 });
 
 const batterySchema = z.object({
@@ -107,6 +108,28 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
+  epr: z
+    .object({
+      schemeId: z.string().optional(),
+      producerRegistrationNumber: z.string().optional(),
+      wasteCategory: z.string().optional(),
+    })
+    .optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().optional(),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z.object({ declared: z.boolean().optional() }).optional(),
+  conflictMinerals: z.object({
+    compliant: z.boolean().optional(),
+    reportUrl: z.string().url().optional().or(z.literal('')),
+  }).optional(),
+  espr: z.object({
+    compliant: z.boolean().optional(),
+    delegatedActUrl: z.string().url().optional().or(z.literal('')),
+  }).optional(),
 });
 
 export const productFormSchema = z.object({
@@ -251,18 +274,9 @@ export const serviceTicketFormSchema = z.object({
     .string()
     .min(10, 'Issue description must be at least 10 characters.'),
   status: z.enum(['Open', 'In Progress', 'Closed']),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
-
 export type ServiceTicketFormValues = z.infer<typeof serviceTicketFormSchema>;
-
-export const bulkUserImportSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  roles: z
-    .string()
-    .transform(val => val.split(',').map(s => s.trim() as Role)),
-});
-export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
 
 export const supportTicketFormSchema = z.object({
   name: z.string().min(2, { message: 'Name is required.' }),
@@ -275,17 +289,6 @@ export const supportTicketFormSchema = z.object({
     .min(20, { message: 'Message must be at least 20 characters.' }),
 });
 export type SupportTicketFormValues = z.infer<typeof supportTicketFormSchema>;
-
-export const bulkProductImportSchema = z.object({
-  productName: z.string().min(3),
-  productDescription: z.string().min(10),
-  gtin: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
-  productImage: z.string().url().optional(),
-  manualUrl: z.string().url().optional(),
-  materials: z.string().transform(val => (val ? JSON.parse(val) : [])),
-});
-export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
 
 export const onboardingFormSchema = z.object({
   companyName: z.string().min(2, 'Company name is required.'),
@@ -359,3 +362,21 @@ export const customsInspectionFormSchema = z.object({
   notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
+
+export const bulkUserImportSchema = z.object({
+    fullName: z.string().min(2),
+    email: z.string().email(),
+    roles: z.string().transform(val => val.split(',').map(s => s.trim() as Role)),
+});
+export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
+
+export const bulkProductImportSchema = z.object({
+    productName: z.string().min(3),
+    productDescription: z.string().min(10),
+    gtin: z.string().optional(),
+    category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
+    productImage: z.string().url().optional(),
+    manualUrl: z.string().url().optional(),
+    materials: z.string().transform(val => (val ? JSON.parse(val) : [])),
+});
+export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;

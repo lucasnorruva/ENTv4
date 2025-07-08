@@ -15,6 +15,7 @@ import type {
   CustodyStepFormValues,
   OwnershipTransferFormValues,
   CustomsInspectionFormValues,
+  BulkProductImportValues,
 } from '@/types';
 import { productFormSchema } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
@@ -625,4 +626,32 @@ export async function performCustomsInspection(
   await logAuditEvent('customs.inspected', productId, { status: values.status, location: values.location }, userId);
 
   return product;
+}
+
+export async function bulkCreateProducts(
+  productsToImport: BulkProductImportValues[],
+  userId: string,
+): Promise<{ createdCount: number }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'product:create');
+
+  let createdCount = 0;
+  for (const productData of productsToImport) {
+    const values: ProductFormValues = {
+      ...productData,
+      status: 'Draft',
+    };
+    await saveProduct(values, userId);
+    createdCount++;
+  }
+  
+  await logAuditEvent(
+    'product.bulk_import',
+    'multiple',
+    { count: createdCount },
+    userId,
+  );
+
+  return { createdCount };
 }

@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Upload,
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import {
   ColumnDef,
   SortingState,
@@ -53,8 +54,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -68,7 +70,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-import type { User, Company } from '@/types';
+import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions/user-actions';
 import { getCompanies } from '@/lib/auth';
@@ -90,6 +92,7 @@ export default function UserManagementClient({
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
@@ -142,7 +145,7 @@ export default function UserManagementClient({
     });
     setIsImportOpen(false);
   };
-  
+
   const handleEdit = (user: User) => {
     setSelectedUser(user);
     setIsFormOpen(true);
@@ -366,7 +369,7 @@ export default function UserManagementClient({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {isLoading && users.length === 0 ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-48">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
