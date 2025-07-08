@@ -251,11 +251,14 @@ export default function ProductForm({
 
     startDescriptionGeneration(async () => {
       try {
-        const result = await generateProductDescription({
-          productName,
-          category,
-          materials: materials || [],
-        });
+        const result = await generateProductDescription(
+          {
+            productName,
+            category,
+            materials: materials || [],
+          },
+          user.id,
+        );
         form.setValue('productDescription', result.productDescription, {
           shouldValidate: true,
         });

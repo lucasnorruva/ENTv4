@@ -108,10 +108,7 @@ export default function AiActionsWidget({
     setActiveAction('suggestions');
     startTransition(async () => {
       try {
-        const result = await suggestImprovements({
-          productName: product.productName,
-          productDescription: product.productDescription,
-        });
+        const result = await suggestImprovements(product.id, user.id);
         setRecommendations(result);
         setIsSuggestionsOpen(true);
       } catch (error) {

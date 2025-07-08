@@ -1,4 +1,3 @@
-
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -277,26 +276,48 @@ export async function createProductFromImage(
   return createProductFromImageFlow({ imageDataUri });
 }
 
-export async function analyzeBillOfMaterials(bomText: string, userId: string) {
+export async function analyzeBillOfMaterials(
+  input: { bomText: string },
+  userId: string,
+) {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'product:create'); // Re-use create permission for this helper
-  
-  return await analyzeBillOfMaterialsFlow({ bomText });
+
+  return await analyzeBillOfMaterialsFlow(input);
 }
 
-export async function suggestImprovements(input: {
-  productName: string;
-  productDescription: string;
-}): Promise<SuggestImprovementsOutput> {
-  return await suggestImprovementsFlow(input);
+export async function suggestImprovements(
+  productId: string,
+  userId: string,
+): Promise<SuggestImprovementsOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, userId);
+  if (!product) throw new Error('Product not found.');
+
+  checkPermission(user, 'product:edit', product);
+
+  return await suggestImprovementsFlow({
+    productName: product.productName,
+    productDescription: product.productDescription,
+  });
 }
 
-export async function generateProductDescription(input: {
-  productName: string;
-  category: string;
-  materials: { name: string }[];
-}): Promise<GenerateProductDescriptionOutput> {
+export async function generateProductDescription(
+  input: {
+    productName: string;
+    category: string;
+    materials: { name: string }[];
+  },
+  userId: string,
+): Promise<GenerateProductDescriptionOutput> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  // This is used during creation/editing
+  checkPermission(user, 'product:create');
+
   return generateProductDescriptionFlow(input);
 }
 

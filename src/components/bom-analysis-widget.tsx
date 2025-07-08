@@ -1,4 +1,3 @@
-
 // src/components/bom-analysis-widget.tsx
 'use client';
 
@@ -32,10 +31,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import type { User } from '@/types';
 
 interface BomAnalysisWidgetProps {
   onApply: (materials: ProductFormValues['materials']) => void;
-  user: { id: string };
+  user: User;
 }
 
 export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetProps) {
@@ -57,7 +57,7 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
     }
     startAnalysisTransition(async () => {
       try {
-        const result = await analyzeBillOfMaterials({ bomText });
+        const result = await analyzeBillOfMaterials({ bomText }, user.id);
         setAnalysisResult(result);
         setIsDialogOpen(true);
       } catch (error) {
