@@ -1,23 +1,9 @@
+
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
 import { UserRoles } from './constants';
-
-export const textileFiberCompositionSchema = z.object({
-  name: z.string().min(1, 'Fiber name is required.'),
-  percentage: z.coerce.number().min(0, 'Percentage cannot be negative.').max(100, 'Percentage cannot exceed 100.'),
-});
-
-export const textileDataSchema = z.object({
-  fiberComposition: z.array(textileFiberCompositionSchema).optional(),
-  dyeProcess: z.string().optional(),
-  weaveType: z.string().optional(),
-});
-
-export const foodSafetyDataSchema = z.object({
-  ingredients: z.array(z.object({ value: z.string().min(1, 'Ingredient cannot be empty.') })).optional(),
-  allergens: z.string().optional(),
-});
+import { textileDataSchema, foodSafetyDataSchema } from '@/ai/schemas';
 
 const greenClaimSchema = z.object({
   claim: z.string().min(1, 'Claim text is required.'),

@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -10,15 +11,15 @@ import type {
   AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
+  HsCodeAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ProductTransitRiskAnalysis } from './transit';
 import type { ModelHotspot } from './3d';
 
-
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis };
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
@@ -305,6 +306,7 @@ export interface Product extends BaseEntity {
   textileAnalysis?: TextileAnalysis;
   foodSafetyAnalysis?: FoodSafetyAnalysis;
   transitRiskAnalysis?: ProductTransitRiskAnalysis;
+  hsCodeAnalysis?: HsCodeAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
