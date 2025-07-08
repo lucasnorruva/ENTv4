@@ -9,6 +9,7 @@ import type {
   AnalyzeTextileOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
+  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
@@ -17,7 +18,7 @@ import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot };
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis };
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -308,6 +309,7 @@ export interface Product extends BaseEntity {
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
   foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
+  transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
