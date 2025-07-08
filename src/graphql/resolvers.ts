@@ -19,13 +19,17 @@ import {
   getUsersByCompanyId,
 } from '@/lib/auth';
 import { GraphQLError } from 'graphql';
-import type { MyContext } from '@/app/api/graphql/route';
 import type {
   ProductFormValues,
   UserFormValues,
   CompanyFormValues,
 } from '@/lib/schemas';
 import type { User, Product, CompliancePath, Company } from '@/types';
+
+// Define the context interface for our Apollo Server
+export interface MyContext {
+  user: User;
+}
 
 // Helper to check for authenticated user in context.
 const checkAuth = (context: MyContext): User => {

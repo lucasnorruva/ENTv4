@@ -2,7 +2,7 @@
 import { startServerAndCreateNextHandler } from '@as-integrations/next';
 import { ApolloServer } from '@apollo/server';
 import { typeDefs } from '@/graphql/schema';
-import { resolvers } from '@/graphql/resolvers';
+import { resolvers, type MyContext } from '@/graphql/resolvers';
 import { NextRequest } from 'next/server';
 import { authenticateApiRequest } from '@/lib/api-auth';
 import type { User, Company, ApiKey } from '@/types';
@@ -10,11 +10,6 @@ import { GraphQLError } from 'graphql';
 import { PermissionError, RateLimitError } from '@/lib/permissions';
 import { checkRateLimit } from '@/services/rate-limiter';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
-
-// Define the context interface for our Apollo Server
-export interface MyContext {
-  user: User;
-}
 
 const server = new ApolloServer<MyContext>({
   typeDefs,
