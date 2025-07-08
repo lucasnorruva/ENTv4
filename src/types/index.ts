@@ -11,13 +11,13 @@ import type {
   AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
 import type { ModelHotspot } from './3d';
 
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot };
+export type { TransitInfo, CustomsAlert, CustomsStatus, ModelHotspot };
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
