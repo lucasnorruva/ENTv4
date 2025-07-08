@@ -1,7 +1,7 @@
 // src/ai/schemas.ts
 import { z } from 'zod';
 import { textileDataSchema } from '@/lib/schemas/textile';
-import type { AnalyzeConstructionMaterialOutput, GreenClaim, FoodSafetyData } from '@/types';
+import type { AnalyzeConstructionMaterialOutput, GreenClaim, FoodSafetyData, PredictLifecycleOutput } from '@/types';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
