@@ -38,6 +38,7 @@ export const allActions = [
   'product:run_compliance',
   'product:run_prediction',
   'product:generate_zkp',
+  'product:classify_hs_code',
 
   // Specialized Actions
   'product:recycle', // Recycler action
@@ -84,6 +85,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'product:recalculate',
     'product:validate_data',
     'product:run_prediction',
+    'product:classify_hs_code',
     'product:export_data',
     'user:edit',
   ],
@@ -161,7 +163,7 @@ export function can(user: User, action: Action, resource?: any): boolean {
   }
 
   // Handle resource-specific logic (ownership, status, etc.)
-  if (action === 'product:edit' || action === 'product:archive' || action === 'product:recalculate' || action === 'product:validate_data' || action === 'product:run_prediction') {
+  if (action === 'product:edit' || action === 'product:archive' || action === 'product:recalculate' || action === 'product:validate_data' || action === 'product:run_prediction' || action === 'product:classify_hs_code') {
     const product = resource as Product | undefined;
     return !!product && user.companyId === product.companyId;
   }

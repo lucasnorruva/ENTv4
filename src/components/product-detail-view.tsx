@@ -39,6 +39,7 @@ import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
+import HsCodeWidget from './hs-code-widget';
 
 export default function ProductDetailView({
   product: productProp,
@@ -219,6 +220,12 @@ export default function ProductDetailView({
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
             <DppQrCodeWidget productId={product.id} />
+            <HsCodeWidget 
+              product={product} 
+              user={user} 
+              onUpdate={handleUpdateAndRefresh} 
+              isAiEnabled={isAiEnabled} 
+            />
             {canRunPrediction && isAiEnabled && (
               <PredictiveAnalyticsWidget
                 product={product}

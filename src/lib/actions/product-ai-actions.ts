@@ -28,6 +28,7 @@ import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
+import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -647,4 +648,36 @@ export async function analyzeSimulatedTransitRoute(
   });
 }
 
-    
+export async function runHsCodeClassification(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:classify_hs_code');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company?.settings?.aiEnabled) {
+    throw new Error('AI features are not enabled for this company.');
+  }
+
+  const { productName, productDescription, category } = product;
+  const analysisResult = await classifyHsCodeFlow({
+    productName,
+    productDescription,
+    category,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].hsCodeAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent('product.analysis.hs_code', productId, { code: analysisResult.code }, userId);
+  return Promise.resolve(mockProducts[productIndex]);
+}

@@ -77,22 +77,28 @@ import type {
   AnalyzeTextileOutput,
 } from '@/ai/flows/analyze-textile-composition';
 import type {
-  AnalyzeConstructionMaterialInput,
-  AnalyzeConstructionMaterialOutput,
+  AnalyzeElectronicsComplianceInput,
+  AnalyzeElectronicsComplianceOutput,
+} from '@/ai/flows/analyze-electronics-compliance';
+import type {
+    AnalyzeConstructionMaterialInput,
+    AnalyzeConstructionMaterialOutput,
 } from '@/ai/flows/analyze-construction-material';
 import type {
-  AnalyzeTransitRiskInput,
-  AnalyzeTransitRiskOutput,
+    AnalyzeTransitRiskInput,
+    AnalyzeTransitRiskOutput,
 } from '@/ai/flows/analyze-transit-risk';
 import type {
-  AnalyzeProductTransitRiskInput,
-  AnalyzeProductTransitRiskOutput,
+    AnalyzeProductTransitRiskInput,
+    AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
 } from '@/ai/flows/analyze-product-transit-risk';
 import type {
-  AnalyzeSimulatedRouteInput,
-  AnalyzeSimulatedRouteOutput,
+    AnalyzeSimulatedRouteInput,
+    AnalyzeSimulatedRouteOutput,
 } from '@/ai/flows/analyze-simulated-route';
 import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
+import type { ClassifyHsCodeInput, ClassifyHsCodeOutput as HsCodeAnalysis } from "@/ai/flows/classify-hs-code";
+
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -116,11 +122,13 @@ export type {
   PredictLifecycleInput,
   ExplainErrorInput,
   AnalyzeTextileInput,
+  AnalyzeElectronicsComplianceInput,
   AnalyzeConstructionMaterialInput,
   AnalyzeTransitRiskInput,
   AnalyzeProductTransitRiskInput,
   AnalyzeSimulatedRouteInput,
   AnalyzeFoodSafetyInput,
+  ClassifyHsCodeInput,
 };
 
 // Export Output types
@@ -143,9 +151,11 @@ export type {
   PredictLifecycleOutput,
   ExplainErrorOutput,
   AnalyzeTextileOutput,
+  AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeTransitRiskOutput,
-  AnalyzeProductTransitRiskOutput,
+  ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
   AnalyzeFoodSafetyOutput,
+  HsCodeAnalysis,
 };

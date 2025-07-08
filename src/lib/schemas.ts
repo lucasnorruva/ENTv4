@@ -166,6 +166,7 @@ export const productFormSchema = z.object({
   textile: textileDataSchema.optional(),
   foodSafety: foodSafetyDataSchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
+  hsCodeAnalysis: z.any().optional(), // AI output, not user-editable
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
