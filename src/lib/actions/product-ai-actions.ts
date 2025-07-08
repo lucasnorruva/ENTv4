@@ -22,6 +22,8 @@ import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
 import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
+import { analyzeTextileData, analyzeConstructionData } from '.';
+import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from '@/ai/flows/analyze-electronics-compliance';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -438,4 +440,46 @@ export async function getFriendlyError(
     context,
     userRole: user.roles.join(', '),
   });
+}
+
+export async function analyzeElectronicsData(productId: string, userId: string): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError("User not found.");
+
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error("Product not found or permission denied.");
+
+    checkPermission(user, 'product:run_compliance');
+
+    const company = await getCompanyById(product.companyId);
+    if (!company?.settings?.aiEnabled) {
+      throw new Error('AI features are not enabled for this company.');
+    }
+  
+    const aiProductInput: AiProduct = {
+      productName: product.productName,
+      productDescription: product.productDescription,
+      category: product.category,
+      supplier: product.supplier,
+      materials: product.materials,
+      gtin: product.gtin,
+      manufacturing: product.manufacturing,
+      certifications: product.certifications,
+      packaging: product.packaging,
+      lifecycle: product.lifecycle,
+      battery: product.battery,
+      compliance: product.compliance,
+      verificationStatus: product.verificationStatus ?? 'Not Submitted',
+      complianceSummary: product.sustainability?.complianceSummary,
+    };
+    const analysisResult = await analyzeElectronicsComplianceFlow({ product: aiProductInput });
+
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error("Product not found in mock data");
+
+    mockProducts[productIndex].electronicsAnalysis = analysisResult;
+    mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+    await logAuditEvent('product.analysis.electronics', productId, {}, userId);
+    return Promise.resolve(mockProducts[productIndex]);
 }

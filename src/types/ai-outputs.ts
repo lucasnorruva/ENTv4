@@ -86,7 +86,7 @@ import type {
 } from '@/ai/flows/analyze-transit-risk';
 import type {
   AnalyzeProductTransitRiskInput,
-  AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
+  ProductTransitRiskAnalysis,
 } from '@/ai/flows/analyze-product-transit-risk';
 import type {
   AnalyzeSimulatedRouteInput,
@@ -95,6 +95,7 @@ import type {
 import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
 import type { GenerateSmartContractInput, GenerateSmartContractOutput } from "@/ai/flows/generate-smart-contract";
 import type { GenerateComponentTestsOutput, GenerateComponentTestsInput } from "@/ai/flows/generate-component-tests";
+import type { AnalyzeElectronicsComplianceInput, AnalyzeElectronicsComplianceOutput } from "@/ai/flows/analyze-electronics-compliance";
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -125,6 +126,7 @@ export type {
   AnalyzeFoodSafetyInput,
   GenerateSmartContractInput,
   GenerateComponentTestsInput,
+  AnalyzeElectronicsComplianceInput,
 };
 
 // Export Output types
@@ -154,4 +156,5 @@ export type {
   AnalyzeFoodSafetyOutput,
   GenerateSmartContractOutput,
   GenerateComponentTestsOutput,
+  AnalyzeElectronicsComplianceOutput,
 };

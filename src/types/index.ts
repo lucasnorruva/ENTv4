@@ -10,6 +10,7 @@ import type {
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
   ProductTransitRiskAnalysis,
+  AnalyzeElectronicsComplianceOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
@@ -243,6 +244,7 @@ export interface VerificationOverride {
 }
 
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
+export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 
 
 /**
@@ -309,6 +311,7 @@ export interface Product extends BaseEntity {
   submissionChecklist?: SubmissionChecklist;
   textileAnalysis?: AnalyzeTextileOutput;
   foodSafetyAnalysis?: AnalyzeFoodSafetyOutput;
+  electronicsAnalysis?: ElectronicsAnalysis;
   transitRiskAnalysis?: ProductTransitRiskAnalysis;
 
   // Lifecycle & Verification

@@ -35,6 +35,7 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
+import ElectronicsTab from './product-detail-tabs/electronics-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -81,6 +82,8 @@ export default function ProductDetailView({
     setProduct(updatedProduct);
     router.refresh();
   };
+  
+  const showElectronicsTab = product.category === 'Electronics';
 
   return (
     <>
@@ -145,8 +148,9 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -159,6 +163,11 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
+               {showElectronicsTab && (
+                <TabsContent value="electronics" className="mt-4">
+                    <ElectronicsTab product={product} />
+                </TabsContent>
+               )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
