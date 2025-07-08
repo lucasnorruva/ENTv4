@@ -26,6 +26,9 @@ import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai
 import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
 import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from '@/ai/flows/analyze-electronics-compliance';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from "@/ai/flows/analyze-food-safety";
+import { runSubmissionValidation } from '@/services/validation';
+import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
+import { validateProductData } from '@/ai/flows/validate-product-data';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 

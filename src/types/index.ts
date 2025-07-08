@@ -20,6 +20,7 @@ import type { ModelHotspot } from './3d';
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
 export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis };
+export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -243,7 +244,6 @@ export interface VerificationOverride {
   date: string;
 }
 
-export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 
 

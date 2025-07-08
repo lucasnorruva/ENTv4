@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/construction-tab.tsx
 'use client';
 

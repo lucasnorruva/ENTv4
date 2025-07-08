@@ -17,6 +17,7 @@ import {
   Fingerprint,
   Quote,
   Globe,
+  Hammer,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';

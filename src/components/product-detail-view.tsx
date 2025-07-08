@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
+  Hammer,
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -37,6 +38,7 @@ import CustomsInspectionForm from './customs-inspection-form';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
+import ConstructionTab from './product-detail-tabs/construction-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -86,6 +88,7 @@ export default function ProductDetailView({
   
   const showElectronicsTab = product.category === 'Electronics';
   const showFoodTab = product.category === 'Food & Beverage';
+  const showConstructionTab = product.category === 'Construction';
 
   return (
     <>
@@ -154,6 +157,7 @@ export default function ProductDetailView({
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                 {showFoodTab && <TabsTrigger value="food">Food Safety</TabsTrigger>}
+                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -174,6 +178,11 @@ export default function ProductDetailView({
                {showFoodTab && (
                 <TabsContent value="food" className="mt-4">
                     <FoodSafetyTab product={product} />
+                </TabsContent>
+               )}
+               {showConstructionTab && (
+                <TabsContent value="construction" className="mt-4">
+                    <ConstructionTab product={product} />
                 </TabsContent>
                )}
               <TabsContent value="sustainability" className="mt-4">
