@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run genkit:start & next dev -p 9002",
-    "genkit:start": "npx genkit start",
+    "genkit:start": "genkit start",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -79,7 +79,7 @@
     "@tailwindcss/typography": "^0.5.13",
     "@testing-library/jest-dom": "^6.4.6",
     "@types/geojson": "^7946.0.14",
-    "@types/jest": "^29.5.12",
+    "@types/jest": "^29.5.5",
     "@types/node": "^20",
     "@types/papaparse": "^5.3.14",
     "@types/prismjs": "^1.26.4",
