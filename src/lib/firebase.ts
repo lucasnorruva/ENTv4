@@ -1,8 +1,8 @@
 
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
-import { getStorage, connectStorageEmulator } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // This is the client-side configuration for your Firebase project.
 // It's used by the browser part of your application.
@@ -23,9 +23,9 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// In development mode, connect to the emulators.
+// In development mode, connect to the emulators if the flag is set.
 // The `typeof window` check ensures this only runs on the client.
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
   try {
     // Use a flag to ensure we only connect once.
     if (!(window as any).__firebase_emulators_connected) {
@@ -40,5 +40,6 @@ if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
       console.error("❌ Client SDK: Error connecting to emulators:", e);
   }
 }
+
 
 export { db, app, auth, storage };
