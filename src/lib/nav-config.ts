@@ -85,6 +85,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Platform Management',
       items: [
+        { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Users', icon: Users, href: 'users' },
         { title: 'Companies', icon: Building2, href: 'companies' },
         {
