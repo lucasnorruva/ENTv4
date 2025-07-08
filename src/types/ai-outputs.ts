@@ -94,6 +94,7 @@ import type {
 } from '@/ai/flows/analyze-simulated-route';
 import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
 import type { GenerateSmartContractInput, GenerateSmartContractOutput } from "@/ai/flows/generate-smart-contract";
+import type { GenerateComponentTestsInput, GenerateComponentTestsOutput } from "@/ai/flows/generate-component-tests";
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -123,6 +124,7 @@ export type {
   AnalyzeSimulatedRouteInput,
   AnalyzeFoodSafetyInput,
   GenerateSmartContractInput,
+  GenerateComponentTestsInput,
 };
 
 // Export Output types
@@ -151,4 +153,5 @@ export type {
   AnalyzeSimulatedRouteOutput,
   AnalyzeFoodSafetyOutput,
   GenerateSmartContractOutput,
+  GenerateComponentTestsOutput,
 };

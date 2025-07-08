@@ -52,6 +52,7 @@ export default function TestGeneratorClient({ user }: TestGeneratorClientProps) 
     if (generatedTestCode) {
       navigator.clipboard.writeText(generatedTestCode);
       setHasCopied(true);
+      toast({ title: 'Copied to clipboard!' });
       setTimeout(() => setHasCopied(false), 2000);
     }
   };
