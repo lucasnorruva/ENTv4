@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for analyzing construction materials.
@@ -8,41 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { AnalyzeConstructionMaterialInputSchema, AnalyzeConstructionMaterialOutputSchema, type AnalyzeConstructionMaterialInput, type AnalyzeConstructionMaterialOutput } from '@/types/ai-outputs';
 
-const AnalyzeConstructionMaterialInputSchema = z.object({
-  materialName: z
-    .string()
-    .describe('The name of the construction material (e.g., "Portland Cement", "Structural Steel").'),
-  manufacturingProcess: z
-    .string()
-    .optional()
-    .describe('A brief description of the manufacturing process (e.g., "Blast Furnace").'),
-  recycledContentPercentage: z
-    .number()
-    .optional()
-    .describe('The percentage of recycled content in the material.'),
-});
-export type AnalyzeConstructionMaterialInput = z.infer<
-  typeof AnalyzeConstructionMaterialInputSchema
->;
-
-const AnalyzeConstructionMaterialOutputSchema = z.object({
-  embodiedCarbon: z.object({
-      value: z.number().describe("The estimated embodied carbon value."),
-      unit: z.string().default('kgCO2e/kg').describe('The unit for the embodied carbon.'),
-      assessment: z.string().describe("A brief explanation of the carbon assessment based on the material and process."),
-  }),
-  recyclabilityPotential: z
-    .enum(['High', 'Medium', 'Low', 'Not Recyclable'])
-    .describe('The potential for this material to be recycled at end-of-life.'),
-  complianceNotes: z
-    .array(z.string())
-    .describe('A list of notes regarding potential compliance issues or standards (e.g., "Check local building codes for usage", "May require EPD").'),
-});
-export type AnalyzeConstructionMaterialOutput = z.infer<
-  typeof AnalyzeConstructionMaterialOutputSchema
->;
 
 export async function analyzeConstructionMaterial(
   input: AnalyzeConstructionMaterialInput,

@@ -15,44 +15,8 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import type { CompliancePath, Product, ComplianceGap } from '@/types';
 import { verifyProductAgainstPath } from '@/services/compliance';
+import { SummarizeComplianceGapsInputSchema, SummarizeComplianceGapsOutputSchema, GapSchema, type SummarizeComplianceGapsInput, type SummarizeComplianceGapsOutput } from '@/types/ai-outputs';
 
-const SummarizeComplianceGapsInputSchema = z.object({
-  product: z.custom<Product>(),
-  compliancePath: z.custom<CompliancePath>(),
-});
-export type SummarizeComplianceGapsInput = z.infer<
-  typeof SummarizeComplianceGapsInputSchema
->;
-
-const GapSchema = z.object({
-  regulation: z
-    .string()
-    .describe('The regulation or rule that has a compliance gap.'),
-  issue: z.string().describe('A detailed description of the compliance gap.'),
-});
-
-const SummarizeComplianceGapsOutputSchema = z.object({
-  isCompliant: z
-    .boolean()
-    .describe(
-      'A boolean indicating if the product is fully compliant with all rules. This should be false if any gaps are found.',
-    ),
-  complianceSummary: z
-    .string()
-    .describe(
-      'A concise, human-readable summary (2-4 sentences) explaining the overall compliance status. If non-compliant, briefly mention the number of gaps found.',
-    ),
-  gaps: z
-    .array(GapSchema)
-    .optional()
-    .describe(
-      'A structured list of specific compliance gaps found. If the product is compliant, this should be an empty array or omitted.',
-    ),
-});
-
-export type SummarizeComplianceGapsOutput = z.infer<
-  typeof SummarizeComplianceGapsOutputSchema
->;
 
 // The wrapper function signature remains the same.
 export async function summarizeComplianceGaps(

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for analyzing food products for safety.
@@ -8,33 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const AnalyzeFoodSafetyInputSchema = z.object({
-  productName: z.string().describe('The name of the food product.'),
-  ingredients: z.array(z.string()).describe('The list of ingredients.'),
-  packagingMaterials: z
-    .array(z.string())
-    .describe('The list of packaging materials that come into contact with the food.'),
-});
-export type AnalyzeFoodSafetyInput = z.infer<
-  typeof AnalyzeFoodSafetyInputSchema
->;
-
-const AnalyzeFoodSafetyOutputSchema = z.object({
-  riskLevel: z
-    .enum(['Low', 'Medium', 'High'])
-    .describe('The overall food safety risk assessment.'),
-  potentialAllergens: z
-    .array(z.string())
-    .describe('A list of potential allergens identified from the ingredients.'),
-  complianceNotes: z
-    .array(z.string())
-    .describe('A list of notes regarding food contact material compliance (e.g., "Check for BPA in polycarbonate packaging", "Verify compliance with EU 10/2011 for plastics").'),
-});
-export type AnalyzeFoodSafetyOutput = z.infer<
-  typeof AnalyzeFoodSafetyOutputSchema
->;
+import { AnalyzeFoodSafetyInputSchema, AnalyzeFoodSafetyOutputSchema, type AnalyzeFoodSafetyInput, type AnalyzeFoodSafetyOutput } from '@/types/ai-outputs';
 
 export async function analyzeFoodSafety(
   input: AnalyzeFoodSafetyInput,

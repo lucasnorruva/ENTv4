@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for explaining technical errors in a user-friendly way.
@@ -8,28 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { ExplainErrorInputSchema, ExplainErrorOutputSchema, type ExplainErrorInput, type ExplainErrorOutput } from '@/types/ai-outputs';
 
-const ExplainErrorInputSchema = z.object({
-  errorMessage: z.string().describe('The technical error message or code.'),
-  context: z
-    .string()
-    .describe(
-      'The user action or context where the error occurred (e.g., "saving a product", "running compliance check").',
-    ),
-  userRole: z.string().describe("The role of the user who saw the error."),
-});
-export type ExplainErrorInput = z.infer<typeof ExplainErrorInputSchema>;
-
-const ExplainErrorOutputSchema = z.object({
-  title: z.string().describe('A short, user-friendly title for the error.'),
-  description: z
-    .string()
-    .describe(
-      'A clear, simple explanation of what went wrong and what the user can do next.',
-    ),
-});
-export type ExplainErrorOutput = z.infer<typeof ExplainErrorOutputSchema>;
 
 export async function explainError(
   input: ExplainErrorInput,

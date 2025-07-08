@@ -1,3 +1,4 @@
+
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -10,16 +11,11 @@ import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
 import { productQa } from '@/ai/flows/product-qa-flow';
-import type { ProductQuestionOutput } from '@/ai/flows/product-qa-flow';
-import { getUserById, getCompanyById } from '../auth';
-import { checkPermission, PermissionError } from '../permissions';
-import { getProductById } from './product-actions';
-import { getCompliancePathById } from './compliance-actions';
-import { logAuditEvent } from './audit-actions';
-import type { AiProduct } from '@/types/ai-outputs';
+import { calculateSustainability as calculateSustainabilityFlow } from '@/ai/flows/calculate-sustainability';
+import { generateQRLabelText as generateQRLabelTextFlow } from '@/ai/flows/generate-qr-label-text';
+import { validateProductData as validateProductDataFlow } from '@/ai/flows/validate-product-data';
 import { generateProductDescription as generateProductDescriptionFlow } from '@/ai/flows/generate-product-description';
 import { generatePcds as generatePcdsFlow } from '@/ai/flows/generate-pcds';
-import type { PcdsOutput } from '@/types/ai-outputs';
 import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flows/predict-product-lifecycle';
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai/flows/analyze-textile-composition';
@@ -29,6 +25,14 @@ import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
+
+import type { AiProduct, CreateProductFromImageOutput, GenerateProductDescriptionOutput, PcdsOutput, ProductQuestionOutput, SuggestImprovementsOutput } from '@/types/ai-outputs';
+import { getUserById, getCompanyById } from '../auth';
+import { checkPermission, PermissionError } from '../permissions';
+import { getProductById } from './product-actions';
+import { getCompliancePathById } from './compliance-actions';
+import { logAuditEvent } from './audit-actions';
+
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -265,7 +269,7 @@ export async function generateConformityDeclarationText(
 export async function createProductFromImage(
   imageDataUri: string,
   userId: string,
-): Promise<any> {
+): Promise<CreateProductFromImageOutput> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'product:create');
@@ -284,7 +288,7 @@ export async function analyzeBillOfMaterials(bomText: string, userId: string) {
 export async function suggestImprovements(input: {
   productName: string;
   productDescription: string;
-}) {
+}): Promise<SuggestImprovementsOutput> {
   return await suggestImprovementsFlow(input);
 }
 
@@ -292,7 +296,7 @@ export async function generateProductDescription(input: {
   productName: string;
   category: string;
   materials: { name: string }[];
-}) {
+}): Promise<GenerateProductDescriptionOutput> {
   return generateProductDescriptionFlow(input);
 }
 

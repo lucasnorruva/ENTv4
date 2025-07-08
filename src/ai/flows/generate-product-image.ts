@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating product images.
@@ -8,35 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { GenerateProductImageInputSchema, GenerateProductImageOutputSchema, type GenerateProductImageInput, type GenerateProductImageOutput } from '@/types/ai-outputs';
 
-const GenerateProductImageInputSchema = z.object({
-  productName: z.string().describe('The name of the product.'),
-  productDescription: z
-    .string()
-    .describe('A detailed description of the product.'),
-  contextImageDataUri: z
-    .string()
-    .optional()
-    .describe(
-      "An optional reference image as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'.",
-    ),
-});
-export type GenerateProductImageInput = z.infer<
-  typeof GenerateProductImageInputSchema
->;
-
-const GenerateProductImageOutputSchema = z.object({
-  imageUrl: z
-    .string()
-    .url()
-    .describe(
-      "The generated image as a data URI. Expected format: 'data:image/png;base64,<encoded_data>'.",
-    ),
-});
-export type GenerateProductImageOutput = z.infer<
-  typeof GenerateProductImageOutputSchema
->;
 
 export async function generateProductImage(
   input: GenerateProductImageInput,

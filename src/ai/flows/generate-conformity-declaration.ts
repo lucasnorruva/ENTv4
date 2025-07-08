@@ -10,26 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AiProductSchema } from '@/ai/schemas';
-
-const GenerateConformityDeclarationInputSchema = z.object({
-  product: AiProductSchema,
-  companyName: z.string().describe('The legal name of the manufacturer.'),
-});
-export type GenerateConformityDeclarationInput = z.infer<
-  typeof GenerateConformityDeclarationInputSchema
->;
-
-const GenerateConformityDeclarationOutputSchema = z.object({
-  declarationText: z
-    .string()
-    .describe(
-      'The full text of the Declaration of Conformity in Markdown format.',
-    ),
-});
-export type GenerateConformityDeclarationOutput = z.infer<
-  typeof GenerateConformityDeclarationOutputSchema
->;
+import { GenerateConformityDeclarationInputSchema, GenerateConformityDeclarationOutputSchema, type GenerateConformityDeclarationInput, type GenerateConformityDeclarationOutput } from '@/types/ai-outputs';
 
 export async function generateConformityDeclaration(
   input: GenerateConformityDeclarationInput,

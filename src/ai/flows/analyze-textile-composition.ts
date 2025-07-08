@@ -1,3 +1,4 @@
+
 // src/ai/flows/analyze-textile-composition.ts
 'use server';
 /**
@@ -9,29 +10,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { AnalyzeTextileInputSchema, AnalyzeTextileOutputSchema, type AnalyzeTextileInput, type AnalyzeTextileOutput } from '@/types/ai-outputs';
 
-const AnalyzeTextileInputSchema = z.object({
-  fiberComposition: z
-    .array(z.object({ name: z.string(), percentage: z.number() }))
-    .describe('The fiber composition of the textile product.'),
-  dyeProcess: z.string().optional().describe('Description of the dyeing process used.'),
-});
-export type AnalyzeTextileInput = z.infer<typeof AnalyzeTextileInputSchema>;
-
-const AnalyzeTextileOutputSchema = z.object({
-  identifiedFibers: z.array(z.object({
-      fiber: z.string(),
-      type: z.enum(['Natural', 'Synthetic', 'Semi-Synthetic']),
-  })).describe('A list of identified fibers and their classification.'),
-  microplasticSheddingRisk: z
-    .enum(['High', 'Medium', 'Low', 'Minimal'])
-    .describe('The estimated risk of microplastic shedding during washing.'),
-  dyeSafetyAssessment: z
-    .string()
-    .describe('A brief assessment of the potential risks associated with the described dye process (e.g., "Azo dyes check recommended").'),
-});
-export type AnalyzeTextileOutput = z.infer<typeof AnalyzeTextileOutputSchema>;
 
 export async function analyzeTextileComposition(
   input: AnalyzeTextileInput,

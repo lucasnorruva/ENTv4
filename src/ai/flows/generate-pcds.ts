@@ -10,30 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { AiProductSchema } from '@/ai/schemas';
-
-const GeneratePcdsInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type GeneratePcdsInput = z.infer<typeof GeneratePcdsInputSchema>;
-
-const PcdsStatementSchema = z.object({
-  property: z.string().describe("The specific circularity property (e.g., 'Recycled Content', 'Repairability')."),
-  value: z.string().describe("The value or state of the property (e.g., '45%', 'High', 'Yes')."),
-  methodology: z.string().optional().describe("The methodology used to determine the value (e.g., 'ISO 14021')."),
-});
-
-const PcdsOutputSchema = z.object({
-  header: z.object({
-    dppId: z.string().describe("The Digital Product Passport ID."),
-    productName: z.string().describe("The name of the product."),
-    manufacturer: z.string().describe("The name of the manufacturer/supplier."),
-    generationDate: z.string().describe("The date the PCDS was generated (YYYY-MM-DD)."),
-  }),
-  statements: z.array(PcdsStatementSchema).describe("A list of circularity statements about the product."),
-});
-export type PcdsOutput = z.infer<typeof PcdsOutputSchema>;
-
+import { GeneratePcdsInputSchema, PcdsOutputSchema, type GeneratePcdsInput, type PcdsOutput } from '@/types/ai-outputs';
 
 export async function generatePcds(input: GeneratePcdsInput): Promise<PcdsOutput> {
   return generatePcdsFlow(input);

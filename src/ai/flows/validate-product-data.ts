@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,32 +11,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { AiProductSchema } from '@/ai/schemas';
+import { ValidateProductDataInputSchema, ValidateProductDataOutputSchema, type ValidateProductDataInput, type ValidateProductDataOutput } from '@/types/ai-outputs';
 
-const ValidateProductDataInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type ValidateProductDataInput = z.infer<
-  typeof ValidateProductDataInputSchema
->;
-
-const DataQualityWarningSchema = z.object({
-  field: z.string().describe('The specific field with a potential issue.'),
-  warning: z.string().describe('A description of the potential data anomaly.'),
-});
-export type DataQualityWarning = z.infer<typeof DataQualityWarningSchema>;
-
-const ValidateProductDataOutputSchema = z.object({
-  warnings: z
-    .array(DataQualityWarningSchema)
-    .describe(
-      'A list of data quality warnings. If the data is clean, this will be an empty array.',
-    ),
-});
-export type ValidateProductDataOutput = z.infer<
-  typeof ValidateProductDataOutputSchema
->;
 
 export async function validateProductData(
   input: ValidateProductDataInput,

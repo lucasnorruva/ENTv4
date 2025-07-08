@@ -9,32 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const AnalyzeBomInputSchema = z.object({
-  bomText: z.string().describe('The unstructured Bill of Materials text.'),
-});
-export type AnalyzeBomInput = z.infer<typeof AnalyzeBomInputSchema>;
-
-const AnalyzedMaterialSchema = z.object({
-  name: z.string().describe('The identified name of the material or component.'),
-  percentage: z
-    .number()
-    .optional()
-    .describe(
-      'The percentage of this material in the product, if specified.',
-    ),
-  origin: z.string().optional().describe('The origin country, if specified.'),
-});
-
-const AnalyzeBomOutputSchema = z.object({
-  materials: z
-    .array(AnalyzedMaterialSchema)
-    .describe(
-      'A structured list of materials extracted from the BOM text.',
-    ),
-});
-export type AnalyzeBomOutput = z.infer<typeof AnalyzeBomOutputSchema>;
+import { AnalyzeBomInputSchema, AnalyzeBomOutputSchema, type AnalyzeBomInput, type AnalyzeBomOutput } from '@/types/ai-outputs';
 
 export async function analyzeBillOfMaterials(
   input: AnalyzeBomInput,

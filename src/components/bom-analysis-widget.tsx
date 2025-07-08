@@ -1,3 +1,4 @@
+
 // src/components/bom-analysis-widget.tsx
 'use client';
 
@@ -56,7 +57,7 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
     }
     startAnalysisTransition(async () => {
       try {
-        const result = await analyzeBillOfMaterials(bomText, user.id);
+        const result = await analyzeBillOfMaterials({ bomText });
         setAnalysisResult(result);
         setIsDialogOpen(true);
       } catch (error) {

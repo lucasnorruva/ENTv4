@@ -9,39 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { AiProductSchema } from '../schemas';
+import { PredictLifecycleInputSchema, PredictLifecycleOutputSchema, type PredictLifecycleInput, type PredictLifecycleOutput } from '@/types/ai-outputs';
 
-const PredictLifecycleInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type PredictLifecycleInput = z.infer<typeof PredictLifecycleInputSchema>;
-
-const PredictLifecycleOutputSchema = z.object({
-  predictedLifespanYears: z
-    .number()
-    .describe('The AI-predicted operational lifespan of the product in years.'),
-  keyFailurePoints: z
-    .array(z.string())
-    .describe(
-      'A list of the most likely components or aspects to fail over time.',
-    ),
-  optimalReplacementTimeYears: z
-    .number()
-    .describe(
-      'The suggested optimal time in years to replace the product for best value/performance.',
-    ),
-  confidenceScore: z
-    .number()
-    .min(0)
-    .max(1)
-    .describe(
-      'A confidence score (0.0 to 1.0) for the prediction accuracy.',
-    ),
-});
-export type PredictLifecycleOutput = z.infer<
-  typeof PredictLifecycleOutputSchema
->;
 
 export async function predictProductLifecycle(
   input: PredictLifecycleInput,

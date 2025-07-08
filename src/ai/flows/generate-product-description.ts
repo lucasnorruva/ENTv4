@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating product descriptions.
@@ -8,19 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { GenerateProductDescriptionInputSchema, GenerateProductDescriptionOutputSchema, type GenerateProductDescriptionInput, type GenerateProductDescriptionOutput } from '@/types/ai-outputs';
 
-const GenerateProductDescriptionInputSchema = z.object({
-  productName: z.string().describe('The name of the product.'),
-  category: z.string().describe('The category of the product.'),
-  materials: z.array(z.object({ name: z.string() })).describe('A list of key materials.'),
-});
-export type GenerateProductDescriptionInput = z.infer<typeof GenerateProductDescriptionInputSchema>;
-
-const GenerateProductDescriptionOutputSchema = z.object({
-  productDescription: z.string().describe('The generated product description (2-4 sentences).'),
-});
-export type GenerateProductDescriptionOutput = z.infer<typeof GenerateProductDescriptionOutputSchema>;
 
 export async function generateProductDescription(
   input: GenerateProductDescriptionInput,

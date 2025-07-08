@@ -10,43 +10,7 @@
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "genkit";
-import { AiProductSchema } from "@/ai/schemas";
-
-const AnalyzeProductLifecycleInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type AnalyzeProductLifecycleInput = z.infer<
-  typeof AnalyzeProductLifecycleInputSchema
->;
-
-const AnalyzeProductLifecycleOutputSchema = z.object({
-  carbonFootprint: z.object({
-    value: z.number().describe("The estimated carbon footprint value."),
-    unit: z
-      .string()
-      .describe('The unit for the carbon footprint, e.g., "kg CO2-eq".'),
-    summary: z
-      .string()
-      .describe("A brief summary explaining the carbon footprint estimation."),
-  }),
-  lifecycleStages: z.object({
-    manufacturing: z
-      .string()
-      .describe("Analysis of the manufacturing stage impact."),
-    usePhase: z.string().describe("Analysis of the use phase impact."),
-    endOfLife: z.string().describe("Analysis of the end-of-life impact."),
-  }),
-  highestImpactStage: z
-    .enum(["Manufacturing", "Use Phase", "End-of-Life"])
-    .describe("The lifecycle stage with the highest environmental impact."),
-  improvementOpportunities: z
-    .array(z.string())
-    .describe("A list of suggestions to improve the product lifecycle."),
-});
-export type AnalyzeProductLifecycleOutput = z.infer<
-  typeof AnalyzeProductLifecycleOutputSchema
->;
+import { AnalyzeProductLifecycleInputSchema, AnalyzeProductLifecycleOutputSchema, type AnalyzeProductLifecycleInput, type AnalyzeProductLifecycleOutput } from "@/types/ai-outputs";
 
 export async function analyzeProductLifecycle(
   input: AnalyzeProductLifecycleInput,

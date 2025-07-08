@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for analyzing the risks of a shipping transit route.
@@ -10,35 +11,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-
-const AnalyzeTransitRiskInputSchema = z.object({
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z
-    .string()
-    .describe('The destination country for the shipment.'),
-});
-export type AnalyzeTransitRiskInput = z.infer<
-  typeof AnalyzeTransitRiskInputSchema
->;
-
-const AnalyzeTransitRiskOutputSchema = z.object({
-  riskLevel: z
-    .enum(['Low', 'Medium', 'High', 'Very High'])
-    .describe('The overall assessed risk level for this transit route.'),
-  summary: z
-    .string()
-    .describe(
-      'A concise summary (2-3 sentences) of the key risks and considerations.',
-    ),
-  keyConsiderations: z
-    .array(z.string())
-    .describe(
-      'A bulleted list of the most important factors to consider for this route.',
-    ),
-});
-export type AnalyzeTransitRiskOutput = z.infer<
-  typeof AnalyzeTransitRiskOutputSchema
->;
+import { AnalyzeTransitRiskInputSchema, AnalyzeTransitRiskOutputSchema, type AnalyzeTransitRiskInput, type AnalyzeTransitRiskOutput } from '@/types/ai-outputs';
 
 // Helper to provide context data to the prompt
 const getContextForCountries = (origin: string, destination: string) => {

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for analyzing electronics compliance.
@@ -8,30 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { AiProductSchema } from '../schemas';
+import { AnalyzeElectronicsComplianceInputSchema, AnalyzeElectronicsComplianceOutputSchema, type AnalyzeElectronicsComplianceInput, type AnalyzeElectronicsComplianceOutput } from '@/types/ai-outputs';
 
-const AnalyzeElectronicsComplianceInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type AnalyzeElectronicsComplianceInput = z.infer<
-  typeof AnalyzeElectronicsComplianceInputSchema
->;
-
-const ComplianceCheckSchema = z.object({
-  compliant: z.boolean(),
-  reason: z.string().describe("Explanation for the compliance status."),
-});
-
-const AnalyzeElectronicsComplianceOutputSchema = z.object({
-  rohs: ComplianceCheckSchema.describe("RoHS compliance assessment."),
-  weee: ComplianceCheckSchema.describe("WEEE compliance assessment."),
-  ceMarking: ComplianceCheckSchema.describe("CE Marking assessment."),
-  summary: z.string().describe("An overall summary of the compliance findings."),
-});
-export type AnalyzeElectronicsComplianceOutput = z.infer<
-  typeof AnalyzeElectronicsComplianceOutputSchema
->;
 
 export async function analyzeElectronicsCompliance(
   input: AnalyzeElectronicsComplianceInput,

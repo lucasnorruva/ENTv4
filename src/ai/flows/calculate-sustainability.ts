@@ -10,42 +10,7 @@
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "zod";
-import { AiProductSchema } from "@/ai/schemas";
-
-const CalculateSustainabilityInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type CalculateSustainabilityInput = z.infer<
-  typeof CalculateSustainabilityInputSchema
->;
-
-const EsgScoreOutputSchema = z.object({
-  score: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe(
-      "An overall ESG score from 0 to 100, where 100 is most sustainable.",
-    ),
-  environmental: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe("The environmental score from 0-100."),
-  social: z.number().min(0).max(100).describe("The social score from 0-100."),
-  governance: z
-    .number()
-    .min(0)
-    .max(100)
-    .describe("The governance score from 0-100."),
-  summary: z
-    .string()
-    .describe(
-      "A brief report (2-3 sentences) explaining the rationale for the given score.",
-    ),
-});
-export type EsgScoreOutput = z.infer<typeof EsgScoreOutputSchema>;
+import { CalculateSustainabilityInputSchema, EsgScoreOutputSchema, type CalculateSustainabilityInput, type EsgScoreOutput } from "@/types/ai-outputs";
 
 export async function calculateSustainability(
   input: CalculateSustainabilityInput,

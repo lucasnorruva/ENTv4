@@ -10,29 +10,7 @@
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "genkit";
-import { AiProductSchema } from "@/ai/schemas";
-
-const ClassifyProductInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type ClassifyProductInput = z.infer<typeof ClassifyProductInputSchema>;
-
-const ClassifyProductOutputSchema = z.object({
-  esgCategory: z
-    .string()
-    .describe(
-      "The determined ESG category for the product (e.g., Circular Design, Resource Depletion, Pollution Prevention).",
-    ),
-  riskScore: z
-    .number()
-    .min(0)
-    .max(10)
-    .describe(
-      "An ESG risk score from 0 (low risk) to 10 (high risk), aligned with ISO 14067 principles.",
-    ),
-});
-export type ClassifyProductOutput = z.infer<typeof ClassifyProductOutputSchema>;
+import { ClassifyProductInputSchema, ClassifyProductOutputSchema, type ClassifyProductInput, type ClassifyProductOutput } from "@/types/ai-outputs";
 
 export async function classifyProduct(
   input: ClassifyProductInput,

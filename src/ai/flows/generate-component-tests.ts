@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating React component tests.
@@ -8,22 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { GenerateComponentTestsInputSchema, GenerateComponentTestsOutputSchema, type GenerateComponentTestsInput, type GenerateComponentTestsOutput } from '@/types/ai-outputs';
 
-const GenerateComponentTestsInputSchema = z.object({
-  componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),
-  componentCode: z.string().describe('The full source code of the React component.'),
-});
-export type GenerateComponentTestsInput = z.infer<
-  typeof GenerateComponentTestsInputSchema
->;
-
-const GenerateComponentTestsOutputSchema = z.object({
-  testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
-});
-export type GenerateComponentTestsOutput = z.infer<
-  typeof GenerateComponentTestsOutputSchema
->;
 
 export async function generateComponentTests(
   input: GenerateComponentTestsInput,

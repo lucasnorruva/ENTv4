@@ -10,33 +10,8 @@
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "genkit";
+import { SuggestImprovementsInputSchema, SuggestImprovementsOutputSchema, type SuggestImprovementsInput, type SuggestImprovementsOutput } from "@/types/ai-outputs";
 
-const SuggestImprovementsInputSchema = z.object({
-  productName: z.string().describe('The name of the product.'),
-  productDescription: z.string().describe('A description of the product.'),
-});
-export type SuggestImprovementsInput = z.infer<
-  typeof SuggestImprovementsInputSchema
->;
-
-const RecommendationSchema = z.object({
-  type: z
-    .string()
-    .describe(
-      "The category of the recommendation (e.g., 'Material', 'Compliance', 'Design', 'Data Quality').",
-    ),
-  text: z.string().describe("The actionable recommendation text."),
-});
-
-const SuggestImprovementsOutputSchema = z.object({
-  recommendations: z
-    .array(RecommendationSchema)
-    .describe("A list of actionable recommendations for the product."),
-});
-export type SuggestImprovementsOutput = z.infer<
-  typeof SuggestImprovementsOutputSchema
->;
 
 export async function suggestImprovements(
   input: SuggestImprovementsInput,

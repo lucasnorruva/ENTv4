@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for classifying products with Harmonized System (HS) codes.
@@ -8,25 +9,11 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-const ClassifyHsCodeInputSchema = z.object({
-  productName: z.string().describe('The name of the product.'),
-  productDescription: z.string().describe('A detailed description of the product.'),
-  category: z.string().describe('The general category of the product (e.g., "Electronics", "Fashion").'),
-});
-export type ClassifyHsCodeInput = z.infer<typeof ClassifyHsCodeInputSchema>;
-
-const ClassifyHsCodeOutputSchema = z.object({
-  code: z.string().regex(/^\d{4}\.\d{2}$/, 'HS Code must be in the format XXXX.XX').describe('The 6-digit Harmonized System (HS) code.'),
-  description: z.string().describe('The official description of the HS code category.'),
-  confidence: z.number().min(0).max(1).describe('The confidence score of the classification (0.0 to 1.0).'),
-});
-export type ClassifyHsCodeOutput = z.infer<typeof ClassifyHsCodeOutputSchema>;
+import { ClassifyHsCodeInputSchema, ClassifyHsCodeOutputSchema, type ClassifyHsCodeInput, type HsCodeAnalysis } from '@/types/ai-outputs';
 
 export async function classifyHsCode(
   input: ClassifyHsCodeInput,
-): Promise<ClassifyHsCodeOutput> {
+): Promise<HsCodeAnalysis> {
   return classifyHsCodeFlow(input);
 }
 

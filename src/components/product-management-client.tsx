@@ -54,6 +54,7 @@ export default function ProductManagementClient({
   const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
+  console.log("ProductManagementClient roleSlug:", roleSlug);
 
   const fetchProducts = useCallback(() => {
     setIsLoading(true);

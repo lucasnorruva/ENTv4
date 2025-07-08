@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -11,11 +12,11 @@ import type {
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
   HsCodeAnalysis,
+  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ProductTransitRiskAnalysis } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
-
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;

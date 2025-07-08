@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for analyzing the risks of a shipping transit route for a specific product.
@@ -11,36 +12,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import type { Product } from '@/types';
-
-const AnalyzeProductTransitRiskInputSchema = z.object({
-  product: z.custom<Product>().describe('The product being shipped.'),
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z
-    .string()
-    .describe('The destination country for the shipment.'),
-});
-export type AnalyzeProductTransitRiskInput = z.infer<
-  typeof AnalyzeProductTransitRiskInputSchema
->;
-
-const AnalyzeProductTransitRiskOutputSchema = z.object({
-  riskLevel: z
-    .enum(['Low', 'Medium', 'High', 'Very High'])
-    .describe('The overall assessed risk level for this transit route.'),
-  summary: z
-    .string()
-    .describe(
-      'A concise summary (2-3 sentences) of the key risks and considerations for this specific product.',
-    ),
-  keyConsiderations: z
-    .array(z.string())
-    .describe(
-      'A bulleted list of the most important factors to consider for this route.',
-    ),
-});
-export type AnalyzeProductTransitRiskOutput = z.infer<
-  typeof AnalyzeProductTransitRiskOutputSchema
->;
+import { AnalyzeProductTransitRiskInputSchema, AnalyzeProductTransitRiskOutputSchema, type AnalyzeProductTransitRiskInput, type ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 
 // Helper to provide context data to the prompt
 const getContextForCountries = (origin: string, destination: string) => {
@@ -55,7 +27,7 @@ const getContextForCountries = (origin: string, destination: string) => {
 
 export async function analyzeProductTransitRisk(
   input: AnalyzeProductTransitRiskInput,
-): Promise<AnalyzeProductTransitRiskOutput> {
+): Promise<ProductTransitRiskAnalysis> {
   return analyzeProductTransitRiskFlow(input);
 }
 

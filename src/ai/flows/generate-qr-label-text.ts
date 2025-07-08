@@ -10,26 +10,8 @@
  */
 
 import { ai } from "@/ai/genkit";
-import { z } from "genkit";
-import { AiProductSchema } from "@/ai/schemas";
+import { GenerateQRLabelTextInputSchema, GenerateQRLabelTextOutputSchema, type GenerateQRLabelTextInput, type GenerateQRLabelTextOutput } from "@/types/ai-outputs";
 
-const GenerateQRLabelTextInputSchema = z.object({
-  product: AiProductSchema,
-});
-export type GenerateQRLabelTextInput = z.infer<
-  typeof GenerateQRLabelTextInputSchema
->;
-
-const GenerateQRLabelTextOutputSchema = z.object({
-  qrLabelText: z
-    .string()
-    .describe(
-      "A concise, consumer-facing summary for a Digital Product Passport page, accessed via a QR code. It should highlight key sustainability or material facts.",
-    ),
-});
-export type GenerateQRLabelTextOutput = z.infer<
-  typeof GenerateQRLabelTextOutputSchema
->;
 
 export async function generateQRLabelText(
   input: GenerateQRLabelTextInput,

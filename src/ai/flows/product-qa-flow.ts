@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent that answers questions about a product based on its passport data.
@@ -7,25 +8,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { AiProductSchema } from '../schemas';
-
-const ProductQuestionInputSchema = z.object({
-  productContext: AiProductSchema.describe(
-    'The full data context of the product.',
-  ),
-  question: z.string().describe("The user's question about the product."),
-});
-export type ProductQuestionInput = z.infer<typeof ProductQuestionInputSchema>;
-
-const ProductQuestionOutputSchema = z.object({
-  answer: z
-    .string()
-    .describe(
-      "A helpful and accurate answer to the user's question based only on the provided product context.",
-    ),
-});
-export type ProductQuestionOutput = z.infer<typeof ProductQuestionOutputSchema>;
+import { ProductQuestionInputSchema, ProductQuestionOutputSchema, type ProductQuestionInput, type ProductQuestionOutput } from '@/types/ai-outputs';
 
 export async function productQa(
   input: ProductQuestionInput,

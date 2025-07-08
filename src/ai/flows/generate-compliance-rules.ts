@@ -9,39 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { GenerateComplianceRulesInputSchema, GenerateComplianceRulesOutputSchema, type GenerateComplianceRulesInput, type GenerateComplianceRulesOutput } from '@/types/ai-outputs';
 
-const GenerateComplianceRulesInputSchema = z.object({
-  name: z.string().describe('The name of the compliance path.'),
-  regulations: z
-    .array(z.string())
-    .describe('A list of regulations associated with this path.'),
-});
-export type GenerateComplianceRulesInput = z.infer<
-  typeof GenerateComplianceRulesInputSchema
->;
-
-const GenerateComplianceRulesOutputSchema = z.object({
-  minSustainabilityScore: z
-    .number()
-    .optional()
-    .describe('A suggested minimum ESG score (0-100) for this path.'),
-  requiredKeywords: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'A list of required materials or keywords based on the regulations.',
-    ),
-  bannedKeywords: z
-    .array(z.string())
-    .optional()
-    .describe(
-      'A list of banned materials or substances based on the regulations.',
-    ),
-});
-export type GenerateComplianceRulesOutput = z.infer<
-  typeof GenerateComplianceRulesOutputSchema
->;
 
 export async function generateComplianceRules(
   input: GenerateComplianceRulesInput,

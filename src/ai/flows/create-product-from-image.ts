@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for creating a base product passport from an image.
@@ -8,37 +9,8 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { CreateProductFromImageInputSchema, CreateProductFromImageOutputSchema, type CreateProductFromImageInput, type CreateProductFromImageOutput } from '@/types/ai-outputs';
 
-const CreateProductFromImageInputSchema = z.object({
-  imageDataUri: z
-    .string()
-    .describe(
-      "A photo of a product, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'.",
-    ),
-});
-export type CreateProductFromImageInput = z.infer<
-  typeof CreateProductFromImageInputSchema
->;
-
-const CreateProductFromImageOutputSchema = z.object({
-  productName: z
-    .string()
-    .describe('A concise and accurate name for the identified product.'),
-  productDescription: z
-    .string()
-    .describe(
-      'A detailed, marketing-friendly description of the product, highlighting key visual features.',
-    ),
-  category: z
-    .enum(['Electronics', 'Fashion', 'Home Goods', 'Construction'])
-    .describe(
-      'The most appropriate category for the product from the provided options.',
-    ),
-});
-export type CreateProductFromImageOutput = z.infer<
-  typeof CreateProductFromImageOutputSchema
->;
 
 export async function createProductFromImage(
   input: CreateProductFromImageInput,
