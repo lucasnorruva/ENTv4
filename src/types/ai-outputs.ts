@@ -1,4 +1,3 @@
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -98,6 +97,8 @@ import type {
     AnalyzeSimulatedRouteOutput,
 } from '@/ai/flows/analyze-simulated-route';
 import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
+import type { ClassifyHsCodeInput, HsCodeAnalysis } from "@/ai/flows/classify-hs-code";
+import type { GenerateComponentTestsInput, GenerateComponentTestsOutput } from "@/ai/flows/generate-component-tests";
 
 
 // Re-export AI Product Schema
@@ -128,6 +129,8 @@ export type {
   AnalyzeProductTransitRiskInput,
   AnalyzeSimulatedRouteInput,
   AnalyzeFoodSafetyInput,
+  ClassifyHsCodeInput,
+  GenerateComponentTestsInput,
 };
 
 // Export Output types
@@ -156,4 +159,6 @@ export type {
   ProductTransitRiskAnalysis,
   AnalyzeSimulatedRouteOutput,
   AnalyzeFoodSafetyOutput,
+  HsCodeAnalysis,
+  GenerateComponentTestsOutput,
 };
