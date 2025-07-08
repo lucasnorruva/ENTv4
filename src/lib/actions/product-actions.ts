@@ -32,7 +32,6 @@ import { anchorToPolygon, storeOnIpfs } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
 import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
-import { hashData } from '@/services/blockchain';
 
 // --- Data Access Functions ---
 
@@ -107,7 +106,7 @@ export async function getProductByGtin(
 
 // --- Workflow Actions ---
 
-async function processProductAi(
+export async function processProductAi(
   product: Product,
 ): Promise<
   Pick<Product, 'sustainability' | 'qrLabelText' | 'dataQualityWarnings'>
@@ -265,7 +264,10 @@ export async function anchorProductOnChain(
     materials: product.materials,
     timestamp: now,
   };
-  const hash = await hashData(dataToHash);
+  const hash = createHash('sha256')
+    .update(JSON.stringify(dataToHash, Object.keys(dataToHash).sort()))
+    .digest('hex');
+
   const blockchainProof = await anchorToPolygon(hash);
 
   const vc = await createVerifiableCredential(product, company);
@@ -274,7 +276,7 @@ export async function anchorProductOnChain(
   product.verificationStatus = 'Verified';
   product.lastVerificationDate = now;
   product.lastUpdated = now;
-  product.blockchainProof = { type: 'SINGLE_HASH', ...blockchainProof, merkleRoot: hash };
+  product.blockchainProof = { type: 'SINGLE_HASH', ...blockchainProof };
   product.status = 'Published';
   product.isMinting = false;
   
