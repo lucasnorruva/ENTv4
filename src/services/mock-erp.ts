@@ -65,6 +65,22 @@ const mockErpData: Record<string, ErpProduct[]> = {
       ],
     },
   ],
+  'Microsoft Dynamics 365': [
+      {
+        sku: 'DYN-CH-01',
+        gtin: '09501101530041',
+        name: 'Dynamics Connected Office Chair',
+        description: 'An ergonomic office chair with supply chain data managed in Dynamics 365.',
+        category: 'Home Goods',
+        manufacturing_plant: 'Redmond Seating Co.',
+        country_of_origin: 'USA',
+        bill_of_materials: [
+          { material_name: 'Recycled Aluminum Base', percentage: 40 },
+          { material_name: 'Mesh Fabric', percentage: 30 },
+          { material_name: 'Foam Cushion', percentage: 30 },
+        ],
+      },
+  ]
 };
 
 /**
