@@ -11,7 +11,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { AiProductSchema } from '../schemas';
 
-export const AnalyzeElectronicsComplianceInputSchema = z.object({
+const AnalyzeElectronicsComplianceInputSchema = z.object({
   product: AiProductSchema,
 });
 export type AnalyzeElectronicsComplianceInput = z.infer<
@@ -23,7 +23,7 @@ const ComplianceCheckSchema = z.object({
   reason: z.string().describe("Explanation for the compliance status."),
 });
 
-export const AnalyzeElectronicsComplianceOutputSchema = z.object({
+const AnalyzeElectronicsComplianceOutputSchema = z.object({
   rohs: ComplianceCheckSchema.describe("RoHS compliance assessment."),
   weee: ComplianceCheckSchema.describe("WEEE compliance assessment."),
   ceMarking: ComplianceCheckSchema.describe("CE Marking assessment."),
