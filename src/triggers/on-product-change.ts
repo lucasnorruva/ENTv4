@@ -3,8 +3,10 @@
 // In a real Firebase project, this would be a Cloud Function.
 'use server';
 
-import { processProductAi } from '@/lib/actions';
+import { getWebhooks, processProductAi } from '@/lib/actions';
+import { getApiSettingsData } from '@/lib/api-settings';
 import { products as mockProducts } from '@/lib/data';
+import { sendWebhook } from '@/services/webhooks';
 
 // NOTE: This mock function simulates the behavior of a Firestore trigger.
 // It's called from saveProduct in product-actions.ts for demonstration.
@@ -44,6 +46,23 @@ export async function onProductChange(
         mockProducts[finalProductIndex].isProcessing = false;
         mockProducts[finalProductIndex].lastUpdated = new Date().toISOString();
         console.log(`AI processing finished for ${productId}`);
+
+        // --- NEW: Webhook Logic ---
+        const eventType = !beforeData ? 'product.published' : 'product.updated';
+        const apiSettings = await getApiSettingsData();
+        const allWebhooks = await getWebhooks(); // Get all webhooks for system-wide events
+        const subscribedWebhooks = allWebhooks.filter(
+          wh => wh.status === 'active' && wh.events.includes(eventType)
+        );
+
+        console.log(`Found ${subscribedWebhooks.length} webhooks for event '${eventType}'`);
+
+        for (const webhook of subscribedWebhooks) {
+          // Fire and forget
+          sendWebhook(webhook, eventType, mockProducts[finalProductIndex], apiSettings);
+        }
+        // --- End Webhook Logic ---
+
     }
   } catch (error) {
     console.error(`AI processing failed for ${productId}:`, error);

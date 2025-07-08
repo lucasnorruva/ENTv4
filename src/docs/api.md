@@ -169,22 +169,39 @@ You should verify this signature on your server using your webhook's secret key 
 ```javascript
 const crypto = require('crypto');
 
-const secret = 'your_webhook_secret'; // Keep this secret!
-const receivedSignature = req.headers['x-norruva-signature'];
-const payload = req.body; // The raw request body
+// This is a simplified example. In a real application, you would use a middleware
+// to read the raw body of the request, as JSON parsing can alter the content.
+function verifyWebhookSignature(req) {
+  const secret = 'your_webhook_secret'; // Keep this secret!
+  const receivedSignature = req.headers['x-norruva-signature'];
+  const payload = req.rawBody; // The raw request body as a buffer or string.
 
-const computedSignature = crypto
-  .createHmac('sha256', secret)
-  .update(JSON.stringify(payload))
-  .digest('hex');
+  if (!receivedSignature || !payload) {
+    return false;
+  }
 
-if (crypto.timingSafeEqual(Buffer.from(receivedSignature), Buffer.from(computedSignature))) {
-  // Signature is valid, process the event
-  console.log('Webhook verified successfully!');
-} else {
-  // Signature is invalid, reject the request
-  console.error('Invalid webhook signature.');
+  const computedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(receivedSignature),
+    Buffer.from(computedSignature)
+  );
 }
+
+// In your Express route handler:
+// app.post('/webhook-handler', (req, res) => {
+//   if (!verifyWebhookSignature(req)) {
+//     return res.status(400).send('Invalid signature.');
+//   }
+//
+//   // Signature is valid, process the event
+//   console.log('Webhook verified successfully!');
+//   res.status(200).send('Acknowledged');
+// });
+
 ```
 
 ---
