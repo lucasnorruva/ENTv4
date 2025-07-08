@@ -309,7 +309,7 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
     isProcessing: false,
     transit: {
-      stage: 'Awaiting Customs Clearance',
+      stage: 'Awaiting Customs Clearance (Antwerp, BE)',
       eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
       transport: 'Ship',
       origin: 'Vietnam',
@@ -354,7 +354,7 @@ export let products: Product[] = [
       gaps: [],
     },
     transit: {
-      stage: 'Pre-Arrival Notification Submitted',
+      stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
       eta: new Date(new Date(now).setDate(now.getDate() + 15)).toISOString(),
       transport: 'Ship',
       origin: 'USA',
