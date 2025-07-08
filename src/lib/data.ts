@@ -115,6 +115,15 @@ export let products: Product[] = [
       isVerified: true,
       verifiedAt: new Date().toISOString(),
     },
+    ownershipNft: {
+      tokenId: '101',
+      contractAddress: '0xabcdef...1234',
+      ownerAddress: '0xowner...5678',
+    },
+    chainOfCustody: [
+      { date: new Date(Date.now() - 5*24*60*60*1000).toISOString(), event: 'Manufactured', location: 'Germany', actor: 'Eco Innovate Ltd.' },
+      { date: new Date(Date.now() - 3*24*60*60*1000).toISOString(), event: 'Shipped', location: 'Hamburg Port', actor: 'DHL' },
+    ],
     isMinting: false,
     transit: {
       stage: 'Cleared - Inland Transit (DE)',
