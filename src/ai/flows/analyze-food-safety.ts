@@ -10,7 +10,7 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
-export const AnalyzeFoodSafetyInputSchema = z.object({
+const AnalyzeFoodSafetyInputSchema = z.object({
   productName: z.string().describe('The name of the food product.'),
   ingredients: z.array(z.string()).describe('The list of ingredients.'),
   packagingMaterials: z
@@ -21,7 +21,7 @@ export type AnalyzeFoodSafetyInput = z.infer<
   typeof AnalyzeFoodSafetyInputSchema
 >;
 
-export const AnalyzeFoodSafetyOutputSchema = z.object({
+const AnalyzeFoodSafetyOutputSchema = z.object({
   riskLevel: z
     .enum(['Low', 'Medium', 'High'])
     .describe('The overall food safety risk assessment.'),
