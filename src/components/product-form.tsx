@@ -69,7 +69,7 @@ export default function ProductForm({
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [isUploadingManual, setIsUploadingManual] = useState(false);
   const [manualUploadProgress, setManualUploadProgress] = useState(0);
-  
+
   const [modelFile, setModelFile] = useState<File | null>(null);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [modelUploadProgress, setModelUploadProgress] = useState(0);
@@ -84,8 +84,8 @@ export default function ProductForm({
     productName: '',
     productDescription: '',
     productImage: '',
-    category: 'Electronics',
-    status: 'Draft',
+    category: 'Electronics' as ProductFormValues['category'],
+    status: 'Draft' as ProductFormValues['status'],
     materials: [],
     manufacturing: { facility: '', country: '', manufacturingProcess: '' },
     certifications: [],
@@ -138,7 +138,7 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
-  
+
   const {
     fields: greenClaimFields,
     append: appendGreenClaim,
@@ -174,7 +174,7 @@ export default function ProductForm({
       });
     }
   };
-  
+
   const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
@@ -360,18 +360,23 @@ export default function ProductForm({
           return;
         }
       }
-      
+
       if (modelFile) {
         setIsUploadingModel(true);
         setModelUploadProgress(0);
-        const storageRef = ref(storage, `models/${user.id}/${Date.now()}-${modelFile.name}`);
+        const storageRef = ref(
+          storage,
+          `models/${user.id}/${Date.now()}-${modelFile.name}`,
+        );
         const uploadTask = uploadBytesResumable(storageRef, modelFile);
 
         try {
           model3dUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on('state_changed',
+            uploadTask.on(
+              'state_changed',
               snapshot => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                const progress =
+                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 setModelUploadProgress(progress);
               },
               error => {
@@ -379,10 +384,12 @@ export default function ProductForm({
                 reject(error);
               },
               async () => {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                const downloadURL = await getDownloadURL(
+                  uploadTask.snapshot.ref,
+                );
                 setIsUploadingModel(false);
                 resolve(downloadURL);
-              }
+              },
             );
           });
           model3dFileName = modelFile.name;
@@ -448,15 +455,137 @@ export default function ProductForm({
     show: boolean;
     component: React.ReactNode;
   }[] = [
-    { value: "general", label: "General", show: true, component: <GeneralTab form={form} isUploading={isUploading} isSaving={isSaving} imagePreview={form.watch('productImage')} handleImageChange={handleImageChange} uploadProgress={uploadProgress} handleGenerateDescription={handleGenerateDescription} isGeneratingDescription={isGeneratingDescription} isGeneratingImage={isGeneratingImage} handleContextImageChange={handleContextImageChange} handleGenerateImage={handleGenerateImage} isAiEnabled={isAiEnabled} /> },
-    { value: "data", label: "Data", show: true, component: <DataTab form={form} materialFields={materialFields} appendMaterial={appendMaterial} removeMaterial={removeMaterial} certFields={certFields} appendCert={appendCert} removeCert={removeCert} isAiEnabled={isAiEnabled} user={user} /> },
-    { value: "electronics", label: "Electronics", show: category === 'Electronics', component: <ElectronicsTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
-    { value: "textile", label: "Textile", show: category === 'Fashion', component: <TextileTab form={form} fiberFields={fiberFields} appendFiber={appendFiber} removeFiber={removeFiber} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled}/> },
-    { value: "food", label: "Food & Beverage", show: category === 'Food & Beverage', component: <FoodTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
-    { value: "construction", label: "Construction", show: category === 'Construction', component: <ConstructionTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
-    { value: "lifecycle", label: "Lifecycle", show: true, component: <LifecycleTab form={form} handleManualChange={handleManualChange} isUploadingManual={isUploadingManual} manualUploadProgress={manualUploadProgress} handleModelChange={handleModelChange} isUploadingModel={isUploadingModel} modelUploadProgress={modelUploadProgress} isSaving={isSaving} /> },
-    { value: "compliance", label: "Compliance", show: true, component: <ComplianceTab form={form} compliancePaths={compliancePaths} greenClaimFields={greenClaimFields} appendGreenClaim={appendGreenClaim} removeGreenClaim={removeGreenClaim} /> },
-    { value: "custom", label: "Custom Data", show: customFields.length > 0, component: <CustomDataTab form={form} customFields={customFields} /> },
+    {
+      value: 'general',
+      label: 'General',
+      show: true,
+      component: (
+        <GeneralTab
+          form={form}
+          isUploading={isUploading}
+          isSaving={isSaving}
+          imagePreview={form.watch('productImage')}
+          handleImageChange={handleImageChange}
+          uploadProgress={uploadProgress}
+          handleGenerateDescription={handleGenerateDescription}
+          isGeneratingDescription={isGeneratingDescription}
+          isGeneratingImage={isGeneratingImage}
+          handleContextImageChange={handleContextImageChange}
+          handleGenerateImage={handleGenerateImage}
+          isAiEnabled={isAiEnabled}
+        />
+      ),
+    },
+    {
+      value: 'data',
+      label: 'Data',
+      show: true,
+      component: (
+        <DataTab
+          form={form}
+          materialFields={materialFields}
+          appendMaterial={appendMaterial}
+          removeMaterial={removeMaterial}
+          certFields={certFields}
+          appendCert={appendCert}
+          removeCert={removeCert}
+          isAiEnabled={isAiEnabled}
+          user={user}
+        />
+      ),
+    },
+    {
+      value: 'electronics',
+      label: 'Electronics',
+      show: category === 'Electronics',
+      component: (
+        <ElectronicsTab
+          form={form}
+          user={user}
+          productId={initialData?.id}
+          isAiEnabled={isAiEnabled}
+        />
+      ),
+    },
+    {
+      value: 'textile',
+      label: 'Textile',
+      show: category === 'Fashion',
+      component: (
+        <TextileTab
+          form={form}
+          fiberFields={fiberFields}
+          appendFiber={appendFiber}
+          removeFiber={removeFiber}
+          user={user}
+          productId={initialData?.id}
+          isAiEnabled={isAiEnabled}
+        />
+      ),
+    },
+    {
+      value: 'food',
+      label: 'Food & Beverage',
+      show: category === 'Food & Beverage',
+      component: (
+        <FoodTab
+          form={form}
+          user={user}
+          productId={initialData?.id}
+          isAiEnabled={isAiEnabled}
+        />
+      ),
+    },
+    {
+      value: 'construction',
+      label: 'Construction',
+      show: category === 'Construction',
+      component: (
+        <ConstructionTab
+          form={form}
+          user={user}
+          productId={initialData?.id}
+          isAiEnabled={isAiEnabled}
+        />
+      ),
+    },
+    {
+      value: 'lifecycle',
+      label: 'Lifecycle',
+      show: true,
+      component: (
+        <LifecycleTab
+          form={form}
+          handleManualChange={handleManualChange}
+          isUploadingManual={isUploadingManual}
+          manualUploadProgress={manualUploadProgress}
+          handleModelChange={handleModelChange}
+          isUploadingModel={isUploadingModel}
+          modelUploadProgress={modelUploadProgress}
+          isSaving={isSaving}
+        />
+      ),
+    },
+    {
+      value: 'compliance',
+      label: 'Compliance',
+      show: true,
+      component: (
+        <ComplianceTab
+          form={form}
+          compliancePaths={compliancePaths}
+          greenClaimFields={greenClaimFields}
+          appendGreenClaim={appendGreenClaim}
+          removeGreenClaim={removeGreenClaim}
+        />
+      ),
+    },
+    {
+      value: 'custom',
+      label: 'Custom Data',
+      show: customFields.length > 0,
+      component: <CustomDataTab form={form} customFields={customFields} />,
+    },
   ];
 
   const visibleTabs = TABS_CONFIG.filter(tab => tab.show);
@@ -505,19 +634,21 @@ export default function ProductForm({
               {isUploading
                 ? 'Uploading Image...'
                 : isUploadingManual
-                  ? 'Uploading Manual...'
-                  : isUploadingModel
-                    ? 'Uploading Model...'
-                    : isGeneratingImage
-                      ? 'Generating...'
-                      : isSaving
-                        ? 'Saving...'
-                        : 'Save Changes'}
+                ? 'Uploading Manual...'
+                : isUploadingModel
+                ? 'Uploading Model...'
+                : isGeneratingImage
+                ? 'Generating...'
+                : isSaving
+                ? 'Saving...'
+                : 'Save Changes'}
             </Button>
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-             <TabsList className={cn("grid w-full", `grid-cols-${visibleTabs.length}`)}>
+            <TabsList
+              className={cn('grid w-full', `grid-cols-${visibleTabs.length}`)}
+            >
               {visibleTabs.map(tab => (
                 <TabsTrigger key={tab.value} value={tab.value}>
                   {tab.label}
