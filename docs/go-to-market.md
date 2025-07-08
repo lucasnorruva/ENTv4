@@ -16,7 +16,7 @@ The platform must bridge multiple regulatory schemes. This section outlines the 
 
 ### Canada
 - **Mandate**: Provincial Extended Producer Responsibility (EPR) programs, aligned under the Canadian Council of Ministers of the Environment (CCME), assign end-of-life responsibility to producers.
-- **Platform Alignment**: The `compliance.epr` field in our data model captures the necessary data (scheme ID, producer number, waste Category) for streamlined EPR reporting and fee calculation.
+- **Platform Alignment**: The `compliance.epr` field in our data model captures the necessary data (scheme ID, producer number, waste category) for streamlined EPR reporting and fee calculation.
 - **GTM Focus**: Target producers in regulated sectors (e.g., electronics, packaging) by offering a solution to simplify and automate their EPR compliance across different provinces.
 
 ### Asia-Pacific (APAC)
