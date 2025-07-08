@@ -1,6 +1,4 @@
 // src/lib/dppDisplayUtils.tsx
-'use client';
-
 import React from 'react';
 import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import { cn } from './utils';
