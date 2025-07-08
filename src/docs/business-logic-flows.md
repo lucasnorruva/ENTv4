@@ -17,11 +17,12 @@ This flow covers from the moment a product is input into the system to the point
     *   If any required field is missing or some rule is violated, it accumulates an error list. It updates the product doc with a `validationStatus: "errors"` and maybe a `validationErrors` array listing issues (e.g., “RoHS compliance not indicated”).
     *   If minor warnings (non-critical), could list as warnings separately.
     *   If everything required is present and okay, it sets `validationStatus: "passed"`.
-5.  **Blockchain Anchoring**: If validation passed (and either auto-approval or no manual gating is set), the trigger proceeds to blockchain:
-    *   It computes the product hash (from relevant fields).
-    *   Calls the Polygon contract via our web3 client. This returns a transaction promise or hash. We may wait for confirmation or at least the transaction hash. Ideally, we wait for 1 confirmation to be sure it’s mined (a few seconds on Polygon).
-    *   On success, update Firestore: set `blockchain.currentHash`, `blockchain.polygonTxId`, and possibly mark a `publishedAt` timestamp. If needed, set `status` from “processing” to “active”.
-    *   If the blockchain call fails (network issue), we catch error: perhaps set a field `blockchainStatus: "pending"` and will retry via a scheduled function or next update.
+5.  **VC Generation & Blockchain Anchoring**: Once the passport is verified (either automatically or manually by an auditor), the system performs the cryptographic steps:
+    *   A W3C Verifiable Credential (VC) is generated, containing the core, attestable data of the product. This VC is digitally signed.
+    *   A hash of this VC is computed.
+    *   The system calls the Polygon contract via our web3 client to anchor this hash on-chain. This returns a transaction promise or hash.
+    *   On success, the system updates Firestore with the VC, the `blockchain.currentHash`, `blockchain.polygonTxId`, and a `publishedAt` timestamp.
+    *   If the blockchain call fails, the system logs the error and may retry later.
 6.  **QR Code Generation**: As soon as we have a product ID (from step 1), the front-end can already generate a QR via a library when the user views the product. Alternatively, we had a cloud function to generate an image. Some implementations: we might have an endpoint `/products/{id}/qr` which returns the PNG; it can be dynamic, encoding the URL with that ID. We might store a data URL or just generate on the fly in front-end. So this is not a blocking step. But logically:
     *   If in UI, after step 1, the user can click "Generate QR" which either uses a JS library to show it or calls our API for an image. If via API, we likely integrated a third-party chart API or have a function with a QR generation library (like using `node-qrcode` to produce base64 PNG).
     *   The QR code itself contains the link to the product’s public page or API. We ensure that by now the product can be retrieved publicly (if `status=active` and no auth needed for that public info).
@@ -32,7 +33,7 @@ This flow covers from the moment a product is input into the system to the point
 
 The cycle ends here for creation. The product is in the system and can later be updated or read anytime.
 
-This flow is illustrated logically as: `Input -> Validate -> AI -> Compliance check -> Blockchain -> Available to scan`.
+This flow is illustrated logically as: `Input -> Validate -> AI -> Compliance check -> VC Gen -> Blockchain -> Available to scan`.
 
 ## 10.2 Product Update & Versioning Flow
 
@@ -44,9 +45,8 @@ When an existing passport needs changes (e.g., new info added, or correction):
     *   If content that affects AI output changed significantly (like material composition or a new certification), we might re-run certain AI prompts (maybe just regenerate summary if needed).
     *   Always re-run compliance validation, because new data might resolve previous errors or might introduce new issues.
     *   Recompute the hash of the relevant data. Likely, any change in attributes, compliance, or documents should change the hash (we define exactly what goes into hash).
-4.  **Blockchain Update**: If the hash changed, we then call the smart contract’s `updateProduct(productId, newHash)` with the new hash. This creates a new transaction.
-    *   If using an event log as history, an event will be emitted. If needed, we could also store the old hash in a `previousHashes` array in Firestore for our own record.
-    *   We update `blockchain.currentHash` and set maybe `blockchain.previousTxId` or append to a history subcollection if we want to keep a chain of custody of changes on our side.
+4.  **Re-Anchoring on Blockchain (if needed)**: If the hash of the Verifiable Credential data changes, the system re-issues the VC and anchors the new hash on the blockchain. This creates a new transaction and links it to the product's history.
+    *   We update `blockchain.currentHash` and may store previous hashes in an audit log or a dedicated history subcollection.
 5.  **Status and Notifications**: The product remains "active" during updates (unless the update triggers a compliance failure, in which case maybe we temporarily mark it as “active (issues)” but it’s still accessible). Webhooks like `product.updated` fire with details of change (if configured to provide diff or at least timestamp).
     *   If the update fixed issues, `validationStatus` might turn to "passed" and we could notify accordingly ("Product X is now compliant with Y after update").
 6.  **Consumer Impact**: If a consumer scans after an update, they see the latest info immediately (since our public API always pulls the current Firestore data). If they had scanned earlier, we might worry about caching, but presumably it’s dynamic or short TTL. And if they somehow saved the old JSON, they could verify it's outdated by comparing to blockchain (the old hash no longer matches the chain after update, unless we maintain multiple on chain).
