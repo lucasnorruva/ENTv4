@@ -212,8 +212,9 @@ export let products: Product[] = [
     verificationStatus: 'Pending',
     endOfLifeStatus: 'Active',
     isProcessing: false,
+    isMinting: false,
     transit: {
-      stage: 'At Customs',
+      stage: 'At Customs (Rotterdam, NL)',
       eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
       transport: 'Ship',
       origin: 'India',
@@ -272,6 +273,7 @@ export let products: Product[] = [
       ],
     },
     isProcessing: false,
+    isMinting: false,
     transit: {
       stage: 'Airborne - Approaching EU',
       eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
@@ -308,6 +310,7 @@ export let products: Product[] = [
     verificationStatus: 'Pending',
     endOfLifeStatus: 'Active',
     isProcessing: false,
+    isMinting: false,
     transit: {
       stage: 'Awaiting Customs Clearance (Antwerp, BE)',
       eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
@@ -344,6 +347,7 @@ export let products: Product[] = [
     lastVerificationDate: new Date().toISOString(),
     endOfLifeStatus: 'Active',
     isProcessing: false,
+    isMinting: false,
     sustainability: {
       score: 40,
       environmental: 35,
