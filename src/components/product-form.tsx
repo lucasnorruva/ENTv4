@@ -1,3 +1,4 @@
+
 // src/components/product-form.tsx
 'use client';
 
@@ -87,7 +88,7 @@ export default function ProductForm({
     category: 'Electronics',
     status: 'Draft',
     materials: [],
-    manufacturing: { facility: '', country: '' },
+    manufacturing: { facility: '', country: '', manufacturingProcess: '' },
     certifications: [],
     packaging: { type: '', recyclable: false },
     lifecycle: {},
@@ -442,8 +443,6 @@ export default function ProductForm({
     );
   }
 
-  const hasCustomFields = customFields.length > 0;
-  
   const TABS_CONFIG: {
     value: string;
     label: string;
@@ -458,7 +457,7 @@ export default function ProductForm({
     { value: "construction", label: "Construction", show: category === 'Construction', component: <ConstructionTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
     { value: "lifecycle", label: "Lifecycle", show: true, component: <LifecycleTab form={form} handleManualChange={handleManualChange} isUploadingManual={isUploadingManual} manualUploadProgress={manualUploadProgress} handleModelChange={handleModelChange} isUploadingModel={isUploadingModel} modelUploadProgress={modelUploadProgress} isSaving={isSaving} /> },
     { value: "compliance", label: "Compliance", show: true, component: <ComplianceTab form={form} compliancePaths={compliancePaths} greenClaimFields={greenClaimFields} appendGreenClaim={appendGreenClaim} removeGreenClaim={removeGreenClaim} /> },
-    { value: "custom", label: "Custom Data", show: hasCustomFields, component: <CustomDataTab form={form} customFields={customFields} /> },
+    { value: "custom", label: "Custom Data", show: customFields.length > 0, component: <CustomDataTab form={form} customFields={customFields} /> },
   ];
 
   const visibleTabs = TABS_CONFIG.filter(tab => tab.show);
@@ -537,5 +536,3 @@ export default function ProductForm({
     </Form>
   );
 }
-
-    

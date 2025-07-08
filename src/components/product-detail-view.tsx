@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -38,6 +39,7 @@ import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
+import ConstructionTab from './product-detail-tabs/construction-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -88,6 +90,7 @@ export default function ProductDetailView({
   const showElectronicsTab = product.category === 'Electronics';
   const showTextileTab = product.category === 'Fashion';
   const showFoodTab = product.category === 'Food & Beverage';
+  const showConstructionTab = product.category === 'Construction';
 
   return (
     <>
@@ -157,6 +160,7 @@ export default function ProductDetailView({
                 {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                 {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                 {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -182,6 +186,11 @@ export default function ProductDetailView({
                {showFoodTab && (
                 <TabsContent value="food" className="mt-4">
                   <FoodSafetyTab product={product} />
+                </TabsContent>
+               )}
+               {showConstructionTab && (
+                <TabsContent value="construction" className="mt-4">
+                    <ConstructionTab product={product} />
                 </TabsContent>
                )}
               <TabsContent value="sustainability" className="mt-4">
@@ -247,5 +256,3 @@ export default function ProductDetailView({
     </>
   );
 }
-
-    
