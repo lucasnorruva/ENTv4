@@ -208,12 +208,12 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **3D Model Integration**
 
 #### 2.2.2 NLP Processing Engine
-- [x] **Multilingual Document Processing**
-- [x] **Technical Specification Extraction**
+- [ ] **Multilingual Document Processing**
+- [ ] **Technical Specification Extraction**
 
 #### 2.2.3 Anomaly Detection System
 - [x] **Supply Chain Fraud Detection**
-- [x] **Real-time Monitoring**
+- [ ] **Real-time Monitoring**
 
 ### 2.3 Intelligent Automation
 
@@ -226,8 +226,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [ ] **Continuous Testing Platform**
 
 #### 2.3.3 Workflow Automation Engine
-- [x] **No-Code Workflow Builder**
-- [x] **Pre-built Automation Templates**
+- [ ] **No-Code Workflow Builder**
+- [ ] **Pre-built Automation Templates**
 
 ---
 

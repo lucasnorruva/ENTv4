@@ -26,6 +26,7 @@ export async function runDailyReferenceDataSync(): Promise<{
       name: pathToUpdate.name,
       description: pathToUpdate.description,
       category: pathToUpdate.category,
+      jurisdiction: pathToUpdate.jurisdiction,
       regulations: pathToUpdate.regulations.map(r => ({value: r})),
       minSustainabilityScore: newScore,
       requiredKeywords: pathToUpdate.rules.requiredKeywords?.map(r => ({value: r})),
