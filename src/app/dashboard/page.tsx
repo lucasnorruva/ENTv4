@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { getUserByEmail } from '@/lib/actions';
+import { getUserByEmail } from '@/lib/auth';
 import { Loader2 } from 'lucide-react';
 import type { Role } from '@/lib/constants';
 
