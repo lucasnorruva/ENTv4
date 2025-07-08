@@ -12,6 +12,7 @@ import { checkPermission, PermissionError } from '@/lib/permissions';
 import { logAuditEvent } from './audit-actions';
 import { newId } from './utils';
 import { generateComplianceRules as generateComplianceRulesFlow } from '@/ai/flows/generate-compliance-rules';
+import { generateSmartContract as generateSmartContractFlow } from '@/ai/flows/generate-smart-contract';
 
 export async function getCompliancePaths(): Promise<CompliancePath[]> {
   return Promise.resolve(mockCompliancePaths);
@@ -106,4 +107,25 @@ export async function generateCompliancePathRules(
   }
 
   return await generateComplianceRulesFlow({ name, regulations });
+}
+
+export async function generateSmartContractForPath(
+  path: CompliancePath,
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+  checkPermission(user, 'admin:manage_settings'); // Example permission
+
+  await logAuditEvent(
+    'contract.generated',
+    path.id,
+    { pathName: path.name },
+    userId,
+  );
+
+  return generateSmartContractFlow({
+    pathName: path.name,
+    rules: path.rules,
+  });
 }

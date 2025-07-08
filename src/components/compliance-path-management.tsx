@@ -17,6 +17,7 @@ import {
   ListTree,
   Search,
   BookCopy,
+  FileCode,
 } from 'lucide-react';
 
 import type { CompliancePath, User, Product } from '@/types';
@@ -25,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   deleteCompliancePath,
   getCompliancePaths,
+  generateSmartContractForPath,
 } from '@/lib/actions/compliance-actions';
 import { hasRole } from '@/lib/auth-utils';
 
@@ -54,6 +56,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import CompliancePathForm from './compliance-path-form';
 import { Input } from './ui/input';
@@ -65,6 +68,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
+import GeneratedContractDialog from './generated-contract-dialog';
 
 interface CompliancePathManagementProps {
   user: User;
@@ -84,6 +88,9 @@ export default function CompliancePathManagement({
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
 
   const fetchPaths = useCallback(() => {
     setIsLoading(true);
@@ -182,6 +189,22 @@ export default function CompliancePathManagement({
     setIsFormOpen(false);
   };
 
+  const handleGenerateContract = (path: CompliancePath) => {
+    startTransition(async () => {
+      try {
+        const result = await generateSmartContractForPath(path, user.id);
+        setGeneratedCode(result.solidityCode);
+        setIsContractDialogOpen(true);
+      } catch (error: any) {
+        toast({
+          title: 'Error Generating Contract',
+          description: error.message || 'The AI failed to generate the contract.',
+          variant: 'destructive'
+        });
+      }
+    });
+  }
+
   const canManage =
     hasRole(user, UserRoles.ADMIN) ||
     hasRole(user, UserRoles.COMPLIANCE_MANAGER) ||
@@ -252,6 +275,7 @@ export default function CompliancePathManagement({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 -mt-2 -mr-2"
+                            disabled={isPending}
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -261,6 +285,11 @@ export default function CompliancePathManagement({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleGenerateContract(path)}>
+                            <FileCode className="mr-2 h-4 w-4" />
+                            Generate Smart Contract
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator/>
                           {canDelete && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -374,6 +403,11 @@ export default function CompliancePathManagement({
           user={user}
         />
       )}
+       <GeneratedContractDialog
+        isOpen={isContractDialogOpen}
+        onOpenChange={setIsContractDialogOpen}
+        code={generatedCode}
+      />
     </>
   );
 }
