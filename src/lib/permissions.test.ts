@@ -43,6 +43,8 @@ describe('Permission System (can function)', () => {
     const complianceManager = createMockUser('compliance-1', [UserRoles.COMPLIANCE_MANAGER], 'comp-norruva');
     const recycler = createMockUser('recycler-1', [UserRoles.RECYCLER], 'comp-norruva');
     const serviceProvider = createMockUser('service-1', [UserRoles.SERVICE_PROVIDER], 'comp-norruva');
+    const developer = createMockUser('dev-1', [UserRoles.DEVELOPER], 'comp-1');
+
 
     // Define mock resources
     const product1 = createMockProduct('prod-1', 'comp-1');
@@ -131,6 +133,16 @@ describe('Permission System (can function)', () => {
 
         it('should not allow a non-admin to manage users', () => {
             expect(can(supplier1, 'user:manage')).toBe(false);
+        });
+    });
+
+    describe('Developer Permissions', () => {
+        it('should allow a developer to generate tests', () => {
+            expect(can(developer, 'developer:generate_tests')).toBe(true);
+        });
+    
+        it('should not allow a non-developer to generate tests', () => {
+            expect(can(supplier1, 'developer:generate_tests')).toBe(false);
         });
     });
 });

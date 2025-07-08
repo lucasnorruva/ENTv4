@@ -1,0 +1,25 @@
+// src/lib/actions/dev-tool-actions.ts
+'use server';
+
+import { getUserById } from '../auth';
+import { checkPermission, PermissionError } from '../permissions';
+import { generateComponentTests as generateComponentTestsFlow } from '@/ai/flows/generate-component-tests';
+import type { GenerateComponentTestsOutput } from '@/types/ai-outputs';
+
+export async function generateComponentTest(
+  componentName: string,
+  componentCode: string,
+  userId: string,
+): Promise<GenerateComponentTestsOutput> {
+  const user = await getUserById(userId);
+  if (!user) {
+    throw new PermissionError('User not found.');
+  }
+  checkPermission(user, 'developer:generate_tests');
+
+  if (!componentName || !componentCode) {
+    throw new Error('Component name and code are required.');
+  }
+
+  return generateComponentTestsFlow({ componentName, componentCode });
+}

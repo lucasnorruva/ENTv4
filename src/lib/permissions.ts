@@ -56,6 +56,7 @@ export const allActions = [
 
   // Developer / API
   'developer:manage_api',
+  'developer:generate_tests',
   'integration:sync',
 
   // Ticketing
@@ -125,6 +126,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
 
   [UserRoles.DEVELOPER]: [
     'developer:manage_api',
+    'developer:generate_tests',
     'integration:sync',
     'product:generate_zkp',
     'user:edit',
