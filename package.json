@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 9006",
-    "genkit:start": "npx genkit start",
+    "dev": "turbo run dev:web dev:ai",
+    "dev:web": "next dev -p 9002",
+    "dev:ai": "genkit start",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
