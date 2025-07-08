@@ -1,11 +1,11 @@
 // src/app/dashboard/manufacturer/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts } from '@/lib/actions/product-actions';
-import { getProductionLines } from '@/lib/actions/manufacturing-actions';
-import { getServiceTickets } from '@/lib/actions/ticket-actions';
-import { UserRoles } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import type { User, Product, ProductionLine, ServiceTicket } from '@/types';
 import {
   Card,
   CardContent,
@@ -20,25 +20,48 @@ import {
   Clock,
   Wrench,
   Gauge,
+  Loader2,
 } from 'lucide-react';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { Product, ProductionLine } from '@/types';
 import ProductionOutputChart from '@/components/charts/production-output-chart';
 import ProductionLineStatusChart from '@/components/charts/production-line-status-chart';
 
-export default async function AnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.MANUFACTURER);
+export default function AnalyticsPage({ user }: { user: User }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [lines, setLines] = useState<ProductionLine[]>([]);
+  const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.MANUFACTURER)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    const productQuery = query(collection(db, Collections.PRODUCTS), where('companyId', '==', user.companyId));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    }));
+
+    const linesQuery = query(collection(db, Collections.PRODUCTION_LINES), where('companyId', '==', user.companyId));
+    unsubscribes.push(onSnapshot(linesQuery, snapshot => {
+      setLines(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ProductionLine)));
+    }));
+
+    const ticketsQuery = query(collection(db, Collections.SERVICE_TICKETS)); // Could be filtered further if needed
+    unsubscribes.push(onSnapshot(ticketsQuery, snapshot => {
+      setServiceTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTicket)));
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, [user.companyId]);
+  
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, lines, serviceTickets] = await Promise.all([
-    getProducts(user.id),
-    getProductionLines(),
-    getServiceTickets(user.id),
-  ]);
 
   const lineStats = {
     totalLines: lines.length,
@@ -59,7 +82,6 @@ export default async function AnalyticsPage() {
     .map(l => ({ name: l.name, output: l.outputPerHour }))
     .sort((a,b) => b.output - a.output);
 
-  // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
       const date = format(new Date(product.createdAt), 'yyyy-MM-dd');
@@ -77,7 +99,7 @@ export default async function AnalyticsPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const recentMaintenance = serviceTickets
-    .filter(t => t.productionLineId)
+    .filter(t => t.productionLineId && lines.some(l => l.id === t.productionLineId))
     .sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
 

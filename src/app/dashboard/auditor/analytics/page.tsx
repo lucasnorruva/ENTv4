@@ -1,11 +1,10 @@
-
 // src/app/dashboard/auditor/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts } from '@/lib/actions/product-actions';
-import { getAuditLogs } from '@/lib/actions/audit-actions';
-import { UserRoles, type Role } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections, type Role } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -32,12 +31,13 @@ import {
   Hourglass,
   Globe,
   Wrench,
+  Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
+import type { AuditLog, Product, User } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 import CustomsStatusChart from '@/components/charts/customs-status-chart';
 
@@ -62,7 +62,6 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-// Helper to generate mock compliance rate data
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
   const sortedProducts = products.sort(
@@ -81,27 +80,41 @@ const generateComplianceRateData = (products: Product[]) => {
   return data;
 };
 
-export default async function AuditorAnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.AUDITOR);
+export default function AuditorAnalyticsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const allowedRoles: Role[] = [
-    UserRoles.ADMIN,
-    UserRoles.BUSINESS_ANALYST,
-    UserRoles.RECYCLER,
-    UserRoles.SERVICE_PROVIDER,
-    UserRoles.RETAILER,
-    UserRoles.AUDITOR,
-  ];
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
 
-  if (!allowedRoles.some(role => hasRole(user, role))) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+    const productQuery = query(collection(db, Collections.PRODUCTS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    }));
+
+    const userQuery = query(collection(db, Collections.USERS));
+    unsubscribes.push(onSnapshot(userQuery, snapshot => {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+    }));
+
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
+      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, users, auditLogs] = await Promise.all([
-    getProducts(user.id),
-    getUsers(),
-    getAuditLogs(),
-  ]);
 
   const complianceData = {
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
@@ -123,7 +136,6 @@ export default async function AuditorAnalyticsPage() {
     rejected: products.filter(p => p.customs?.status === 'Rejected').length,
   };
 
-  // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
       const date = format(new Date(product.createdAt), 'yyyy-MM-dd');

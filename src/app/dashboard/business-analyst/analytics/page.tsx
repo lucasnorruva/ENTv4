@@ -1,10 +1,10 @@
 // src/app/dashboard/business-analyst/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser, getUsers, getCompanies } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts } from '@/lib/actions/product-actions';
-import { getAuditLogs } from '@/lib/actions/audit-actions';
-import { UserRoles } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -28,12 +28,13 @@ import {
   Recycle,
   ShieldX,
   Building2,
+  Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
+import type { AuditLog, Product, User, Company } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {
@@ -56,7 +57,6 @@ const getActionLabel = (action: string): string => {
     .join(' ');
 };
 
-// Helper to generate mock compliance rate data
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
   const sortedProducts = products.sort(
@@ -75,19 +75,47 @@ const generateComplianceRateData = (products: Product[]) => {
   return data;
 };
 
-export default async function BusinessAnalystAnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.BUSINESS_ANALYST);
+export default function BusinessAnalystAnalyticsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    const productQuery = query(collection(db, Collections.PRODUCTS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    }));
+
+    const userQuery = query(collection(db, Collections.USERS));
+    unsubscribes.push(onSnapshot(userQuery, snapshot => {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+    }));
+
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
+      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
+    }));
+
+     const companyQuery = query(collection(db, Collections.COMPANIES));
+    unsubscribes.push(onSnapshot(companyQuery, snapshot => {
+      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)));
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, users, auditLogs, companies] = await Promise.all([
-    getProducts(user.id),
-    getUsers(),
-    getAuditLogs(),
-    getCompanies(),
-  ]);
 
   const complianceData = {
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
@@ -103,7 +131,6 @@ export default async function BusinessAnalystAnalyticsPage() {
     disposed: products.filter(p => p.endOfLifeStatus === 'Disposed').length,
   };
 
-  // Group products by creation date for the time-series chart
   const productsByDate = products.reduce(
     (acc, product) => {
       const date = format(new Date(product.createdAt), 'yyyy-MM-dd');

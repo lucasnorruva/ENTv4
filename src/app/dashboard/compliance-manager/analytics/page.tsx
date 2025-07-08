@@ -1,10 +1,10 @@
 // src/app/dashboard/compliance-manager/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts } from '@/lib/actions/product-actions';
-import { getAuditLogs } from '@/lib/actions/audit-actions';
-import { UserRoles } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 import {
   Card,
   CardContent,
@@ -16,33 +16,50 @@ import {
   AlertTriangle,
   FileQuestion,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Product, AuditLog } from '@/types';
 import FlaggedOverTimeChart from '@/components/charts/flagged-over-time-chart';
 import FailuresByRegulationChart from '@/components/charts/failures-by-regulation-chart';
 
-// Helper to calculate resolution time (mocked logic for now)
 const calculateAverageResolutionTime = (logs: AuditLog[], products: Product[]): number => {
     const resolvedLogs = logs.filter(l => l.action === 'compliance.resolved');
     if (resolvedLogs.length === 0) return 0;
     
-    // This is a simplified mock calculation. A real one would be more complex.
     const totalHours = resolvedLogs.reduce((acc) => acc + Math.random() * 72, 0);
     return Math.round(totalHours / resolvedLogs.length);
 };
 
-export default async function ComplianceAnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.COMPLIANCE_MANAGER);
+export default function ComplianceAnalyticsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.COMPLIANCE_MANAGER)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    const productQuery = query(collection(db, Collections.PRODUCTS));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    }));
+
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS));
+    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
+      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, auditLogs] = await Promise.all([
-    getProducts(user.id),
-    getAuditLogs(),
-  ]);
 
   const flaggedProducts = products.filter(
     p => p.verificationStatus === 'Failed',

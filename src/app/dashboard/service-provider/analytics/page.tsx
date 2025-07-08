@@ -1,10 +1,11 @@
 // src/app/dashboard/service-provider/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
-import { getProducts } from '@/lib/actions/product-actions';
-import { getServiceTickets } from '@/lib/actions/ticket-actions';
-import { UserRoles } from '@/lib/constants';
-import { hasRole } from '@/lib/auth-utils';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import type { User, Product, ServiceTicket } from '@/types';
 import {
   Card,
   CardContent,
@@ -19,22 +20,41 @@ import {
   BarChart3,
   Ticket,
   CheckSquare,
+  Loader2,
 } from 'lucide-react';
 import { differenceInHours } from 'date-fns';
 import ServiceTicketStatusChart from '@/components/charts/service-ticket-status-chart';
 import ServiceTicketsByCategoryChart from '@/components/charts/service-tickets-by-category-chart';
 
-export default async function ServiceProviderAnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.SERVICE_PROVIDER);
+export default function ServiceProviderAnalyticsPage({ user }: { user: User }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.SERVICE_PROVIDER)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const unsubscribes: (() => void)[] = [];
+
+    const productQuery = query(collection(db, Collections.PRODUCTS));
+    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+    }));
+
+    const ticketsQuery = query(collection(db, Collections.SERVICE_TICKETS));
+    unsubscribes.push(onSnapshot(ticketsQuery, snapshot => {
+      setServiceTickets(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTicket)));
+      setIsLoading(false);
+    }));
+
+    return () => unsubscribes.forEach(unsub => unsub());
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
-
-  const [products, serviceTickets] = await Promise.all([
-    getProducts(user.id),
-    getServiceTickets(user.id),
-  ]);
 
   const openTickets = serviceTickets.filter(t => t.status === 'Open');
   const closedTickets = serviceTickets.filter(t => t.status === 'Closed');

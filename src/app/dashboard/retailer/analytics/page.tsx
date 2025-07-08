@@ -1,9 +1,12 @@
 // src/app/dashboard/retailer/analytics/page.tsx
-import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
-import { hasRole } from '@/lib/auth-utils';
-import { getProducts } from '@/lib/actions/product-actions';
-import { UserRoles } from '@/lib/constants';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+import type { Product } from '@/types';
+
 import {
   Card,
   CardContent,
@@ -11,13 +14,11 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Package, ShieldCheck, Award, TrendingUp } from 'lucide-react';
+import { Package, ShieldCheck, Award, TrendingUp, Loader2 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import SustainabilityByCategoryChart from '@/components/charts/sustainability-by-category-chart';
 import EsgBySupplierChart from '@/components/charts/esg-by-supplier-chart';
-import type { Product } from '@/types';
 
-// Helper function to aggregate ESG scores by category
 const aggregateScoresByCategory = (products: Product[]) => {
   const categoryScores: Record<string, { totalScore: number; count: number }> =
     {};
@@ -38,7 +39,6 @@ const aggregateScoresByCategory = (products: Product[]) => {
   }));
 };
 
-// Helper function to aggregate ESG scores by supplier
 const aggregateScoresBySupplier = (products: Product[]) => {
   const supplierScores: Record<string, { totalScore: number; count: number }> =
     {};
@@ -59,15 +59,29 @@ const aggregateScoresBySupplier = (products: Product[]) => {
   }));
 };
 
-export default async function RetailerAnalyticsPage() {
-  const user = await getCurrentUser(UserRoles.RETAILER);
+export default function RetailerAnalyticsPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!hasRole(user, UserRoles.RETAILER)) {
-    redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
+  useEffect(() => {
+    const q = query(collection(db, Collections.PRODUCTS), where('status', '==', 'Published'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
-  const products = await getProducts(user.id);
-  const publishedProducts = products.filter(p => p.status === 'Published');
+  const publishedProducts = products; // Already filtered by query
   const scoredProducts = publishedProducts.filter(
     p => p.sustainability?.score !== undefined,
   );
