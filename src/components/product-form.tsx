@@ -37,6 +37,9 @@ import LifecycleTab from './product-form-tabs/lifecycle-tab';
 import ComplianceTab from './product-form-tabs/compliance-tab';
 import CustomDataTab from './product-form-tabs/custom-data-tab';
 import TextileTab from './product-form-tabs/textile-tab';
+import ConstructionTab from './product-form-tabs/construction-tab';
+import ElectronicsTab from './product-form-tabs/electronics-tab';
+import FoodTab from './product-form-tabs/food-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -99,6 +102,8 @@ export default function ProductForm({
     compliancePathId: '',
     customData: {},
     textile: { fiberComposition: [] },
+    foodSafety: { ingredients: [], allergens: '' },
+    greenClaims: [],
   };
 
   const form = useForm<ProductFormValues>({
@@ -133,6 +138,12 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
+  
+  const {
+    fields: greenClaimFields,
+    append: appendGreenClaim,
+    remove: removeGreenClaim,
+  } = useFieldArray({ control: form.control, name: 'greenClaims' });
 
   const {
     fields: fiberFields,
@@ -432,14 +443,25 @@ export default function ProductForm({
   }
 
   const hasCustomFields = customFields.length > 0;
-  const showTextileTab = category === 'Fashion';
+  
+  const TABS_CONFIG: {
+    value: string;
+    label: string;
+    show: boolean;
+    component: React.ReactNode;
+  }[] = [
+    { value: "general", label: "General", show: true, component: <GeneralTab form={form} isUploading={isUploading} isSaving={isSaving} imagePreview={form.watch('productImage')} handleImageChange={handleImageChange} uploadProgress={uploadProgress} handleGenerateDescription={handleGenerateDescription} isGeneratingDescription={isGeneratingDescription} isGeneratingImage={isGeneratingImage} handleContextImageChange={handleContextImageChange} handleGenerateImage={handleGenerateImage} isAiEnabled={isAiEnabled} /> },
+    { value: "data", label: "Data", show: true, component: <DataTab form={form} materialFields={materialFields} appendMaterial={appendMaterial} removeMaterial={removeMaterial} certFields={certFields} appendCert={appendCert} removeCert={removeCert} isAiEnabled={isAiEnabled} user={user} /> },
+    { value: "electronics", label: "Electronics", show: category === 'Electronics', component: <ElectronicsTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
+    { value: "textile", label: "Textile", show: category === 'Fashion', component: <TextileTab form={form} fiberFields={fiberFields} appendFiber={appendFiber} removeFiber={removeFiber} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled}/> },
+    { value: "food", label: "Food & Beverage", show: category === 'Food & Beverage', component: <FoodTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
+    { value: "construction", label: "Construction", show: category === 'Construction', component: <ConstructionTab form={form} user={user} productId={initialData?.id} isAiEnabled={isAiEnabled} /> },
+    { value: "lifecycle", label: "Lifecycle", show: true, component: <LifecycleTab form={form} handleManualChange={handleManualChange} isUploadingManual={isUploadingManual} manualUploadProgress={manualUploadProgress} handleModelChange={handleModelChange} isUploadingModel={isUploadingModel} modelUploadProgress={modelUploadProgress} isSaving={isSaving} /> },
+    { value: "compliance", label: "Compliance", show: true, component: <ComplianceTab form={form} compliancePaths={compliancePaths} greenClaimFields={greenClaimFields} appendGreenClaim={appendGreenClaim} removeGreenClaim={removeGreenClaim} /> },
+    { value: "custom", label: "Custom Data", show: hasCustomFields, component: <CustomDataTab form={form} customFields={customFields} /> },
+  ];
 
-  const getTabCols = () => {
-    let cols = 4;
-    if (hasCustomFields) cols++;
-    if (showTextileTab) cols++;
-    return `grid-cols-${cols}`;
-  };
+  const visibleTabs = TABS_CONFIG.filter(tab => tab.show);
 
   return (
     <Form {...form}>
@@ -497,79 +519,23 @@ export default function ProductForm({
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className={cn('grid w-full', getTabCols())}>
-              <TabsTrigger value="general">General</TabsTrigger>
-              <TabsTrigger value="data">Data</TabsTrigger>
-              {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-              <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-              <TabsTrigger value="compliance">Compliance</TabsTrigger>
-              {hasCustomFields && (
-                <TabsTrigger value="custom">Custom Data</TabsTrigger>
-              )}
+             <TabsList className={cn("grid w-full", `grid-cols-${visibleTabs.length}`)}>
+              {visibleTabs.map(tab => (
+                <TabsTrigger key={tab.value} value={tab.value}>
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
-            <TabsContent value="general">
-              <GeneralTab
-                form={form}
-                isUploading={isUploading}
-                isSaving={isSaving}
-                imagePreview={form.watch('productImage')}
-                handleImageChange={handleImageChange}
-                uploadProgress={uploadProgress}
-                handleGenerateDescription={handleGenerateDescription}
-                isGeneratingDescription={isGeneratingDescription}
-                isGeneratingImage={isGeneratingImage}
-                handleContextImageChange={handleContextImageChange}
-                handleGenerateImage={handleGenerateImage}
-                isAiEnabled={isAiEnabled}
-              />
-            </TabsContent>
-            <TabsContent value="data">
-              <DataTab
-                form={form}
-                materialFields={materialFields}
-                appendMaterial={appendMaterial}
-                removeMaterial={removeMaterial}
-                certFields={certFields}
-                appendCert={appendCert}
-                removeCert={removeCert}
-              />
-            </TabsContent>
-             {showTextileTab && (
-              <TabsContent value="textile">
-                <TextileTab
-                  form={form}
-                  fiberFields={fiberFields}
-                  appendFiber={appendFiber}
-                  removeFiber={removeFiber}
-                  user={user}
-                  productId={initialData?.id}
-                  isAiEnabled={isAiEnabled}
-                />
+            {visibleTabs.map(tab => (
+              <TabsContent key={tab.value} value={tab.value}>
+                {tab.component}
               </TabsContent>
-            )}
-            <TabsContent value="lifecycle">
-              <LifecycleTab
-                form={form}
-                handleManualChange={handleManualChange}
-                isUploadingManual={isUploadingManual}
-                manualUploadProgress={manualUploadProgress}
-                handleModelChange={handleModelChange}
-                isUploadingModel={isUploadingModel}
-                modelUploadProgress={modelUploadProgress}
-                isSaving={isSaving}
-              />
-            </TabsContent>
-            <TabsContent value="compliance">
-              <ComplianceTab form={form} compliancePaths={compliancePaths} />
-            </TabsContent>
-            {hasCustomFields && (
-              <TabsContent value="custom">
-                <CustomDataTab form={form} customFields={customFields} />
-              </TabsContent>
-            )}
+            ))}
           </Tabs>
         </div>
       </form>
     </Form>
   );
 }
+
+    

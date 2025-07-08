@@ -1,6 +1,6 @@
 // src/ai/schemas.ts
 import { z } from 'zod';
-import { textileDataSchema } from '@/lib/schemas/textile';
+import { textileDataSchema, foodSafetyDataSchema } from '@/lib/schemas';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
@@ -12,7 +12,7 @@ export const AiProductSchema = z.object({
   gtin: z.string().optional().describe('The Global Trade Item Number (GTIN) of the product.'),
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A description of the product.'),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods']).describe('The product category.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']).describe('The product category.'),
   supplier: z.string().describe('The name of the product supplier or brand.'),
   materials: z
     .array(
@@ -88,6 +88,9 @@ export const AiProductSchema = z.object({
     .optional()
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
+  foodSafety: foodSafetyDataSchema.optional().describe('Food safety data.'),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;
+
+    

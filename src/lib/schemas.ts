@@ -2,13 +2,33 @@
 import { z } from 'zod';
 import type { Role } from './constants';
 import { UserRoles } from './constants';
-import { textileDataSchema } from './schemas/textile';
+
+export const textileFiberCompositionSchema = z.object({
+  name: z.string().min(1, 'Fiber name is required.'),
+  percentage: z.coerce.number().min(0, 'Percentage cannot be negative.').max(100, 'Percentage cannot exceed 100.'),
+});
+
+export const textileDataSchema = z.object({
+  fiberComposition: z.array(textileFiberCompositionSchema).optional(),
+  dyeProcess: z.string().optional(),
+  weaveType: z.string().optional(),
+});
+
+export const foodSafetyDataSchema = z.object({
+  ingredients: z.array(z.object({ value: z.string().min(1, 'Ingredient cannot be empty.') })).optional(),
+  allergens: z.string().optional(),
+});
 
 const materialSchema = z.object({
   name: z.string().min(1, 'Material name is required.'),
   percentage: z.coerce.number().optional(),
   recycledContent: z.coerce.number().optional(),
   origin: z.string().optional(),
+});
+
+const greenClaimSchema = z.object({
+  claim: z.string().min(1, 'Claim text is required.'),
+  substantiation: z.string().min(1, 'Substantiation is required.'),
 });
 
 const certificationSchema = z.object({
@@ -21,10 +41,12 @@ const certificationSchema = z.object({
 const manufacturingSchema = z.object({
   facility: z.string().min(1, 'Facility name is required.'),
   country: z.string().min(1, 'Country is required.'),
+  manufacturingProcess: z.string().optional(),
 });
 
 const packagingSchema = z.object({
   type: z.string().min(1, 'Packaging type is required.'),
+  weight: z.coerce.number().optional(),
   recycledContent: z.coerce.number().optional(),
   recyclable: z.boolean(),
 });
@@ -101,7 +123,7 @@ export const productFormSchema = z.object({
     .string()
     .min(10, 'Description must be at least 10 characters.'),
   productImage: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
   status: z.enum(['Published', 'Draft', 'Archived']),
   compliancePathId: z.string().optional(),
   manualUrl: z.string().url().optional().or(z.literal('')),
@@ -119,6 +141,8 @@ export const productFormSchema = z.object({
   compliance: complianceSchema.optional(),
   customData: z.record(z.any()).optional(),
   textile: textileDataSchema.optional(),
+  foodSafety: foodSafetyDataSchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -327,3 +351,13 @@ export const productionLineFormSchema = z.object({
   productId: z.string().optional(),
 });
 export type ProductionLineFormValues = z.infer<typeof productionLineFormSchema>;
+
+export const customsInspectionFormSchema = z.object({
+  status: z.enum(['Cleared', 'Detained', 'Rejected']),
+  authority: z.string().min(3, 'Authority is required.'),
+  location: z.string().min(3, 'Location is required.'),
+  notes: z.string().optional(),
+});
+export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
+
+    

@@ -7,13 +7,12 @@ import type {
   EsgScoreOutput,
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
+  AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
-  ProductTransitRiskAnalysis,
-  AnalyzeElectronicsComplianceOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ProductTransitRiskAnalysis } from './transit';
 import type { ModelHotspot } from './3d';
 
 
@@ -454,3 +453,5 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
+
+    

@@ -24,6 +24,10 @@ import { predictProductLifecycle as predictProductLifecycleFlow } from '@/ai/flo
 import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai/flows/analyze-textile-composition';
 import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from '@/ai/flows/analyze-electronics-compliance';
+import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
+import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
+import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
+import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -418,6 +422,8 @@ export async function askQuestionAboutProduct(
     compliance: product.compliance,
     verificationStatus: product.verificationStatus,
     complianceSummary: product.sustainability?.complianceSummary,
+    textile: product.textile,
+    foodSafety: product.foodSafety,
   };
 
   return await productQa({ productContext, question });
@@ -513,3 +519,132 @@ export async function analyzeTextileData(productId: string, userId: string): Pro
     await logAuditEvent('product.analysis.textile', productId, {}, userId);
     return Promise.resolve(mockProducts[productIndex]);
 }
+
+export async function analyzeFoodSafetyData(productId: string, userId: string): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError("User not found.");
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error("Product not found or permission denied.");
+  if (product.category !== 'Food & Beverage') throw new Error("This analysis is only for Food & Beverage products.");
+
+  checkPermission(user, 'product:run_compliance');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company?.settings?.aiEnabled) {
+    throw new Error('AI features are not enabled for this company.');
+  }
+
+  const analysisResult = await analyzeFoodSafetyFlow({
+    productName: product.productName,
+    ingredients: product.foodSafety?.ingredients?.map(i => i.value) || [],
+    packagingMaterials: [product.packaging?.type || ''],
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error("Product not found in mock data");
+
+  mockProducts[productIndex].foodSafetyAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent('product.analysis.food_safety', productId, {}, userId);
+  return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeConstructionData(productId: string, userId: string): Promise<Product> {
+    const user = await getUserById(userId);
+    if (!user) throw new PermissionError("User not found.");
+
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error("Product not found or permission denied.");
+    if (product.category !== 'Construction') throw new Error("This analysis is only for Construction products.");
+
+    checkPermission(user, 'product:run_compliance');
+
+    const company = await getCompanyById(product.companyId);
+    if (!company?.settings?.aiEnabled) {
+      throw new Error('AI features are not enabled for this company.');
+    }
+  
+    const primaryMaterial = product.materials[0];
+    if (!primaryMaterial) {
+        throw new Error("At least one material is required for construction analysis.");
+    }
+    
+    const analysisResult = await analyzeConstructionMaterialFlow({
+      materialName: primaryMaterial.name,
+      manufacturingProcess: product.manufacturing?.manufacturingProcess,
+      recycledContentPercentage: primaryMaterial.recycledContent
+    });
+
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error("Product not found in mock data");
+
+    mockProducts[productIndex].constructionAnalysis = analysisResult;
+    mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+    await logAuditEvent('product.analysis.construction', productId, {}, userId);
+    return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeProductTransitRoute(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+  if (!product.transit) throw new Error('Product is not in transit.');
+
+  checkPermission(user, 'product:run_compliance');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company?.settings?.aiEnabled) {
+    throw new Error('AI features are not enabled for this company.');
+  }
+
+  const analysisResult = await analyzeProductTransitRiskFlow({
+    product: product,
+    originCountry: product.transit.origin,
+    destinationCountry: product.transit.destination,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].transitRiskAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent('product.analysis.transit_risk', productId, {}, userId);
+  return Promise.resolve(mockProducts[productIndex]);
+}
+
+export async function analyzeSimulatedTransitRoute(
+  productId: string,
+  originCountry: string,
+  destinationCountry: string,
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:run_compliance');
+
+  const company = await getCompanyById(product.companyId);
+  if (!company?.settings?.aiEnabled) {
+    throw new Error('AI features are not enabled for this company.');
+  }
+
+  return await analyzeSimulatedRouteFlow({
+    product,
+    originCountry,
+    destinationCountry,
+  });
+}
+
+    

@@ -26,6 +26,7 @@ import SustainabilityTab from './product-detail-tabs/sustainability-tab';
 import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
+import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
 import { Button } from './ui/button';
 import ConstructionTab from './product-detail-tabs/construction-tab';
@@ -43,6 +44,7 @@ export default function PublicPassportView({
 
   const showTextileTab = product.category === 'Fashion';
   const showConstructionTab = product.category === 'Construction';
+  const showFoodTab = product.category === 'Food & Beverage';
 
   return (
     <Card className="max-w-4xl mx-auto overflow-hidden shadow-none border-0 md:border md:shadow-sm bg-transparent md:bg-card">
@@ -179,6 +181,7 @@ export default function PublicPassportView({
           <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+            {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
             {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
             <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
@@ -190,6 +193,11 @@ export default function PublicPassportView({
           {showTextileTab && (
             <TabsContent value="textile" className="mt-4">
               <TextileTab product={product} />
+            </TabsContent>
+          )}
+          {showFoodTab && (
+            <TabsContent value="food" className="mt-4">
+              <FoodSafetyTab product={product} />
             </TabsContent>
           )}
           {showConstructionTab && (
@@ -211,3 +219,5 @@ export default function PublicPassportView({
     </Card>
   );
 }
+
+    

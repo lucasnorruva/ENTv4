@@ -199,7 +199,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Electronics Compliance AI**
 - [x] **Textile AI Specialist**
 - [x] **Food & Beverage AI**
-- [x] **Construction Materials AI**
+- [ ] **Construction Materials AI**
 - [x] **AI-Powered Q&A Chatbot**
 
 ### 2.2 Advanced Data Quality & Enrichment
@@ -475,3 +475,5 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - **Confirmation Time**: <30 seconds
 - **Cross-chain Operations**: 5+ chains supported
 - **Smart Contract Efficiency**: 90% gas optimization
+
+    

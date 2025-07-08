@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/food-safety-tab.tsx
 'use client';
 
@@ -91,3 +90,5 @@ export default function FoodSafetyTab({ product }: FoodSafetyTabProps) {
     </Card>
   );
 }
+
+    

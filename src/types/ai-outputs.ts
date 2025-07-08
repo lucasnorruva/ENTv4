@@ -80,6 +80,24 @@ import type {
   AnalyzeElectronicsComplianceInput,
   AnalyzeElectronicsComplianceOutput,
 } from '@/ai/flows/analyze-electronics-compliance';
+import type {
+    AnalyzeConstructionMaterialInput,
+    AnalyzeConstructionMaterialOutput,
+} from '@/ai/flows/analyze-construction-material';
+import type {
+    AnalyzeTransitRiskInput,
+    AnalyzeTransitRiskOutput,
+} from '@/ai/flows/analyze-transit-risk';
+import type {
+    AnalyzeProductTransitRiskInput,
+    AnalyzeProductTransitRiskOutput as ProductTransitRiskAnalysis,
+} from '@/ai/flows/analyze-product-transit-risk';
+import type {
+    AnalyzeSimulatedRouteInput,
+    AnalyzeSimulatedRouteOutput,
+} from '@/ai/flows/analyze-simulated-route';
+import type { AnalyzeFoodSafetyInput, AnalyzeFoodSafetyOutput } from "@/ai/flows/analyze-food-safety";
+
 
 // Re-export AI Product Schema
 export type { AiProduct };
@@ -104,6 +122,11 @@ export type {
   ExplainErrorInput,
   AnalyzeTextileInput,
   AnalyzeElectronicsComplianceInput,
+  AnalyzeConstructionMaterialInput,
+  AnalyzeTransitRiskInput,
+  AnalyzeProductTransitRiskInput,
+  AnalyzeSimulatedRouteInput,
+  AnalyzeFoodSafetyInput,
 };
 
 // Export Output types
@@ -127,4 +150,11 @@ export type {
   ExplainErrorOutput,
   AnalyzeTextileOutput,
   AnalyzeElectronicsComplianceOutput,
+  AnalyzeConstructionMaterialOutput,
+  AnalyzeTransitRiskOutput,
+  ProductTransitRiskAnalysis,
+  AnalyzeSimulatedRouteOutput,
+  AnalyzeFoodSafetyOutput,
 };
+
+    

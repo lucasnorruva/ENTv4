@@ -127,3 +127,5 @@ export default function FoodTab({ form, user, productId, isAiEnabled }: FoodTabP
     </div>
   );
 }
+
+    
