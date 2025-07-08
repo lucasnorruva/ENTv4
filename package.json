@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run genkit:start & next dev -p 9002",
-    "genkit:start": "genkit start",
+    "genkit:start": "npx genkit start",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
