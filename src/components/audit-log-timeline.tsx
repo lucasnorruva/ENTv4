@@ -25,7 +25,7 @@ import {
   Globe,
   ShieldAlert,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import RelativeTime from './relative-time';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -103,14 +103,10 @@ export function AuditLogTimeline({
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">{label}</p>
-                    <p
+                    <RelativeTime
+                      date={log.createdAt}
                       className="text-xs text-muted-foreground"
-                      suppressHydrationWarning
-                    >
-                      {formatDistanceToNow(new Date(log.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    />
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Action performed by{' '}

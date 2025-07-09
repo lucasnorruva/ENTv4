@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import {
   ArrowLeft,
   Ticket,
@@ -14,6 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import Image from 'next/image';
+import RelativeTime from './relative-time';
 
 import type {
   ServiceTicket,
@@ -190,11 +191,8 @@ export default function ServiceTicketDetailView({
                   {ticket.status}
                 </Badge>
                 <span className="text-muted-foreground">·</span>
-                <span className="text-muted-foreground" suppressHydrationWarning>
-                  Opened{' '}
-                  {formatDistanceToNow(new Date(ticket.createdAt), {
-                    addSuffix: true,
-                  })}
+                <span className="text-muted-foreground">
+                  Opened <RelativeTime date={ticket.createdAt} />
                 </span>
               </div>
             </div>

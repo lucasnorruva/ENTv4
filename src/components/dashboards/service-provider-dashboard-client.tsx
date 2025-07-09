@@ -20,8 +20,8 @@ import {
   CheckSquare,
 } from 'lucide-react';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '../ui/badge';
+import RelativeTime from '../relative-time';
 
 interface ServiceProviderDashboardClientProps {
   user: User;
@@ -162,13 +162,8 @@ export default function ServiceProviderDashboardClient({
                       </div>
                       <div
                         className="text-right text-xs text-muted-foreground shrink-0"
-                        suppressHydrationWarning
                       >
-                        <p>
-                          {formatDistanceToNow(new Date(ticket.updatedAt), {
-                            addSuffix: true,
-                          })}
-                        </p>
+                        <RelativeTime date={ticket.updatedAt} />
                         <div className="mt-1">
                           <Badge variant={getStatusVariant(ticket.status)}>
                             {ticket.status}

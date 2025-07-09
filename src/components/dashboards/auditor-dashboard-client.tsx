@@ -19,7 +19,7 @@ import {
   List,
 } from 'lucide-react';
 import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
+import RelativeTime from '../relative-time';
 
 interface AuditorDashboardClientProps {
   user: User;
@@ -152,15 +152,10 @@ export default function AuditorDashboardClient({
                       </span>
                     </p>
                   </div>
-                  <div
-                    className="text-right text-xs text-muted-foreground"
-                    suppressHydrationWarning
-                  >
-                    {product.lastVerificationDate &&
-                      formatDistanceToNow(
-                        new Date(product.lastVerificationDate),
-                        { addSuffix: true },
-                      )}
+                  <div className="text-right text-xs text-muted-foreground">
+                    {product.lastVerificationDate && (
+                      <RelativeTime date={product.lastVerificationDate} />
+                    )}
                   </div>
                 </div>
               ))}

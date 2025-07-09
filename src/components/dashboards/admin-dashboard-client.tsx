@@ -40,10 +40,10 @@ import {
   History,
   Award,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
 import ComplianceOverviewChart from '../charts/compliance-overview-chart';
+import RelativeTime from '../relative-time';
 
 interface AdminDashboardClientProps {
   user: User;
@@ -302,14 +302,10 @@ export default function AdminDashboardClient({
                         {description}
                       </p>
                     </div>
-                    <p
+                    <RelativeTime
+                      date={log.createdAt}
                       className="text-xs text-muted-foreground shrink-0"
-                      suppressHydrationWarning
-                    >
-                      {formatDistanceToNow(new Date(log.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    />
                   </div>
                 );
               })}

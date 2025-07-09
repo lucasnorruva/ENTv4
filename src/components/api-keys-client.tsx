@@ -1,4 +1,3 @@
-
 // src/components/api-keys-client.tsx
 'use client';
 
@@ -22,7 +21,8 @@ import { Collections } from '@/lib/constants';
 import type { ApiKey, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { revokeApiKey, deleteApiKey } from '@/lib/actions/api-key-actions';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
+import RelativeTime from './relative-time';
 
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -217,9 +217,9 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger>
-                           <span suppressHydrationWarning className="flex items-center gap-1 text-xs">
+                           <span className="flex items-center gap-1 text-xs">
                             <Calendar className="h-4 w-4"/>
-                            {formatDistanceToNow(new Date(key.expiresAt), { addSuffix: true })}
+                            <RelativeTime date={key.expiresAt} />
                           </span>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -248,8 +248,8 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                     </TooltipProvider>
                   ) : 'Any'}
                 </TableCell>
-                <TableCell suppressHydrationWarning>
-                    {key.lastUsed ? formatDistanceToNow(new Date(key.lastUsed), { addSuffix: true }) : 'Never'}
+                <TableCell>
+                    {key.lastUsed ? <RelativeTime date={key.lastUsed} /> : 'Never'}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>

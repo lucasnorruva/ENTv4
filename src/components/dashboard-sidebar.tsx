@@ -27,8 +27,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Logo from '@/components/logo';
 import { useToast } from '@/hooks/use-toast';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { signOut } from '@/lib/auth-client';
 import { navConfig } from '@/lib/nav-config';
 
 interface DashboardSidebarProps {
@@ -53,7 +52,7 @@ export default function DashboardSidebar({
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOut();
       toast({
         title: 'Logged Out',
         description: 'You have been successfully logged out.',

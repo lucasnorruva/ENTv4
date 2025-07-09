@@ -8,8 +8,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,  CardDescription,
-  CardDescription,
+  CardTitle,  CardDescription
 } from '@/components/ui/card';
 import {
   Activity,
@@ -34,10 +33,11 @@ import ComplianceOverviewChart from '@/components/charts/compliance-overview-cha
 
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
-import { format, subDays, formatDistanceToNow } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import type { AuditLog, Product, User } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 import CustomsStatusChart from '@/components/charts/customs-status-chart';
+import RelativeTime from '@/components/relative-time';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -328,14 +328,10 @@ export default function AuditorAnalyticsPage() {
                         Product: {product}
                       </p>
                     </div>
-                    <p
+                    <RelativeTime
+                      date={log.createdAt}
                       className="text-xs text-muted-foreground shrink-0"
-                      suppressHydrationWarning
-                    >
-                      {formatDistanceToNow(new Date(log.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </p>
+                    />
                   </div>
                 );
               })}

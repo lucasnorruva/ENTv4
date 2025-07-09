@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import type { AuditLog } from '@/types';
 import { UserRoles } from '@/lib/constants';
-import { formatDistanceToNow } from 'date-fns';
+import RelativeTime from '@/components/relative-time';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -100,14 +100,10 @@ export default async function HistoryPage() {
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{label}</p>
-                      <p
+                      <RelativeTime
+                        date={log.createdAt}
                         className="text-xs text-muted-foreground"
-                        suppressHydrationWarning
-                      >
-                        {formatDistanceToNow(new Date(log.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </p>
+                      />
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {description}

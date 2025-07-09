@@ -32,9 +32,10 @@ import {
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
-import { format, subDays, formatDistanceToNow } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import type { AuditLog, Product, User, Company } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
+import RelativeTime from '@/components/relative-time';
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,
@@ -310,14 +311,10 @@ export default function BusinessAnalystAnalyticsPage() {
                       Product: {product}
                     </p>
                   </div>
-                  <p
+                  <RelativeTime
+                    date={log.createdAt}
                     className="text-xs text-muted-foreground shrink-0"
-                    suppressHydrationWarning
-                  >
-                    {formatDistanceToNow(new Date(log.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
+                  />
                 </div>
               );
             })}

@@ -3,8 +3,9 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { ArrowLeft, Factory, Wrench, Clock, Activity } from 'lucide-react';
+import RelativeTime from './relative-time';
 
 import type { ProductionLine, ServiceTicket, User } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -68,13 +69,11 @@ export default function ProductionLineDetailView({
             <Activity className="h-4 w-4" />
             <span>{line.outputPerHour} units/hr</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground" suppressHydrationWarning>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
             <span>
               Last Maintenance:{' '}
-              {formatDistanceToNow(new Date(line.lastMaintenance), {
-                addSuffix: true,
-              })}
+              <RelativeTime date={line.lastMaintenance} />
             </span>
           </div>
         </div>
@@ -104,14 +103,10 @@ export default function ProductionLineDetailView({
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <p className="font-semibold">{ticket.issue}</p>
-                      <p
+                      <RelativeTime
+                        date={ticket.createdAt}
                         className="text-xs text-muted-foreground"
-                        suppressHydrationWarning
-                      >
-                        {formatDistanceToNow(new Date(ticket.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </p>
+                      />
                     </div>
                     <p className="text-sm text-muted-foreground">
                       Reported by: {ticket.customerName} on{' '}
