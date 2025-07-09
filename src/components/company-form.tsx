@@ -92,31 +92,43 @@ export default function CompanyForm({
     }
   }, [company, isOpen, form]);
 
-  const onSubmit = useCallback((values: CompanyFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        const saved = await saveCompany(values, adminUser.id, company?.id);
-        toast({
-          title: 'Success!',
-          description: `Company "${saved.name}" has been saved.`,
-        });
-        onSave(saved);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the company.',
-          variant: 'destructive',
-        });
-      }
-    });
-  }, [adminUser.id, company?.id, onSave, onOpenChange, startSavingTransition, toast]);
+  const onSubmit = useCallback(
+    (values: CompanyFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          const saved = await saveCompany(values, adminUser.id, company?.id);
+          toast({
+            title: 'Success!',
+            description: `Company "${saved.name}" has been saved.`,
+          });
+          onSave(saved);
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the company.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [
+      adminUser.id,
+      company?.id,
+      onSave,
+      onOpenChange,
+      startSavingTransition,
+      toast,
+    ],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px]">
         <DialogHeader>
-          <DialogTitle>{company ? 'Edit Company' : 'Create Company'}</DialogTitle>
+          <DialogTitle>
+            {company ? 'Edit Company' : 'Create Company'}
+          </DialogTitle>
           <DialogDescription>
             {company
               ? 'Update the details for this company.'
@@ -138,16 +150,21 @@ export default function CompanyForm({
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="revocationListUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>VC Revocation List URL</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://example.com/status/1.json" {...field} />
+                    <Input
+                      placeholder="https://example.com/status/1.json"
+                      {...field}
+                    />
                   </FormControl>
-                  <FormDescription>The URL for this company's W3C Status List 2021.</FormDescription>
+                  <FormDescription>
+                    The URL for this company's W3C Status List 2021.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -206,7 +223,7 @@ export default function CompanyForm({
                 </FormItem>
               )}
             />
-             <FormField
+            <FormField
               control={form.control}
               name="isTrustedIssuer"
               render={({ field }) => (
@@ -214,7 +231,8 @@ export default function CompanyForm({
                   <div className="space-y-0.5">
                     <FormLabel>Trusted Issuer (EBSI)</FormLabel>
                     <FormDescription>
-                      Mark this company as a verified issuer in the EBSI ecosystem.
+                      Mark this company as a verified issuer in the EBSI
+                      ecosystem.
                     </FormDescription>
                   </div>
                   <FormControl>
