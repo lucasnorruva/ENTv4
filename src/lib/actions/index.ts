@@ -26,6 +26,7 @@ export {
   overrideVerification,
   performCustomsInspection,
   bulkCreateProducts,
+  addServiceRecord,
 } from './product-actions';
 
 export {
@@ -49,6 +50,7 @@ export {
   analyzeConstructionData,
   analyzeProductTransitRoute,
   analyzeSimulatedTransitRoute,
+  runHsCodeClassification,
 } from './product-ai-actions';
 
 export {
@@ -64,6 +66,7 @@ export {
   signInWithMockUser,
   bulkCreateUsers,
   getUserByEmail,
+  deleteOwnAccount,
 } from './user-actions';
 
 export { saveCompany, deleteCompany } from './company-actions';
@@ -108,8 +111,7 @@ export {
   exportFullAuditTrail,
 } from './report-actions';
 
-export { getIntegrations, updateIntegrationStatus } from './integration-actions';
-export { syncWithErp } from './sync-actions';
+export { getIntegrations, updateIntegrationStatus, syncWithErp } from './integration-actions';
 
 export {
   getProductionLines,

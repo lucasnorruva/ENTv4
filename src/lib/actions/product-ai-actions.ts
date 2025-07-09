@@ -1,4 +1,3 @@
-
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -24,6 +23,7 @@ import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
+import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
 import type {
   AiProduct,
   CreateProductFromImageOutput,
@@ -32,7 +32,7 @@ import type {
   ProductQuestionOutput,
   SuggestImprovementsOutput,
   AnalyzeSimulatedRouteOutput,
-  ProductTransitRiskAnalysis
+  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import { getUserById, getCompanyById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
@@ -687,4 +687,46 @@ export async function analyzeSimulatedTransitRoute(
     originCountry: origin,
     destinationCountry: destination,
   });
+}
+
+export async function runHsCodeClassification(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:classify_hs_code');
+
+  await logAuditEvent(
+    'product.classification.hs_code.started',
+    productId,
+    {},
+    userId,
+  );
+
+  const analysisResult = await classifyHsCodeFlow({
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    materials: product.materials,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
+
+  mockProducts[productIndex].hsCodeAnalysis = analysisResult;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.classification.hs_code.success',
+    productId,
+    {},
+    userId,
+  );
+
+  return mockProducts[productIndex];
 }

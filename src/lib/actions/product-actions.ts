@@ -10,6 +10,8 @@ import type {
   CustodyStepFormValues,
   OwnershipTransferFormValues,
   BulkProductImportValues,
+  ServiceRecord,
+  CustomsInspectionFormValues,
 } from '@/types';
 import { productFormSchema } from '@/lib/schemas';
 import { getUserById } from '@/lib/auth';
@@ -632,4 +634,40 @@ export async function bulkCreateProducts(
   );
 
   return { createdCount };
+}
+
+export async function addServiceRecord(
+  productId: string,
+  notes: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found.');
+
+  const product = mockProducts[productIndex];
+  checkPermission(user, 'product:add_service_record', product);
+
+  const newRecord: ServiceRecord = {
+    id: newId('serv'),
+    providerId: userId,
+    providerName: user.fullName,
+    notes,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  if (!product.serviceHistory) {
+    product.serviceHistory = [];
+  }
+  product.serviceHistory.push(newRecord);
+  product.lastUpdated = new Date().toISOString();
+
+  mockProducts[productIndex] = product;
+
+  await logAuditEvent('product.serviced', productId, { notes }, userId);
+
+  return Promise.resolve(product);
 }

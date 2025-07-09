@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -11,18 +10,19 @@ import type {
   AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
+  HsCodeAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, ModelHotspot };
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, HsCodeAnalysis };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
-export type TextileAnalysis = AnalyzeTextileOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
+export type TextileAnalysis = AnalyzeTextileOutput;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -51,6 +51,7 @@ export interface User extends BaseEntity {
     complianceAlerts?: boolean;
     platformNews?: boolean;
   };
+  circularityCredits?: number;
 }
 
 /**
@@ -302,6 +303,8 @@ export interface Product extends BaseEntity {
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
   foodSafetyAnalysis?: FoodSafetyAnalysis;
+  transitRiskAnalysis?: ProductTransitRiskAnalysis;
+  hsCodeAnalysis?: HsCodeAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
@@ -357,6 +360,7 @@ export interface ServiceTicket extends BaseEntity {
   customerName: string;
   issue: string;
   status: 'Open' | 'In Progress' | 'Closed';
+  imageUrl?: string;
 }
 
 export interface SupportTicket extends BaseEntity {
@@ -436,3 +440,16 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
+
+export interface RegulationSource extends BaseEntity {
+    name: string;
+    type: 'API' | 'Feed' | 'Manual';
+    status: 'Operational' | 'Degraded Performance' | 'Offline' | 'Not Implemented';
+    version?: string;
+    lastSync: string; // ISO 8601 string
+    checklist: {
+      id: string;
+      description: string;
+      status: boolean;
+    }[];
+  }

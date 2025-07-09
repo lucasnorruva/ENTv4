@@ -361,7 +361,6 @@ export const ClassifyHsCodeOutputSchema = z.object({
 });
 export type HsCodeAnalysis = z.infer<typeof ClassifyHsCodeOutputSchema>;
 
-
 // generate-conformity-declaration
 export const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
