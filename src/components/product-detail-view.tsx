@@ -1,7 +1,7 @@
 // src/components/product-detail-view.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -82,10 +82,10 @@ export default function ProductDetailView({
   const roleSlug =
     user.roles[0]?.toLowerCase().replace(/ /g, '-') || 'supplier';
 
-  const handleUpdateAndRefresh = (updatedProduct: Product) => {
+  const handleUpdateAndRefresh = useCallback((updatedProduct: Product) => {
     setProduct(updatedProduct);
     router.refresh();
-  };
+  }, [router]);
   
   const showElectronicsTab = product.category === 'Electronics';
   const showTextileTab = product.category === 'Fashion';
