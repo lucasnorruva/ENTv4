@@ -1,7 +1,13 @@
 // src/components/company-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, {
+  useState,
+  useTransition,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -99,7 +105,10 @@ export default function CompanyManagementClient({
 
   useEffect(() => {
     setIsLoading(true);
-    const q = query(collection(db, Collections.COMPANIES), orderBy('createdAt', 'desc'));
+    const q = query(
+      collection(db, Collections.COMPANIES),
+      orderBy('createdAt', 'desc'),
+    );
 
     const unsubscribe = onSnapshot(
       q,
@@ -129,28 +138,31 @@ export default function CompanyManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleEdit = (company: Company) => {
+  const handleEdit = useCallback((company: Company) => {
     setSelectedCompany(company);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (company: Company) => {
-    startTransition(async () => {
-      try {
-        await deleteCompany(company.id, adminUser.id);
-        toast({
-          title: 'Company Deleted',
-          description: `Company "${company.name}" has been successfully deleted.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete company.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const handleDelete = useCallback(
+    (company: Company) => {
+      startTransition(async () => {
+        try {
+          await deleteCompany(company.id, adminUser.id);
+          toast({
+            title: 'Company Deleted',
+            description: `Company "${company.name}" has been successfully deleted.`,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to delete company.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [adminUser.id, toast],
+  );
 
   const handleSave = (savedCompany: Company) => {
     // No need to update state manually, the listener will do it.
@@ -263,8 +275,7 @@ export default function CompanyManagementClient({
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending, adminUser.id],
+    [isPending, router, handleEdit, handleDelete],
   );
 
   const table = useReactTable({
