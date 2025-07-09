@@ -1,20 +1,14 @@
 // src/lib/actions/product-actions.ts
 'use server';
 
-import { z } from 'zod';
 import { createHash } from 'crypto';
 import type {
   Product,
   User,
-  SustainabilityData,
-  CompliancePath,
   ComplianceGap,
-  ZkProof,
-  VerificationOverride,
   ProductFormValues,
   CustodyStepFormValues,
   OwnershipTransferFormValues,
-  CustomsInspectionFormValues,
   BulkProductImportValues,
 } from '@/types';
 import { productFormSchema } from '@/lib/schemas';
@@ -24,8 +18,6 @@ import { logAuditEvent } from './audit-actions';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { newId } from './utils';
-import { getCompliancePathById } from './compliance-actions';
-import { anchorToPolygon, storeOnIpfs } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
 import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
@@ -106,14 +98,8 @@ export async function getProductByGtin(
 export async function processProductAi(
   product: Product,
 ): Promise<
-  Pick<Product, 'sustainability' | 'qrLabelText' | 'dataQualityWarnings'>
+  Pick<Product, 'sustainability' | 'qrLabelText' | 'dataQualityWarnings'> // KEEP THIS TYPE FOR NOW
 > {
-  const company = await getCompanyById(product.companyId);
-  const aiProductInput = {
-    ...product,
-    supplier: company?.name || product.supplier,
-  };
-
   // This function is currently not called due to architectural refactoring to fix build issues.
   // In a real implementation with background functions, this would be safe to call.
   // For now, we return mock/empty data to allow the rest of the app to function.

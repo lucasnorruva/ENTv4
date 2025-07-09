@@ -10,17 +10,14 @@
 
 import { ai } from '@/ai/genkit';
 import { GenerateProductDescriptionInputSchema, GenerateProductDescriptionOutputSchema, type GenerateProductDescriptionInput, type GenerateProductDescriptionOutput } from '@/types/ai-outputs';
-import { z } from 'zod';
-
 
 export async function generateProductDescription(
   input: GenerateProductDescriptionInput,
-  userId: string, // Keep userId for permission checks in actions
 ): Promise<GenerateProductDescriptionOutput> {
   return generateProductDescriptionFlow(input);
 }
 
-const prompt = ai.definePrompt({
+const prompt = ai.definePrompt({ // This prompt is used in the generateProductDescriptionFlow below.
   name: 'generateProductDescriptionPrompt',
   input: { schema: GenerateProductDescriptionInputSchema },
   output: { schema: GenerateProductDescriptionOutputSchema },
@@ -42,7 +39,7 @@ Key Materials:
 `,
 });
 
-const generateProductDescriptionFlow = ai.defineFlow(
+export const generateProductDescriptionFlow = ai.defineFlow(
   {
     name: 'generateProductDescriptionFlow',
     inputSchema: GenerateProductDescriptionInputSchema,

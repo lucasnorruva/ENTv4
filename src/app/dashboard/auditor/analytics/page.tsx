@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';import { Collections } from '@/lib/constants';
 import {
   Card,
@@ -14,7 +14,6 @@ import {
   Activity,
   BookCopy,
   ShieldCheck,
-  Users,
   Clock,
   Edit,
   FilePlus,

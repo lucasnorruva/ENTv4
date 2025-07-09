@@ -1,12 +1,11 @@
-// src/app/dashboard/admin/global-tracker/page.tsx
 import { getProducts } from '@/lib/actions';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product, ProductionLine } from '@/types';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { Loader2 } from 'lucide-react';
 import { getProductionLines } from '@/lib/actions/manufacturing-actions';
+import { Suspense } from 'react';
 
 export default async function AdminGlobalTrackerPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);

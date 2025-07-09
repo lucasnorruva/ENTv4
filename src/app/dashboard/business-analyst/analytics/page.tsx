@@ -16,7 +16,6 @@ import {
   BookCopy,
   ShieldCheck,
   Building2,
-  Recycle,
   Activity,
   Loader2,
 } from 'lucide-react';
@@ -24,8 +23,9 @@ import ComplianceOverviewChart from '@/components/charts/compliance-overview-cha
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays } from 'date-fns';
-import type { Product, Company } from '@/types';
+import type { Product, Company, AuditLog } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
+import { Recycle } from 'lucide-react';
 
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
@@ -47,6 +47,8 @@ const generateComplianceRateData = (products: Product[]) => {
 
 export default function BusinessAnalystAnalyticsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -66,6 +68,11 @@ export default function BusinessAnalystAnalyticsPage() {
       }),
     );
 
+    const userQuery = query(collection(db, Collections.USERS));
+    unsubscribes.push(onSnapshot(userQuery, snapshot => {
+      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+    }));
+
     const companyQuery = query(collection(db, Collections.COMPANIES));
     unsubscribes.push(
       onSnapshot(companyQuery, snapshot => {
@@ -74,6 +81,11 @@ export default function BusinessAnalystAnalyticsPage() {
         );
       }),
     );
+
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS), orderBy('createdAt', 'desc'));
+    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
+      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
+    }));
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, []);
@@ -117,6 +129,7 @@ export default function BusinessAnalystAnalyticsPage() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const complianceRateData = generateComplianceRateData(products);
+  const recentActivity = auditLogs.slice(0, 5);
 
   return (
     <div className="space-y-6">
@@ -127,8 +140,7 @@ export default function BusinessAnalystAnalyticsPage() {
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card><CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">
             <CardTitle className="text-sm font-medium">
               Total Products
             </CardTitle>
@@ -181,20 +193,9 @@ export default function BusinessAnalystAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Products Created Over Time</CardTitle>
-            <CardDescription>
-              A view of new passports being created on the platform.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProductsOverTimeChart data={productsOverTimeData} />
-          </CardContent>
-        </Card>
-        <Card>
+      </div
+    >
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <CardHeader>
             <CardTitle>Compliance Rate Over Time</CardTitle>
             <CardDescription>
@@ -204,8 +205,7 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <ComplianceRateChart data={complianceRateData} />
           </CardContent>
-        </Card>
-        <Card>
+        </Card><Card>
           <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
             <CardDescription>
@@ -215,8 +215,7 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <ComplianceOverviewChart data={complianceData} />
           </CardContent>
-        </Card>
-        <Card>
+        </Card><Card>
           <CardHeader>
             <CardTitle>End-of-Life Status</CardTitle>
             <CardDescription>
@@ -226,8 +225,7 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <EolStatusChart data={eolData} />
           </CardContent>
-        </Card>
-      </div>
+        </Card></div>
     </div>
   );
 }

@@ -18,7 +18,7 @@ function formatProductResponse(product: Product) {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now();
   let user;
   const endpoint = '/api/v2/products';

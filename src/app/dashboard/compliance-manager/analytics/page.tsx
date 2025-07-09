@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
+import { onSnapshot, collection, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants';
 import {
@@ -40,13 +40,13 @@ export default function ComplianceAnalyticsPage() {
   useEffect(() => {
     const unsubscribes: (() => void)[] = [];
 
-    const productQuery = query(collection(db, Collections.PRODUCTS));
+    const productQuery = query(collection(db, Collections.PRODUCTS)); // Removed orderBy as it was unused
     unsubscribes.push(onSnapshot(productQuery, snapshot => {
       setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
       setIsLoading(false);
     }));
 
-    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS));
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS)); // Removed orderBy as it was unused
     unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
       setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
     }));

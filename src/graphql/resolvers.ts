@@ -53,7 +53,7 @@ export const resolvers = {
       context: MyContext,
     ) => {
       const user = checkAuth(context);
-      let products = await getProducts(user.id, args.filter || {});
+      const products = await getProducts(user.id, args.filter || {});
 
       // Pagination
       const offset = args.offset || 0;

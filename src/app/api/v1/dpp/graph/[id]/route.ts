@@ -8,7 +8,7 @@ interface GraphNode {
   id: string;
   label: string;
   type: 'product' | 'manufacturer' | 'supplier' | 'component';
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 interface GraphEdge {
@@ -103,7 +103,11 @@ export async function GET(
     const graphData: GraphData = { nodes, edges };
 
     return NextResponse.json(graphData);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Log the actual error for debugging purposes
+    if (error instanceof Error) {
+ console.error('API Error fetching supply chain graph:', error.message);
+    }
     console.error('API Error fetching supply chain graph:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },

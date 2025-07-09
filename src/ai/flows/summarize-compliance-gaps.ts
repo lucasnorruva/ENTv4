@@ -11,10 +11,10 @@
  * - SummarizeComplianceGapsOutput - The return type for the function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import type { CompliancePath, Product, ComplianceGap } from '@/types';
-import { verifyProductAgainstPath } from '@/services/compliance';
+import { ai } from "@/ai/genkit";
+import { z } from "genkit";
+
+import { verifyProductAgainstPath } from '@/services/compliance'; // Assuming this function is still needed
 import { SummarizeComplianceGapsInputSchema, SummarizeComplianceGapsOutputSchema, GapSchema, type SummarizeComplianceGapsInput, type SummarizeComplianceGapsOutput } from '@/types/ai-outputs';
 
 

@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   BookCopy,
   Users,
@@ -30,16 +30,15 @@ import {
   Globe,
   Wrench,
   Ticket,
-  BrainCircuit,
-  Loader2, Activity,
+  BrainCircuit, Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import type { AuditLog, Product, User, Company, ServiceTicket } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
-import CustomsStatusChart from '@/components/charts/customs-status-chart'; // Fix import
+import CustomsStatusChart from '@/components/charts/customs-status-chart';
 import RelativeTime from '@/components/relative-time';
 
 const actionIcons: Record<string, React.ElementType> = {
@@ -85,7 +84,7 @@ const generateComplianceRateData = (products: Product[]) => {
 export default function AnalyticsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]); // Audit logs are used for recent activity
   const [companies, setCompanies] = useState<Company[]>([]);
   const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);

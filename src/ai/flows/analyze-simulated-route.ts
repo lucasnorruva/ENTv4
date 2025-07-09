@@ -10,7 +10,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import type { Product } from '@/types';
 import { AnalyzeSimulatedRouteInputSchema, AnalyzeSimulatedRouteOutputSchema, type AnalyzeSimulatedRouteInput, type AnalyzeSimulatedRouteOutput } from '@/types/ai-outputs';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 

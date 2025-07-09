@@ -317,7 +317,7 @@ export default function GlobalTrackerClient({
           const dest = mockCountryCoordinates[p.transit.destination];
           if (!origin || !dest) return null;
 
-          let color =
+ const color =
             selectedProductId === p.id
               ? 'rgba(255, 255, 0, 0.9)'
               : 'rgba(139, 92, 246, 0.6)';
