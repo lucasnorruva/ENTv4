@@ -1,179 +1,68 @@
 // src/components/onboarding-wizard.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
+import React, { useState, useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { getUserByEmail } from '@/lib/actions';
 import { Loader2, Rocket, PartyPopper } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-import {
-  onboardingFormSchema,
-  type OnboardingFormValues,
-} from '@/lib/schemas';
-import { completeOnboarding } from '@/lib/actions/user-actions';
+import AuthLayout from '@/components/auth-layout';
+import OnboardingWizard from '@/components/onboarding-wizard';
 import type { User } from '@/types';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-
-interface OnboardingWizardProps {
-  user: User | null;
-}
-
-export default function OnboardingWizard({ user }: OnboardingWizardProps) {
-  const [step, setStep] = useState(1);
-  const [isPending, startTransition] = useTransition();
+export default function OnboardingPage() {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const { toast } = useToast();
 
-  const form = useForm<OnboardingFormValues>({
-    resolver: zodResolver(onboardingFormSchema),
-    defaultValues: {
-      companyName: user?.fullName ? `${user.fullName}'s Company` : '',
-      industry: '',
-    },
-  });
-
-  if (!user) {
-    // Handle the case where user is null, perhaps show a loading or error state
-    return (
-      <div className="flex justify-center items-center h-48">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  const onSubmit = (values: OnboardingFormValues) => {
-    startTransition(async () => {
-      try {
-        await completeOnboarding(values, user.id);
-        setStep(3); // Move to completion step
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save your information. Please try again.',
-          variant: 'destructive',
-        });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
+      if (firebaseUser?.email) {
+        try {
+          const appUser = await getUserByEmail(firebaseUser.email);
+          if (appUser) {
+            // If they have somehow already completed onboarding, send them to the dashboard.
+            if (appUser.onboardingComplete) {
+              router.replace('/dashboard');
+              return;
+            }
+            setUser(appUser);
+          } else {
+            // This case shouldn't happen in the normal flow, but it's good to handle.
+            router.replace('/signup');
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile for onboarding:", error);
+          router.replace('/login');
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        // No user logged in, redirect to login page.
+        router.replace('/login');
       }
     });
-  };
 
-  const Step1 = () => (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Rocket />
-          Let's Get Started
-        </CardTitle>
-        <CardDescription>
-          Just a couple of steps to get your account ready for creating Digital
-          Product Passports.
-        </CardDescription>
-      </CardHeader>
-      <CardFooter>
-        <Button onClick={() => setStep(2)} className="w-full">
-          Continue
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-
-  const Step2 = () => (
-    <Card>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardHeader>
-            <CardTitle>Tell Us About Your Company</CardTitle>
-            <CardDescription>
-              This information will be used as the default supplier for your
-              product passports.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="companyName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Your Company, Inc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="industry"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Industry (Optional)</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="e.g., Electronics, Fashion"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Finish Setup
-            </Button>
-          </CardFooter>
-        </form>
-      </Form>
-    </Card>
-  );
-
-  const Step3 = () => (
-    <Card>
-      <CardHeader className="text-center">
-        <div className="mx-auto bg-green-100 dark:bg-green-900 p-3 rounded-full w-fit">
-          <PartyPopper className="h-8 w-8 text-green-600 dark:text-green-400" />
-        </div>
-        <CardTitle className="mt-4">All Set!</CardTitle>
-        <CardDescription>
-          Your account is ready. Let's start building a more transparent world,
-          one product at a time.
-        </CardDescription>
-      </CardHeader>
-      <CardFooter>
-        <Button onClick={() => router.push('/dashboard')} className="w-full">
-          Go to Dashboard
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+    return () => unsubscribe();
+  }, [router]);
 
   return (
-    <div className="w-full max-w-md">
-      {step === 1 && <Step1 />}
-      {step === 2 && <Step2 />}
-      {step === 3 && <Step3 />}
-    </div>
+    <AuthLayout
+      title="Welcome to Norruva!"
+      description="Let's get your account set up."
+      footerText=""
+      footerLinkText=""
+      footerLinkHref=""
+    >
+      {isLoading ? (
+        <div className="flex justify-center items-center h-48">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : (
+        <OnboardingWizard user={user} />
+      )}
+    </AuthLayout>
   );
 }
