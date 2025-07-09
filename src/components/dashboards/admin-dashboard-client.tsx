@@ -1,3 +1,4 @@
+
 // src/components/dashboards/admin-dashboard-client.tsx
 'use client';
 
@@ -37,6 +38,7 @@ import {
   KeyRound,
   History,
   Award,
+  UserPlus,
 } from 'lucide-react';
 import { hasRole } from '@/lib/auth-utils';
 import { UserRoles } from '@/lib/constants';
