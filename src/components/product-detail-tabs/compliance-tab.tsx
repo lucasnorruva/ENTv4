@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/compliance-tab.tsx
 'use client';
 
@@ -20,6 +21,8 @@ import {
   Diamond,
   Megaphone,
   Briefcase,
+  Battery,
+  TestTube2,
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification, GreenClaim } from '@/types';
 import {
