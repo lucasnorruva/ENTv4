@@ -1,8 +1,7 @@
-
 // src/components/compliance-path-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -28,7 +27,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Bot, Loader2, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { saveCompliancePath, generateCompliancePathRules } from '@/lib/actions/compliance-actions';
+import {
+  saveCompliancePath,
+  generateCompliancePathRules,
+} from '@/lib/actions/compliance-actions';
 import {
   compliancePathFormSchema,
   type CompliancePathFormValues,
@@ -154,27 +156,30 @@ export default function CompliancePathForm({
     }
   }, [path, isOpen, form]);
 
-  const onSubmit = (values: CompliancePathFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        const saved = await saveCompliancePath(values, user.id, path?.id);
-        toast({
-          title: 'Success!',
-          description: `Compliance path "${saved.name}" has been saved.`,
-        });
-        onSave(saved);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the compliance path.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (values: CompliancePathFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          const saved = await saveCompliancePath(values, user.id, path?.id);
+          toast({
+            title: 'Success!',
+            description: `Compliance path "${saved.name}" has been saved.`,
+          });
+          onSave(saved);
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the compliance path.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startSavingTransition, user.id, path?.id, toast, onSave, onOpenChange],
+  );
 
-  const handleGenerateRules = () => {
+  const handleGenerateRules = useCallback(() => {
     const { name, regulations } = form.getValues();
     if (!name || regulations.length === 0 || !regulations[0].value) {
       toast({
@@ -222,7 +227,7 @@ export default function CompliancePathForm({
         });
       }
     });
-  };
+  }, [form, startGenerationTransition, user.id, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -268,7 +273,7 @@ export default function CompliancePathForm({
                 </FormItem>
               )}
             />
-             <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="category"
@@ -285,7 +290,7 @@ export default function CompliancePathForm({
                   </FormItem>
                 )}
               />
-               <FormField
+              <FormField
                 control={form.control}
                 name="jurisdiction"
                 render={({ field }) => (
