@@ -1,3 +1,4 @@
+
 // src/components/compliance-path-management.tsx
 'use client';
 
@@ -183,19 +184,16 @@ export default function CompliancePathManagement({
     [user.id, toast],
   );
 
-  const handleSave = useCallback(
-    (savedPath: CompliancePath) => {
-      setPaths(prev => {
-        const exists = prev.some(p => p.id === savedPath.id);
-        if (exists) {
-          return prev.map(p => (p.id === savedPath.id ? savedPath : p));
-        }
-        return [savedPath, ...prev];
-      });
-      setIsFormOpen(false);
-    },
-    [],
-  );
+  const handleSave = useCallback((savedPath: CompliancePath) => {
+    setPaths(prev => {
+      const exists = prev.some(p => p.id === savedPath.id);
+      if (exists) {
+        return prev.map(p => (p.id === savedPath.id ? savedPath : p));
+      }
+      return [savedPath, ...prev];
+    });
+    setIsFormOpen(false);
+  }, []);
 
   const handleGenerateContract = useCallback(
     (path: CompliancePath) => {
