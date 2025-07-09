@@ -57,6 +57,8 @@ import type { Webhook, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteWebhook } from '@/lib/actions/webhook-actions';
 import WebhookForm from './webhook-form';
+import type { ColumnDef } from '@tanstack/react-table';
+import { flexRender } from '@tanstack/react-table';
 
 interface WebhookManagementClientProps {
   user: User;
@@ -98,10 +100,10 @@ export default function WebhookManagementClient({
 
   }, [user.id, toast]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedWebhook(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
   const handleEdit = useCallback((webhook: Webhook) => {
     setSelectedWebhook(webhook);
@@ -126,10 +128,10 @@ export default function WebhookManagementClient({
     });
   }, [user.id, toast]);
 
-  const handleSave = (savedWebhook: Webhook) => {
+  const handleSave = useCallback((savedWebhook: Webhook) => {
     // State will be updated by the real-time listener.
     setIsFormOpen(false);
-  };
+  }, []);
   
   const columns: ColumnDef<Webhook>[] = useMemo(
     () => [
@@ -271,8 +273,8 @@ export default function WebhookManagementClient({
               <TableHeader>
                 <TableRow>
                   {columns.map(column => (
-                    <TableHead key={column.id}>
-                      {column.header}
+                    <TableHead key={column.header as string}>
+                       {column.header as React.ReactNode}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -281,11 +283,11 @@ export default function WebhookManagementClient({
                 {webhooks.length > 0 ? (
                   webhooks.map(webhook => (
                     <TableRow key={webhook.id}>
-                      {columns.map(column => (
-                        <TableCell key={column.id}>
-                          {flexRender(column.cell, { row: { original: webhook }})}
-                        </TableCell>
-                      ))}
+                     {columns.map(column => (
+                      <TableCell key={column.id}>
+                        {flexRender(column.cell, { row: { original: webhook }})}
+                      </TableCell>
+                    ))}
                     </TableRow>
                   ))
                 ) : (
