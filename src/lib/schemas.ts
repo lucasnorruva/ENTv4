@@ -14,7 +14,7 @@ const certificationSchema = z.object({
   name: z.string().min(1, 'Certificate name is required.'),
   issuer: z.string().min(1, 'Issuer is required.'),
   validUntil: z.string().optional(),
-  documentUrl: z.string().url().optional().or(z.literal('')),
+  documentUrl: z.string().url().or(z.literal('')).optional(),
 });
 
 const manufacturingSchema = z.object({

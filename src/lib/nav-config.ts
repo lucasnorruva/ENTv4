@@ -93,7 +93,7 @@ export const navConfig: NavConfig = {
           icon: FileQuestion,
           href: 'compliance',
         },
-        { title: 'Trust Hub', icon: Fingerprint, href: 'blockchain' },
+        { title: 'Trust & Verification', icon: Fingerprint, href: 'blockchain' },
         { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
         { title: 'Platform Logs', icon: Clock, href: 'logs' },
       ],

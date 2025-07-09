@@ -63,7 +63,7 @@ This persona requires deep, industry-specific insights into garment manufacturin
 
 ### For the Food & Beverage Specialist
 This persona is concerned with food safety, allergen management, and regulatory compliance for consumables.
-- **Specialized Data Entry**: A dedicated "Food &amp; Beverage" tab for inputting ingredients and allergen statements.
+- **Specialized Data Entry**: A dedicated "Food & Beverage" tab for inputting ingredients and allergen statements.
 - **AI-Powered Safety Analysis**: The `analyzeFoodSafety` flow scans ingredients for common allergens and evaluates packaging materials for compliance with food-contact standards (e.g., BPA, phthalates).
 - **Targeted Compliance**: Helps address regulations like the EU's Food Contact Materials Regulation (1935/2004) and provides a clear basis for allergen labeling.
 

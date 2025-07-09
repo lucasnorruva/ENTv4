@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -360,6 +361,7 @@ export const ClassifyHsCodeOutputSchema = z.object({
   confidence: z.number().min(0).max(1).describe('The confidence score of the classification (0.0 to 1.0).'),
 });
 export type HsCodeAnalysis = z.infer<typeof ClassifyHsCodeOutputSchema>;
+
 
 // generate-conformity-declaration
 export const GenerateConformityDeclarationInputSchema = z.object({

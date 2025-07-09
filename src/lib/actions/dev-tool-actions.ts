@@ -6,6 +6,7 @@ import { getUserById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
 import { generateComponentTests as generateComponentTestsFlow } from '@/ai/flows/generate-component-tests';
 import type { GenerateComponentTestsOutput } from '@/types/ai-outputs';
+import { logAuditEvent } from './audit-actions';
 
 export async function generateComponentTest(
   componentName: string,
@@ -21,6 +22,13 @@ export async function generateComponentTest(
   if (!componentName || !componentCode) {
     throw new Error('Component name and code are required.');
   }
+
+  await logAuditEvent(
+    'devtool.test.generated',
+    componentName,
+    { componentName },
+    userId,
+  );
 
   return generateComponentTestsFlow({ componentName, componentCode });
 }

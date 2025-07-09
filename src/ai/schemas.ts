@@ -51,6 +51,7 @@ export const AiProductSchema = z.object({
     .object({
       facility: z.string(),
       country: z.string(),
+      manufacturingProcess: z.string().optional(),
     })
     .describe('Manufacturing details.')
     .optional(),

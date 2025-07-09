@@ -15,7 +15,7 @@ Our platform now simulates the generation and verification of ZKPs for compliant
 ## Smart Contract Architecture and Anchoring Models
 
 ### On-Chain Anchoring
-When a product passport is approved, the platform generates a W3C Verifiable Credential (VC) containing the core product data. A hash of this VC is then anchored on-chain (Polygon Amoy testnet in our implementation). This creates an immutable, timestamped proof of the data's integrity at the time of issuance.
+When a product passport is verified, the platform generates a W3C Verifiable Credential (VC) containing the core product data. A hash of this VC is then anchored on-chain (Polygon Amoy testnet in our implementation). This creates an immutable, timestamped proof of the data's integrity at the time of issuance.
 
 ### Gas Optimization
 While our current implementation anchors each VC hash individually, a production-grade system would use techniques like Merkle tree batching to aggregate many credential hashes into a single on-chain transaction, drastically reducing gas costs.
