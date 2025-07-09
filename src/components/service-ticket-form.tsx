@@ -176,7 +176,12 @@ export default function ServiceTicketForm({
                 },
               );
             });
-            return;
+          } catch (error) {
+            toast({
+              title: 'Image Upload Failed',
+              variant: 'destructive',
+            });
+            return; // Exit if upload fails
           }
         }
 
@@ -199,6 +204,12 @@ export default function ServiceTicketForm({
           });
           onSave(savedTicket);
           onOpenChange(false);
+        } catch (error: any) {
+          toast({
+            title: 'Error Saving Ticket',
+            description: error.message || 'An unexpected error occurred.',
+            variant: 'destructive',
+          });
         }
       });
     },
