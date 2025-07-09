@@ -106,7 +106,6 @@ export default function ApiKeyForm({
           toast({
             title: 'Error',
             description: 'Failed to save the API key.',
-            variant: 'destructive',
           });
         }
       });

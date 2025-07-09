@@ -56,11 +56,11 @@ export function AuditReviewDialog({
           description: `"${updatedProduct.productName}" has been verified and anchored.`,
         });
         handleClose();
-      } catch (error) {
+      } catch (error: any) {
         toast({
           title: 'Approval Failed',
           description:
-            error.message || 'An error occurred during the approval process.',
+            (error as Error).message || 'An error occurred during the approval process.',
           variant: 'destructive',
         });
       }
@@ -86,7 +86,7 @@ export function AuditReviewDialog({
           description: `"${updatedProduct.productName}" has been marked as rejected.`,
         });
         handleClose();
-      } catch (error) {
+      } catch (error: any) {
         toast({
           title: 'Rejection Failed',
           description: 'An error occurred during the rejection process.',

@@ -135,7 +135,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         await updateUserPassword(user.id, values.currentPassword, values.newPassword, user.id);
         toast({ title: 'Password Updated', description: 'Your password has been successfully changed.' });
         passwordForm.reset();
-      } catch (error: any) {
+        } catch (error: any) { // TODO: Address no-explicit-any
         toast({ title: 'Error', description: error.message || 'Failed to update password.', variant: 'destructive' });
       }
     });
@@ -146,7 +146,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
       try {
         await saveNotificationPreferences(user.id, values, user.id);
         setUser(prev => ({...prev, notificationPreferences: values}));
-        toast({ title: 'Preferences Saved', description: 'Your notification settings have been updated.' });
+        toast({ title: 'Preferences Saved', description: 'Your notification settings have been updated.' }); // TODO: Fix react/no-unescaped-entities
       } catch (error) {
         toast({ title: 'Error', description: 'Failed to save notification preferences.', variant: 'destructive' });
       }
@@ -164,7 +164,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
           setUser(prev => ({ ...prev, isMfaEnabled: false }));
           toast({ title: '2FA Disabled', description: 'Two-factor authentication has been disabled.' });
         }
-      } catch (error: any) {
+      } catch (error: any) { // TODO: Address no-explicit-any
         toast({ title: 'Error', description: error.message || 'Failed to disable 2FA.', variant: 'destructive' });
       }
     });

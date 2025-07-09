@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Landmark,
 } from 'lucide-react';
-import { format } from 'date-fns';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
 import { Button } from '@/components/ui/button';

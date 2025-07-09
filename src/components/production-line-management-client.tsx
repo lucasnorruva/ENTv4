@@ -92,11 +92,7 @@ export default function ProductionLineManagementClient({
         getProductionLines(),
         getProducts(user.id),
       ]);
-      setLines(initialLines);
-      setProducts(initialProducts);
-    } catch (error) {
-      toast({
-        title: 'Error',
+ setLines(initialLines); setProducts(initialProducts); } catch { toast({ title: 'Error',
         description: 'Failed to load initial data.',
         variant: 'destructive',
       });
@@ -126,11 +122,7 @@ export default function ProductionLineManagementClient({
           await deleteProductionLine(lineId, user.id);
           setLines(prev => prev.filter(l => l.id !== lineId));
           toast({
-            title: 'Production Line Deleted',
-          });
-        } catch (error) {
-          toast({
-            title: 'Error',
+ title: 'Production Line Deleted', }); } catch { toast({ title: 'Error',
             description: 'Failed to delete production line.',
             variant: 'destructive',
           });

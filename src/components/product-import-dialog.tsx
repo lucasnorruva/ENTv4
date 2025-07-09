@@ -23,7 +23,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from './ui/badge';
-import { bulkProductImportSchema } from '@/lib/schemas';
+import { bulkProductImportSchema } from '@/lib/schemas'; // Keep the import as the schema is used
 import type { User } from '@/types';
 import { bulkCreateProducts } from '@/lib/actions/product-actions';
 import { Loader2, Upload } from 'lucide-react';
@@ -64,7 +64,7 @@ export default function ProductImportDialog({
   onSave,
   user,
 }: ProductImportDialogProps) {
-  const [file, setFile] = useState<File | null>(null);
+  const [file, setFile] = useState<File | null>(null); // This variable is used
   const [validatedData, setValidatedData] = useState<ValidatedRow[]>([]);
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, startSavingTransition] = useTransition();
@@ -80,7 +80,7 @@ export default function ProductImportDialog({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const selectedFile = event.target.files?.[0];
       if (selectedFile) {
-        setFile(selectedFile);
+        setFile(selectedFile); // This variable is used
         setIsParsing(true);
         Papa.parse(selectedFile, {
           header: true,

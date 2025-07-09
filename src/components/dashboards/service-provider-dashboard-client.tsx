@@ -15,7 +15,6 @@ import {
   ArrowRight,
   Wrench,
   Ticket,
-  BarChart3,
   BookCopy,
   CheckSquare,
 } from 'lucide-react';

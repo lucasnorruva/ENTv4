@@ -4,7 +4,6 @@
 import * as React from 'react';
 import {
   ArrowUpDown,
-  ChevronDown,
   BookCopy,
   Users,
   Building2,
@@ -197,7 +196,7 @@ export default function PlatformLogsClient({
     },
     globalFilterFn: (row, columnId, filterValue) => {
       const search = filterValue.toLowerCase();
-      const action = row.getValue('action') as string;
+      const action = row.getValue('action') as string || '';
       const user = entityMaps.users.get(row.getValue('userId'))?.toLowerCase() || '';
       const entityId = row.getValue('entityId') as string;
       

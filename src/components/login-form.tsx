@@ -63,7 +63,7 @@ export default function LoginForm() {
         await signInWithEmailAndPassword(auth, values.email, values.password);
         toast({ title: 'Login Successful' });
         router.push('/dashboard');
-      } catch (error: any) {
+      } catch (error) {
         if (error.code === 'auth/multi-factor-auth-required') {
           setMfaResolver(getMultiFactorResolver(auth, error));
         } else {
@@ -92,7 +92,7 @@ export default function LoginForm() {
           values.code,
         );
         await mfaResolver.resolveSignIn(assertion);
-        toast({ title: 'Login Successful' });
+ toast({ title: 'Login Successful' });
         router.push('/dashboard');
       } catch (error: any) {
         toast({

@@ -281,47 +281,45 @@ export default function ProductForm({
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
         try {
-          imageUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-              },
-              error => {
-                setIsUploading(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploading(false);
-                resolve(downloadURL);
-              },
-            );
+ imageUrl = await new Promise<string>((resolve, reject) => {
+ uploadTask.on(
+ 'state_changed',
+ (snapshot) => {
+ const progress =
+ (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+ setUploadProgress(progress);
+ },
+ (error) => {
+ setIsUploading(false);
+ reject(error);
+ },
+ async () => {
+ const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+ setIsUploading(false);
+ resolve(downloadURL);
+ }
+ );
           });
         } catch (error) {
           toast({
             title: 'Image Upload Failed',
             variant: 'destructive',
           });
-          return;
+ return;
         }
       }
 
-      if (manualFile) {
-        setIsUploadingManual(true);
-        setManualUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, manualFile);
+ if (manualFile) {
+ setIsUploadingManual(true);
+ setManualUploadProgress(0);
+ const storageRef = ref(
+ storage,
+ `manuals/${user.id}/${Date.now()}-${manualFile.name}`,
+ );
+ const uploadTask = uploadBytesResumable(storageRef, manualFile);
 
-        try {
-          manualUrl = await new Promise<string>((resolve, reject) => {
+ try {
+ manualUrl = await new Promise<string>((resolve, reject) => {
             uploadTask.on(
               'state_changed',
               snapshot => {
@@ -345,26 +343,26 @@ export default function ProductForm({
           manualFileName = manualFile.name;
           manualFileSize = manualFile.size;
         } catch (error) {
-          toast({ title: 'Manual Upload Failed', variant: 'destructive' });
-          return;
+ toast({ title: 'Manual Upload Failed', variant: 'destructive' });
+ return;
         }
       }
-      
-      if (modelFile) {
+
+ if (modelFile) {
         setIsUploadingModel(true);
         setModelUploadProgress(0);
         const storageRef = ref(storage, `models/${user.id}/${Date.now()}-${modelFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, modelFile);
 
         try {
-          model3dUrl = await new Promise<string>((resolve, reject) => {
+ model3dUrl = await new Promise<string>((resolve, reject) => {
             uploadTask.on('state_changed',
-              snapshot => {
+ (snapshot) => {
                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 setModelUploadProgress(progress);
               },
-              error => {
-                setIsUploadingModel(false);
+ (error) => {
+ setIsUploadingModel(false);
                 reject(error);
               },
               async () => {

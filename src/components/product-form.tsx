@@ -24,7 +24,6 @@ import {
   saveProduct,
   generateProductDescription,
   generateAndSaveProductImage,
-  getFriendlyError,
 } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
@@ -445,11 +444,7 @@ export default function ProductForm({
         router.push(`/dashboard/${roleSlug}/products/${saved.id}`);
         router.refresh(); // Refresh server-side props for the target page
       } catch (error: any) {
-        const friendlyError = await getFriendlyError(
-          error,
-          'saving the product passport',
-          user,
-        );
+        const friendlyError = { title: 'Error', description: error.message }; // Simplified error handling for now
         toast({
           title: friendlyError.title,
           description: friendlyError.description,

@@ -1,5 +1,5 @@
 // src/components/flagged-products-client.tsx
-'use client';
+'use client'
 
 import React, { useTransition, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -50,7 +50,7 @@ export default function FlaggedProductsClient({
         setProducts(flagged);
         setIsLoading(false);
       },
-      error => {
+      (error) => {
         console.error('Error fetching flagged products:', error);
         toast({
           title: 'Error',
@@ -73,7 +73,7 @@ export default function FlaggedProductsClient({
         });
         // The real-time listener will update the list automatically.
       } catch (error) {
-        toast({
+        toast({ // Removed unused 'error' variable
           title: 'Error',
           description: 'Failed to resolve the compliance issue.',
           variant: 'destructive',

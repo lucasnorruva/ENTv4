@@ -1,5 +1,5 @@
 // src/components/api-keys-client.tsx
-'use client';
+'use client'
 
 import { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
@@ -147,7 +147,7 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const handleDeleteKey = useCallback((id: string) => {
     startTransition(async () => {
       try {
-        await deleteApiKey(id, user.id);
+ await deleteApiKey(id, user.id);
         toast({ title: 'API Key Deleted' });
       } catch (error) {
         toast({

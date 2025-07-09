@@ -5,7 +5,6 @@ import React, {
   useState,
   useTransition,
   useEffect,
-  useMemo,
   useCallback,
 } from 'react';
 import {
@@ -119,7 +118,7 @@ export default function CompanyManagementClient({
         setCompanies(companiesData);
         setIsLoading(false);
       },
-      error => {
+      (error) => {
         console.error('Error fetching companies:', error);
         toast({
           title: 'Error loading companies',
@@ -153,13 +152,13 @@ export default function CompanyManagementClient({
             description: `Company "${company.name}" has been successfully deleted.`,
           });
         } catch (error) {
+          console.error('Error deleting company:', error);
           toast({
             title: 'Error',
             description: 'Failed to delete company.',
             variant: 'destructive',
           });
         }
-      });
     },
     [adminUser.id, toast],
   );
@@ -169,7 +168,7 @@ export default function CompanyManagementClient({
     setIsFormOpen(false);
   }, []);
 
-  const columns: ColumnDef<Company>[] = React.useMemo(
+  const columns: ColumnDef<Company>[] = React.useMemo(() =>
     () => [
       {
         accessorKey: 'name',
@@ -276,7 +275,6 @@ export default function CompanyManagementClient({
       },
     ],
     [isPending, router, handleEdit, handleDelete],
-  );
 
   const table = useReactTable({
     data: companies,

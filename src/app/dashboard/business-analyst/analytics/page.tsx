@@ -140,7 +140,7 @@ export default function BusinessAnalystAnalyticsPage() {
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card><CardHeader className=\"flex flex-row items-center justify-between space-y-0 pb-2\">
+        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total Products
             </CardTitle>
@@ -193,8 +193,7 @@ export default function BusinessAnalystAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-      </div
-    >
+      </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <CardHeader>
             <CardTitle>Compliance Rate Over Time</CardTitle>
@@ -205,7 +204,8 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <ComplianceRateChart data={complianceRateData} />
           </CardContent>
-        </Card><Card>
+        </Card>
+        <Card>
           <CardHeader>
             <CardTitle>Compliance Overview</CardTitle>
             <CardDescription>
@@ -215,7 +215,8 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <ComplianceOverviewChart data={complianceData} />
           </CardContent>
-        </Card><Card>
+        </Card>
+        <Card>
           <CardHeader>
             <CardTitle>End-of-Life Status</CardTitle>
             <CardDescription>
@@ -225,7 +226,8 @@ export default function BusinessAnalystAnalyticsPage() {
           <CardContent>
             <EolStatusChart data={eolData} />
           </CardContent>
-        </Card></div>
+        </Card>
+      </div>
     </div>
   );
 }

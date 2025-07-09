@@ -8,7 +8,7 @@ import {
   companySettingsSchema,
   type CompanySettingsFormValues,
 } from '@/lib/schemas';
-import type { Company, User, CustomFieldDefinition } from '@/types';
+import type { Company, User } from '@/types';
 import { saveCompanySettings } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -17,7 +17,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';

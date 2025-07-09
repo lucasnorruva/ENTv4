@@ -7,10 +7,9 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
-  CardFooter,
+ CardTitle,
 } from '@/components/ui/card';
-import type { AuditLog, User, Webhook } from '@/types';
+import type { AuditLog, User } from '@/types';
 import { Button } from '../ui/button';
 import {
   Users,
@@ -34,7 +33,6 @@ import {
   Ticket,
   Globe,
   Scale,
-  UserPlus,
   Webhook as WebhookIcon,
   KeyRound,
   History,
@@ -83,7 +81,7 @@ const actionIcons: Record<string, React.ElementType> = {
   'compliance.resolved': ShieldX,
   'product.serviced': Wrench,
   'user.created': UserPlus,
-  'user.updated': Edit,
+  'user.updated': Edit, // Keep Edit for user.updated
   'user.deleted': Trash2,
   'company.created': Building2,
   'webhook.created': WebhookIcon,

@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, Factory, Activity, Box } from 'lucide-react';
+import { X, Factory, Activity } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
 import type { ProductionLine } from '@/types';

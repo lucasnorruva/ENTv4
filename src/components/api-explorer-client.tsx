@@ -36,7 +36,7 @@ async function queryApi(query: string, variables: string, apiKey: string) {
   try {
     parsedVariables = variables ? JSON.parse(variables) : {};
   } catch (e) {
-    throw new Error('Invalid JSON in variables: ' + (e as Error).message);
+ throw new Error('Invalid JSON in variables: ' + (e as Error).message);
   }
 
   const response = await fetch('/api/graphql', {
@@ -94,7 +94,7 @@ export default function ApiExplorerClient({ user }: { user: User }) {
           variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (e) {
       toast({
         title: 'Error',
         description: 'Could not fetch API keys.',

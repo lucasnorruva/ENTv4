@@ -1,11 +1,10 @@
-// src/components/dashboards/service-provider-analytics-client.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { onSnapshot, collection, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants';
-import type { User, Product, ServiceTicket } from '@/types';
+import type { Product, ServiceTicket } from '@/types';
 import {
   Card,
   CardContent,
@@ -15,18 +14,16 @@ import {
 } from '@/components/ui/card';
 import {
   Wrench,
-  BookCopy,
   Clock,
   BarChart3,
   Ticket,
-  CheckSquare,
   Loader2,
 } from 'lucide-react';
 import { differenceInHours } from 'date-fns';
 import ServiceTicketStatusChart from '@/components/charts/service-ticket-status-chart';
 import ServiceTicketsByCategoryChart from '@/components/charts/service-tickets-by-category-chart';
 
-export default function ServiceProviderAnalyticsClient({ user }: { user: User }) {
+export default function ServiceProviderAnalyticsClient() {
   const [products, setProducts] = useState<Product[]>([]);
   const [serviceTickets, setServiceTickets] = useState<ServiceTicket[]>([]);
   const [isLoading, setIsLoading] = useState(true);

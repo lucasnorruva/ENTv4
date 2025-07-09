@@ -46,7 +46,7 @@ export default function ProductAIChatbot({ productId }: ProductAIChatbotProps) {
         const result = await askQuestionAboutProduct(productId, input);
         const aiMessage: Message = { sender: 'ai', text: result.answer };
         setMessages(prev => [...prev, aiMessage]);
-      } catch (error) {
+      } catch (err) {
         toast({
           title: 'Error',
           description:

@@ -17,8 +17,6 @@ import {
   CalendarDays,
   ListTree,
   FileJson,
-  Battery,
-  TestTube2,
   Diamond,
   Megaphone,
   Briefcase,
@@ -39,7 +37,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { ScrollArea } from '../ui/scroll-area';
 import ReactMarkdown from 'react-markdown';
 import { Button } from '../ui/button';
 

@@ -29,9 +29,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { Badge } from './ui/badge';
-import type { User, AuditLog } from '@/types';
+import type { User } from '@/types';
 import { markAllNotificationsAsRead } from '@/lib/actions/user-actions';
 import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { getUsers } from '@/lib/auth';
@@ -61,7 +61,7 @@ const getActionLabel = (action: string): string => {
 export interface ProcessedNotification {
   id: string;
   action: string;
-  title: string;
+  title: string; // Keep title as it's used
   description: string;
   createdAt: string;
   isRead: boolean;
@@ -74,7 +74,7 @@ interface NotificationsClientProps {
 export default function NotificationsClient({
   user: initialUser,
 }: NotificationsClientProps) {
-  const { toast } = useToast();
+  const { toast } = useToast(); // Keep toast as it's used
   const [isPending, startTransition] = useTransition();
   const [notifications, setNotifications] = useState<ProcessedNotification[]>(
     [],
@@ -93,7 +93,7 @@ export default function NotificationsClient({
       const userMap = new Map(allUsers.map(u => [u.id, u.fullName]));
 
       const processedNotifications: ProcessedNotification[] = allLogs
-        .slice(0, 5)
+        .slice(0, 5) // Keep slice as it's used
         .map(log => {
           const logUser = userMap.get(log.userId) || 'System';
           const title = getActionLabel(log.action);
@@ -106,7 +106,7 @@ export default function NotificationsClient({
             id: log.id,
             action: log.action,
             title,
-            description,
+            description, // Keep description as it's used
             createdAt: log.createdAt,
             isRead,
           };
@@ -114,7 +114,7 @@ export default function NotificationsClient({
       setNotifications(processedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      toast({
+      toast({ // Keep toast as it's used
         title: 'Error',
         description: 'Failed to load notifications.',
         variant: 'destructive',

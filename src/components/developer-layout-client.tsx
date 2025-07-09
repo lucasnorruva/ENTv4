@@ -19,8 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from './ui/input';
-import { Search } from 'lucide-react';
 import GlobalSearchButton from './global-search-button';
 import { developerNavItems } from '@/lib/nav-config';
 import DeveloperNavTabs from './developer-nav-tabs';

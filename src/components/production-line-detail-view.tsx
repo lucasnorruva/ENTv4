@@ -8,7 +8,7 @@ import { ArrowLeft, Factory, Wrench, Clock, Activity } from 'lucide-react';
 import RelativeTime from './relative-time';
 
 import type { ProductionLine, ServiceTicket, User } from '@/types';
-import { Badge } from '@/components/ui/badge';
+import { Badge, badgeVariants } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,7 +21,6 @@ import {
 interface ProductionLineDetailViewProps {
   line: ProductionLine;
   serviceHistory: ServiceTicket[];
-  user: User;
   roleSlug: string;
 }
 
@@ -40,7 +39,6 @@ const getStatusVariant = (status: string) => {
 export default function ProductionLineDetailView({
   line,
   serviceHistory,
-  user,
   roleSlug,
 }: ProductionLineDetailViewProps) {
   return (

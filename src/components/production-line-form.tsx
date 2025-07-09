@@ -99,7 +99,7 @@ export default function ProductionLineForm({
             description: `Production line "${saved.name}" has been saved.`,
           });
           onSave();
-          onOpenChange(false);
+ onOpenChange(false);
         } catch (error) {
           toast({
             title: 'Error',

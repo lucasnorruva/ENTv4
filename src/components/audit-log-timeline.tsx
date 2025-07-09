@@ -1,4 +1,3 @@
-// src/components/audit-log-timeline.tsx
 'use client';
 
 import type { AuditLog } from '@/types';
@@ -87,7 +86,7 @@ export function AuditLogTimeline({
       <CardContent>
         <div className="relative pl-6">
           <div className="absolute left-[35px] top-0 h-full w-px bg-border -translate-x-1/2" />
-          {logs.map((log, index) => {
+          {logs.map(log => {
             const Icon = actionIcons[log.action] || actionIcons.default;
             const label = getActionLabel(log.action);
             const userName = userMap.get(log.userId) || log.userId;

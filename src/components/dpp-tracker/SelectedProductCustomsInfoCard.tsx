@@ -7,7 +7,6 @@ import { format } from 'date-fns';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   CardFooter,
@@ -18,9 +17,6 @@ import {
   X,
   Package,
   Truck,
-  Ship,
-  Plane,
-  AlertTriangle,
   CalendarDays,
   ExternalLink,
   Globe,
@@ -37,8 +33,6 @@ import {
   getStatusBadgeClasses,
 } from '@/lib/dpp-display-utils';
 import { ScrollArea } from '../ui/scroll-area';
-import { analyzeProductTransitRoute } from '@/lib/actions/product-ai-actions';
-import { useToast } from '@/hooks/use-toast';
 
 interface SelectedProductCustomsInfoCardProps {
   product: Product;

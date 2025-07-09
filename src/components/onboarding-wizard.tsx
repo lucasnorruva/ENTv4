@@ -45,7 +45,7 @@ export default function OnboardingWizard({ user }: { user: User | null }) {
         try {
           await completeOnboarding(values, user.id);
           setStep(2); // Move to the success step
-        } catch (error) {
+        } catch (err) {
           toast({
             title: 'Onboarding Failed',
             description: 'Could not save your information. Please try again.',

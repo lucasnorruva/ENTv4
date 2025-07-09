@@ -11,13 +11,12 @@ import { useTransition, useCallback } from 'react';
 import { analyzeElectronicsData } from '@/lib/actions/product-ai-actions';
 
 interface ElectronicsTabProps {
-  form: UseFormReturn<ProductFormValues>;
   user: User;
   productId?: string;
   isAiEnabled: boolean;
 }
 
-export default function ElectronicsTab({ form, user, productId, isAiEnabled }: ElectronicsTabProps) {
+export default function ElectronicsTab({ user, productId, isAiEnabled }: ElectronicsTabProps) {
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
 

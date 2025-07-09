@@ -1,7 +1,6 @@
-// src/components/blockchain-management-client.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { User, Product, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,7 +12,6 @@ import IssuersTab from './trust-hub/issuers-tab';
 import ZkpTab from './trust-hub/zkp-tab';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 
 interface BlockchainManagementClientProps {
   user: User;
@@ -40,7 +38,7 @@ export default function BlockchainManagementClient({
       ]);
       setProducts(refreshedProducts);
       setCompanies(refreshedCompanies);
-    } catch (err) {
+    } catch (_error) {
       toast({
         title: 'Error fetching data',
         description: 'Could not load the latest data for the hub.',

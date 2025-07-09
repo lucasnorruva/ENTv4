@@ -100,9 +100,9 @@ export default function CompanyForm({
           toast({
             title: 'Success!',
             description: `Company "${saved.name}" has been saved.`,
-          });
+ });
           onSave(saved);
-          onOpenChange(false);
+          onOpenChange(false); // Close the dialog on successful save
         } catch (error) {
           toast({
             title: 'Error',

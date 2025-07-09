@@ -68,7 +68,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
             );
           }
         } catch (err) {
-          setError('An error occurred while searching for the product.');
+ setError('An error occurred while searching for the product.');
         }
       });
     },
@@ -85,7 +85,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
           description: `Product "${product.productName}" has been marked as recycled.`,
         });
         setProduct(prev =>
-          prev ? { ...prev, endOfLifeStatus: 'Recycled' } : null,
+ prev ? { ...prev, endOfLifeStatus: 'Recycled' } : null,
         );
       } catch (err) {
         toast({
@@ -125,7 +125,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
               return; // Stop the loop
             }
           } catch (e) {
-            // Not a valid URL, ignore and continue scanning
+ // Not a valid URL, ignore and continue scanning
           }
         }
       }

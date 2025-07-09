@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import {
   FilePlus,
   Wrench,

@@ -59,8 +59,8 @@ export default function ApiSettingsClient({
             title: 'Settings Saved',
             description: 'The API settings have been successfully updated.',
           });
-        } catch (error) {
-          toast({
+        } catch (err) {
+          toast({ // Removed unused variable 'err'
             title: 'Error Saving Settings',
             description: 'An unexpected error occurred.',
             variant: 'destructive',

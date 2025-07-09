@@ -167,10 +167,9 @@ export default function CompliancePathForm({
           });
           onSave(saved);
           onOpenChange(false);
-        } catch (error) {
+        } catch {
           toast({
             title: 'Error',
-            description: 'Failed to save the compliance path.',
             variant: 'destructive',
           });
         }

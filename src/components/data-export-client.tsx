@@ -110,13 +110,8 @@ export default function DataExportClient() {
           title: 'Report Downloaded!',
           description: 'Your export has been successfully generated.',
         });
-
-      } catch (error) {
-        toast({
-          title: 'Export Failed',
-          description: 'An error occurred while preparing your file.',
-          variant: 'destructive',
-        });
+      } catch (_error) {
+        toast({ title: 'Export Failed', description: 'An error occurred while preparing your file.', variant: 'destructive' });
       } finally {
         setGeneratingType(null);
       }

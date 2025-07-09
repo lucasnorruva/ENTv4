@@ -13,7 +13,7 @@ import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import type { Product, User, CompliancePath } from '@/types';
-import { UserRoles } from '@/lib/constants';
+import { UserRoles} from '@/lib/constants';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
 
 import {
@@ -42,12 +42,11 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
-  compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagementClient({
   user,
-  compliancePaths,
+
 }: ProductManagementClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);

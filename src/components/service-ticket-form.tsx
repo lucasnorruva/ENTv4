@@ -176,13 +176,6 @@ export default function ServiceTicketForm({
                 },
               );
             });
-          } catch (error) {
-            toast({
-              title: 'Image Upload Failed',
-              description:
-                'There was an error uploading your image. Please try again.',
-              variant: 'destructive',
-            });
             return;
           }
         }
@@ -206,12 +199,6 @@ export default function ServiceTicketForm({
           });
           onSave(savedTicket);
           onOpenChange(false);
-        } catch (error) {
-          toast({
-            title: 'Error',
-            description: 'Failed to save the service ticket.',
-            variant: 'destructive',
-          });
         }
       });
     },

@@ -16,8 +16,6 @@ import {
   Search,
   ExternalLink,
   ShieldCheck,
-  ShieldAlert,
-  Package,
   ArrowUpRight,
   ArrowDownLeft,
   Ship,
@@ -37,7 +35,7 @@ import { Separator } from './ui/separator';
 import { cn } from '@/lib/utils';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 import Link from 'next/link';
-import { getProducts } from '@/lib/actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import type { Product } from '@/types';
 import {
   Table,
@@ -47,7 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 
 const RiskLevelBadge = ({

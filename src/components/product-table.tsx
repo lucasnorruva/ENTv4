@@ -60,13 +60,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "./ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "./ui/tooltip";
 import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
 import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dpp-display-utils";
@@ -75,8 +68,6 @@ import { cn } from "@/lib/utils";
 interface ProductTableProps {
   products: Product[];
   user: User;
-  isLoading: boolean;
-  isProcessingAction: boolean;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
@@ -88,8 +79,6 @@ interface ProductTableProps {
 export default function ProductTable({
   products,
   user,
-  isLoading,
-  isProcessingAction,
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
@@ -159,7 +148,6 @@ export default function ProductTable({
         ),
         cell: ({ row }) => {
           const warnings = row.original.dataQualityWarnings;
-          return (
             <div className="flex items-center gap-3">
               <Image
                 src={row.original.productImage}

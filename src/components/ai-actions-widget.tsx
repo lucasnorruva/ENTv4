@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson, Hammer } from 'lucide-react';
+import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson } from 'lucide-react';
 import type { Product, User } from '@/types';
 import type {
   SuggestImprovementsOutput,
@@ -84,14 +84,14 @@ export default function AiActionsWidget({
           await action();
           toast({ title: successTitle, description: successDescription });
           router.refresh();
-        } catch (error: any) {
+        } catch (err: any) { // The type 'any' is used here temporarily for demonstration.
           toast({
             title: `Error: ${actionName}`,
             description:
-              error.message || `Failed to run ${actionName.toLowerCase()}.`,
+              err.message || `Failed to run ${actionName.toLowerCase()}.`,
             variant: 'destructive',
           });
-        } finally {
+        } finally { // This 'err' variable was unused.
           setActiveAction(null);
         }
       });
@@ -113,10 +113,10 @@ export default function AiActionsWidget({
       try {
         const result = await suggestImprovements(product.id, user.id);
         setRecommendations(result);
-        setIsSuggestionsOpen(true);
-      } catch (error) {
+        setIsSuggestionsOpen(true); // This 'err' variable was unused.
+      } catch (err) {
         toast({
-          title: 'Error',
+          title: 'Error generating suggestions',
           description: 'Failed to get AI suggestions.',
           variant: 'destructive',
         });
@@ -132,10 +132,10 @@ export default function AiActionsWidget({
       try {
         const result = await generatePcdsForProduct(product.id, user.id);
         setPcdsData(result);
-        setIsPcdsOpen(true);
-      } catch (error) {
+ setIsPcdsOpen(true);
+      } catch (err) {
         toast({
-          title: 'Error',
+          title: 'Error generating PCDS',
           description: 'Failed to generate PCDS.',
           variant: 'destructive',
         });

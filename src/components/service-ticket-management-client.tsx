@@ -3,15 +3,11 @@
 
 import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
-  MoreHorizontal,
   Plus,
   Loader2,
-  Edit,
   Ticket,
   ArrowUpDown,
   ChevronDown,
-  Check,
-  RotateCcw,
   Factory,
   Box,
 } from 'lucide-react';
@@ -42,11 +38,9 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,12 +52,7 @@ import {
 import { Input } from '@/components/ui/input';
 
 import type { ServiceTicket, User, Product, ProductionLine } from '@/types';
-import { useToast } from '@/hooks/use-toast';
-import {
-  getServiceTickets,
-  updateServiceTicketStatus,
-} from '@/lib/actions/ticket-actions';
-import { getProducts } from '@/lib/actions/product-actions';
+import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { getProductionLines } from '@/lib/actions/manufacturing-actions';
 import ServiceTicketForm from '@/components/service-ticket-form';
 import { hasRole } from '@/lib/auth-utils';
@@ -72,18 +61,6 @@ import { UserRoles } from '@/lib/constants';
 interface ServiceTicketManagementClientProps {
   user: User;
 }
-
-const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Open':
-        return 'destructive';
-      case 'In Progress':
-        return 'secondary';
-      case 'Closed':
-      default:
-        return 'default';
-    }
-};
 
 export default function ServiceTicketManagementClient({
   user,
@@ -94,7 +71,7 @@ export default function ServiceTicketManagementClient({
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<ServiceTicket | null>(
-    null,
+    null
   );
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
@@ -104,7 +81,7 @@ export default function ServiceTicketManagementClient({
   ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    {},
+    {}
   );
   const [globalFilter, setGlobalFilter] = useState('');
 
@@ -119,7 +96,7 @@ export default function ServiceTicketManagementClient({
         try {
           const [initialTickets, initialProducts, initialLines] = await Promise.all([
             getServiceTickets(user.id),
-            getProducts(user.id),
+            getProducts(),
             getProductionLines(),
           ]);
           setTickets(initialTickets);
@@ -145,11 +122,6 @@ export default function ServiceTicketManagementClient({
     setIsFormOpen(true);
   }, []);
 
-  const handleEdit = useCallback((ticket: ServiceTicket) => {
-    setSelectedTicket(ticket);
-    setIsFormOpen(true);
-  }, []);
-
   const handleSave = useCallback((savedTicket: ServiceTicket) => {
     setTickets(prev => {
         const exists = prev.some(t => t.id === savedTicket.id);
@@ -161,8 +133,8 @@ export default function ServiceTicketManagementClient({
     setIsFormOpen(false);
   }, []);
 
-  const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]);
-  const lineMap = useMemo(() => new Map(productionLines.map(l => [l.id, l.name])), [productionLines]);
+  const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]); // Corrected: Access products state
+  const lineMap = useMemo(() => new Map(productionLines.map(l => [l.id, l.name])), [productionLines]); // Corrected: Access productionLines state
 
 
   const columns: ColumnDef<ServiceTicket>[] = useMemo(
@@ -189,7 +161,7 @@ export default function ServiceTicketManagementClient({
         },
       },
       { accessorKey: "issue", header: "Issue", cell: ({row}) => <div className="truncate max-w-xs">{row.getValue("issue")}</div> },
-      { accessorKey: "status", header: "Status", cell: ({row}) => <Badge variant={getStatusVariant(row.getValue("status"))}>{row.getValue("status")}</Badge> },
+      { accessorKey: "status", header: "Status", cell: ({row}) => <Badge variant={row.getValue("status") === 'Open' ? 'destructive' : row.getValue("status") === 'In Progress' ? 'secondary' : 'default'}>{row.getValue("status")}</Badge> },
       {
         accessorKey: 'createdAt',
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Created At <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,

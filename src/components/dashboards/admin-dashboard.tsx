@@ -3,8 +3,8 @@ import { getProducts } from '@/lib/actions/product-actions';
 import { getServiceTickets } from '@/lib/actions/ticket-actions';
 import { getAuditLogs } from '@/lib/actions/audit-actions';
 import { getWebhooks } from '@/lib/actions/webhook-actions';
-import { getUsers, getCompanies } from '@/lib/auth';
-import type { User, AuditLog, Webhook } from '@/types';
+import { getCompanies, getUsers } from '@/lib/auth';
+import type { User } from '@/types';
 import AdminDashboardClient from './admin-dashboard-client';
 
 export default async function AdminDashboard({ user }: { user: User }) {
