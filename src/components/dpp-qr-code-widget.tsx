@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,7 +29,7 @@ export default function DppQrCodeWidget({ productId }: { productId: string }) {
     }
   }, [productId]);
 
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     if (!qrCodeUrl) return;
 
     try {
@@ -65,7 +65,7 @@ export default function DppQrCodeWidget({ productId }: { productId: string }) {
         variant: 'destructive',
       });
     }
-  };
+  }, [qrCodeUrl, productId, toast]);
 
   return (
     <Card>
