@@ -133,10 +133,10 @@ export default function CompanyManagementClient({
     return () => unsubscribe();
   }, [toast]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedCompany(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
   const handleEdit = useCallback((company: Company) => {
     setSelectedCompany(company);
@@ -164,10 +164,10 @@ export default function CompanyManagementClient({
     [adminUser.id, toast],
   );
 
-  const handleSave = (savedCompany: Company) => {
+  const handleSave = useCallback((savedCompany: Company) => {
     // No need to update state manually, the listener will do it.
     setIsFormOpen(false);
-  };
+  }, []);
 
   const columns: ColumnDef<Company>[] = React.useMemo(
     () => [
