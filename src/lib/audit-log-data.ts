@@ -4,6 +4,15 @@ import type { AuditLog } from '@/types';
 const now = new Date();
 
 export let auditLogs: AuditLog[] = [
+    {
+        id: 'log-007',
+        userId: 'user-admin',
+        action: 'user.created',
+        entityId: 'user-food',
+        details: { email: 'food@norruva.com', roles: ['Supplier'] },
+        createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+        updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+    },
   {
     id: 'log-001',
     userId: 'user-supplier',

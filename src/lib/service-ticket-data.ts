@@ -35,5 +35,15 @@ export let serviceTickets: ServiceTicket[] = [
     status: 'Open',
     createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
     updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
-  }
+  },
+  {
+    id: 'tkt-004',
+    productId: 'pp-008',
+    userId: 'user-service',
+    customerName: 'Construction Site Lead',
+    issue: 'Eco-Crete mix is not setting as expected in humid conditions. Requesting technical support.',
+    status: 'Closed',
+    createdAt: new Date(new Date(now).setDate(now.getDate() - 10)).toISOString(),
+    updatedAt: new Date(new Date(now).setDate(now.getDate() - 8)).toISOString(),
+  },
 ];

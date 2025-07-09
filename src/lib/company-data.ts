@@ -30,7 +30,7 @@ export let companies: Company[] = [
   {
     id: 'comp-thread',
     name: 'Sustainable Threads Inc.',
-    ownerId: 'user-supplier', // Example, can be a different user
+    ownerId: 'user-supplier-fashion',
     industry: 'Fashion',
     tier: 'free',
     isTrustedIssuer: false,
@@ -38,7 +38,7 @@ export let companies: Company[] = [
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 3)).toISOString(),
     settings: {
-      aiEnabled: false,
+      aiEnabled: true,
       apiAccess: false,
       brandingCustomization: false,
       theme: {
@@ -70,6 +70,48 @@ export let companies: Company[] = [
         { id: 'internal_sku', label: 'Internal SKU', type: 'text' },
         { id: 'is_fragile', label: 'Is Fragile?', type: 'boolean' },
       ],
+    },
+  },
+  {
+    id: 'comp-buildright',
+    name: 'BuildRight Inc.',
+    ownerId: 'user-construction',
+    industry: 'Construction',
+    tier: 'pro',
+    isTrustedIssuer: false,
+    revocationListUrl: '',
+    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
+    updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 1)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: false,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
+    },
+  },
+  {
+    id: 'comp-freshfoods',
+    name: 'FreshFoods Co.',
+    ownerId: 'user-food',
+    industry: 'Food & Beverage',
+    tier: 'enterprise',
+    isTrustedIssuer: true,
+    revocationListUrl: 'https://api.norruva.com/vc/status/freshfoods/1',
+    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 5)).toISOString(),
+    updatedAt: new Date(new Date(now).setMonth(now.getMonth() - 5)).toISOString(),
+    settings: {
+      aiEnabled: true,
+      apiAccess: true,
+      brandingCustomization: false,
+      theme: {
+        light: { primary: '', accent: '' },
+        dark: { primary: '', accent: '' },
+      },
+      customFields: [],
     },
   },
 ];

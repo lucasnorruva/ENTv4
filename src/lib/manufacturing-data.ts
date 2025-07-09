@@ -43,4 +43,17 @@ export let productionLines: ProductionLine[] = [
     createdAt: new Date(new Date(now).setMonth(now.getMonth() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setHours(now.getHours() - 12)).toISOString(),
   },
+  {
+    id: 'line-004',
+    companyId: 'comp-buildright',
+    name: 'Concrete Mixer 1',
+    location: 'Heidelberg Plant, Germany',
+    status: 'Active',
+    outputPerHour: 1000,
+    currentProduct: 'Eco-Crete Concrete Mix',
+    productId: 'pp-008',
+    lastMaintenance: new Date(new Date(now).setDate(now.getDate() - 5)).toISOString(),
+    createdAt: new Date(new Date(now).setMonth(now.getMonth() - 8)).toISOString(),
+    updatedAt: new Date(new Date(now).setHours(now.getHours() - 8)).toISOString(),
+  },
 ];

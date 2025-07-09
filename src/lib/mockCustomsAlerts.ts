@@ -74,4 +74,28 @@ export const MOCK_CUSTOMS_ALERTS: CustomsAlert[] = [
     lat: 51.2213,
     lng: 4.4051,
   },
+  {
+    id: 'ALERT007',
+    productId: 'pp-007',
+    message:
+      'Possible dual-use technology classification. Export license under review.',
+    severity: 'High',
+    timestamp: '15 hours ago',
+    regulation: 'Wassenaar Arrangement',
+    location: 'Austin, USA',
+    lat: 30.2672,
+    lng: -97.7431,
+  },
+  {
+    id: 'ALERT008',
+    productId: 'pp-009',
+    message:
+      'Incorrect commodity code declared for food product. Re-classification required.',
+    severity: 'Low',
+    timestamp: '2 days ago',
+    regulation: 'Harmonized System (HS) Codes',
+    location: 'New York, USA',
+    lat: 40.7128,
+    lng: -74.0060,
+  }
 ];
