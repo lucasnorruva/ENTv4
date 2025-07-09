@@ -315,6 +315,7 @@ export const navConfig: NavConfig = {
           icon: Recycle,
           href: 'composition',
         },
+        { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
     },
     {

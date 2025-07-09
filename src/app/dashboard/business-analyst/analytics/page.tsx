@@ -23,7 +23,7 @@ import ComplianceOverviewChart from '@/components/charts/compliance-overview-cha
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays } from 'date-fns';
-import type { Product, Company, AuditLog } from '@/types';
+import type { Product, Company, AuditLog, User } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 import { Recycle } from 'lucide-react';
 
@@ -195,6 +195,18 @@ export default function BusinessAnalystAnalyticsPage() {
         </Card>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+          <CardHeader>
+            <CardTitle>Products Created Over Time</CardTitle>
+            <CardDescription>
+              A view of new passports being created on the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ProductsOverTimeChart data={productsOverTimeData} />
+          </CardContent>
+        </Card>
+          <Card>
           <CardHeader>
             <CardTitle>Compliance Rate Over Time</CardTitle>
             <CardDescription>

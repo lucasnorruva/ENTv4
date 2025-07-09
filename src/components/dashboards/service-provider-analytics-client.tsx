@@ -1,3 +1,4 @@
+// src/components/dashboards/service-provider-analytics-client.tsx
 'use client';
 
 import { useState, useEffect } from 'react';

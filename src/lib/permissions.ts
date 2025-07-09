@@ -107,6 +107,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'product:customs_inspect',
     'product:run_compliance',
     'compliance:manage',
+    'product:export_data',
     'user:edit',
   ],
 
@@ -115,6 +116,7 @@ export const permissionMatrix: Record<Role, Action[]> = {
     'product:archive',
     'product:run_compliance',
     'compliance:manage',
+    'product:export_data',
     'user:edit',
   ],
 
