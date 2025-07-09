@@ -29,8 +29,7 @@ interface LifecycleEvent {
   icon: React.ElementType;
 }
 
-
-const HistoryTab = ({ product }: { product: Product }) => {
+export default function HistoryTab({ product }: { product: Product }) {
   const events: LifecycleEvent[] = useMemo(() => {
     const allEvents: LifecycleEvent[] = [];
 
