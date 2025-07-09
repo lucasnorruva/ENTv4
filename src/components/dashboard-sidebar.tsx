@@ -1,6 +1,7 @@
 // src/components/dashboard-sidebar.tsx
 'use client';
 
+import React, { useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutGrid,
@@ -50,7 +51,7 @@ export default function DashboardSidebar({
   const menuConfig = navConfig[userRole] || [];
   const roleSlug = userRole.toLowerCase().replace(/ /g, '-');
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await signOut();
       toast({
@@ -66,19 +67,22 @@ export default function DashboardSidebar({
         variant: 'destructive',
       });
     }
-  };
+  }, [router, toast]);
 
-  const handleNavigate = (href: string, external?: boolean) => {
-    if (external) {
-      window.open(href, '_blank');
-    } else {
-      router.push(href);
-    }
-    // Close sidebar on mobile after navigation
-    if (window.innerWidth < 768) {
+  const handleNavigate = useCallback(
+    (href: string, external?: boolean) => {
+      if (external) {
+        window.open(href, '_blank');
+      } else {
+        router.push(href);
+      }
+      // Close sidebar on mobile after navigation
+      if (window.innerWidth < 768) {
         toggleSidebar();
-    }
-  };
+      }
+    },
+    [router, toggleSidebar],
+  );
 
   const dashboardHref = `/dashboard/${roleSlug}`;
 
