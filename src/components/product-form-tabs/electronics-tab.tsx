@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
 import { analyzeElectronicsData } from '@/lib/actions/product-ai-actions';
 
 interface ElectronicsTabProps {
@@ -21,7 +21,7 @@ export default function ElectronicsTab({ form, user, productId, isAiEnabled }: E
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
 
-  const handleAnalyze = () => {
+  const handleAnalyze = useCallback(() => {
     if (!productId) {
       toast({ title: 'Please save the product first.', variant: 'destructive' });
       return;
@@ -35,7 +35,7 @@ export default function ElectronicsTab({ form, user, productId, isAiEnabled }: E
         toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
       }
     });
-  };
+  }, [productId, toast, startAnalysisTransition, user.id]);
 
   return (
     <div className="p-6 space-y-6">

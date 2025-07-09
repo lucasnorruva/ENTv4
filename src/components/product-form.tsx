@@ -1,8 +1,7 @@
-
 // src/components/product-form.tsx
 'use client';
 
-import React, { useEffect, useState, useTransition } from 'react';
+import React, { useEffect, useState, useTransition, useCallback } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
@@ -155,15 +154,15 @@ export default function ProductForm({
     name: 'textile.fiberComposition',
   });
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
       form.setValue('productImage', URL.createObjectURL(file));
     }
-  };
+  }, [form]);
 
-  const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleManualChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setManualFile(file);
@@ -174,9 +173,9 @@ export default function ProductForm({
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
-  const handleModelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleModelChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
       setModelFile(file);
@@ -187,16 +186,17 @@ export default function ProductForm({
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
-  const handleContextImageChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = e.target.files?.[0];
-    setContextImageFile(file);
-  };
+  const handleContextImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      setContextImageFile(file);
+    },
+    [],
+  );
 
-  const handleGenerateImage = () => {
+  const handleGenerateImage = useCallback(() => {
     if (!initialData?.id) {
       toast({
         title: 'Save Required',
@@ -236,9 +236,9 @@ export default function ProductForm({
         });
       }
     });
-  };
+  }, [initialData?.id, contextImageFile, startImageGenerationTransition, user.id, form, toast]);
 
-  const handleGenerateDescription = () => {
+  const handleGenerateDescription = useCallback(() => {
     const { productName, category, materials } = form.getValues();
     if (!productName || !category) {
       toast({
@@ -275,9 +275,9 @@ export default function ProductForm({
         });
       }
     });
-  };
+  }, [form, startDescriptionGeneration, toast, user.id]);
 
-  const onSubmit = (values: ProductFormValues) => {
+  const onSubmit = useCallback((values: ProductFormValues) => {
     startSavingTransition(async () => {
       let imageUrl = initialData?.productImage;
       let manualUrl = initialData?.manualUrl;
@@ -437,7 +437,7 @@ export default function ProductForm({
         });
       }
     });
-  };
+  }, [startSavingTransition, imageFile, manualFile, modelFile, initialData, user, toast, router, roleSlug]);
 
   const canEdit = isEditMode
     ? can(user, 'product:edit', initialData)

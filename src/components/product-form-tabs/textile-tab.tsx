@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
 import { analyzeTextileData } from '@/lib/actions/product-ai-actions';
 
 interface TextileTabProps {
@@ -34,7 +34,7 @@ export default function TextileTab({ form, fiberFields, appendFiber, removeFiber
   const { toast } = useToast();
   const [isAnalyzing, startAnalysisTransition] = useTransition();
 
-  const handleAnalyze = () => {
+  const handleAnalyze = useCallback(() => {
     if (!productId) {
       toast({ title: 'Please save the product first.', variant: 'destructive' });
       return;
@@ -54,7 +54,7 @@ export default function TextileTab({ form, fiberFields, appendFiber, removeFiber
         toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
       }
     });
-  };
+  }, [productId, toast, form, startAnalysisTransition, user.id]);
 
   return (
     <div className="p-6 space-y-6">
