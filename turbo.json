@@ -1,3 +1,4 @@
+
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*"],
@@ -16,10 +17,10 @@
       "persistent": true
     },
     "start": {
-      "dependsOn": ["build"],
-      "persistent": true
+      "dependsOn": ["build"]
     },
     "start:web": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
