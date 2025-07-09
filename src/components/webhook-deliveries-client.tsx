@@ -1,7 +1,12 @@
 // src/components/webhook-deliveries-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, {
+  useState,
+  useTransition,
+  useEffect,
+  useCallback,
+} from 'react';
 import {
   Card,
   CardContent,
@@ -76,7 +81,7 @@ export default function WebhookDeliveriesClient({
       .finally(() => setIsLoading(false));
   }, [webhook.id, toast]);
 
-  const handleReplay = (log: AuditLog) => {
+  const handleReplay = useCallback((log: AuditLog) => {
     setReplayingId(log.id);
     startReplayTransition(async () => {
       toast({
@@ -100,7 +105,7 @@ export default function WebhookDeliveriesClient({
         setReplayingId(null);
       }
     });
-  };
+  }, [user.id, toast, startReplayTransition]);
 
   const getStatusVariant = (status: number) => {
     if (status >= 500) return 'destructive';
