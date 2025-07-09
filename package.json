@@ -3,16 +3,14 @@
   "name": "norruva",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "npm@10.8.1",
   "scripts": {
-    "dev": "firebase emulators:exec --project=norruva --ui --import=./firebase-data \"npm run dev:all\"",
-    "dev:all": "npx turbo run dev:web dev:ai",
+    "dev": "turbo run dev:web dev:ai",
     "dev:web": "next dev --port 9002 --hostname 0.0.0.0",
-    "dev:ai": "npx genkit start",
+    "dev:ai": "genkit start",
     "build": "next build",
-    "start": "npx turbo run start:web start:ai",
+    "start": "turbo run start:web start:ai",
     "start:web": "next start",
-    "start:ai": "npx genkit start",
+    "start:ai": "genkit start",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -100,5 +98,6 @@
     "tsx": "^4.16.2",
     "turbo": "^2.5.4",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "npm@10.8.1"
 }
