@@ -1,4 +1,3 @@
-
 // src/app/dashboard/service-provider/lines/[id]/page.tsx
 import {
   getProductionLineById,

@@ -1,4 +1,3 @@
-
 // src/app/dashboard/service-provider/lines/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';

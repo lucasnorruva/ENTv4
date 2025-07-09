@@ -7,7 +7,7 @@ import { getApiSettingsData } from '@/lib/api-settings';
 import { products as mockProducts } from '@/lib/data';
 import { sendWebhook } from '@/services/webhooks';
 import { getWebhooks } from '@/lib/actions/webhook-actions';
-import { processProductAi } from '@/lib/actions/product-ai-actions';
+import { processProductAi } from '@/lib/actions/product-actions';
 
 // NOTE: This mock function simulates the behavior of a Firestore trigger.
 // It's called from saveProduct in product-actions.ts for demonstration.
