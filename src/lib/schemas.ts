@@ -1,4 +1,3 @@
-
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
@@ -214,6 +213,15 @@ export const apiKeyFormSchema = z.object({
   ipRestrictions: z.string().optional(),
 });
 export type ApiKeyFormValues = z.infer<typeof apiKeyFormSchema>;
+
+export const productionLineFormSchema = z.object({
+  name: z.string().min(2, 'Line name must be at least 2 characters.'),
+  location: z.string().min(2, 'Location is required.'),
+  status: z.enum(['Active', 'Idle', 'Maintenance']),
+  outputPerHour: z.coerce.number().min(0, 'Output must be a positive number.'),
+  productId: z.string().optional(),
+});
+export type ProductionLineFormValues = z.infer<typeof productionLineFormSchema>;
 
 export const serviceTicketFormSchema = z.object({
   productId: z.string().optional(),
