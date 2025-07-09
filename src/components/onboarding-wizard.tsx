@@ -1,68 +1,129 @@
 // src/components/onboarding-wizard.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { getUserByEmail } from '@/lib/actions';
-import { Loader2, Rocket, PartyPopper } from 'lucide-react';
+import React, { useState, useTransition, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 
-import AuthLayout from '@/components/auth-layout';
-import OnboardingWizard from '@/components/onboarding-wizard';
 import type { User } from '@/types';
+import { onboardingFormSchema, type OnboardingFormValues } from '@/lib/schemas';
+import { completeOnboarding } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
 
-export default function OnboardingPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+import { Button } from '@/components/ui/button';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Rocket, PartyPopper, Loader2 } from 'lucide-react';
+import { Progress } from './ui/progress';
+
+export default function OnboardingWizard({ user }: { user: User | null }) {
+  const [step, setStep] = useState(1);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
   const router = useRouter();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
-      if (firebaseUser?.email) {
-        try {
-          const appUser = await getUserByEmail(firebaseUser.email);
-          if (appUser) {
-            // If they have somehow already completed onboarding, send them to the dashboard.
-            if (appUser.onboardingComplete) {
-              router.replace('/dashboard');
-              return;
-            }
-            setUser(appUser);
-          } else {
-            // This case shouldn't happen in the normal flow, but it's good to handle.
-            router.replace('/signup');
-          }
-        } catch (error) {
-          console.error("Failed to fetch user profile for onboarding:", error);
-          router.replace('/login');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        // No user logged in, redirect to login page.
-        router.replace('/login');
-      }
-    });
+  const form = useForm<OnboardingFormValues>({
+    resolver: zodResolver(onboardingFormSchema),
+    defaultValues: {
+      companyName: user?.fullName ? `${user.fullName}'s Company` : '',
+      industry: '',
+    },
+  });
 
-    return () => unsubscribe();
+  const onSubmit = useCallback(
+    async (values: OnboardingFormValues) => {
+      if (!user) return;
+      startTransition(async () => {
+        try {
+          await completeOnboarding(values, user.id);
+          setStep(2); // Move to the success step
+        } catch (error) {
+          toast({
+            title: 'Onboarding Failed',
+            description: 'Could not save your information. Please try again.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [user, startTransition, toast, setStep],
+  );
+
+  const handleFinish = useCallback(() => {
+    router.push('/dashboard');
   }, [router]);
 
+  if (step === 2) {
+    return (
+      <div className="flex flex-col items-center text-center">
+        <PartyPopper className="h-16 w-16 text-primary mb-4" />
+        <h2 className="text-xl font-semibold">You're All Set!</h2>
+        <p className="text-muted-foreground mt-2">
+          Your company profile has been created. Let's dive into the dashboard.
+        </p>
+        <Button onClick={handleFinish} className="mt-6 w-full">
+          Go to Dashboard
+        </Button>
+      </div>
+    );
+  }
+
   return (
-    <AuthLayout
-      title="Welcome to Norruva!"
-      description="Let's get your account set up."
-      footerText=""
-      footerLinkText=""
-      footerLinkHref=""
-    >
-      {isLoading ? (
-        <div className="flex justify-center items-center h-48">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    <div className="space-y-6">
+      <Progress value={(step / 2) * 100} className="w-full" />
+      <div className="flex items-center gap-4">
+        <div className="flex-shrink-0 bg-primary/10 p-3 rounded-full">
+          <Rocket className="h-6 w-6 text-primary" />
         </div>
-      ) : (
-        <OnboardingWizard user={user} />
-      )}
-    </AuthLayout>
+        <div>
+          <h2 className="font-semibold">Company Details</h2>
+          <p className="text-sm text-muted-foreground">
+            Tell us a bit about your company.
+          </p>
+        </div>
+      </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="companyName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Company Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Acme Innovations" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="industry"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Industry (Optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Electronics, Fashion" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Continue
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
