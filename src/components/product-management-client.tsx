@@ -5,7 +5,7 @@ import React, { useState, useTransition, useEffect, useCallback, useMemo } from 
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants';
 
@@ -54,12 +54,11 @@ export default function ProductManagementClient({
   const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
-  console.log("ProductManagementClient roleSlug:", roleSlug);
 
   const fetchProducts = useCallback(() => {
     setIsLoading(true);
 
-    let q = query(collection(db, Collections.PRODUCTS));
+    let q = query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'));
     if (!hasRole(user, UserRoles.ADMIN)) {
         q = query(q, where('companyId', '==', user.companyId));
     }

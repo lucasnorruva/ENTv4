@@ -109,7 +109,6 @@ export default function ProductTable({
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
-  console.log('ProductTable roleSlug:', roleSlug);
 
   const getStatusVariant = (status: Product['status']) => {
     switch (status) {
