@@ -132,12 +132,12 @@ export default function UserManagementClient({
     return () => unsubscribe();
   }, [fetchData, toast]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedUser(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleImport = () => setIsImportOpen(true);
+  const handleImport = useCallback(() => setIsImportOpen(true), []);
   
   const handleImportSave = useCallback(() => {
     toast({
