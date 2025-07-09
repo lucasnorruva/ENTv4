@@ -13,6 +13,22 @@ import { z } from 'genkit';
 import { MOCK_CUSTOMS_DATA } from "@/lib/customs-data";
 import { AnalyzeProductTransitRiskInputSchema, AnalyzeProductTransitRiskOutputSchema, type AnalyzeProductTransitRiskInput, type ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 
+const CustomsDataSchema = z.object({
+  region: z.string(),
+  summary: z.string(),
+  keyDocs: z.array(z.string()),
+  tariffs: z.string(),
+  riskLevel: z.enum(['High', 'Medium', 'Low']),
+  notes: z.string(),
+  relatedRegulations: z.array(
+    z.object({
+      name: z.string(),
+      link: z.string().url(),
+    })
+  ),
+  keywords: z.array(z.string()),
+});
+
 // Helper to provide context data to the prompt
 const getContextForCountries = (origin: string, destination: string) => {
   const originData = MOCK_CUSTOMS_DATA.find(d =>
@@ -36,8 +52,8 @@ const prompt = ai.definePrompt({
     schema: z.object({
       productName: z.string(),
       productCategory: z.string(),
-      originContext: z.any().optional(),
-      destinationContext: z.any().optional(),
+      originContext: CustomsDataSchema.optional(),
+      destinationContext: CustomsDataSchema.optional(),
     }),
   },
   output: { schema: AnalyzeProductTransitRiskOutputSchema },
@@ -86,5 +102,3 @@ const analyzeProductTransitRiskFlow = ai.defineFlow(
     return output!;
   },
 );
-
-    

@@ -14,6 +14,22 @@ import type { Product } from '@/types';
 import { AnalyzeSimulatedRouteInputSchema, AnalyzeSimulatedRouteOutputSchema, type AnalyzeSimulatedRouteInput, type AnalyzeSimulatedRouteOutput } from '@/types/ai-outputs';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
 
+const CustomsDataSchema = z.object({
+    region: z.string(),
+    summary: z.string(),
+    keyDocs: z.array(z.string()),
+    tariffs: z.string(),
+    riskLevel: z.enum(['High', 'Medium', 'Low']),
+    notes: z.string(),
+    relatedRegulations: z.array(
+      z.object({
+        name: z.string(),
+        link: z.string().url(),
+      })
+    ),
+    keywords: z.array(z.string()),
+  });
+
 // Helper to provide context data to the prompt
 const getContextForCountries = (origin: string, destination: string) => {
   const originData = MOCK_CUSTOMS_DATA.find(d =>
@@ -39,8 +55,8 @@ const prompt = ai.definePrompt({
       productCategory: z.string(),
       originCountry: z.string(),
       destinationCountry: z.string(),
-      originContext: z.any().optional(),
-      destinationContext: z.any().optional(),
+      originContext: CustomsDataSchema.optional(),
+      destinationContext: CustomsDataSchema.optional(),
     }),
   },
   output: { schema: AnalyzeSimulatedRouteOutputSchema },
@@ -96,5 +112,3 @@ const analyzeSimulatedRouteFlow = ai.defineFlow(
     return output!;
   },
 );
-
-    

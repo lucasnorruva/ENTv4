@@ -3,6 +3,75 @@
 
 import type { Product, CompliancePath, ComplianceGap } from '@/types';
 
+type ComplianceChecker = (
+  compliance: Product['compliance'],
+) => ComplianceGap | null;
+
+const regulationCheckers: Record<string, ComplianceChecker> = {
+  rohs: c =>
+    !c?.rohs?.compliant
+      ? {
+          regulation: 'RoHS',
+          issue: 'Product is not declared as RoHS compliant.',
+        }
+      : null,
+  reach: c =>
+    !c?.reach?.svhcDeclared
+      ? {
+          regulation: 'REACH',
+          issue:
+            'Product has not been declared for Substances of Very High Concern (SVHC).',
+        }
+      : null,
+  weee: c =>
+    !c?.weee?.registered
+      ? {
+          regulation: 'WEEE',
+          issue: 'Product is not registered with a WEEE compliance scheme.',
+        }
+      : null,
+  eudr: c =>
+    !c?.eudr?.compliant
+      ? {
+          regulation: 'EUDR',
+          issue:
+            'Product does not have a valid EU Deforestation-Free Regulation declaration.',
+        }
+      : null,
+  'eu battery regulation': c =>
+    !c?.battery?.compliant
+      ? {
+          regulation: 'EU Battery Regulation',
+          issue:
+            'Product is not declared as compliant with the EU Battery Regulation.',
+        }
+      : null,
+  pfas: c =>
+    !c?.pfas?.declared
+      ? {
+          regulation: 'PFAS',
+          issue: 'Product has not been declared for PFAS substances.',
+        }
+      : null,
+  'conflict minerals': c =>
+    !c?.conflictMinerals?.compliant
+      ? {
+          regulation: 'Conflict Minerals',
+          issue:
+            'Product is not declared as compliant with Conflict Minerals regulations.',
+        }
+      : null,
+  espr: c =>
+    !c?.espr?.compliant
+      ? {
+          regulation: 'ESPR',
+          issue:
+            'Product is not declared as compliant with Ecodesign for Sustainable Products Regulation.',
+        }
+      : null,
+};
+
+
 /**
  * Verifies a product against a set of compliance rules.
  * This function provides deterministic, rule-based validation.
@@ -16,6 +85,7 @@ export async function verifyProductAgainstPath(
   path: CompliancePath,
 ): Promise<{ isCompliant: boolean; gaps: ComplianceGap[] }> {
   const gaps: ComplianceGap[] = [];
+  const compliance = product.compliance || {};
 
   // Rule 1: Check minimum sustainability score
   const score = product.sustainability?.score;
@@ -67,77 +137,13 @@ export async function verifyProductAgainstPath(
   }
 
   // Rule 4: Check for specific regulation flags based on the path's regulations
-  const compliance = product.compliance || {};
   path.regulations.forEach(reg => {
-    switch (reg.toLowerCase()) {
-      case 'rohs':
-        if (!compliance.rohs?.compliant) {
-          gaps.push({
-            regulation: 'RoHS',
-            issue: 'Product is not declared as RoHS compliant.',
-          });
-        }
-        break;
-      case 'reach':
-        if (!compliance.reach?.svhcDeclared) {
-          gaps.push({
-            regulation: 'REACH',
-            issue:
-              'Product has not been declared for Substances of Very High Concern (SVHC).',
-          });
-        }
-        break;
-      case 'weee':
-        if (!compliance.weee?.registered) {
-          gaps.push({
-            regulation: 'WEEE',
-            issue: 'Product is not registered with a WEEE compliance scheme.',
-          });
-        }
-        break;
-      case 'eudr':
-        if (!compliance.eudr?.compliant) {
-          gaps.push({
-            regulation: 'EUDR',
-            issue:
-              'Product does not have a valid EU Deforestation-Free Regulation declaration.',
-          });
-        }
-        break;
-      case 'eu battery regulation':
-        if (!compliance.battery?.compliant) {
-          gaps.push({
-            regulation: 'EU Battery Regulation',
-            issue:
-              'Product is not declared as compliant with the EU Battery Regulation.',
-          });
-        }
-        break;
-      case 'pfas':
-        if (!compliance.pfas?.declared) {
-          gaps.push({
-            regulation: 'PFAS',
-            issue: 'Product has not been declared for PFAS substances.',
-          });
-        }
-        break;
-      case 'conflict minerals':
-        if (!compliance.conflictMinerals?.compliant) {
-          gaps.push({
-            regulation: 'Conflict Minerals',
-            issue:
-              'Product is not declared as compliant with Conflict Minerals regulations.',
-          });
-        }
-        break;
-      case 'espr':
-        if (!compliance.espr?.compliant) {
-            gaps.push({
-                regulation: 'ESPR',
-                issue: 'Product is not declared as compliant with Ecodesign for Sustainable Products Regulation.'
-            });
-        }
-        break;
+    const checker = regulationCheckers[reg.toLowerCase()];
+    if (checker) {
+      const gap = checker(compliance);
+      if (gap) {
+        gaps.push(gap);
+      }
     }
   });
 
