@@ -1,6 +1,6 @@
 // src/app/dashboard/admin/companies/page.tsx
 import { redirect } from 'next/navigation';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, getCompanies } from '@/lib/auth';
 import { hasRole } from '@/lib/auth-utils';
 import CompanyManagementClient from '@/components/company-management-client';
 import { UserRoles } from '@/lib/constants';
@@ -15,5 +15,6 @@ export default async function CompaniesPage() {
   }
 
   // The client component will fetch and listen to company data in real-time.
-  return <CompanyManagementClient adminUser={user} />;
+  const initialCompanies = await getCompanies();
+  return <CompanyManagementClient adminUser={user} initialCompanies={initialCompanies} />;
 }

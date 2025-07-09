@@ -1,13 +1,11 @@
 // src/components/flagged-products-client.tsx
-'use client'
+'use client';
 
-import React, { useTransition, useState, useEffect, useCallback } from 'react';
+import React, { useTransition, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, ShieldCheck } from 'lucide-react';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Table,
@@ -24,44 +22,16 @@ import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {
   user: User;
+  initialProducts: Product[];
 }
 
 export default function FlaggedProductsClient({
   user,
+  initialProducts,
 }: FlaggedProductsClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-
-  useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Failed'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const flagged = querySnapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() } as Product),
-        );
-        setProducts(flagged);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching flagged products:', error);
-        toast({
-          title: 'Error',
-          description: 'Could not load flagged products.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-    return () => unsubscribe();
-  }, [toast]);
+  const router = useRouter();
 
   const handleResolve = (product: Product) => {
     startTransition(async () => {
@@ -71,9 +41,9 @@ export default function FlaggedProductsClient({
           title: 'Issue Resolved',
           description: `Product "${product.productName}" has been sent back to the supplier for revision.`,
         });
-        // The real-time listener will update the list automatically.
+        router.refresh();
       } catch (error) {
-        toast({ // Removed unused 'error' variable
+        toast({
           title: 'Error',
           description: 'Failed to resolve the compliance issue.',
           variant: 'destructive',
@@ -93,14 +63,8 @@ export default function FlaggedProductsClient({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {isLoading && products.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={4} className="h-48 text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-            </TableCell>
-          </TableRow>
-        ) : products.length > 0 ? (
-          products.map(product => (
+        {initialProducts.length > 0 ? (
+          initialProducts.map(product => (
             <TableRow key={product.id}>
               <TableCell className="font-medium">
                 {product.productName}

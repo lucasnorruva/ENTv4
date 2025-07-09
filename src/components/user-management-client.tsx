@@ -4,7 +4,6 @@
 import React, {
   useState,
   useTransition,
-  useEffect,
   useMemo,
   useCallback,
 } from 'react';
@@ -13,7 +12,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Loader2,
   Users,
   ArrowUpDown,
   ChevronDown,
@@ -33,9 +31,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -79,20 +74,20 @@ import {
 import type { Company, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions/user-actions';
-import { getCompanies } from '@/lib/auth';
 import UserForm from './user-form';
 import UserImportDialog from './user-import-dialog';
 
 interface UserManagementClientProps {
-  user: User;
+  adminUser: User;
+  initialUsers: User[];
+  initialCompanies: Company[];
 }
 
 export default function UserManagementClient({
   adminUser,
+  initialUsers,
+  initialCompanies,
 }: UserManagementClientProps) {
-  const [users, setUsers] = useState<User[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -108,40 +103,21 @@ export default function UserManagementClient({
     useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState('');
 
-  useEffect(() => {
-    setIsLoading(true);
-    getCompanies()
-      .then(setCompanies)
-      .catch(err => toast({ title: 'Error fetching companies', variant: 'destructive' }));
-  
-    const q = query(collection(db, Collections.USERS), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, snapshot => {
-      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
-      setUsers(usersData);
-      setIsLoading(false);
-    }, (error) => {
-        console.error('Error fetching users:', error);
-        toast({ title: 'Error fetching users', variant: 'destructive' });
-        setIsLoading(false);
-    });
-  
-    return () => unsubscribe();
-  }, [toast]);
-
   const handleCreateNew = useCallback(() => {
     setSelectedUser(null);
     setIsFormOpen(true);
   }, []);
 
   const handleImport = useCallback(() => setIsImportOpen(true), []);
-  
+
   const handleImportSave = useCallback(() => {
     toast({
       title: 'Import in Progress',
       description: 'New users will appear in the table shortly.',
     });
     setIsImportOpen(false);
-  }, [toast]);
+    router.refresh();
+  }, [toast, router]);
 
   const handleEdit = useCallback((user: User) => {
     setSelectedUser(user);
@@ -157,6 +133,7 @@ export default function UserManagementClient({
             title: 'User Deleted',
             description: `User "${userToDelete.fullName}" has been successfully deleted.`,
           });
+          router.refresh();
         } catch (error) {
           toast({
             title: 'Error',
@@ -166,17 +143,17 @@ export default function UserManagementClient({
         }
       });
     },
-    [adminUser.id, toast],
+    [adminUser.id, toast, router],
   );
 
   const handleSave = useCallback(() => {
-    // Data is updated via listener, just need to close form
     setIsFormOpen(false);
-  }, []);
+    router.refresh();
+  }, [router]);
 
   const companyMap = useMemo(() => {
-    return new Map(companies.map(c => [c.id, c.name]));
-  }, [companies]);
+    return new Map(initialCompanies.map(c => [c.id, c.name]));
+  }, [initialCompanies]);
 
   const columns: ColumnDef<User>[] = useMemo(
     () => [
@@ -290,7 +267,7 @@ export default function UserManagementClient({
   );
 
   const table = useReactTable({
-    data: users,
+    data: initialUsers,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -374,71 +351,65 @@ export default function UserManagementClient({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map(header => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        );
-                      })}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map(header => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map(row => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map(row => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map(cell => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-48 text-center"
-                      >
-                        <div className="flex flex-col items-center justify-center gap-4">
-                          <Users className="h-12 w-12 text-muted-foreground" />
-                          <h3 className="text-xl font-semibold">
-                            No Users Found
-                          </h3>
-                          <p className="text-muted-foreground">
-                            Invite the first user to get started.
-                          </p>
-                          <Button onClick={handleCreateNew}>Invite User</Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-48 text-center"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <Users className="h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold">
+                          No Users Found
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Invite the first user to get started.
+                        </p>
+                        <Button onClick={handleCreateNew}>Invite User</Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
               variant="outline"
@@ -465,9 +436,9 @@ export default function UserManagementClient({
         user={selectedUser}
         adminUser={adminUser}
         onSave={handleSave}
-        companies={companies}
+        companies={initialCompanies}
       />
-       <UserImportDialog
+      <UserImportDialog
         isOpen={isImportOpen}
         onOpenChange={setIsImportOpen}
         onSave={handleImportSave}

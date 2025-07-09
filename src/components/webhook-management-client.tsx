@@ -1,20 +1,17 @@
 // src/components/webhook-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useTransition, useCallback, useMemo } from 'react';
 import {
   MoreHorizontal,
   Plus,
   Edit,
   Trash2,
-  Loader2,
   Webhook as WebhookIcon,
   BookOpen,
 } from 'lucide-react';
 import Link from 'next/link';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
 
 import {
   Card,
@@ -65,43 +62,18 @@ import {
 
 interface WebhookManagementClientProps {
   user: User;
+  initialWebhooks: Webhook[];
 }
 
 export default function WebhookManagementClient({
   user,
+  initialWebhooks,
 }: WebhookManagementClientProps) {
-  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-
-  useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.WEBHOOKS),
-      where('userId', '==', user.id),
-      orderBy('createdAt', 'desc')
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const hooksData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Webhook));
-        setWebhooks(hooksData);
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error fetching webhooks: ", error);
-        toast({
-            title: 'Error',
-            description: 'Could not load webhooks in real-time.',
-            variant: 'destructive',
-          });
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-
-  }, [user.id, toast]);
+  const router = useRouter();
 
   const handleCreateNew = useCallback(() => {
     setSelectedWebhook(null);
@@ -121,6 +93,7 @@ export default function WebhookManagementClient({
           title: 'Webhook Deleted',
           description: 'The webhook has been successfully deleted.',
         });
+        router.refresh();
       } catch (error) {
         toast({
           title: 'Error',
@@ -129,12 +102,12 @@ export default function WebhookManagementClient({
         });
       }
     });
-  }, [user.id, toast]);
+  }, [user.id, toast, router]);
 
   const handleSave = useCallback((savedWebhook: Webhook) => {
-    // State will be updated by the real-time listener.
     setIsFormOpen(false);
-  }, []);
+    router.refresh();
+  }, [router]);
   
   const columns: ColumnDef<Webhook>[] = useMemo(
     () => [
@@ -246,7 +219,7 @@ export default function WebhookManagementClient({
   );
 
   const table = useReactTable({
-    data: webhooks,
+    data: initialWebhooks,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -268,11 +241,6 @@ export default function WebhookManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map(headerGroup => (
@@ -324,7 +292,6 @@ export default function WebhookManagementClient({
                 )}
               </TableBody>
             </Table>
-          )}
         </CardContent>
       </Card>
       <WebhookForm

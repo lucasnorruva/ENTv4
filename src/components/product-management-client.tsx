@@ -4,22 +4,12 @@
 import React, {
   useState,
   useTransition,
-  useEffect,
   useCallback,
   useMemo,
 } from 'react';
 import Link from 'next/link';
-import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
+import { Plus, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  orderBy,
-} from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -50,15 +40,15 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
+  initialProducts: Product[];
   compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagementClient({
   user,
+  initialProducts,
   compliancePaths,
 }: ProductManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
@@ -66,39 +56,6 @@ export default function ProductManagementClient({
   const router = useRouter();
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
-
-  const fetchProducts = useCallback(() => {
-    const isAdmin = hasRole(user, UserRoles.ADMIN);
-    let q;
-    if (isAdmin) {
-      q = query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'));
-    } else {
-      q = query(
-        collection(db, Collections.PRODUCTS),
-        where('companyId', '==', user.companyId),
-        orderBy('lastUpdated', 'desc')
-      );
-    }
-    
-    setIsLoading(true);
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-      setProducts(productsData);
-      setIsLoading(false);
-    }, (error) => {
-      console.error("Error fetching products:", error);
-      toast({ title: "Error", description: "Failed to load products in real-time.", variant: "destructive" });
-      setIsLoading(false);
-    });
-
-    return unsubscribe;
-  }, [user, toast]);
-
-  useEffect(() => {
-    const unsubscribe = fetchProducts();
-    return () => unsubscribe();
-  }, [fetchProducts]);
-
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
@@ -115,8 +72,8 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    // Real-time listener will update the data automatically.
-  }, [toast]);
+    router.refresh();
+  }, [toast, router]);
 
   const handleAnalysisComplete = useCallback(
     (data: CreateProductFromImageOutput) => {
@@ -132,96 +89,37 @@ export default function ProductManagementClient({
 
   const [isPending, startTransition] = useTransition();
 
-  const handleBulkAction = useCallback(
-    async (
-      action: (ids: string[], userId: string) => Promise<any>,
-      productIds: string[],
-      successMessage: string,
-    ) => {
-      startTransition(async () => {
-        await action(productIds, user.id);
+  const handleAction = useCallback((action: () => Promise<any>, successMessage: string) => {
+    startTransition(async () => {
+        await action();
         toast({ title: successMessage });
-      });
-    },
-    [toast, user.id],
-  );
+        router.refresh();
+    });
+  }, [toast, router, startTransition]);
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      startTransition(async () => {
-        await deleteProduct(id, user.id);
-        toast({ title: 'Product Deleted' });
-      });
-    },
-    [toast, user.id],
-  );
-
-  const handleSubmitForReview = useCallback(
-    (id: string) => {
-      startTransition(async () => {
-        await submitForReview(id, user.id);
-        toast({ title: 'Product Submitted' });
-      });
-    },
-    [toast, user.id],
-  );
-
-  const handleRecalculateScore = useCallback(
-    (id: string, name: string) => {
-      startTransition(async () => {
-        await recalculateScore(id, user.id);
-        toast({ title: `Recalculating score for ${name}...` });
-      });
-    },
-    [toast, user.id],
-  );
-
-  const handleBulkDelete = useCallback(
-    (ids: string[]) =>
-      handleBulkAction(
-        bulkDeleteProducts,
-        ids,
-        `Deleted ${ids.length} products.`,
-      ),
-    [handleBulkAction],
-  );
-
-  const handleBulkSubmit = useCallback(
-    (ids: string[]) =>
-      handleBulkAction(
-        bulkSubmitForReview,
-        ids,
-        `Submitted ${ids.length} products.`,
-      ),
-    [handleBulkAction],
-  );
-
-  const handleBulkArchive = useCallback(
-    (ids: string[]) =>
-      handleBulkAction(
-        bulkArchiveProducts,
-        ids,
-        `Archived ${ids.length} products.`,
-      ),
-    [handleBulkAction],
-  );
+  const handleDelete = useCallback((id: string) => handleAction(() => deleteProduct(id, user.id), 'Product Deleted'), [handleAction, user.id]);
+  const handleSubmitForReview = useCallback((id: string) => handleAction(() => submitForReview(id, user.id), 'Product Submitted'), [handleAction, user.id]);
+  const handleRecalculateScore = useCallback((id: string, name: string) => handleAction(() => recalculateScore(id, user.id), `Recalculating score for ${name}...`), [handleAction, user.id]);
+  const handleBulkDelete = useCallback((ids: string[]) => handleAction(() => bulkDeleteProducts(ids, user.id), `Deleted ${ids.length} products.`), [handleAction, user.id]);
+  const handleBulkSubmit = useCallback((ids: string[]) => handleAction(() => bulkSubmitForReview(ids, user.id), `Submitted ${ids.length} products.`), [handleAction, user.id]);
+  const handleBulkArchive = useCallback((ids: string[]) => handleAction(() => bulkArchiveProducts(ids, user.id), `Archived ${ids.length} products.`), [handleAction, user.id]);
 
   const filteredProducts = useMemo(() => {
     switch (activeTab) {
       case 'needsAction':
-        return products.filter(
+        return initialProducts.filter(
           p => p.status === 'Draft' || p.verificationStatus === 'Failed',
         );
       case 'live':
-        return products.filter(
+        return initialProducts.filter(
           p => p.status === 'Published' && p.verificationStatus === 'Verified',
         );
       case 'archived':
-        return products.filter(p => p.status === 'Archived');
+        return initialProducts.filter(p => p.status === 'Archived');
       default:
-        return products.filter(p => p.status !== 'Archived');
+        return initialProducts.filter(p => p.status !== 'Archived');
     }
-  }, [products, activeTab]);
+  }, [initialProducts, activeTab]);
 
   return (
     <>
@@ -259,12 +157,12 @@ export default function ProductManagementClient({
           >
             <TabsList>
               <TabsTrigger value="all">
-                All ({products.filter(p => p.status !== 'Archived').length})
+                All ({initialProducts.filter(p => p.status !== 'Archived').length})
               </TabsTrigger>
               <TabsTrigger value="needsAction">
                 Needs Action (
                 {
-                  products.filter(
+                  initialProducts.filter(
                     p =>
                       p.status === 'Draft' || p.verificationStatus === 'Failed',
                   ).length
@@ -274,7 +172,7 @@ export default function ProductManagementClient({
               <TabsTrigger value="live">
                 Live (
                 {
-                  products.filter(
+                  initialProducts.filter(
                     p =>
                       p.status === 'Published' &&
                       p.verificationStatus === 'Verified',
@@ -283,28 +181,23 @@ export default function ProductManagementClient({
                 )
               </TabsTrigger>
               <TabsTrigger value="archived">
-                Archived ({products.filter(p => p.status === 'Archived').length}
+                Archived ({initialProducts.filter(p => p.status === 'Archived').length}
                 )
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-96">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <ProductTable
-              products={filteredProducts}
-              user={user}
-              isProcessingAction={isPending}
-              onDelete={handleDelete}
-              onSubmitForReview={handleSubmitForReview}
-              onRecalculateScore={handleRecalculateScore}
-              onBulkDelete={handleBulkDelete}
-              onBulkSubmit={handleBulkSubmit}
-              onBulkArchive={handleBulkArchive}
-            />
-          )}
+
+          <ProductTable
+            products={filteredProducts}
+            user={user}
+            isProcessingAction={isPending}
+            onDelete={handleDelete}
+            onSubmitForReview={handleSubmitForReview}
+            onRecalculateScore={handleRecalculateScore}
+            onBulkDelete={handleBulkDelete}
+            onBulkSubmit={handleBulkSubmit}
+            onBulkArchive={handleBulkArchive}
+          />
         </CardContent>
       </Card>
       {canCreate && (

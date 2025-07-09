@@ -4,15 +4,14 @@
 import React, {
   useState,
   useTransition,
-  useEffect,
   useCallback,
+  useMemo,
 } from 'react';
 import {
   MoreHorizontal,
   Plus,
   Edit,
   Trash2,
-  Loader2,
   Building2,
   ArrowUpDown,
   ChevronDown,
@@ -32,9 +31,6 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -80,13 +76,13 @@ import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
   adminUser: User;
+  initialCompanies: Company[];
 }
 
 export default function CompanyManagementClient({
   adminUser,
+  initialCompanies,
 }: CompanyManagementClientProps) {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -101,36 +97,6 @@ export default function CompanyManagementClient({
     {},
   );
   const [globalFilter, setGlobalFilter] = useState('');
-
-  useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.COMPANIES),
-      orderBy('createdAt', 'desc'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const companiesData = querySnapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() } as Company),
-        );
-        setCompanies(companiesData);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching companies:', error);
-        toast({
-          title: 'Error loading companies',
-          description: 'Could not fetch company data in real-time.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
 
   const handleCreateNew = useCallback(() => {
     setSelectedCompany(null);
@@ -151,6 +117,7 @@ export default function CompanyManagementClient({
             title: 'Company Deleted',
             description: `Company "${company.name}" has been successfully deleted.`,
           });
+          router.refresh();
         } catch (error) {
           console.error('Error deleting company:', error);
           toast({
@@ -159,16 +126,20 @@ export default function CompanyManagementClient({
             variant: 'destructive',
           });
         }
+      });
     },
-    [adminUser.id, toast],
+    [adminUser.id, toast, router],
   );
 
-  const handleSave = useCallback((savedCompany: Company) => {
-    // No need to update state manually, the listener will do it.
-    setIsFormOpen(false);
-  }, []);
+  const handleSave = useCallback(
+    (savedCompany: Company) => {
+      setIsFormOpen(false);
+      router.refresh();
+    },
+    [router],
+  );
 
-  const columns: ColumnDef<Company>[] = React.useMemo(() =>
+  const columns: ColumnDef<Company>[] = useMemo(
     () => [
       {
         accessorKey: 'name',
@@ -275,9 +246,10 @@ export default function CompanyManagementClient({
       },
     ],
     [isPending, router, handleEdit, handleDelete],
+  );
 
   const table = useReactTable({
-    data: companies,
+    data: initialCompanies,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -346,73 +318,68 @@ export default function CompanyManagementClient({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {isLoading ? (
-            <div className="flex justify-center items-center h-48">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map(header => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        );
-                      })}
+
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map(header => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map(row => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && 'selected'}
+                    >
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map(row => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && 'selected'}
-                      >
-                        {row.getVisibleCells().map(cell => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-48 text-center"
-                      >
-                        <div className="flex flex-col items-center justify-center gap-4">
-                          <Building2 className="h-12 w-12 text-muted-foreground" />
-                          <h3 className="text-xl font-semibold">
-                            No Companies Found
-                          </h3>
-                          <p className="text-muted-foreground">
-                            Create the first company to get started.
-                          </p>
-                          <Button onClick={handleCreateNew}>
-                            <Plus className="mr-2 h-4 w-4" /> Create Company
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-48 text-center"
+                    >
+                      <div className="flex flex-col items-center justify-center gap-4">
+                        <Building2 className="h-12 w-12 text-muted-foreground" />
+                        <h3 className="text-xl font-semibold">
+                          No Companies Found
+                        </h3>
+                        <p className="text-muted-foreground">
+                          Create the first company to get started.
+                        </p>
+                        <Button onClick={handleCreateNew}>
+                          <Plus className="mr-2 h-4 w-4" /> Create Company
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
               variant="outline"

@@ -1,8 +1,7 @@
-
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -15,14 +14,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
-import { useToast } from '@/hooks/use-toast';
 import type { Product, User } from '@/types';
 
 import { Button } from '@/components/ui/button';
@@ -45,14 +40,12 @@ import { AuditReviewDialog } from '@/components/audit-review-dialog';
 
 interface AuditQueueClientProps {
   user: User;
+  initialProducts: Product[];
 }
 
-export function AuditQueueClient({ user }: AuditQueueClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuditQueueClient({ user, initialProducts }: AuditQueueClientProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { toast } = useToast();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'updatedAt', desc: true },
@@ -61,37 +54,6 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     {},
   );
-  
-  useEffect(() => {
-    setIsLoading(true);
-    const q = query(
-      collection(db, Collections.PRODUCTS),
-      where('verificationStatus', '==', 'Pending'),
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      querySnapshot => {
-        const pendingProducts = querySnapshot.docs.map(
-          doc => ({ id: doc.id, ...doc.data() } as Product),
-        );
-        setProducts(pendingProducts);
-        setIsLoading(false);
-      },
-      error => {
-        console.error('Error fetching audit queue:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load audit queue.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-      },
-    );
-
-    return () => unsubscribe();
-  }, [toast]);
-
 
   const handleReviewClick = useCallback((product: Product) => {
     setSelectedProduct(product);
@@ -174,7 +136,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
   );
 
   const table = useReactTable({
-    data: products,
+    data: initialProducts,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -249,16 +211,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
             ))}
           </TableHeader>
           <TableBody>
-            {isLoading && products.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-48 text-center"
-                >
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-                </TableCell>
-              </TableRow>
-            ) : table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
