@@ -168,7 +168,7 @@ export default function RegulationSyncClient({
         toast({
           title: 'Error',
           description:
-            err.message || 'Failed to load regulation source statuses.',
+            (err as Error).message || 'Failed to load regulation source statuses.',
           variant: 'destructive',
         });
       })
@@ -179,33 +179,50 @@ export default function RegulationSyncClient({
     fetchData();
   }, [fetchData]);
 
-  const handleAction = (
-    actionFn: (id: string, userId: string) => Promise<RegulationSource>,
-    sourceId: string,
-    successTitle: string,
-  ) => {
-    setProcessingId(sourceId);
-    startTransition(async () => {
-      try {
-        const updatedSource = await actionFn(sourceId, user.id);
-        setSources(prev =>
-          prev.map(s => (s.id === sourceId ? updatedSource : s)),
-        );
-        toast({
-          title: successTitle,
-          description: `Successfully processed ${updatedSource.name}.`,
-        });
-      } catch (err: any) {
-        toast({
-          title: 'Action Failed',
-          description: err.message,
-          variant: 'destructive',
-        });
-      } finally {
-        setProcessingId(null);
-      }
-    });
-  };
+  const handleAction = useCallback(
+    (
+      actionFn: (id: string, userId: string) => Promise<RegulationSource>,
+      sourceId: string,
+      successTitle: string,
+    ) => {
+      setProcessingId(sourceId);
+      startTransition(async () => {
+        try {
+          const updatedSource = await actionFn(sourceId, user.id);
+          setSources(prev =>
+            prev.map(s => (s.id === sourceId ? updatedSource : s)),
+          );
+          toast({
+            title: successTitle,
+            description: `Successfully processed ${updatedSource.name}.`,
+          });
+        } catch (err: any) {
+          toast({
+            title: 'Action Failed',
+            description: err.message,
+            variant: 'destructive',
+          });
+        } finally {
+          setProcessingId(null);
+        }
+      });
+    },
+    [user.id, toast],
+  );
+
+  const handleHealthCheck = useCallback(
+    (id: string) => {
+      handleAction(runHealthCheck, id, 'Health Check Complete');
+    },
+    [handleAction],
+  );
+
+  const handleSync = useCallback(
+    (id: string) => {
+      handleAction(runSync, id, 'Sync Complete');
+    },
+    [handleAction],
+  );
 
   return (
     <div className="space-y-6">
@@ -225,10 +242,8 @@ export default function RegulationSyncClient({
             <RegulationCard
               key={source.id}
               source={source}
-              onHealthCheck={(id: string) =>
-                handleAction(runHealthCheck, id, 'Health Check Complete')
-              }
-              onSync={(id: string) => handleAction(runSync, id, 'Sync Complete')}
+              onHealthCheck={handleHealthCheck}
+              onSync={handleSync}
               isProcessing={isProcessing}
               processingId={processingId}
             />
