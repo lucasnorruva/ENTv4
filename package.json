@@ -75,7 +75,6 @@
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.165.0",
-    "turbo": "^2.5.4",
     "use-debounce": "^10.0.1",
     "viem": "^2.17.4",
     "zod": "^3.23.8"
@@ -99,6 +98,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tsx": "^4.16.2",
+    "turbo": "^2.5.4",
     "typescript": "^5"
   }
 }
