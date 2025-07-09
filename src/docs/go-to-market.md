@@ -1,3 +1,4 @@
+
 # 8. Go-to-Market Strategy & Regulatory Alignment
 
 ## Vertical-Specific Go-to-Market (GTM)

@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/textile-tab.tsx
 'use client';
 

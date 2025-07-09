@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -16,6 +17,8 @@ import type {
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
+import type { Integration as IntegrationType } from './integrations';
+
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
@@ -24,6 +27,8 @@ export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
 export type TextileAnalysis = AnalyzeTextileOutput;
+export type Integration = IntegrationType;
+
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -386,7 +391,7 @@ export interface ApiKey extends BaseEntity {
   scopes: string[];
   lastUsed?: string;
   expiresAt?: string; // ISO 8601 date string
-  ipRestrictions?: string[]; // Array of CIDR notations
+  ipRestrictions?: string[];
 }
 
 /**
@@ -455,5 +460,3 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
-
-    
