@@ -111,14 +111,13 @@ export default function TwoFactorSetupDialog({
     });
   }, [secret, verificationCode, user.id, toast, onSuccess, onClose]);
 
-
-  const copySecretToClipboard = () => {
+  const copySecretToClipboard = useCallback(() => {
     if (secret?.secretKey) {
       navigator.clipboard.writeText(secret.secretKey);
       setHasCopied(true);
       setTimeout(() => setHasCopied(false), 2000);
     }
-  };
+  }, [secret]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
