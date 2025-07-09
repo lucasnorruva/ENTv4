@@ -151,7 +151,7 @@ export default function ProductDetailView({
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="crypto">Crypto &amp; Trust</TabsTrigger>
+                <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
               </TabsList>
@@ -173,7 +173,7 @@ export default function ProductDetailView({
                   compliancePath={compliancePath}
                 />
               </TabsContent>
-              <TabsContent value="crypto" className="mt-4">
+              <TabsContent value="trust" className="mt-4">
                 <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
               </TabsContent>
               <TabsContent value="history" className="mt-4">
