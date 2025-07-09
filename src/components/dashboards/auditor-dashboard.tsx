@@ -1,3 +1,4 @@
+// src/components/dashboards/auditor-dashboard.tsx
 import { getProducts } from '@/lib/actions/product-actions';
 import type { User } from '@/types';
 import AuditorDashboardClient from './auditor-dashboard-client';
