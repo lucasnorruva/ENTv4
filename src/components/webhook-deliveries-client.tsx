@@ -50,6 +50,13 @@ interface WebhookDeliveriesClientProps {
   user: User;
 }
 
+const getStatusVariant = (status: number) => {
+  if (status >= 500) return 'destructive';
+  if (status >= 400) return 'secondary';
+  if (status >= 200 && status < 300) return 'default';
+  return 'outline';
+};
+
 export default function WebhookDeliveriesClient({
   webhook,
   user,
@@ -106,13 +113,6 @@ export default function WebhookDeliveriesClient({
       }
     });
   }, [user.id, toast, startReplayTransition]);
-
-  const getStatusVariant = (status: number) => {
-    if (status >= 500) return 'destructive';
-    if (status >= 400) return 'secondary';
-    if (status >= 200 && status < 300) return 'default';
-    return 'outline';
-  };
 
   return (
     <>

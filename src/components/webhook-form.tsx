@@ -1,7 +1,7 @@
 // src/components/webhook-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -94,25 +94,28 @@ export default function WebhookForm({
     }
   }, [webhook, isOpen, form]);
 
-  const onSubmit = (values: WebhookFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        const saved = await saveWebhook(values, user.id, webhook?.id);
-        toast({
-          title: 'Success!',
-          description: `Webhook for "${saved.url}" has been saved.`,
-        });
-        onSave(saved);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the webhook.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (values: WebhookFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          const saved = await saveWebhook(values, user.id, webhook?.id);
+          toast({
+            title: 'Success!',
+            description: `Webhook for "${saved.url}" has been saved.`,
+          });
+          onSave(saved);
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the webhook.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startSavingTransition, user.id, webhook?.id, toast, onSave, onOpenChange],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
