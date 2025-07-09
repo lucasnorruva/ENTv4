@@ -47,9 +47,6 @@ export {
   analyzeTextileData,
   analyzeFoodSafetyData,
   analyzeConstructionData,
-  analyzeProductTransitRoute,
-  analyzeSimulatedTransitRoute,
-  runHsCodeClassification,
 } from './product-ai-actions';
 
 export {
@@ -84,7 +81,6 @@ export {
   saveCompliancePath,
   deleteCompliancePath,
   generateCompliancePathRules,
-  generateSmartContractForPath,
 } from './compliance-actions';
 
 export {

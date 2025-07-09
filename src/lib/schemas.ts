@@ -46,6 +46,11 @@ const batterySchema = z.object({
   isRemovable: z.boolean().optional(),
 });
 
+const greenClaimSchema = z.object({
+  claim: z.string().min(5, 'Claim must be at least 5 characters.'),
+  substantiation: z.string().min(10, 'Substantiation must be at least 10 characters.'),
+});
+
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -85,6 +90,32 @@ const complianceSchema = z.object({
     .object({
       safe: z.boolean().optional(),
       standard: z.string().optional(),
+    })
+    .optional(),
+  epr: z
+    .object({
+      schemeId: z.string().optional(),
+      producerRegistrationNumber: z.string().optional(),
+      wasteCategory: z.string().optional(),
+    })
+    .optional(),
+  battery: z
+    .object({
+      compliant: z.boolean().optional(),
+      passportId: z.string().optional(),
+    })
+    .optional(),
+  pfas: z.object({ declared: z.boolean().optional() }).optional(),
+  conflictMinerals: z
+    .object({
+      compliant: z.boolean().optional(),
+      reportUrl: z.string().url().or(z.literal('')).optional(),
+    })
+    .optional(),
+  espr: z
+    .object({
+      compliant: z.boolean().optional(),
+      delegatedActUrl: z.string().url().or(z.literal('')).optional(),
     })
     .optional(),
 });
@@ -131,6 +162,12 @@ export const productFormSchema = z.object({
   customData: z.record(z.any()).optional(),
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
+  greenClaims: z.array(greenClaimSchema).optional(),
+  constructionAnalysis: z.any().optional(),
+  electronicsAnalysis: z.any().optional(),
+  foodSafetyAnalysis: z.any().optional(),
+  textileAnalysis: z.any().optional(),
+  hsCodeAnalysis: z.any().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

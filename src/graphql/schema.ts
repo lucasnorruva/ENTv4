@@ -42,7 +42,6 @@ export const typeDefs = gql`
     facility: String!
     country: String!
     manufacturingProcess: String
-    emissionsKgCo2e: Float
   }
 
   input CertificationInput {
@@ -158,6 +157,19 @@ export const typeDefs = gql`
     blockchainProof: BlockchainProof
     compliancePath: CompliancePath
     company: Company
+    constructionAnalysis: ConstructionAnalysis
+  }
+
+  type ConstructionAnalysis {
+    embodiedCarbon: EmbodiedCarbon
+    recyclabilityPotential: String
+    complianceNotes: [String!]
+  }
+  
+  type EmbodiedCarbon {
+      value: Float
+      unit: String
+      assessment: String
   }
 
   type Material {
@@ -171,7 +183,6 @@ export const typeDefs = gql`
     facility: String
     country: String
     manufacturingProcess: String
-    emissionsKgCo2e: Float
   }
 
   type Certification {
