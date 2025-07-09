@@ -1,3 +1,4 @@
+
 // src/components/blockchain-product-detail-client.tsx
 'use client';
 

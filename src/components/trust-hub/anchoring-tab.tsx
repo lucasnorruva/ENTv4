@@ -1,3 +1,4 @@
+
 // src/components/trust-hub/anchoring-tab.tsx
 'use client';
 
