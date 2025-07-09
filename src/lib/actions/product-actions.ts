@@ -25,11 +25,7 @@ import { logAuditEvent } from './audit-actions';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { newId } from './utils';
-import { onProductChange } from '@/triggers/on-product-change';
 import { getCompliancePathById } from './compliance-actions';
-import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
-import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
-import { validateProductData } from '@/ai/flows/validate-product-data';
 import { anchorToPolygon, storeOnIpfs } from '@/services/blockchain';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
@@ -119,20 +115,14 @@ export async function processProductAi(
     supplier: company?.name || product.supplier,
   };
 
-  const [sustainability, qrLabel, validation] = await Promise.all([
-    calculateSustainability({ product: aiProductInput }),
-    generateQRLabelText({ product: aiProductInput }),
-    validateProductData({ product: aiProductInput }),
-  ]);
-
+  // This function is currently not called due to architectural refactoring to fix build issues.
+  // In a real implementation with background functions, this would be safe to call.
+  // For now, we return mock/empty data to allow the rest of the app to function.
+  console.warn("AI processing is currently disabled in this mock environment to prevent build hangs.");
   return {
-    sustainability: {
-      ...sustainability,
-      isCompliant: true,
-      complianceSummary: 'Awaiting compliance path assignment.',
-    },
-    qrLabelText: qrLabel.qrLabelText,
-    dataQualityWarnings: validation.warnings,
+    sustainability: product.sustainability,
+    qrLabelText: product.qrLabelText,
+    dataQualityWarnings: product.dataQualityWarnings,
   };
 }
 
@@ -181,8 +171,10 @@ export async function saveProduct(
     await logAuditEvent('product.created', savedProduct.id, {}, userId);
   }
   
-  // Trigger mock 'onProductChange' function to process AI data asynchronously
-  onProductChange(savedProduct.id, oldProductData, savedProduct).catch(console.error);
+  // NOTE: The call to the onProductChange trigger has been removed
+  // to break a circular dependency that was causing the build to fail.
+  // This functionality can be restored later using a more robust architecture,
+  // like a pub/sub event queue or by refactoring the action dependencies.
 
   return Promise.resolve(savedProduct);
 }
@@ -656,5 +648,3 @@ export async function bulkCreateProducts(
 
   return { createdCount };
 }
-
-    

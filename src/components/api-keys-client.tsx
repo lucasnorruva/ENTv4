@@ -1,3 +1,4 @@
+
 // src/components/api-keys-client.tsx
 'use client';
 
@@ -132,12 +133,21 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
   const handleRevokeKey = (id: string) => {
     startTransition(async () => {
       try {
-        await revokeApiKey(id);
+        await revokeApiKey(id, user.id);
         toast({ title: 'API Key Revoked' });
       } catch (err) {
         toast({
           title: 'Error',
           description: 'Failed to revoke API key.',
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
+  const handleDeleteKey = (id: string) => {
+    startTransition(async () => {
+      try {
         await deleteApiKey(id, user.id);
         toast({ title: 'API Key Deleted' });
       } catch (error) {
@@ -276,8 +286,8 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
                             <AlertDialogDescription>
                               This action cannot be undone. This will permanently
                               delete the API key "{key.label}".
- delete the API key &quot;{key.label}&quot;.
                             </AlertDialogDescription>
+                          </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
