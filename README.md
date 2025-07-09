@@ -1,3 +1,4 @@
+
 # Norruva: Digital Product Passport Platform
 
 The Norruva platform is an enterprise-grade, blockchain-anchored DPP-as-a-Service solution. Built for global scale and EU compliance, our platform enables manufacturers, brands, and supply chain partners to create, manage, and verify digital product passports with robust security and consumer-friendly accessibility.
@@ -47,52 +48,53 @@ Follow these instructions to get the project running on your local machine for d
     ```
     
 3.  **Set up Environment:**
-    Create a `.env` file in the root of the project. For local development, this file can be mostly empty, but it's required. For production deployment, you will need to add your Firebase configuration keys.
+    Create a `.env.local` file in the root of the project. For local development, this file can be mostly empty, but it's required. For production deployment, you will need to add your Firebase configuration keys.
     ```bash
-    touch .env
+    touch .env.local
     ```
-    Your `.env` file should look like this:
+    Your `.env.local` file should look like this:
     ```env
-    # Firebase client configuration (for production)
-    NEXT_PUBLIC_FIREBASE_API_KEY=...
-    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-    NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-    NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-    NEXT_PUBLIC_FIREBASE_APP_ID=...
+    # This flag tells the Firebase client SDK to connect to the local emulators.
+    NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true
+    
+    # (Optional) Firebase client configuration (for production/preview)
+    # NEXT_PUBLIC_FIREBASE_API_KEY=...
+    # NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+    # NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+    # NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+    # NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+    # NEXT_PUBLIC_FIREBASE_APP_ID=...
     
     # Secret for securing cron job endpoints
-    CRON_SECRET=...
+    # CRON_SECRET=...
     
     # (Optional) Blockchain Integration Variables for Data Anchoring
     # You will need these to test the blockchain anchoring feature.
     # Get a free RPC URL from providers like Alchemy or Infura for the Polygon Amoy testnet.
-    POLYGON_AMOY_RPC_URL=...
+    # POLYGON_AMOY_RPC_URL=...
     # The private key of the wallet that will pay for testnet gas fees.
     # IMPORTANT: Use a dedicated, testnet-only wallet with minimal funds.
-    WALLET_PRIVATE_KEY=...
+    # WALLET_PRIVATE_KEY=...
     # The address of your deployed smart contract on the Amoy testnet.
     # A sample contract is not provided, but the code expects a contract
     # with a `registerPassport(bytes32, bytes32)` function.
-    SMART_CONTRACT_ADDRESS=...
+    # SMART_CONTRACT_ADDRESS=...
     ```
-    > **Important Note:** This `.env` file is locked and cannot be modified by the AI assistant. Please manage your environment variables manually.
 
 ### Running the Application
 
-For local development, the application runs against the Firebase Emulator Suite, providing a local, offline development environment that simulates the live Firebase backend.
-
-To run the full application, including the Next.js frontend and the emulated backend services, use a single command in your terminal:
+To run the full application, including the Next.js frontend, the Firebase emulators, and the Genkit AI tools, use a single command in your terminal:
 
 ```bash
 npm run dev
 ```
 
-This command concurrently starts two processes:
--   **Genkit Developer UI**: Runs the AI flow debugger, which can be accessed at `http://localhost:4000`.
--   **Next.js Frontend**: Runs the main web application. The dashboard can be accessed at `http://localhost:9002`.
+This command uses the Firebase CLI to concurrently start all necessary services:
+-   **Firebase Emulators**: Firestore, Auth, Storage, and Functions.
+-   **Genkit Developer UI**: The AI flow debugger, accessible at `http://localhost:4000`.
+-   **Next.js Frontend**: The main web application, accessible at `http://localhost:9002`.
 
-Both services will run in the same terminal, and you will see logs from both. Upon starting, the Firebase Emulators (Firestore, Auth, Storage) will be automatically launched.
+All services will run in the same terminal, and you will see logs from all of them.
 
 ### Interactive Demo
 
