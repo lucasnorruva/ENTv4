@@ -35,6 +35,7 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import HsCodeWidget from './hs-code-widget';
+import CryptoTab from './product-detail-tabs/crypto-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -145,11 +146,12 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="w-full h-auto flex-wrap justify-start">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                <TabsTrigger value="crypto">Crypto &amp; Trust</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
                 <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
               </TabsList>
@@ -170,6 +172,9 @@ export default function ProductDetailView({
                   product={product}
                   compliancePath={compliancePath}
                 />
+              </TabsContent>
+              <TabsContent value="crypto" className="mt-4">
+                <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
               </TabsContent>
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />
