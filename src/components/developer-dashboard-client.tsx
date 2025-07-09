@@ -55,7 +55,7 @@ const serviceStatus = [
 const StatusBadge = ({
   status,
 }: {
-  status: typeof serviceStatus[number]['status'];
+  status: (typeof serviceStatus)[number]['status'];
 }) => {
   const variants = {
     Operational:
@@ -69,8 +69,8 @@ const StatusBadge = ({
     status === 'Operational'
       ? CheckCircle
       : status === 'Degraded Performance'
-      ? AlertTriangle
-      : Settings;
+        ? AlertTriangle
+        : Settings;
 
   return (
     <span
@@ -116,7 +116,8 @@ export default function DeveloperDashboardClient() {
           <CardHeader>
             <CardTitle>Key API Metrics & Health (Sandbox)</CardTitle>
             <CardDescription>
-              A conceptual overview of API performance and usage metrics for your organization.
+              A conceptual overview of API performance and usage metrics for
+              your organization.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -190,7 +191,10 @@ export default function DeveloperDashboardClient() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Alert variant="destructive" className="bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 [&>svg]:text-amber-500 mb-4">
+            <Alert
+              variant="destructive"
+              className="bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300 [&>svg]:text-amber-500 mb-4"
+            >
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle className="font-semibold">
                 Overall: Some Systems Impacted
