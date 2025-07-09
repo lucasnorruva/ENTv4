@@ -138,20 +138,21 @@ export default function UserManagementClient({
   };
 
   const handleImport = () => setIsImportOpen(true);
-  const handleImportSave = () => {
+  
+  const handleImportSave = useCallback(() => {
     toast({
       title: 'Import in Progress',
       description: 'New users will appear in the table shortly.',
     });
     setIsImportOpen(false);
-  };
+  }, [toast]);
 
-  const handleEdit = (user: User) => {
+  const handleEdit = useCallback((user: User) => {
     setSelectedUser(user);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (userToDelete: User) => {
+  const handleDelete = useCallback((userToDelete: User) => {
     startTransition(async () => {
       try {
         await deleteUser(userToDelete.id, adminUser.id);
@@ -167,13 +168,18 @@ export default function UserManagementClient({
         });
       }
     });
-  };
+  }, [adminUser.id, toast]);
 
-  const companyMap = React.useMemo(() => {
+  const handleSave = useCallback(() => {
+    // Data is updated via listener, just need to close form
+    setIsFormOpen(false);
+  }, []);
+
+  const companyMap = useMemo(() => {
     return new Map(companies.map(c => [c.id, c.name]));
   }, [companies]);
 
-  const columns: ColumnDef<User>[] = React.useMemo(
+  const columns: ColumnDef<User>[] = useMemo(
     () => [
       {
         accessorKey: 'fullName',
@@ -280,8 +286,7 @@ export default function UserManagementClient({
         },
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [isPending, adminUser.id, companyMap],
+    [isPending, companyMap, handleEdit, handleDelete],
   );
 
   const table = useReactTable({
@@ -459,7 +464,7 @@ export default function UserManagementClient({
         onOpenChange={setIsFormOpen}
         user={selectedUser}
         adminUser={adminUser}
-        onSave={fetchData}
+        onSave={handleSave}
         companies={companies}
       />
        <UserImportDialog
