@@ -1,7 +1,7 @@
 // src/components/add-service-record-dialog.tsx
 'use client';
 
-import React, { useTransition } from 'react';
+import React, { useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -61,7 +61,7 @@ export default function AddServiceRecordDialog({
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = useCallback((values: z.infer<typeof formSchema>) => {
     startTransition(async () => {
       try {
         const updatedProduct = await addServiceRecord(
@@ -76,7 +76,7 @@ export default function AddServiceRecordDialog({
         onSave(updatedProduct);
         onOpenChange(false);
         form.reset();
-      } catch (error: object) {
+      } catch (error: any) {
         toast({
           title: 'Error',
           description:
@@ -85,7 +85,8 @@ export default function AddServiceRecordDialog({
         });
       }
     });
-  };
+  }, [startTransition, product.id, user.id, toast, onSave, onOpenChange, form]);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
