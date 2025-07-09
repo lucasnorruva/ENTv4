@@ -34,11 +34,6 @@ import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
-import PredictiveAnalyticsWidget from './predictive-analytics-widget';
-import ElectronicsTab from './product-detail-tabs/electronics-tab';
-import TextileTab from './product-detail-tabs/textile-tab';
-import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
-import ConstructionTab from './product-detail-tabs/construction-tab';
 import HsCodeWidget from './hs-code-widget';
 
 export default function ProductDetailView({
@@ -75,7 +70,6 @@ export default function ProductDetailView({
   const canAddServiceRecord = can(user, 'product:add_service_record');
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
-  const canRunPrediction = can(user, 'product:run_prediction');
   const canExportData = can(user, 'product:export_data', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
@@ -86,11 +80,6 @@ export default function ProductDetailView({
     setProduct(updatedProduct);
     router.refresh();
   }, [router]);
-  
-  const showElectronicsTab = product.category === 'Electronics';
-  const showTextileTab = product.category === 'Fashion';
-  const showFoodTab = product.category === 'Food & Beverage';
-  const showConstructionTab = product.category === 'Construction';
 
   return (
     <>
@@ -155,12 +144,8 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full h-auto flex-wrap justify-start">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
-                {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
-                {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
-                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                 <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                 <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                 <TabsTrigger value="compliance">Compliance</TabsTrigger>
@@ -173,26 +158,6 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
-               {showElectronicsTab && (
-                <TabsContent value="electronics" className="mt-4">
-                    <ElectronicsTab product={product} />
-                </TabsContent>
-               )}
-               {showTextileTab && (
-                <TabsContent value="textile" className="mt-4">
-                    <TextileTab product={product} />
-                </TabsContent>
-               )}
-               {showFoodTab && (
-                <TabsContent value="food" className="mt-4">
-                  <FoodSafetyTab product={product} />
-                </TabsContent>
-               )}
-               {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                    <ConstructionTab product={product} />
-                </TabsContent>
-               )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
@@ -226,13 +191,6 @@ export default function ProductDetailView({
               onUpdate={handleUpdateAndRefresh} 
               isAiEnabled={isAiEnabled} 
             />
-            {canRunPrediction && isAiEnabled && (
-              <PredictiveAnalyticsWidget
-                product={product}
-                user={user}
-                onPredictionComplete={handleUpdateAndRefresh}
-              />
-            )}
             <AiActionsWidget
               product={product}
               user={user}
