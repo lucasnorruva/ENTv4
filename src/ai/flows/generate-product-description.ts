@@ -10,10 +10,12 @@
 
 import { ai } from '@/ai/genkit';
 import { GenerateProductDescriptionInputSchema, GenerateProductDescriptionOutputSchema, type GenerateProductDescriptionInput, type GenerateProductDescriptionOutput } from '@/types/ai-outputs';
+import { z } from 'zod';
 
 
 export async function generateProductDescription(
   input: GenerateProductDescriptionInput,
+  userId: string, // Keep userId for permission checks in actions
 ): Promise<GenerateProductDescriptionOutput> {
   return generateProductDescriptionFlow(input);
 }
@@ -51,3 +53,5 @@ const generateProductDescriptionFlow = ai.defineFlow(
     return output!;
   },
 );
+
+    

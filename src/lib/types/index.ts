@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -456,3 +455,5 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
+
+    

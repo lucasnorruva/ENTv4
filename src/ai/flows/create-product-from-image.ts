@@ -27,7 +27,7 @@ const prompt = ai.definePrompt({
 - Based on the image, identify the product.
 - Create a concise but descriptive 'productName'.
 - Write a compelling 'productDescription' (2-3 sentences) that highlights the product's visual features and likely use case.
-- Classify the product into one of these categories: 'Electronics', 'Fashion', 'Home Goods', 'Construction'.
+- Classify the product into one of these categories: 'Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage'.
 - Your output must be a JSON object that strictly adheres to the provided schema.
 
 USER_DATA:
@@ -46,3 +46,5 @@ const createProductFromImageFlow = ai.defineFlow(
     return output!;
   },
 );
+
+    

@@ -395,3 +395,5 @@ export const GenerateComponentTestsOutputSchema = z.object({
   testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
 });
 export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
+
+    

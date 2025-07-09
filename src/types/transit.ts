@@ -1,6 +1,7 @@
 // src/types/transit.ts
-import type { AnalyzeSimulatedRouteOutput } from "./ai-outputs";
+import type { AnalyzeSimulatedRouteOutput, ProductTransitRiskAnalysis } from "./ai-outputs";
 
+export type { ProductTransitRiskAnalysis };
 export type SimulatedRoute = AnalyzeSimulatedRouteOutput;
 
 export interface TransitInfo {
@@ -32,3 +33,5 @@ export interface CustomsStatus {
   notes?: string;
   history?: Omit<CustomsStatus, 'history'>[];
 }
+
+    
