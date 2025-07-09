@@ -74,7 +74,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
     [user.id],
   );
 
-  const handleRecycle = () => {
+  const handleRecycle = useCallback(() => {
     if (!product) return;
     startRecycleTransition(async () => {
       try {
@@ -94,7 +94,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
         });
       }
     });
-  };
+  }, [product, startRecycleTransition, toast, user.id]);
 
   const tick = useCallback(() => {
     if (

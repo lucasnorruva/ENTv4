@@ -1,7 +1,7 @@
 // src/components/support-form.tsx
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
@@ -51,30 +51,33 @@ export default function SupportForm({ user }: SupportFormProps) {
     },
   });
 
-  function onSubmit(values: SupportTicketFormValues) {
-    startTransition(async () => {
-      try {
-        await saveSupportTicket(values, user?.id);
-        toast({
-          title: 'Ticket Submitted',
-          description:
-            "We've received your request and will get back to you shortly.",
-        });
-        form.reset({
-          name: user?.fullName || '',
-          email: user?.email || '',
-          subject: '',
-          message: ''
-        });
-      } catch (error) {
-        toast({
-          title: 'Submission Failed',
-          description: 'An error occurred. Please try again.',
-          variant: 'destructive',
-        });
-      }
-    });
-  }
+  const onSubmit = useCallback(
+    (values: SupportTicketFormValues) => {
+      startTransition(async () => {
+        try {
+          await saveSupportTicket(values, user?.id);
+          toast({
+            title: 'Ticket Submitted',
+            description:
+              "We've received your request and will get back to you shortly.",
+          });
+          form.reset({
+            name: user?.fullName || '',
+            email: user?.email || '',
+            subject: '',
+            message: '',
+          });
+        } catch (error) {
+          toast({
+            title: 'Submission Failed',
+            description: 'An error occurred. Please try again.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startTransition, toast, user, form],
+  );
 
   return (
     <Card className="lg:col-span-2">
