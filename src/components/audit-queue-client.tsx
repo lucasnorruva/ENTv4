@@ -1,7 +1,7 @@
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -92,10 +92,10 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
   }, [toast]);
 
 
-  const handleReviewClick = (product: Product) => {
+  const handleReviewClick = useCallback((product: Product) => {
     setSelectedProduct(product);
     setIsDialogOpen(true);
-  };
+  }, []);
 
   const columns: ColumnDef<Product>[] = useMemo(
     () => [
@@ -169,7 +169,7 @@ export function AuditQueueClient({ user }: AuditQueueClientProps) {
         },
       },
     ],
-    [],
+    [handleReviewClick],
   );
 
   const table = useReactTable({
