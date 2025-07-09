@@ -64,6 +64,7 @@ import { Checkbox } from "./ui/checkbox";
 import { can } from "@/lib/permissions";
 import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dpp-display-utils";
 import { cn } from "@/lib/utils";
+import { Input } from "./ui/input";
 
 interface ProductTableProps {
   products: Product[];
