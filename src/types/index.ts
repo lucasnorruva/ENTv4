@@ -386,7 +386,7 @@ export interface ApiKey extends BaseEntity {
   scopes: string[];
   lastUsed?: string;
   expiresAt?: string; // ISO 8601 date string
-  ipRestrictions?: string[]; // Array of CIDR notations
+  ipRestrictions?: string[];
 }
 
 /**

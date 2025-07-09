@@ -3,7 +3,6 @@ import { headers } from 'next/headers';
 import { getUserById, getApiKeyByRawToken, getCompanyById } from '@/lib/auth';
 import type { User, ApiKey, Company } from '@/types';
 import { PermissionError } from './permissions';
-import { RateLimitError } from '@/services/rate-limiter';
 
 /**
  * Authenticates an API request using a Bearer token.

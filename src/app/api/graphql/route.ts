@@ -10,6 +10,32 @@ import { checkRateLimit } from '@/services/rate-limiter';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
 import { authenticateApiRequest } from '@/lib/api-auth';
 
+/**
+ * Calculates a heuristic-based cost for a GraphQL operation.
+ * @param query The GraphQL query string.
+ * @param operationName The name of the operation.
+ * @returns A numerical cost for rate limiting.
+ */
+function getGraphQLOperationCost(query: string, operationName?: string): number {
+  if (query.trim().startsWith('mutation')) {
+    return 10; // Base cost for any mutation
+  }
+
+  // Heuristics for query cost based on operation name or keywords
+  if (operationName) {
+    const lowerOpName = operationName.toLowerCase();
+    if (lowerOpName.includes('products') || lowerOpName.includes('users') || lowerOpName.includes('companies')) {
+      return 5; // Fetching lists is more expensive
+    }
+    if (lowerOpName.includes('product') || lowerOpName.includes('user') || lowerOpName.includes('company')) {
+        return 1; // Fetching a single item is cheap
+    }
+  }
+
+  // Fallback for introspection or simple queries
+  return 1;
+}
+
 const server = new ApolloServer<MyContext>({
   typeDefs,
   resolvers,
@@ -21,8 +47,7 @@ const baseHandler = startServerAndCreateNextHandler<NextRequest, MyContext>(serv
         const { user, apiKey, company } = await authenticateApiRequest();
 
         const requestBody = await req.clone().json();
-        const isMutation = requestBody.query?.includes('mutation');
-        const cost = isMutation ? 10 : 1; 
+        const cost = getGraphQLOperationCost(requestBody.query, requestBody.operationName);
         
         await checkRateLimit(apiKey.id, company.tier, cost);
 
