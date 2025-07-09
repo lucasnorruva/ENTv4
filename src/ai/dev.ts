@@ -29,3 +29,5 @@ import "@/ai/flows/generate-component-tests.ts";
 import "@/ai/flows/analyze-electronics-compliance.ts";
 import "@/ai/flows/analyze-product-transit-risk.ts";
 import "@/ai/flows/analyze-simulated-route.ts";
+
+import "@/triggers/scheduled-syncs.ts";
