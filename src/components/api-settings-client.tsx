@@ -1,7 +1,7 @@
 // src/components/api-settings-client.tsx
 'use client';
 
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saveApiSettings } from '@/lib/actions/settings-actions';
@@ -50,23 +50,26 @@ export default function ApiSettingsClient({
     defaultValues: initialSettings,
   });
 
-  const onSubmit = (values: ApiSettingsFormValues) => {
-    startTransition(async () => {
-      try {
-        await saveApiSettings(values, user.id);
-        toast({
-          title: 'Settings Saved',
-          description: 'The API settings have been successfully updated.',
-        });
-      } catch (error) {
- toast({
-          title: 'Error Saving Settings',
-          description: 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (values: ApiSettingsFormValues) => {
+      startTransition(async () => {
+        try {
+          await saveApiSettings(values, user.id);
+          toast({
+            title: 'Settings Saved',
+            description: 'The API settings have been successfully updated.',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error Saving Settings',
+            description: 'An unexpected error occurred.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startTransition, toast, user.id],
+  );
 
   return (
     <Form {...form}>
