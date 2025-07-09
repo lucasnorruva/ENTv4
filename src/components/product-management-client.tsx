@@ -162,19 +162,31 @@ export default function ProductManagementClient({
 
   const handleBulkDelete = useCallback(
     (ids: string[]) =>
-      handleBulkAction(bulkDeleteProducts, ids, `Deleted ${ids.length} products.`),
+      handleBulkAction(
+        bulkDeleteProducts,
+        ids,
+        `Deleted ${ids.length} products.`,
+      ),
     [handleBulkAction],
   );
 
   const handleBulkSubmit = useCallback(
     (ids: string[]) =>
-      handleBulkAction(bulkSubmitForReview, ids, `Submitted ${ids.length} products.`),
+      handleBulkAction(
+        bulkSubmitForReview,
+        ids,
+        `Submitted ${ids.length} products.`,
+      ),
     [handleBulkAction],
   );
 
   const handleBulkArchive = useCallback(
     (ids: string[]) =>
-      handleBulkAction(bulkArchiveProducts, ids, `Archived ${ids.length} products.`),
+      handleBulkAction(
+        bulkArchiveProducts,
+        ids,
+        `Archived ${ids.length} products.`,
+      ),
     [handleBulkAction],
   );
 
