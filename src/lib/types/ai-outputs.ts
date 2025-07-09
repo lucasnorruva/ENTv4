@@ -144,7 +144,7 @@ export type CreateProductFromImageInput = z.infer<typeof CreateProductFromImageI
 export const CreateProductFromImageOutputSchema = z.object({
   productName: z.string().describe('A concise and accurate name for the identified product.'),
   productDescription: z.string().describe('A detailed, marketing-friendly description of the product, highlighting key visual features.'),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction']).describe('The most appropriate category for the product from the provided options.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']).describe('The most appropriate category for the product from the provided options.'),
 });
 export type CreateProductFromImageOutput = z.infer<typeof CreateProductFromImageOutputSchema>;
 
@@ -352,6 +352,7 @@ export const ClassifyHsCodeInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A detailed description of the product.'),
   category: z.string().describe('The general category of the product (e.g., "Electronics", "Fashion").'),
+  materials: z.array(z.object({ name: z.string(), percentage: z.number().optional() })).optional().describe("An optional list of the product's key materials."),
 });
 export type ClassifyHsCodeInput = z.infer<typeof ClassifyHsCodeInputSchema>;
 export const ClassifyHsCodeOutputSchema = z.object({
