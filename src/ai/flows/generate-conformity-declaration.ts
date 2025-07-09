@@ -64,6 +64,12 @@ const prompt = ai.definePrompt({
     {{#if product.compliance.eudr.compliant}}
     - Regulation (EU) 2023/1115 (EUDR) on deforestation-free products.
     {{/if}}
+    {{#if product.compliance.espr.compliant}}
+    - Regulation (EU) 2023/XXXX (ESPR) on ecodesign for sustainable products.
+    {{/if}}
+    {{#if product.compliance.battery.compliant}}
+    - Regulation (EU) 2023/1542 on batteries and waste batteries.
+    {{/if}}
 
 6.  **References to the relevant harmonised standards used or references to the other technical specifications in relation to which conformity is declared:**
     - [List specific standards if available, otherwise state 'See listed certifications.']
@@ -95,6 +101,8 @@ Compliance Declarations:
 - CE Marked: {{#if product.compliance.ce.marked}}Yes{{else}}No{{/if}}
 - WEEE Registered: {{#if product.compliance.weee.registered}}Yes{{else}}No{{/if}}
 - EUDR Compliant: {{#if product.compliance.eudr.compliant}}Yes{{else}}No{{/if}}
+- ESPR Compliant: {{#if product.compliance.espr.compliant}}Yes{{else}}No{{/if}}
+- Battery Regulation Compliant: {{#if product.compliance.battery.compliant}}Yes{{else}}No{{/if}}
 """
 `,
 });

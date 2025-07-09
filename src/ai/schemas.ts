@@ -97,6 +97,11 @@ export const AiProductSchema = z.object({
       eudr: z.object({ compliant: z.boolean().optional() }).optional(),
       ce: z.object({ marked: z.boolean().optional() }).optional(),
       prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
+      epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional() }).optional(),
+      battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
+      pfas: z.object({ declared: z.boolean().optional() }).optional(),
+      conflictMinerals: z.object({ compliant: z.boolean().optional() }).optional(),
+      espr: z.object({ compliant: z.boolean().optional() }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),
