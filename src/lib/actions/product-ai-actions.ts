@@ -29,6 +29,7 @@ import type {
   AiProduct,
   CreateProductFromImageOutput,
   GenerateProductDescriptionOutput,
+  HsCodeAnalysis,
   PcdsOutput,
   ProductQuestionOutput,
   SuggestImprovementsOutput,

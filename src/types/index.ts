@@ -263,8 +263,11 @@ export interface Product extends BaseEntity {
   manualUrl?: string;
   manualFileName?: string;
   manualFileSize?: number;
+  manualFileHash?: string;
   model3dUrl?: string;
   model3dFileName?: string;
+  model3dFileHash?: string;
+  modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;

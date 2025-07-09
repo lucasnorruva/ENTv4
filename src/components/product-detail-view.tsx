@@ -24,6 +24,7 @@ import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
 import { runSubmissionValidation } from '@/services/validation';
 import { AuditLogTimeline } from './audit-log-timeline';
+import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -71,6 +72,7 @@ export default function ProductDetailView({
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
   const canExportData = can(user, 'product:export_data', product);
+  const canRunPrediction = can(user, 'product:run_prediction', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
   const roleSlug =
@@ -191,6 +193,13 @@ export default function ProductDetailView({
               onUpdate={handleUpdateAndRefresh} 
               isAiEnabled={isAiEnabled} 
             />
+            {canRunPrediction && isAiEnabled && (
+              <PredictiveAnalyticsWidget
+                product={product}
+                user={user}
+                onPredictionComplete={handleUpdateAndRefresh}
+              />
+            )}
             <AiActionsWidget
               product={product}
               user={user}
