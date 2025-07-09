@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI agent for generating Solidity smart contracts from compliance rules.
@@ -11,13 +12,13 @@ import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
 // Define schemas locally to avoid circular dependency issues
-export const GenerateSmartContractInputSchema = z.object({
+const GenerateSmartContractInputSchema = z.object({
   pathName: z.string().describe('The name of the compliance path.'),
   rules: z.custom<any>().describe('The structured compliance rules.'),
 });
 export type GenerateSmartContractInput = z.infer<typeof GenerateSmartContractInputSchema>;
 
-export const GenerateSmartContractOutputSchema = z.object({
+const GenerateSmartContractOutputSchema = z.object({
   solidityCode: z.string().describe('The generated Solidity smart contract code.'),
 });
 export type GenerateSmartContractOutput = z.infer<typeof GenerateSmartContractOutputSchema>;
