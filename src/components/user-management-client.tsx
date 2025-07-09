@@ -1,7 +1,13 @@
 // src/components/user-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useTransition,
+  useEffect,
+  useMemo,
+  useCallback,
+} from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -82,7 +88,7 @@ interface UserManagementClientProps {
 }
 
 export default function UserManagementClient({
-  user: adminUser,
+  adminUser,
 }: UserManagementClientProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -152,23 +158,26 @@ export default function UserManagementClient({
     setIsFormOpen(true);
   }, []);
 
-  const handleDelete = useCallback((userToDelete: User) => {
-    startTransition(async () => {
-      try {
-        await deleteUser(userToDelete.id, adminUser.id);
-        toast({
-          title: 'User Deleted',
-          description: `User "${userToDelete.fullName}" has been successfully deleted.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete user.',
-          variant: 'destructive',
-        });
-      }
-    });
-  }, [adminUser.id, toast]);
+  const handleDelete = useCallback(
+    (userToDelete: User) => {
+      startTransition(async () => {
+        try {
+          await deleteUser(userToDelete.id, adminUser.id);
+          toast({
+            title: 'User Deleted',
+            description: `User "${userToDelete.fullName}" has been successfully deleted.`,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to delete user.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [adminUser.id, toast],
+  );
 
   const handleSave = useCallback(() => {
     // Data is updated via listener, just need to close form
