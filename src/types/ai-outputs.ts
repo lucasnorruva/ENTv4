@@ -351,6 +351,7 @@ export const ClassifyHsCodeInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A detailed description of the product.'),
   category: z.string().describe('The general category of the product (e.g., "Electronics", "Fashion").'),
+  materials: z.array(z.object({ name: z.string() })).optional().describe('An optional list of key materials used in the product.'),
 });
 export type ClassifyHsCodeInput = z.infer<typeof ClassifyHsCodeInputSchema>;
 export const ClassifyHsCodeOutputSchema = z.object({
@@ -395,5 +396,3 @@ export const GenerateComponentTestsOutputSchema = z.object({
   testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
 });
 export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
-
-    

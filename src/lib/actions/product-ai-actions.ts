@@ -25,13 +25,19 @@ import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/a
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
 
-import type { AiProduct, CreateProductFromImageOutput, GenerateProductDescriptionOutput, PcdsOutput, ProductQuestionOutput, SuggestImprovementsOutput } from '@/types/ai-outputs';
+import type {
+  AiProduct,
+  CreateProductFromImageOutput,
+  GenerateProductDescriptionOutput,
+  PcdsOutput,
+  ProductQuestionOutput,
+  SuggestImprovementsOutput,
+} from '@/types/ai-outputs';
 import { getUserById, getCompanyById } from '../auth';
 import { checkPermission, PermissionError } from '../permissions';
 import { getProductById } from './product-actions';
 import { getCompliancePathById } from './compliance-actions';
 import { logAuditEvent } from './audit-actions';
-
 
 // The remaining functions are AI actions callable from the UI or other server actions.
 
@@ -48,17 +54,19 @@ export async function recalculateScore(
   if (!product) throw new Error('Product not found');
 
   checkPermission(user, 'product:recalculate', product);
-  
+
   await logAuditEvent(
     'product.recalculate_score.manual_trigger',
     productId,
     {},
     userId,
   );
-  
+
   // The actual recalculation is now part of the saveProduct flow to avoid duplicate logic.
   // We can recommend the user to make a small edit and save to trigger the AI processing.
-  console.log(`Manual recalculation trigger for ${productId}. Processing is handled on save.`);
+  console.log(
+    `Manual recalculation trigger for ${productId}. Processing is handled on save.`,
+  );
 
   return Promise.resolve();
 }
@@ -77,8 +85,15 @@ export async function runDataValidationCheck(
 
   checkPermission(user, 'product:validate_data', product);
 
-  await logAuditEvent('product.validation.manual_trigger', productId, {}, userId);
-  console.log(`Manual data validation trigger for ${productId}. Processing is handled on save.`);
+  await logAuditEvent(
+    'product.validation.manual_trigger',
+    productId,
+    {},
+    userId,
+  );
+  console.log(
+    `Manual data validation trigger for ${productId}. Processing is handled on save.`,
+  );
   return Promise.resolve();
 }
 
@@ -690,11 +705,12 @@ export async function runHsCodeClassification(
     throw new Error('AI features are not enabled for this company.');
   }
 
-  const { productName, productDescription, category } = product;
+  const { productName, productDescription, category, materials } = product;
   const analysisResult = await classifyHsCodeFlow({
     productName,
     productDescription,
     category,
+    materials,
   });
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
@@ -703,8 +719,11 @@ export async function runHsCodeClassification(
   mockProducts[productIndex].hsCodeAnalysis = analysisResult;
   mockProducts[productIndex].lastUpdated = new Date().toISOString();
 
-  await logAuditEvent('product.analysis.hs_code', productId, { code: analysisResult.code }, userId);
+  await logAuditEvent(
+    'product.analysis.hs_code',
+    productId,
+    { code: analysisResult.code },
+    userId,
+  );
   return Promise.resolve(mockProducts[productIndex]);
 }
-
-    

@@ -1,4 +1,3 @@
-
 'use server';
 /**
  * @fileOverview An AI agent for classifying products with Harmonized System (HS) codes.
@@ -9,7 +8,12 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { ClassifyHsCodeInputSchema, ClassifyHsCodeOutputSchema, type ClassifyHsCodeInput, type HsCodeAnalysis } from '@/types/ai-outputs';
+import {
+  ClassifyHsCodeInputSchema,
+  ClassifyHsCodeOutputSchema,
+  type ClassifyHsCodeInput,
+  type HsCodeAnalysis,
+} from '@/types/ai-outputs';
 
 export async function classifyHsCode(
   input: ClassifyHsCodeInput,
@@ -21,9 +25,9 @@ const prompt = ai.definePrompt({
   name: 'classifyHsCodePrompt',
   input: { schema: ClassifyHsCodeInputSchema },
   output: { schema: ClassifyHsCodeOutputSchema },
-  prompt: `SYSTEM: You are an expert customs classification specialist AI. Your task is to determine the most likely 6-digit Harmonized System (HS) code for a given product based on its name, description, and category.
+  prompt: `SYSTEM: You are an expert customs classification specialist AI. Your task is to determine the most likely 6-digit Harmonized System (HS) code for a given product based on its name, description, category, and materials.
 
-- Analyze the product details carefully.
+- Analyze the product details carefully. **The material composition is a critical factor for classification.**
 - Identify the most appropriate HS code heading (first 4 digits) and subheading (last 2 digits).
 - The final code must be in the format XXXX.XX.
 - Provide the official, concise description for that 6-digit code.
@@ -34,6 +38,12 @@ USER_DATA:
 Product Name: {{{productName}}}
 Description: {{{productDescription}}}
 Category: {{{category}}}
+{{#if materials.length}}
+Key Materials:
+{{#each materials}}
+- {{{this.name}}}
+{{/each}}
+{{/if}}
 `,
 });
 
