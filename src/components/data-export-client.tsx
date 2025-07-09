@@ -1,8 +1,7 @@
-
 // src/components/data-export-client.tsx
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { Calendar as CalendarIcon, FileDown, HardDriveDownload, Loader2 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
@@ -29,6 +28,23 @@ import { useToast } from '@/hooks/use-toast';
 import { exportProducts, exportComplianceReport, exportFullAuditTrail } from '@/lib/actions/report-actions';
 import { cn } from '@/lib/utils';
 
+// This helper function doesn't depend on component state, so it can live outside.
+const handleDownload = (
+  content: string,
+  fileName: string,
+  mimeType: string,
+) => {
+  const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', fileName);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export default function DataExportClient() {
   const [productFormat, setProductFormat] = useState<'csv' | 'json'>('csv');
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -40,23 +56,7 @@ export default function DataExportClient() {
 
   const { toast } = useToast();
 
-  const handleDownload = (
-    content: string,
-    fileName: string,
-    mimeType: string,
-  ) => {
-    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const handleGenerateExport = (exportType: 'Product' | 'Compliance' | 'Audit') => {
+  const handleGenerateExport = useCallback((exportType: 'Product' | 'Compliance' | 'Audit') => {
     if (!dateRange?.from || !dateRange?.to) {
         toast({ title: "Date Range Required", description: "Please select a valid date range.", variant: "destructive" });
         return;
@@ -121,7 +121,7 @@ export default function DataExportClient() {
         setGeneratingType(null);
       }
     });
-  };
+  }, [dateRange, productFormat, startTransition, toast]);
 
   return (
     <div className="space-y-6">

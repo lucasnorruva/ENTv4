@@ -1,7 +1,7 @@
 // src/components/override-verification-dialog.tsx
 'use client';
 
-import React, { useTransition } from 'react';
+import React, { useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
@@ -57,7 +57,7 @@ export default function OverrideVerificationDialog({
     },
   });
 
-  const onSubmit = (values: OverrideVerificationFormValues) => {
+  const onSubmit = useCallback((values: OverrideVerificationFormValues) => {
     startTransition(async () => {
       try {
         const updatedProduct = await overrideVerification(
@@ -81,7 +81,7 @@ export default function OverrideVerificationDialog({
         });
       }
     });
-  };
+  }, [startTransition, product.id, user.id, toast, onSuccess, onOpenChange, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
