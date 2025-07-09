@@ -1,7 +1,7 @@
 // src/components/login-form.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -56,50 +56,56 @@ export default function LoginForm() {
     defaultValues: { code: '' },
   });
 
-  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    setIsLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: 'Login Successful' });
-      router.push('/dashboard');
-    } catch (error: any) {
-      if (error.code === 'auth/multi-factor-auth-required') {
-        setMfaResolver(getMultiFactorResolver(auth, error));
-      } else {
+  const onLoginSubmit = useCallback(
+    async (values: z.infer<typeof loginSchema>) => {
+      setIsLoading(true);
+      try {
+        await signInWithEmailAndPassword(auth, values.email, values.password);
+        toast({ title: 'Login Successful' });
+        router.push('/dashboard');
+      } catch (error: any) {
+        if (error.code === 'auth/multi-factor-auth-required') {
+          setMfaResolver(getMultiFactorResolver(auth, error));
+        } else {
+          toast({
+            title: 'Login Failed',
+            description:
+              error.message ||
+              'An unexpected error occurred. Please check your credentials.',
+            variant: 'destructive',
+          });
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router, toast],
+  );
+
+  const onMfaSubmit = useCallback(
+    async (values: z.infer<typeof mfaSchema>) => {
+      if (!mfaResolver) return;
+      setIsLoading(true);
+      try {
+        const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+          mfaResolver.hints[0].uid,
+          values.code,
+        );
+        await mfaResolver.resolveSignIn(assertion);
+        toast({ title: 'Login Successful' });
+        router.push('/dashboard');
+      } catch (error: any) {
         toast({
-          title: 'Login Failed',
-          description:
-            error.message ||
-            'An unexpected error occurred. Please check your credentials.',
+          title: '2FA Failed',
+          description: 'Invalid verification code. Please try again.',
           variant: 'destructive',
         });
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function onMfaSubmit(values: z.infer<typeof mfaSchema>) {
-    if (!mfaResolver) return;
-    setIsLoading(true);
-    try {
-      const assertion = TotpMultiFactorGenerator.assertionForSignIn(
-        mfaResolver.hints[0].uid,
-        values.code,
-      );
-      await mfaResolver.resolveSignIn(assertion);
-      toast({ title: 'Login Successful' });
-      router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        title: '2FA Failed',
-        description: 'Invalid verification code. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }
+    },
+    [mfaResolver, toast, router],
+  );
 
   if (mfaResolver) {
     return (
