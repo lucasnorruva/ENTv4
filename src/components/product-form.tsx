@@ -1,3 +1,4 @@
+
 // src/components/product-form.tsx
 'use client';
 
@@ -649,17 +650,17 @@ export default function ProductForm({
           </header>
 
           <Tabs defaultValue="general" className="w-full">
-            <TabsList
-              className={cn('grid w-full', `grid-cols-${visibleTabs.length}`)}
-            >
-              {visibleTabs.map(tab => (
-                <TabsTrigger key={tab.value} value={tab.value}>
-                  {tab.label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="w-full overflow-x-auto">
+              <TabsList className="w-max">
+                {visibleTabs.map(tab => (
+                  <TabsTrigger key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
             {visibleTabs.map(tab => (
-              <TabsContent key={tab.value} value={tab.value}>
+              <TabsContent key={tab.value} value={tab.value} className="mt-4">
                 {tab.component}
               </TabsContent>
             ))}
