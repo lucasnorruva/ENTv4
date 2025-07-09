@@ -1,3 +1,4 @@
+
 // src/components/product-scanner.tsx
 'use client';
 
@@ -71,7 +72,7 @@ export default function ProductScanner({ user }: ProductScannerProps) {
         }
       });
     },
-    [user.id],
+    [user.id, startSearchTransition],
   );
 
   const handleRecycle = useCallback(() => {
