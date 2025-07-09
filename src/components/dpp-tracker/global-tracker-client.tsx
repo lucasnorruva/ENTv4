@@ -25,7 +25,7 @@ import type {
 } from '@/types';
 import { mockCountryCoordinates } from '@/lib/country-coordinates';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-import { getFactoryColor } from '@/lib/dppDisplayUtils';
+import { getFactoryColor } from '@/lib/dpp-display-utils';
 import GlobeControls from './GlobeControls';
 import ClickedCountryInfoCard from './ClickedCountryInfoCard';
 import SelectedProductCustomsInfoCard from './SelectedProductCustomsInfoCard';
@@ -179,8 +179,14 @@ export default function GlobalTrackerClient({
     setSimulatedRoute(null);
   }, []);
 
-  const onToggleRotation = useCallback(() => setIsAutoRotating(prev => !prev), []);
-  const onToggleAnalyzer = useCallback(() => setIsAnalyzerOpen(prev => !prev), []);
+  const onToggleRotation = useCallback(
+    () => setIsAutoRotating(prev => !prev),
+    [],
+  );
+  const onToggleAnalyzer = useCallback(
+    () => setIsAnalyzerOpen(prev => !prev),
+    [],
+  );
 
   useEffect(() => {
     const globe = globeEl.current;
@@ -201,7 +207,8 @@ export default function GlobalTrackerClient({
       }
     } else if (selectedProduct?.transit) {
       const origin = mockCountryCoordinates[selectedProduct.transit.origin];
-      const dest = mockCountryCoordinates[selectedProduct.transit.destination];
+      const dest =
+        mockCountryCoordinates[selectedProduct.transit.destination];
       if (origin && dest) {
         globe.pointOfView(
           {
@@ -216,7 +223,10 @@ export default function GlobalTrackerClient({
       const countryName = clickedCountry.ADMIN;
       const coords = mockCountryCoordinates[countryName];
       if (coords) {
-        globe.pointOfView({ lat: coords.lat, lng: coords.lng, altitude: 2 }, 1000);
+        globe.pointOfView(
+          { lat: coords.lat, lng: coords.lng, altitude: 2 },
+          1000,
+        );
       }
     } else {
       // Reset view
@@ -250,7 +260,8 @@ export default function GlobalTrackerClient({
         } catch (error: any) {
           toast({
             title: 'Analysis Failed',
-            description: error.message || 'Could not analyze the simulated route.',
+            description:
+              error.message || 'Could not analyze the simulated route.',
             variant: 'destructive',
           });
         }
@@ -267,7 +278,9 @@ export default function GlobalTrackerClient({
       return MOCK_CUSTOMS_DATA.filter(
         d =>
           d.keywords.includes(selectedProduct.transit.origin.toLowerCase()) ||
-          d.keywords.includes(selectedProduct.transit.destination.toLowerCase()),
+          d.keywords.includes(
+            selectedProduct.transit.destination.toLowerCase(),
+          ),
       );
     }
     return MOCK_CUSTOMS_DATA;
@@ -329,7 +342,8 @@ export default function GlobalTrackerClient({
     if (!showFactories) return [];
     return productionLines
       .map(line => {
-        const coords = mockCountryCoordinates[line.location.split(', ').pop() || ''];
+        const coords =
+          mockCountryCoordinates[line.location.split(', ').pop() || ''];
         if (!coords) return null;
         return {
           ...line,
