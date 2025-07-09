@@ -108,22 +108,12 @@ export default function UserManagementClient({
     useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState('');
 
-  const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    // Fetch companies once
-    if (companies.length === 0) {
-      try {
-        const companiesData = await getCompanies();
-        setCompanies(companiesData);
-      } catch (error) {
-        toast({ title: 'Error fetching companies', variant: 'destructive' });
-      }
-    }
-  }, [companies.length, toast]);
-
   useEffect(() => {
-    fetchData(); // Fetch non-real-time data like companies
-
+    setIsLoading(true);
+    getCompanies()
+      .then(setCompanies)
+      .catch(err => toast({ title: 'Error fetching companies', variant: 'destructive' }));
+  
     const q = query(collection(db, Collections.USERS), orderBy('createdAt', 'desc'));
     const unsubscribe = onSnapshot(q, snapshot => {
       const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
@@ -134,9 +124,9 @@ export default function UserManagementClient({
         toast({ title: 'Error fetching users', variant: 'destructive' });
         setIsLoading(false);
     });
-
+  
     return () => unsubscribe();
-  }, [fetchData, toast]);
+  }, [toast]);
 
   const handleCreateNew = useCallback(() => {
     setSelectedUser(null);
