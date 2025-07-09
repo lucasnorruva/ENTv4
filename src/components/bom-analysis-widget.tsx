@@ -1,7 +1,7 @@
 // src/components/bom-analysis-widget.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import {
   FileScan,
   Loader2,
@@ -46,7 +46,7 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleAnalyze = () => {
+  const handleAnalyze = useCallback(() => {
     if (!bomText.trim()) {
       toast({
         title: 'Input Required',
@@ -68,9 +68,9 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
         });
       }
     });
-  };
+  }, [bomText, startAnalysisTransition, toast, user.id]);
 
-  const handleApply = () => {
+  const handleApply = useCallback(() => {
     if (analysisResult?.materials) {
       const newMaterials = analysisResult.materials.map(m => ({
         name: m.name || '',
@@ -85,7 +85,7 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
       });
       setIsDialogOpen(false);
     }
-  };
+  }, [analysisResult, onApply, toast]);
 
   return (
     <>
