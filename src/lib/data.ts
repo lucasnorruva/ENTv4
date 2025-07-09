@@ -1,3 +1,4 @@
+
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -106,7 +107,7 @@ export let products: Product[] = [
       status: 'Verified',
       conformanceResultUrl: 'https://api.ebsi.eu/conformance/v4/results/12345',
     },
-    verifiableCredential: `{"@context": ["https://www.w3.org/2018/credentials/v1"],"id": "urn:uuid:mock-vc-id","type": ["VerifiableCredential", "DigitalProductPassport"],"issuer": "did:web:norruva.com","issuanceDate": "${new Date().toISOString()}","credentialSubject": {"id": "did:dpp:product:pp-001","name": "Eco-Friendly Smart Watch Series 5"}}`,
+    verifiableCredential: `{"@context": ["https://www.w3.org/2018/credentials/v1"],"id": "urn:uuid:mock-vc-id","type": ["VerifiableCredential", "DigitalProductPassport"],"issuer": "did:web:norruva.com","issuanceDate": "${now.toISOString()}","credentialSubject": {"id": "did:dpp:product:pp-001","name": "Eco-Friendly Smart Watch Series 5"}}`,
     zkProof: {
       proofData: 'zk_proof_data_string_for_product_001...',
       isVerified: true,
