@@ -339,5 +339,3 @@ export const navConfig: NavConfig = {
     },
   ],
 };
-
-    
