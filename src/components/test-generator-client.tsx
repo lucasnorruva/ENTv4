@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +28,7 @@ export default function TestGeneratorClient({ user }: TestGeneratorClientProps) 
   const [hasCopied, setHasCopied] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerate = () => {
+  const handleGenerate = useCallback(() => {
     if (!componentName.trim() || !componentCode.trim()) {
       toast({
         title: 'Input Required',
@@ -46,16 +46,16 @@ export default function TestGeneratorClient({ user }: TestGeneratorClientProps) 
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       }
     });
-  };
+  }, [componentName, componentCode, user.id, startTransition, toast]);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = useCallback(() => {
     if (generatedTestCode) {
       navigator.clipboard.writeText(generatedTestCode);
       setHasCopied(true);
       toast({ title: 'Copied to clipboard!' });
       setTimeout(() => setHasCopied(false), 2000);
     }
-  };
+  }, [generatedTestCode, toast]);
 
   const editorStyle = {
     fontFamily: '"Fira code", "Fira Mono", monospace',
