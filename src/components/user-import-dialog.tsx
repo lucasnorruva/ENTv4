@@ -1,4 +1,3 @@
-
 // src/components/user-import-dialog.tsx
 'use client';
 
@@ -30,17 +29,32 @@ import { bulkCreateUsers } from '@/lib/actions/user-actions';
 import { Loader2, Upload } from 'lucide-react';
 import { ScrollArea } from './ui/scroll-area';
 
+interface ValidatedRow {
+  data: any;
+  isValid: boolean;
+  errors?: string[];
+}
+
+const getTemplate = () => {
+  const headers = 'fullName,email,roles';
+  const example = `"Jane Doe","jane.doe@example.com","Supplier,Auditor"`;
+  const csvContent = `${headers}\n${example}`;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'norruva_user_template.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 interface UserImportDialogProps {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   onSave: () => void;
   user: User;
-}
-
-interface ValidatedRow {
-  data: any;
-  isValid: boolean;
-  errors?: string[];
 }
 
 export default function UserImportDialog({
@@ -134,20 +148,6 @@ export default function UserImportDialog({
     });
   }, [validatedData, startSavingTransition, user.id, toast, onSave, handleClose]);
 
-  const getTemplate = () => {
-    const headers = 'fullName,email,roles';
-    const example = `"Jane Doe","jane.doe@example.com","Supplier,Auditor"`;
-    const csvContent = `${headers}\n${example}`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'norruva_user_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   const validRows = validatedData.filter(row => row.isValid).length;
   const invalidRows = validatedData.length - validRows;
