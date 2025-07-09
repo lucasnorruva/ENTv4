@@ -1,7 +1,7 @@
 // src/components/ai-actions-widget.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson, Hammer } from 'lucide-react';
 import type { Product, User } from '@/types';
@@ -71,32 +71,35 @@ export default function AiActionsWidget({
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleAction = (
-    action: () => Promise<any>,
-    actionName: string,
-    successTitle: string,
-    successDescription: string,
-  ) => {
-    setActiveAction(actionName);
-    startTransition(async () => {
-      try {
-        await action();
-        toast({ title: successTitle, description: successDescription });
-        router.refresh();
-      } catch (error: any) {
-        toast({
-          title: `Error: ${actionName}`,
-          description:
-            error.message || `Failed to run ${actionName.toLowerCase()}.`,
-          variant: 'destructive',
-        });
-      } finally {
-        setActiveAction(null);
-      }
-    });
-  };
+  const handleAction = useCallback(
+    (
+      action: () => Promise<any>,
+      actionName: string,
+      successTitle: string,
+      successDescription: string,
+    ) => {
+      setActiveAction(actionName);
+      startTransition(async () => {
+        try {
+          await action();
+          toast({ title: successTitle, description: successDescription });
+          router.refresh();
+        } catch (error: any) {
+          toast({
+            title: `Error: ${actionName}`,
+            description:
+              error.message || `Failed to run ${actionName.toLowerCase()}.`,
+            variant: 'destructive',
+          });
+        } finally {
+          setActiveAction(null);
+        }
+      });
+    },
+    [router, startTransition, toast],
+  );
 
-  const handleGetSuggestions = () => {
+  const handleGetSuggestions = useCallback(() => {
     if (!product.productName || !product.productDescription) {
       toast({
         title: 'Missing Information',
@@ -121,9 +124,9 @@ export default function AiActionsWidget({
         setActiveAction(null);
       }
     });
-  };
+  }, [product.id, product.productName, product.productDescription, user.id, toast, startTransition]);
 
-  const handleGeneratePcds = () => {
+  const handleGeneratePcds = useCallback(() => {
     setActiveAction('pcds');
     startTransition(async () => {
       try {
@@ -140,7 +143,7 @@ export default function AiActionsWidget({
         setActiveAction(null);
       }
     });
-  };
+  }, [product.id, user.id, toast, startTransition]);
 
   if (!isAiEnabled) {
     return null; // Don't render the widget if AI is disabled for the company
