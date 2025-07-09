@@ -73,6 +73,18 @@ interface ServiceTicketManagementClientProps {
   user: User;
 }
 
+const getStatusVariant = (status: string) => {
+    switch (status) {
+      case 'Open':
+        return 'destructive';
+      case 'In Progress':
+        return 'secondary';
+      case 'Closed':
+      default:
+        return 'default';
+    }
+};
+
 export default function ServiceTicketManagementClient({
   user,
 }: ServiceTicketManagementClientProps) {
@@ -152,18 +164,6 @@ export default function ServiceTicketManagementClient({
   const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]);
   const lineMap = useMemo(() => new Map(productionLines.map(l => [l.id, l.name])), [productionLines]);
 
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Open':
-        return 'destructive';
-      case 'In Progress':
-        return 'secondary';
-      case 'Closed':
-      default:
-        return 'default';
-    }
-  };
 
   const columns: ColumnDef<ServiceTicket>[] = useMemo(
     () => [
