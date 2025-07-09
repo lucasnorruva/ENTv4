@@ -154,58 +154,68 @@ export default function CompliancePathManagement({
     );
   }, [paths, searchTerm, categoryFilter]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedPath(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (path: CompliancePath) => {
+  const handleEdit = useCallback((path: CompliancePath) => {
     setSelectedPath(path);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (path: CompliancePath) => {
-    startTransition(async () => {
-      try {
-        await deleteCompliancePath(path.id, user.id);
-        setPaths(prev => prev.filter(p => p.id !== path.id));
-        toast({ title: `Compliance Path "${path.name}" Deleted` });
-      } catch (error: any) {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to delete compliance path.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const handleDelete = useCallback(
+    (path: CompliancePath) => {
+      startTransition(async () => {
+        try {
+          await deleteCompliancePath(path.id, user.id);
+          setPaths(prev => prev.filter(p => p.id !== path.id));
+          toast({ title: `Compliance Path "${path.name}" Deleted` });
+        } catch (error: any) {
+          toast({
+            title: 'Error',
+            description: error.message || 'Failed to delete compliance path.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [user.id, toast],
+  );
 
-  const handleSave = (savedPath: CompliancePath) => {
-    setPaths(prev => {
-      const exists = prev.some(p => p.id === savedPath.id);
-      if (exists) {
-        return prev.map(p => (p.id === savedPath.id ? savedPath : p));
-      }
-      return [savedPath, ...prev];
-    });
-    setIsFormOpen(false);
-  };
+  const handleSave = useCallback(
+    (savedPath: CompliancePath) => {
+      setPaths(prev => {
+        const exists = prev.some(p => p.id === savedPath.id);
+        if (exists) {
+          return prev.map(p => (p.id === savedPath.id ? savedPath : p));
+        }
+        return [savedPath, ...prev];
+      });
+      setIsFormOpen(false);
+    },
+    [],
+  );
 
-  const handleGenerateContract = (path: CompliancePath) => {
-    startTransition(async () => {
-      try {
-        const result = await generateSmartContractForPath(path, user.id);
-        setGeneratedCode(result.solidityCode);
-        setIsContractDialogOpen(true);
-      } catch (error: any) {
-        toast({
-          title: 'Error Generating Contract',
-          description: error.message || 'The AI failed to generate the contract.',
-          variant: 'destructive'
-        });
-      }
-    });
-  }
+  const handleGenerateContract = useCallback(
+    (path: CompliancePath) => {
+      startTransition(async () => {
+        try {
+          const result = await generateSmartContractForPath(path, user.id);
+          setGeneratedCode(result.solidityCode);
+          setIsContractDialogOpen(true);
+        } catch (error: any) {
+          toast({
+            title: 'Error Generating Contract',
+            description:
+              error.message || 'The AI failed to generate the contract.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [user.id, toast],
+  );
 
   const canManage =
     hasRole(user, UserRoles.ADMIN) ||
@@ -287,11 +297,13 @@ export default function CompliancePathManagement({
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleGenerateContract(path)}>
+                          <DropdownMenuItem
+                            onClick={() => handleGenerateContract(path)}
+                          >
                             <FileCode className="mr-2 h-4 w-4" />
                             Generate Smart Contract
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator/>
+                          <DropdownMenuSeparator />
                           {canDelete && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
@@ -336,11 +348,14 @@ export default function CompliancePathManagement({
                   <div>
                     <h4 className="font-semibold text-sm mb-2">Metadata</h4>
                     <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">{path.category}</Badge>
-                        <Badge variant="outline" className="border-sky-500/50 text-sky-700 dark:text-sky-400">
-                            <Globe className="h-3 w-3 mr-1" />
-                            {path.jurisdiction}
-                        </Badge>
+                      <Badge variant="outline">{path.category}</Badge>
+                      <Badge
+                        variant="outline"
+                        className="border-sky-500/50 text-sky-700 dark:text-sky-400"
+                      >
+                        <Globe className="h-3 w-3 mr-1" />
+                        {path.jurisdiction}
+                      </Badge>
                     </div>
                   </div>
                   <div>
@@ -378,7 +393,7 @@ export default function CompliancePathManagement({
                     </ul>
                   </div>
                 </CardContent>
-                 <CardFooter className="mt-auto pt-4 border-t">
+                <CardFooter className="mt-auto pt-4 border-t">
                   <div className="flex items-center text-xs text-muted-foreground">
                     <BookCopy className="h-3.5 w-3.5 mr-2" />
                     Assigned to {pathUsageCounts.get(path.id) || 0} products
@@ -411,7 +426,7 @@ export default function CompliancePathManagement({
           user={user}
         />
       )}
-       <GeneratedContractDialog
+      <GeneratedContractDialog
         isOpen={isContractDialogOpen}
         onOpenChange={setIsContractDialogOpen}
         code={generatedCode}
@@ -419,4 +434,3 @@ export default function CompliancePathManagement({
     </>
   );
 }
-
