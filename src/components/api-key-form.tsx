@@ -1,7 +1,7 @@
 // src/components/api-key-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -91,7 +91,7 @@ export default function ApiKeyForm({
     }
   }, [apiKey, isOpen, form]);
 
-  const onSubmit = (values: ApiKeyFormValues) => {
+  const onSubmit = useCallback((values: ApiKeyFormValues) => {
     startSavingTransition(async () => {
       try {
         const result = await saveApiKey(values, user.id, apiKey?.id);
@@ -100,7 +100,7 @@ export default function ApiKeyForm({
           description: `API Key "${result.key.label}" has been saved.`,
         });
         onSave(result);
- onOpenChange(false)
+        onOpenChange(false);
       } catch (error) {
         toast({
           title: 'Error',
@@ -109,7 +109,7 @@ export default function ApiKeyForm({
         });
       }
     });
-  };
+  }, [apiKey?.id, onOpenChange, onSave, startSavingTransition, toast, user.id]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
