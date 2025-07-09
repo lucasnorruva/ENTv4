@@ -1,7 +1,7 @@
 // src/components/company-settings-form.tsx
 'use client';
 
-import React, { useTransition, useEffect, useState } from 'react';
+import React, { useTransition, useEffect, useState, useCallback } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -108,77 +108,83 @@ export default function CompanySettingsForm({
     setLogoPreview(company.settings?.logoUrl || null);
   }, [company, form]);
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setLogoFile(file);
-      setLogoPreview(URL.createObjectURL(file));
-    }
-  };
+  const handleLogoChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        setLogoFile(file);
+        setLogoPreview(URL.createObjectURL(file));
+      }
+    },
+    [],
+  );
 
-  const onSubmit = (values: CompanySettingsFormValues) => {
-    startSavingTransition(async () => {
-      let logoUrl = company.settings?.logoUrl || '';
-      let logoFileName = company.settings?.logoFileName || '';
+  const onSubmit = useCallback(
+    (values: CompanySettingsFormValues) => {
+      startSavingTransition(async () => {
+        let logoUrl = company.settings?.logoUrl || '';
+        let logoFileName = company.settings?.logoFileName || '';
 
-      if (logoFile) {
-        setIsUploading(true);
-        setUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `company-logos/${company.id}/${logoFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, logoFile);
+        if (logoFile) {
+          setIsUploading(true);
+          setUploadProgress(0);
+          const storageRef = ref(
+            storage,
+            `company-logos/${company.id}/${logoFile.name}`,
+          );
+          const uploadTask = uploadBytesResumable(storageRef, logoFile);
+
+          try {
+            logoUrl = await new Promise<string>((resolve, reject) => {
+              uploadTask.on(
+                'state_changed',
+                snapshot =>
+                  setUploadProgress(
+                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
+                  ),
+                error => {
+                  setIsUploading(false);
+                  reject(error);
+                },
+                async () => {
+                  const downloadURL = await getDownloadURL(
+                    uploadTask.snapshot.ref,
+                  );
+                  setIsUploading(false);
+                  resolve(downloadURL);
+                },
+              );
+            });
+            logoFileName = logoFile.name;
+          } catch (error) {
+            toast({
+              title: 'Logo Upload Failed',
+              description: 'Please try again.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
 
         try {
-          logoUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot =>
-                setUploadProgress(
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100,
-                ),
-              error => {
-                setIsUploading(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploading(false);
-                resolve(downloadURL);
-              },
-            );
-          });
-          logoFileName = logoFile.name;
-        } catch (error) {
+          const settingsData = { ...values, logoUrl, logoFileName };
+          await saveCompanySettings(company.id, settingsData, adminUser.id);
           toast({
-            title: 'Logo Upload Failed',
-            description: 'Please try again.',
+            title: 'Settings Saved',
+            description: `Settings for ${company.name} have been updated. Page will reload to apply theme changes.`,
+          });
+          setTimeout(() => window.location.reload(), 1500);
+        } catch (error: any) {
+          toast({
+            title: 'Error Saving Settings',
+            description: error.message || 'An unexpected error occurred.',
             variant: 'destructive',
           });
-          return;
         }
-      }
-
-      try {
-        const settingsData = { ...values, logoUrl, logoFileName };
-        await saveCompanySettings(company.id, settingsData, adminUser.id);
-        toast({
-          title: 'Settings Saved',
-          description: `Settings for ${company.name} have been updated. Page will reload to apply theme changes.`,
-        });
-        setTimeout(() => window.location.reload(), 1500);
-      } catch (error: any) {
-        toast({
-          title: 'Error Saving Settings',
-          description: error.message || 'An unexpected error occurred.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+      });
+    },
+    [company, adminUser, logoFile, toast, startSavingTransition],
+  );
 
   return (
     <Form {...form}>
