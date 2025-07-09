@@ -10,6 +10,7 @@ import {
   getMultiFactorResolver,
   TotpMultiFactorGenerator,
   type MultiFactorResolver,
+  type AuthError,
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useRouter } from 'next/navigation';
@@ -63,9 +64,9 @@ export default function LoginForm() {
         await signInWithEmailAndPassword(auth, values.email, values.password);
         toast({ title: 'Login Successful' });
         router.push('/dashboard');
-      } catch (error) {
+      } catch (error: any) {
         if (error.code === 'auth/multi-factor-auth-required') {
-          setMfaResolver(getMultiFactorResolver(auth, error));
+          setMfaResolver(getMultiFactorResolver(auth, error as AuthError));
         } else {
           toast({
             title: 'Login Failed',
@@ -87,12 +88,12 @@ export default function LoginForm() {
       if (!mfaResolver) return;
       setIsLoading(true);
       try {
-        const assertion = TotpMultiFactorGenerator.assertionForSignIn(
+        const mfaAssertion = TotpMultiFactorGenerator.assertionForSignIn(
           mfaResolver.hints[0].uid,
           values.code,
         );
-        await mfaResolver.resolveSignIn(assertion);
- toast({ title: 'Login Successful' });
+        await mfaResolver.resolveSignIn(mfaAssertion);
+        toast({ title: 'Login Successful' });
         router.push('/dashboard');
       } catch (error: any) {
         toast({

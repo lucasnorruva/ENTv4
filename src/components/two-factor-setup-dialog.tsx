@@ -84,12 +84,12 @@ export default function TwoFactorSetupDialog({
 
     startTransition(async () => {
       try {
-        const assertion = TotpMultiFactorGenerator.assertionForEnrollment(
+        const mfaAssertion = TotpMultiFactorGenerator.assertionForEnrollment(
           secret,
           verificationCode,
         );
         await multiFactor(auth.currentUser!).enroll(
-          assertion,
+          mfaAssertion,
           'My Authenticator App',
         );
 
