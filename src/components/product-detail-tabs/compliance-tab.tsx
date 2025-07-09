@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/compliance-tab.tsx
 'use client';
 
@@ -270,7 +269,7 @@ export default function ComplianceTab({
           <CardTitle>Documents & Credentials</CardTitle>
         </CardHeader>
         <CardContent>
-          <Accordion type="multiple" collapsible className="w-full">
+          <Accordion type="multiple" className="w-full">
              {greenClaims && greenClaims.length > 0 && (
                 <AccordionItem value="green-claims">
                   <AccordionTrigger>
