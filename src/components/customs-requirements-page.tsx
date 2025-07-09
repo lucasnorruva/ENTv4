@@ -1,4 +1,3 @@
-
 // src/components/customs-requirements-page.tsx
 'use client';
 

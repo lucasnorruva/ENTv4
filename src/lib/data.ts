@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -123,6 +122,21 @@ export let products: Product[] = [
       { date: new Date(Date.now() - 3*24*60*60*1000).toISOString(), event: 'Shipped', location: 'Hamburg Port', actor: 'DHL' },
     ],
     isMinting: false,
+    transit: {
+      stage: 'Inland Transit (DE)',
+      eta: new Date(new Date(now).setDate(now.getDate() + 2)).toISOString(),
+      transport: 'Truck',
+      origin: 'Port of Gdansk, Poland',
+      destination: 'Berlin, Germany',
+      departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
+    },
+    customs: {
+      status: 'Cleared',
+      authority: 'German Customs (Zoll)',
+      location: 'Frankfurt (Oder)',
+      date: new Date().toISOString(),
+      notes: 'Random inspection passed without issues.'
+    },
   },
   {
     id: 'pp-002',
@@ -196,6 +210,21 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
     isProcessing: false,
     isMinting: false,
+    transit: {
+      stage: 'At Customs',
+      eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
+      transport: 'Ship',
+      origin: 'Mumbai, India',
+      destination: 'Rotterdam, Netherlands',
+      departureDate: new Date(new Date(now).setDate(now.getDate() - 20)).toISOString(),
+    },
+    customs: {
+      status: 'Detained',
+      authority: 'Dutch Customs',
+      location: 'Port of Rotterdam',
+      date: new Date().toISOString(),
+      notes: 'Awaiting CBAM declaration for textile import.',
+    },
   },
   {
     id: 'pp-004',
@@ -308,6 +337,21 @@ export let products: Product[] = [
       complianceSummary: 'Product has multiple compliance failures.',
       isCompliant: false,
       gaps: [],
+    },
+    transit: {
+      stage: 'At Destination Port',
+      eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
+      transport: 'Ship',
+      origin: 'Newark, USA',
+      destination: 'Bremerhaven, Germany',
+      departureDate: new Date(new Date(now).setDate(now.getDate() - 14)).toISOString(),
+    },
+    customs: {
+      status: 'Rejected',
+      authority: 'German Customs (Zoll)',
+      location: 'Port of Bremerhaven',
+      date: new Date(new Date(now).setHours(now.getHours() - 2)).toISOString(),
+      notes: 'Shipment rejected due to non-compliance with EU WEEE regulations. Return to sender initiated.',
     },
   },
   {
