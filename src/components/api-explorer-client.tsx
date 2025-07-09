@@ -1,4 +1,3 @@
-
 // src/components/api-explorer-client.tsx
 'use client';
 
@@ -128,7 +127,7 @@ export default function ApiExplorerClient({ user }: { user: User }) {
         setResponse(JSON.stringify({ error: error.message }, null, 2));
       }
     });
-  }, [apiKey, query, variables, toast, startTransition]);
+  }, [apiKey, query, variables, toast]);
 
   const handleSampleQueryChange = useCallback((queryName: string) => {
     const selected = sampleQueries.find(q => q.name === queryName);
