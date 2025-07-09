@@ -1,7 +1,7 @@
 // src/components/company-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -92,7 +92,7 @@ export default function CompanyForm({
     }
   }, [company, isOpen, form]);
 
-  const onSubmit = (values: CompanyFormValues) => {
+  const onSubmit = useCallback((values: CompanyFormValues) => {
     startSavingTransition(async () => {
       try {
         const saved = await saveCompany(values, adminUser.id, company?.id);
@@ -110,7 +110,7 @@ export default function CompanyForm({
         });
       }
     });
-  };
+  }, [adminUser.id, company?.id, onSave, onOpenChange, startSavingTransition, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
