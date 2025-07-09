@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants'; // Import Collections
 import {
@@ -13,49 +13,19 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import {
-  Activity,
   BookCopy,
   ShieldCheck,
-  Clock,
-  Edit,
-  FilePlus,
-  FileUp,
-  Trash2,
-  CheckCircle,
-  FileX,
-  Calculator,
-  Recycle,
-  ShieldX,
   Building2,
+  Recycle,
+  Activity,
   Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays } from 'date-fns';
-import type { AuditLog, Product, User, Company } from '@/types';
+import type { Product, Company } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
-import RelativeTime from '@/components/relative-time';
-
-const actionIcons: Record<string, React.ElementType> = {
-  'product.created': FilePlus,
-  'product.updated': Edit,
-  'product.deleted': Trash2,
-  'product.recycled': Recycle,
-  'product.recalculate_score': Calculator,
-  'passport.submitted': FileUp,
-  'passport.approved': CheckCircle,
-  'passport.rejected': FileX,
-  'compliance.resolved': ShieldX,
-  default: Clock,
-};
-
-const getActionLabel = (action: string): string => {
-  return action
-    .split('.')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
 
 const generateComplianceRateData = (products: Product[]) => {
   const data: { date: string; rate: number }[] = [];
@@ -77,34 +47,33 @@ const generateComplianceRateData = (products: Product[]) => {
 
 export default function BusinessAnalystAnalyticsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]); // auditLogs is used
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribes: (() => void)[] = [];
 
-    const productQuery = query(collection(db, Collections.PRODUCTS), orderBy('createdAt', 'desc'));
-    unsubscribes.push(onSnapshot(productQuery, snapshot => {
-      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-      setIsLoading(false);
-    }));
+    const productQuery = query(
+      collection(db, Collections.PRODUCTS),
+      orderBy('createdAt', 'desc'),
+    );
+    unsubscribes.push(
+      onSnapshot(productQuery, snapshot => {
+        setProducts(
+          snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)),
+        );
+        setIsLoading(false);
+      }),
+    );
 
-    const userQuery = query(collection(db, Collections.USERS));
-    unsubscribes.push(onSnapshot(userQuery, snapshot => {
-      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
-    }));
-
-    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS), orderBy('createdAt', 'desc'));
-    unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
-      setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
-    }));
-
-     const companyQuery = query(collection(db, Collections.COMPANIES));
-    unsubscribes.push(onSnapshot(companyQuery, snapshot => {
-      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)));
-    }));
+    const companyQuery = query(collection(db, Collections.COMPANIES));
+    unsubscribes.push(
+      onSnapshot(companyQuery, snapshot => {
+        setCompanies(
+          snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)),
+        );
+      }),
+    );
 
     return () => unsubscribes.forEach(unsub => unsub());
   }, []);
@@ -149,10 +118,6 @@ export default function BusinessAnalystAnalyticsPage() {
 
   const complianceRateData = generateComplianceRateData(products);
 
-  const recentActivity = auditLogs.slice(0, 5);
-  const productMap = new Map(products.map(p => [p.id, p.productName]));
-  const userMap = new Map(users.map(u => [u.id, u.fullName]));
-
   return (
     <div className="space-y-6">
       <div>
@@ -161,7 +126,7 @@ export default function BusinessAnalystAnalyticsPage() {
           An overview of product and compliance trends across the platform.
         </p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -216,24 +181,6 @@ export default function BusinessAnalystAnalyticsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Recent Audits</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {
-                auditLogs.filter(
-                  log =>
-                    new Date(log.createdAt) > subDays(new Date(), 1) &&
-                    log.action.includes('passport.'),
-                ).length
-              }
-            </div>
-            <p className="text-xs text-muted-foreground">In the last 24h</p>
-          </CardContent>
-        </Card>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
         <Card>
@@ -281,51 +228,6 @@ export default function BusinessAnalystAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Platform Activity</CardTitle>
-          <CardDescription>
-            A stream of the latest actions across the system.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {recentActivity.map(log => {
-              const Icon = actionIcons[log.action] || actionIcons.default;
-              const user = userMap.get(log.userId) || 'System';
-              const product = productMap.get(log.entityId) || log.entityId;
-              const actionLabel = getActionLabel(log.action);
-              return (
-                <div key={log.id} className="flex items-center gap-4">
-                  <div className="p-2 bg-muted rounded-full">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">
-                      {actionLabel}{' '}
-                      <span className="font-normal text-muted-foreground">
-                        by {user}
-                      </span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Product: {product}
-                    </p>
-                  </div>
-                  <RelativeTime
-                    date={log.createdAt}
-                    className="text-xs text-muted-foreground shrink-0"
-                  />
-                </div>
-              );
-            })}
-            {recentActivity.length === 0 && (
-              <p className="text-sm text-center text-muted-foreground py-4">
-                No recent activity.
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

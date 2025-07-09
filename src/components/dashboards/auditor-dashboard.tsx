@@ -1,6 +1,5 @@
 import { getProducts } from '@/lib/actions/product-actions';
-import { getCurrentUser } from '@/lib/auth';
-import { UserRoles } from '@/lib/constants';
+import type { User } from '@/types';
 import AuditorDashboardClient from './auditor-dashboard-client';
 
 export default async function AuditorDashboard({ user }: { user: User }) {

@@ -11,7 +11,6 @@ import {
   Webhook as WebhookIcon,
   BookOpen,
 } from 'lucide-react';
-import { format } from 'date-fns';
 import Link from 'next/link';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -57,8 +56,12 @@ import type { Webhook, User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { deleteWebhook } from '@/lib/actions/webhook-actions';
 import WebhookForm from './webhook-form';
-import type { ColumnDef } from '@tanstack/react-table';
-import { flexRender } from '@tanstack/react-table';
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  type ColumnDef,
+} from '@tanstack/react-table';
 
 interface WebhookManagementClientProps {
   user: User;
@@ -174,11 +177,6 @@ export default function WebhookManagementClient({
         ),
       },
       {
-        accessorKey: 'createdAt',
-        header: 'Created',
-        cell: ({ row }) => format(new Date(row.original.createdAt), 'PPP'),
-      },
-      {
         id: 'actions',
         cell: ({ row }) => {
           const webhook = row.original;
@@ -247,6 +245,12 @@ export default function WebhookManagementClient({
     [handleEdit, handleDelete, isPending],
   );
 
+  const table = useReactTable({
+    data: webhooks,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
+
   return (
     <>
       <Card>
@@ -271,23 +275,33 @@ export default function WebhookManagementClient({
           ) : (
             <Table>
               <TableHeader>
-                <TableRow>
-                  {columns.map(column => (
-                    <TableHead key={column.header as string}>
-                       {column.header as React.ReactNode}
-                    </TableHead>
-                  ))}
-                </TableRow>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map(header => (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
               </TableHeader>
               <TableBody>
-                {webhooks.length > 0 ? (
-                  webhooks.map(webhook => (
-                    <TableRow key={webhook.id}>
-                     {columns.map(column => (
-                      <TableCell key={column.id}>
-                        {flexRender(column.cell, { row: { original: webhook }})}
-                      </TableCell>
-                    ))}
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map(row => (
+                    <TableRow key={row.id}>
+                      {row.getVisibleCells().map(cell => (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))
                 ) : (

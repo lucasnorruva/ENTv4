@@ -12,7 +12,6 @@ import {
   RefreshCw,
   ArrowUpDown,
   ChevronDown,
-  AlertCircle,
   BookCopy,
   Archive,
 } from "lucide-react";
@@ -176,23 +175,6 @@ export default function ProductTable({
               >
                 {row.original.productName}
               </Link>
-              {warnings && warnings.length > 0 && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <AlertCircle className="h-4 w-4 text-amber-500" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="font-bold">Data Quality Warnings:</p>
-                      <ul className="list-disc list-inside">
-                        {warnings.map((w, i) => (
-                          <li key={i}>{w.warning}</li>
-                        ))}
-                      </ul>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
             </div>
           );
         },

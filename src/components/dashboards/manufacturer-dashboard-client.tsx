@@ -14,7 +14,7 @@ import { Button } from '../ui/button';
 import Link from 'next/link';
 import { ArrowRight, BookCopy, Factory, Activity, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatDistanceToNow } from 'date-fns';
+import RelativeTime from '../relative-time';
 
 interface ManufacturerDashboardClientProps {
   user: User;
@@ -114,12 +114,7 @@ export default function ManufacturerDashboardClient({
                 </div>
                 <div className="flex items-center gap-1">
                   <Wrench className="h-3 w-3" />
-                  <span suppressHydrationWarning>
-                    Maint:{' '}
-                    {formatDistanceToNow(new Date(line.lastMaintenance), {
-                      addSuffix: true,
-                    })}
-                  </span>
+                  <RelativeTime date={line.lastMaintenance}/>
                 </div>
               </div>
             </div>
