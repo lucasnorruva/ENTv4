@@ -1,7 +1,7 @@
 // src/components/production-line-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import {
   MoreHorizontal,
@@ -73,63 +73,66 @@ export default function ProductionLineManagementClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // For a real-time app, you'd use a listener here.
-    // For mock data, a simple fetch is fine.
-    async function fetchInitialData() {
-      try {
-        const [initialLines, initialProducts] = await Promise.all([
-          getProductionLines(),
-          getProducts(user.id),
-        ]);
-        setLines(initialLines);
-        setProducts(initialProducts);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to load initial data.',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchInitialData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [initialLines, initialProducts] = await Promise.all([
+        getProductionLines(),
+        getProducts(user.id),
+      ]);
+      setLines(initialLines);
+      setProducts(initialProducts);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load initial data.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-    fetchInitialData();
   }, [toast, user.id]);
 
-  const handleCreateNew = () => {
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
+
+  const handleCreateNew = useCallback(() => {
     setSelectedLine(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (line: ProductionLine) => {
+  const handleEdit = useCallback((line: ProductionLine) => {
     setSelectedLine(line);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (lineId: string) => {
-    startTransition(async () => {
-      try {
-        await deleteProductionLine(lineId, user.id);
-        setLines(prev => prev.filter(l => l.id !== lineId));
-        toast({
-          title: 'Production Line Deleted',
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to delete production line.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const handleDelete = useCallback(
+    (lineId: string) => {
+      startTransition(async () => {
+        try {
+          await deleteProductionLine(lineId, user.id);
+          setLines(prev => prev.filter(l => l.id !== lineId));
+          toast({
+            title: 'Production Line Deleted',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to delete production line.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [user.id, toast],
+  );
 
-  const handleSave = () => {
-    // Optimistically re-fetch after save
-    getProductionLines().then(setLines);
+  const handleSave = useCallback(() => {
+    // Re-fetch data after save
+    fetchInitialData();
     setIsFormOpen(false);
-  };
+  }, [fetchInitialData]);
 
   const getStatusVariant = (status: string) => {
     switch (status) {
