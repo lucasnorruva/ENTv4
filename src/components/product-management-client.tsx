@@ -11,9 +11,18 @@ import React, {
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  orderBy,
+} from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
-import { UserRoles} from '@/lib/constants';
+import { UserRoles } from '@/lib/constants';
 import type { CreateProductFromImageOutput } from '@/types/ai-outputs';
 
 import {
@@ -27,7 +36,6 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductTable from './product-table';
 import {
-  getProducts,
   deleteProduct,
   submitForReview,
   recalculateScore,
@@ -42,11 +50,12 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
+  compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagementClient({
   user,
-
+  compliancePaths,
 }: ProductManagementClientProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,26 +67,38 @@ export default function ProductManagementClient({
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
-  const fetchProducts = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const productsData = await getProducts(user.id);
-      setProducts(productsData);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load products.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
+  const fetchProducts = useCallback(() => {
+    const isAdmin = hasRole(user, UserRoles.ADMIN);
+    let q;
+    if (isAdmin) {
+      q = query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'));
+    } else {
+      q = query(
+        collection(db, Collections.PRODUCTS),
+        where('companyId', '==', user.companyId),
+        orderBy('lastUpdated', 'desc')
+      );
     }
-  }, [user.id, toast]);
+    
+    setIsLoading(true);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+      setProducts(productsData);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error fetching products:", error);
+      toast({ title: "Error", description: "Failed to load products in real-time.", variant: "destructive" });
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
+  }, [user, toast]);
 
   useEffect(() => {
-    fetchProducts();
+    const unsubscribe = fetchProducts();
+    return () => unsubscribe();
   }, [fetchProducts]);
+
 
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
@@ -94,8 +115,8 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    fetchProducts(); // Refresh data after import
-  }, [fetchProducts, toast]);
+    // Real-time listener will update the data automatically.
+  }, [toast]);
 
   const handleAnalysisComplete = useCallback(
     (data: CreateProductFromImageOutput) => {
@@ -119,44 +140,40 @@ export default function ProductManagementClient({
     ) => {
       startTransition(async () => {
         await action(productIds, user.id);
-        fetchProducts(); // Refresh data
         toast({ title: successMessage });
       });
     },
-    [fetchProducts, toast, user.id],
+    [toast, user.id],
   );
 
   const handleDelete = useCallback(
     (id: string) => {
       startTransition(async () => {
         await deleteProduct(id, user.id);
-        fetchProducts(); // Refresh data
         toast({ title: 'Product Deleted' });
       });
     },
-    [fetchProducts, toast, user.id],
+    [toast, user.id],
   );
 
   const handleSubmitForReview = useCallback(
     (id: string) => {
       startTransition(async () => {
         await submitForReview(id, user.id);
-        fetchProducts(); // Refresh data
         toast({ title: 'Product Submitted' });
       });
     },
-    [fetchProducts, toast, user.id],
+    [toast, user.id],
   );
 
   const handleRecalculateScore = useCallback(
     (id: string, name: string) => {
       startTransition(async () => {
         await recalculateScore(id, user.id);
-        fetchProducts(); // Refresh data
         toast({ title: `Recalculating score for ${name}...` });
       });
     },
-    [fetchProducts, toast, user.id],
+    [toast, user.id],
   );
 
   const handleBulkDelete = useCallback(
@@ -279,7 +296,6 @@ export default function ProductManagementClient({
             <ProductTable
               products={filteredProducts}
               user={user}
-              isLoading={isLoading}
               isProcessingAction={isPending}
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
