@@ -75,44 +75,47 @@ export default function ProductImportDialog({
     setValidatedData([]);
     onOpenChange(false);
   }, [onOpenChange]);
-  
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setIsParsing(true);
-      Papa.parse(selectedFile, {
-        header: true,
-        skipEmptyLines: true,
-        complete: result => {
-          const validated = result.data.map(row => {
-            const parsed = bulkProductImportSchema.safeParse(row);
-            if (parsed.success) {
-              return { data: parsed.data, isValid: true };
-            } else {
-              return {
-                data: row,
-                isValid: false,
-                errors: parsed.error.errors.map(
-                  e => `${e.path.join('.')}: ${e.message}`,
-                ),
-              };
-            }
-          });
-          setValidatedData(validated);
-          setIsParsing(false);
-        },
-        error: () => {
-          toast({
-            title: 'Parsing Error',
-            description: 'Could not parse the CSV file.',
-            variant: 'destructive',
-          });
-          setIsParsing(false);
-        },
-      });
-    }
-  }, [toast]);
+
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      if (selectedFile) {
+        setFile(selectedFile);
+        setIsParsing(true);
+        Papa.parse(selectedFile, {
+          header: true,
+          skipEmptyLines: true,
+          complete: result => {
+            const validated = result.data.map(row => {
+              const parsed = bulkProductImportSchema.safeParse(row);
+              if (parsed.success) {
+                return { data: parsed.data, isValid: true };
+              } else {
+                return {
+                  data: row,
+                  isValid: false,
+                  errors: parsed.error.errors.map(
+                    e => `${e.path.join('.')}: ${e.message}`,
+                  ),
+                };
+              }
+            });
+            setValidatedData(validated);
+            setIsParsing(false);
+          },
+          error: () => {
+            toast({
+              title: 'Parsing Error',
+              description: 'Could not parse the CSV file.',
+              variant: 'destructive',
+            });
+            setIsParsing(false);
+          },
+        });
+      }
+    },
+    [toast],
+  );
 
   const handleImport = useCallback(() => {
     const productsToImport = validatedData
@@ -143,7 +146,14 @@ export default function ProductImportDialog({
         });
       }
     });
-  }, [validatedData, toast, startSavingTransition, user.id, onSave, handleClose]);
+  }, [
+    validatedData,
+    toast,
+    startSavingTransition,
+    user.id,
+    onSave,
+    handleClose,
+  ]);
 
   const validRows = validatedData.filter(row => row.isValid).length;
   const invalidRows = validatedData.length - validRows;
@@ -193,7 +203,9 @@ export default function ProductImportDialog({
                         className={!row.isValid ? 'bg-destructive/10' : ''}
                       >
                         <TableCell>
-                          <Badge variant={row.isValid ? 'default' : 'destructive'}>
+                          <Badge
+                            variant={row.isValid ? 'default' : 'destructive'}
+                          >
                             {row.isValid ? 'Valid' : 'Invalid'}
                           </Badge>
                         </TableCell>
