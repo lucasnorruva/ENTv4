@@ -128,17 +128,17 @@ export default function ServiceTicketManagementClient({
     fetchInitialData();
   }, [fetchInitialData]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedTicket(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (ticket: ServiceTicket) => {
+  const handleEdit = useCallback((ticket: ServiceTicket) => {
     setSelectedTicket(ticket);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleSave = (savedTicket: ServiceTicket) => {
+  const handleSave = useCallback((savedTicket: ServiceTicket) => {
     setTickets(prev => {
         const exists = prev.some(t => t.id === savedTicket.id);
         if (exists) {
@@ -147,7 +147,7 @@ export default function ServiceTicketManagementClient({
         return [savedTicket, ...prev];
     })
     setIsFormOpen(false);
-  };
+  }, []);
 
   const productMap = useMemo(() => new Map(products.map(p => [p.id, p.productName])), [products]);
   const lineMap = useMemo(() => new Map(productionLines.map(l => [l.id, l.name])), [productionLines]);
