@@ -1,7 +1,7 @@
 // src/components/trust-hub/issuers-tab.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { Company, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -20,15 +20,15 @@ export default function IssuersTab({ initialCompanies, user, onDataChange }: Iss
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
-  const handleEdit = (company: Company) => {
+  const handleEdit = useCallback((company: Company) => {
     setSelectedCompany(company);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     onDataChange();
     setIsFormOpen(false);
-  };
+  }, [onDataChange]);
 
   return (
     <>
