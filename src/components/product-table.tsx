@@ -147,7 +147,7 @@ export default function ProductTable({
           </Button>
         ),
         cell: ({ row }) => {
-          const warnings = row.original.dataQualityWarnings;
+          return (
             <div className="flex items-center gap-3">
               <Image
                 src={row.original.productImage}
@@ -345,7 +345,7 @@ export default function ProductTable({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" className="ml-auto">
               Columns <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
