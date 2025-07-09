@@ -1,7 +1,7 @@
 // src/components/settings-client.tsx
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   updateUserProfile,
@@ -153,7 +153,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
     });
   };
 
-  const handleDisable2FA = () => {
+  const handleDisable2FA = useCallback(() => {
     if (!auth.currentUser) return;
     startTransition(async () => {
       try {
@@ -168,9 +168,9 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         toast({ title: 'Error', description: error.message || 'Failed to disable 2FA.', variant: 'destructive' });
       }
     });
-  };
+  }, [user.id, toast]);
 
-  const onDeleteAccount = () => {
+  const onDeleteAccount = useCallback(() => {
     startTransition(async () => {
         try {
             await deleteOwnAccount(user.id);
@@ -180,12 +180,12 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
             toast({ title: 'Error', description: error.message || 'Failed to delete account.', variant: 'destructive' });
         }
     })
-  }
+  }, [user.id, toast, router]);
 
-  const on2faSuccess = () => {
+  const on2faSuccess = useCallback(() => {
     setIs2faDialogOpen(false);
     setUser(prev => ({ ...prev, isMfaEnabled: true }));
-  };
+  }, []);
 
   return (
     <>

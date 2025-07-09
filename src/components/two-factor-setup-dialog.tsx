@@ -1,7 +1,7 @@
 // src/components/two-factor-setup-dialog.tsx
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import QRCode from 'react-qr-code';
 import {
   multiFactor,
@@ -72,7 +72,14 @@ export default function TwoFactorSetupDialog({
     startMfaEnrollment();
   }, [isOpen, onOpenChange, toast]);
 
-  const handleVerifyAndEnroll = () => {
+  const onClose = useCallback(() => {
+    setQrCodeUri(null);
+    setSecret(null);
+    setVerificationCode('');
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  const handleVerifyAndEnroll = useCallback(() => {
     if (!auth.currentUser || !secret || verificationCode.length !== 6) return;
 
     startTransition(async () => {
@@ -81,7 +88,7 @@ export default function TwoFactorSetupDialog({
           secret,
           verificationCode,
         );
-        await multiFactor(auth.currentUser).enroll(
+        await multiFactor(auth.currentUser!).enroll(
           assertion,
           'My Authenticator App',
         );
@@ -102,14 +109,8 @@ export default function TwoFactorSetupDialog({
         });
       }
     });
-  };
+  }, [secret, verificationCode, user.id, toast, onSuccess, onClose]);
 
-  const onClose = () => {
-    setQrCodeUri(null);
-    setSecret(null);
-    setVerificationCode('');
-    onOpenChange(false);
-  };
 
   const copySecretToClipboard = () => {
     if (secret?.secretKey) {
