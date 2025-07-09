@@ -1,7 +1,7 @@
 // src/components/api-keys-client.tsx
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
   Plus,
   Trash2,
@@ -111,26 +111,25 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
     return () => unsubscribe(); // Cleanup listener on unmount
   }, [user.id, toast]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedApiKey(null);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleEdit = (key: ApiKey) => {
+  const handleEdit = useCallback((key: ApiKey) => {
     setSelectedApiKey(key);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleSave = (result: { key: ApiKey; rawToken?: string }) => {
-    // No need to manually update state, listener will do it.
+  const handleSave = useCallback((result: { key: ApiKey; rawToken?: string }) => {
     if (result.rawToken) {
       setNewlyCreatedKey(result.rawToken);
       setIsViewKeyDialogOpen(true);
     }
     setIsFormOpen(false);
-  };
+  }, []);
 
-  const handleRevokeKey = (id: string) => {
+  const handleRevokeKey = useCallback((id: string) => {
     startTransition(async () => {
       try {
         await revokeApiKey(id, user.id);
@@ -143,9 +142,9 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
         });
       }
     });
-  };
+  }, [user.id, toast]);
 
-  const handleDeleteKey = (id: string) => {
+  const handleDeleteKey = useCallback((id: string) => {
     startTransition(async () => {
       try {
         await deleteApiKey(id, user.id);
@@ -158,20 +157,20 @@ export default function ApiKeysClient({ user }: ApiKeysClientProps) {
         });
       }
     });
-  };
+  }, [user.id, toast]);
 
-  const copyToClipboard = () => {
+  const copyToClipboard = useCallback(() => {
     if (newlyCreatedKey) {
       navigator.clipboard.writeText(newlyCreatedKey);
       setHasCopied(true);
       setTimeout(() => setHasCopied(false), 2000);
     }
-  };
+  }, [newlyCreatedKey]);
 
-  const closeViewKeyDialog = () => {
+  const closeViewKeyDialog = useCallback(() => {
     setIsViewKeyDialogOpen(false);
     setNewlyCreatedKey(null);
-  };
+  }, []);
 
   return (
     <>
