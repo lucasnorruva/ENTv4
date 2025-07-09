@@ -23,6 +23,7 @@ import { newId } from './utils';
 import { createVerifiableCredential } from '@/services/credential';
 import { getCompanyById } from '../auth';
 import { generateComplianceProof, verifyComplianceProof } from '@/services/zkp-service';
+import { anchorToPolygon } from '@/services/blockchain';
 
 // --- Data Access Functions ---
 
@@ -245,9 +246,7 @@ export async function anchorProductOnChain(
     materials: product.materials,
     timestamp: now,
   };
-  const hash = createHash('sha256')
-    .update(JSON.stringify(dataToHash, Object.keys(dataToHash).sort()))
-    .digest('hex');
+  const hash = await hashData(dataToHash);
 
   const blockchainProof = await anchorToPolygon(hash);
 

@@ -5,11 +5,11 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button } from '../ui/button';
 import type { User } from '@/types';
 import { ArrowRight, CheckCircle, Recycle, Award } from 'lucide-react';
 import Link from 'next/link';

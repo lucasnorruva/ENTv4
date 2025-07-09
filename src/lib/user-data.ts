@@ -22,6 +22,7 @@ export let users: User[] = [
       complianceAlerts: true,
       platformNews: true,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-supplier',
@@ -40,6 +41,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-supplier-fashion',
@@ -58,6 +60,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-construction',
@@ -76,6 +79,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-food',
@@ -94,6 +98,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-auditor',
@@ -112,6 +117,7 @@ export let users: User[] = [
       complianceAlerts: true,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-compliance',
@@ -130,6 +136,7 @@ export let users: User[] = [
       complianceAlerts: true,
       platformNews: true,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-manufacturer',
@@ -148,6 +155,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-service',
@@ -166,6 +174,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-recycler',
@@ -184,6 +193,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: false,
     },
+    circularityCredits: 50,
   },
   {
     id: 'user-retailer',
@@ -202,6 +212,7 @@ export let users: User[] = [
       complianceAlerts: false,
       platformNews: true,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-developer',
@@ -220,6 +231,7 @@ export let users: User[] = [
       complianceAlerts: true,
       platformNews: true,
     },
+    circularityCredits: 0,
   },
   {
     id: 'user-analyst',
@@ -238,5 +250,6 @@ export let users: User[] = [
       complianceAlerts: true,
       platformNews: false,
     },
+    circularityCredits: 0,
   },
 ];
