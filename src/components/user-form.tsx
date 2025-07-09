@@ -1,7 +1,7 @@
 // src/components/user-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -90,25 +90,28 @@ export default function UserForm({
     }
   }, [user, isOpen, form]);
 
-  const onSubmit = (values: UserFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        await saveUser(values, adminUser.id, user?.id);
-        toast({
-          title: 'Success!',
-          description: `User "${values.fullName}" has been saved.`,
-        });
-        onSave(); // This now triggers a refetch in the parent component
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the user.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (values: UserFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          await saveUser(values, adminUser.id, user?.id);
+          toast({
+            title: 'Success!',
+            description: `User "${values.fullName}" has been saved.`,
+          });
+          onSave(); // This now triggers a refetch in the parent component
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the user.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startSavingTransition, adminUser.id, user?.id, toast, onSave, onOpenChange],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
