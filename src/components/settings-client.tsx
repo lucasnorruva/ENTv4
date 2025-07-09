@@ -91,15 +91,15 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
   }, [user, profileForm, notificationsForm]);
 
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setAvatarFile(file);
       setAvatarPreview(URL.createObjectURL(file));
     }
-  };
+  }, []);
 
-  const onProfileSave = (values: ProfileFormValues) => {
+  const onProfileSave = useCallback((values: ProfileFormValues) => {
     startTransition(async () => {
         let avatarUrl = user.avatarUrl;
         if (avatarFile) {
@@ -127,9 +127,9 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
             toast({ title: 'Error', description: 'Failed to update profile.', variant: 'destructive' });
         }
     });
-  };
+  }, [user, avatarFile, toast, startTransition]);
 
-  const onPasswordUpdate = (values: PasswordFormValues) => {
+  const onPasswordUpdate = useCallback((values: PasswordFormValues) => {
     startTransition(async () => {
       try {
         await updateUserPassword(user.id, values.currentPassword, values.newPassword, user.id);
@@ -139,9 +139,9 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         toast({ title: 'Error', description: error.message || 'Failed to update password.', variant: 'destructive' });
       }
     });
-  };
+  }, [user.id, toast, passwordForm, startTransition]);
 
-  const onNotificationsSave = (values: NotificationsFormValues) => {
+  const onNotificationsSave = useCallback((values: NotificationsFormValues) => {
     startTransition(async () => {
       try {
         await saveNotificationPreferences(user.id, values, user.id);
@@ -151,7 +151,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         toast({ title: 'Error', description: 'Failed to save notification preferences.', variant: 'destructive' });
       }
     });
-  };
+  }, [user.id, toast, startTransition]);
 
   const handleDisable2FA = useCallback(() => {
     if (!auth.currentUser) return;
@@ -168,7 +168,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
         toast({ title: 'Error', description: error.message || 'Failed to disable 2FA.', variant: 'destructive' });
       }
     });
-  }, [user.id, toast]);
+  }, [user.id, toast, startTransition]);
 
   const onDeleteAccount = useCallback(() => {
     startTransition(async () => {
@@ -180,7 +180,7 @@ export default function SettingsClient({ user: initialUser }: { user: User }) {
             toast({ title: 'Error', description: error.message || 'Failed to delete account.', variant: 'destructive' });
         }
     })
-  }, [user.id, toast, router]);
+  }, [user.id, toast, router, startTransition]);
 
   const on2faSuccess = useCallback(() => {
     setIs2faDialogOpen(false);
