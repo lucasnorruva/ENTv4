@@ -303,17 +303,3 @@ export async function bulkCreateUsers(
 
   return { createdCount };
 }
-
-export async function deleteOwnAccount(userId: string): Promise<void> {
-  const userIndex = mockUsers.findIndex(u => u.id === userId);
-  if (userIndex === -1) {
-    throw new Error('User not found');
-  }
-
-  // In a real app, this would also delete the user from Firebase Auth
-  // await adminAuth.deleteUser(userId);
-
-  mockUsers.splice(userIndex, 1);
-  await logAuditEvent('user.self_deleted', userId, {}, userId);
-  return Promise.resolve();
-}

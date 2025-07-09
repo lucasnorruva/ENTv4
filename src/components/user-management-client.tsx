@@ -248,6 +248,7 @@ export default function UserManagementClient({
                     <Edit className="mr-2 h-4 w-4" />
                     Edit User
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <DropdownMenuItem
