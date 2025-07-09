@@ -1,7 +1,7 @@
 // src/components/product-import-dialog.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -42,6 +42,22 @@ interface ValidatedRow {
   errors?: string[];
 }
 
+const getTemplate = () => {
+  const headers =
+    'productName,productDescription,gtin,category,productImage,manualUrl,materials';
+  const example = `"Smart Thermostat","An AI-powered thermostat for your home.","123456789012","Electronics","https://placehold.co/400x400.png","https://example.com/manual.pdf","[{""name"": ""Recycled Plastic"", ""percentage"": 80},{""name"": ""Copper"", ""percentage"": 5}]"`;
+  const csvContent = `${headers}\n${example}`;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', 'norruva_import_template.csv');
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 export default function ProductImportDialog({
   isOpen,
   onOpenChange,
@@ -54,7 +70,13 @@ export default function ProductImportDialog({
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleClose = useCallback(() => {
+    setFile(null);
+    setValidatedData([]);
+    onOpenChange(false);
+  }, [onOpenChange]);
+  
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
@@ -90,9 +112,9 @@ export default function ProductImportDialog({
         },
       });
     }
-  };
+  }, [toast]);
 
-  const handleImport = () => {
+  const handleImport = useCallback(() => {
     const productsToImport = validatedData
       .filter(row => row.isValid)
       .map(row => row.data);
@@ -121,29 +143,7 @@ export default function ProductImportDialog({
         });
       }
     });
-  };
-
-  const handleClose = () => {
-    setFile(null);
-    setValidatedData([]);
-    onOpenChange(false);
-  };
-
-  const getTemplate = () => {
-    const headers =
-      'productName,productDescription,gtin,category,productImage,manualUrl,materials';
-    const example = `"Smart Thermostat","An AI-powered thermostat for your home.","123456789012","Electronics","https://placehold.co/400x400.png","https://example.com/manual.pdf","[{""name"": ""Recycled Plastic"", ""percentage"": 80},{""name"": ""Copper"", ""percentage"": 5}]"`;
-    const csvContent = `${headers}\n${example}`;
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'norruva_import_template.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  }, [validatedData, toast, startSavingTransition, user.id, onSave, handleClose]);
 
   const validRows = validatedData.filter(row => row.isValid).length;
   const invalidRows = validatedData.length - validRows;

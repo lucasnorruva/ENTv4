@@ -1,7 +1,7 @@
 // src/components/product-creation-from-image-dialog.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,15 +38,24 @@ export default function ProductCreationFromImageDialog({
   const [isAnalyzing, startAnalysisTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setImagePreview(URL.createObjectURL(selectedFile));
-    }
-  };
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      if (selectedFile) {
+        setFile(selectedFile);
+        setImagePreview(URL.createObjectURL(selectedFile));
+      }
+    },
+    [],
+  );
 
-  const handleAnalyze = () => {
+  const handleClose = useCallback(() => {
+    setFile(null);
+    setImagePreview(null);
+    onOpenChange(false);
+  }, [onOpenChange]);
+
+  const handleAnalyze = useCallback(() => {
     if (!file) {
       toast({
         title: 'No Image Selected',
@@ -88,13 +97,7 @@ export default function ProductCreationFromImageDialog({
         });
       };
     });
-  };
-
-  const handleClose = () => {
-    setFile(null);
-    setImagePreview(null);
-    onOpenChange(false);
-  };
+  }, [file, toast, startAnalysisTransition, user.id, onAnalysisComplete, handleClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
