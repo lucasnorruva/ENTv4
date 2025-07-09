@@ -95,28 +95,31 @@ export default function ServiceTicketDetailView({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleStatusUpdate = useCallback((status: 'Open' | 'In Progress' | 'Closed') => {
-    startTransition(async () => {
-      try {
-        const updatedTicket = await updateServiceTicketStatus(
-          ticket.id,
-          status,
-          user.id,
-        );
-        setTicket(updatedTicket);
-        toast({
-          title: 'Status Updated',
-          description: `Ticket status set to ${status}.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to update ticket status.',
-          variant: 'destructive',
-        });
-      }
-    });
-  }, [ticket.id, user.id, startTransition, toast]);
+  const handleStatusUpdate = useCallback(
+    (status: 'Open' | 'In Progress' | 'Closed') => {
+      startTransition(async () => {
+        try {
+          const updatedTicket = await updateServiceTicketStatus(
+            ticket.id,
+            status,
+            user.id,
+          );
+          setTicket(updatedTicket);
+          toast({
+            title: 'Status Updated',
+            description: `Ticket status set to ${status}.`,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to update ticket status.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [ticket.id, user.id, startTransition, toast],
+  );
 
   const handleSave = useCallback((savedTicket: ServiceTicket) => {
     setTicket(savedTicket);
