@@ -1,7 +1,7 @@
 // src/components/support-ticket-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback } from 'react';
 import {
   MoreHorizontal,
   Loader2,
@@ -60,9 +60,8 @@ export default function SupportTicketManagementClient({
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
-    // For a real-time app, you'd use a listener here.
-    // For mock data, a simple fetch is fine.
+  const fetchData = useCallback(() => {
+    setIsLoading(true);
     getSupportTickets()
       .then(setTickets)
       .catch(() =>
@@ -75,33 +74,37 @@ export default function SupportTicketManagementClient({
       .finally(() => setIsLoading(false));
   }, [toast]);
 
-  const handleStatusUpdate = (
-    ticketId: string,
-    status: 'Open' | 'Closed',
-  ) => {
-    startTransition(async () => {
-      try {
-        const updatedTicket = await updateSupportTicketStatus(
-          ticketId,
-          status,
-          user.id,
-        );
-        setTickets(prev =>
-          prev.map(t => (t.id === ticketId ? updatedTicket : t)),
-        );
-        toast({
-          title: 'Status Updated',
-          description: `Ticket status set to ${status}.`,
-        });
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to update ticket status.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleStatusUpdate = useCallback(
+    (ticketId: string, status: 'Open' | 'Closed') => {
+      startTransition(async () => {
+        try {
+          const updatedTicket = await updateSupportTicketStatus(
+            ticketId,
+            status,
+            user.id,
+          );
+          setTickets(prev =>
+            prev.map(t => (t.id === ticketId ? updatedTicket : t)),
+          );
+          toast({
+            title: 'Status Updated',
+            description: `Ticket status set to ${status}.`,
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to update ticket status.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [user.id, toast],
+  );
 
   const getStatusVariant = (status: string) => {
     return status === 'Open' ? 'destructive' : 'default';
@@ -156,14 +159,20 @@ export default function SupportTicketManagementClient({
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" disabled={isPending}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={isPending}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                           {ticket.status === 'Closed' && (
                             <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(ticket.id, 'Open')}
+                              onClick={() =>
+                                handleStatusUpdate(ticket.id, 'Open')
+                              }
                             >
                               <RotateCcw className="mr-2 h-4 w-4" /> Re-open
                               Ticket
@@ -171,7 +180,9 @@ export default function SupportTicketManagementClient({
                           )}
                           {ticket.status === 'Open' && (
                             <DropdownMenuItem
-                              onClick={() => handleStatusUpdate(ticket.id, 'Closed')}
+                              onClick={() =>
+                                handleStatusUpdate(ticket.id, 'Closed')
+                              }
                             >
                               <Check className="mr-2 h-4 w-4" /> Close Ticket
                             </DropdownMenuItem>
