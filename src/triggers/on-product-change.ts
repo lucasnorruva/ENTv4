@@ -1,4 +1,3 @@
-
 // src/triggers/on-product-change.ts
 // THIS FILE IS A MOCK FOR LOCAL DEVELOPMENT.
 // In a real Firebase project, this would be a Cloud Function.
