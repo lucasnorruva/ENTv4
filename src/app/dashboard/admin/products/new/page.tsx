@@ -17,7 +17,7 @@ export default async function NewProductPage({
       ? {
           productName: searchParams.productName as string,
           productDescription: searchParams.productDescription as string,
-          category: searchParams.category as string,
+          category: searchParams.category as 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage',
         }
       : undefined;
 
