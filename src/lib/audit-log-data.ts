@@ -13,6 +13,15 @@ export let auditLogs: AuditLog[] = [
         createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
         updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
     },
+    {
+        id: 'log-008',
+        userId: 'user-auditor',
+        action: 'customs.inspected',
+        entityId: 'pp-001',
+        details: { status: 'Cleared', location: 'Frankfurt (Oder)' },
+        createdAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+        updatedAt: new Date(new Date(now).setHours(now.getHours() - 1)).toISOString(),
+    },
   {
     id: 'log-001',
     userId: 'user-supplier',

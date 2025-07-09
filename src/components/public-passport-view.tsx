@@ -1,4 +1,3 @@
-
 // src/components/public-passport-view.tsx
 'use client';
 
