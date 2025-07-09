@@ -91,25 +91,28 @@ export default function ApiKeyForm({
     }
   }, [apiKey, isOpen, form]);
 
-  const onSubmit = useCallback((values: ApiKeyFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        const result = await saveApiKey(values, user.id, apiKey?.id);
-        toast({
-          title: 'Success!',
-          description: `API Key "${result.key.label}" has been saved.`,
-        });
-        onSave(result);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the API key.',
-          variant: 'destructive',
-        });
-      }
-    });
-  }, [apiKey?.id, onOpenChange, onSave, startSavingTransition, toast, user.id]);
+  const onSubmit = useCallback(
+    (values: ApiKeyFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          const result = await saveApiKey(values, user.id, apiKey?.id);
+          toast({
+            title: 'Success!',
+            description: `API Key "${result.key.label}" has been saved.`,
+          });
+          onSave(result);
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the API key.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [apiKey?.id, onOpenChange, onSave, startSavingTransition, toast, user.id],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -136,116 +139,121 @@ export default function ApiKeyForm({
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="scopes"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Scopes</FormLabel>
+                    <div className="space-y-2 border rounded-md p-3 min-h-[160px]">
+                      {AVAILABLE_SCOPES.map(item => (
+                        <FormField
+                          key={item.id}
+                          control={form.control}
+                          name="scopes"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={item.id}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(item.id)}
+                                    onCheckedChange={checked => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...(field.value || []),
+                                            item.id,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              value => value !== item.id,
+                                            ),
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal">
+                                  {item.label}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="space-y-6">
                 <FormField
                   control={form.control}
-                  name="scopes"
-                  render={() => (
-                    <FormItem>
-                      <FormLabel>Scopes</FormLabel>
-                      <div className="space-y-2 border rounded-md p-3 min-h-[160px]">
-                        {AVAILABLE_SCOPES.map(item => (
-                          <FormField
-                            key={item.id}
-                            control={form.control}
-                            name="scopes"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={item.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(item.id)}
-                                      onCheckedChange={checked => {
-                                        return checked
-                                          ? field.onChange([
-                                              ...(field.value || []),
-                                              item.id,
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                value => value !== item.id,
-                                              ),
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    {item.label}
-                                  </FormLabel>
-                                </FormItem>
-                              );
-                            }}
+                  name="expiresAt"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Expiration Date (Optional)</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={'outline'}
+                              className={cn(
+                                'w-full pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground',
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP')
+                              ) : (
+                                <span>Pick a date</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-0"
+                          align="start"
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={date =>
+                              date < new Date() || date < new Date('1900-01-01')
+                            }
+                            initialFocus
                           />
-                        ))}
-                      </div>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="space-y-6">
-                    <FormField
-                    control={form.control}
-                    name="expiresAt"
-                    render={({ field }) => (
-                        <FormItem className="flex flex-col">
-                        <FormLabel>Expiration Date (Optional)</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                            <FormControl>
-                                <Button
-                                variant={"outline"}
-                                className={cn(
-                                    "w-full pl-3 text-left font-normal",
-                                    !field.value && "text-muted-foreground"
-                                )}
-                                >
-                                {field.value ? (
-                                    format(field.value, "PPP")
-                                ) : (
-                                    <span>Pick a date</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                </Button>
-                            </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={field.onChange}
-                                disabled={(date) => date < new Date() || date < new Date("1900-01-01")}
-                                initialFocus
-                            />
-                            </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="ipRestrictions"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>IP Restrictions (Optional)</FormLabel>
-                        <FormControl>
-                            <Textarea
-                            placeholder="e.g. 203.0.113.42, 198.51.100.0/24"
-                            {...field}
-                            />
-                        </FormControl>
-                        <FormDescription>
-                            Comma-separated list of IP addresses or CIDR blocks.
-                        </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="ipRestrictions"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>IP Restrictions (Optional)</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g. 203.0.113.42, 198.51.100.0/24"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Comma-separated list of IP addresses or CIDR blocks.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <DialogFooter className="pt-4">
