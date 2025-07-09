@@ -1,15 +1,17 @@
+
 {
-  "IDX.aI.enableInlineCompletion": true,
-  "IDX.aI.enableCodebaseIndexing": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": true,
-  "[javascript]": {
-    "editor.defaultFormatter": "eslint.eslint"
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
   },
-  "[typescript]": {
-    "editor.defaultFormatter": "eslint.eslint"
+  "files.associations": {
+    "*.css": "tailwindcss"
   },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "eslint.eslint"
-  }
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ],
+  "IDX.aI.enableInlineCompletion": true,
+  "IDX.aI.enableCodebaseIndexing": true
 }
