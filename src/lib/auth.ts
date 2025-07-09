@@ -1,4 +1,5 @@
 
+
 // src/lib/auth.ts
 import { users } from './user-data';
 import { companies } from './company-data';

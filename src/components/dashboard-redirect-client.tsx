@@ -1,3 +1,4 @@
+
 // src/components/dashboard-redirect-client.tsx
 'use client';
 

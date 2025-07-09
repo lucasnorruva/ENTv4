@@ -1,3 +1,4 @@
+
 // src/lib/actions/product-actions.ts
 'use server';
 
@@ -24,7 +25,7 @@ import { logAuditEvent } from './audit-actions';
 import { products as mockProducts } from '@/lib/data';
 import { users as mockUsers } from '@/lib/user-data';
 import { newId } from './utils';
-import { onProductChange } from '@/triggers/on-product-change';
+// import { onProductChange } from '@/triggers/on-product-change';
 import { getCompliancePathById } from './compliance-actions';
 import { calculateSustainability } from '@/ai/flows/calculate-sustainability';
 import { generateQRLabelText } from '@/ai/flows/generate-qr-label-text';
@@ -181,7 +182,7 @@ export async function saveProduct(
   }
   
   // Trigger mock 'onProductChange' function to process AI data asynchronously
-  onProductChange(savedProduct.id, oldProductData, savedProduct).catch(console.error);
+  // onProductChange(savedProduct.id, oldProductData, savedProduct).catch(console.error);
 
   return Promise.resolve(savedProduct);
 }
