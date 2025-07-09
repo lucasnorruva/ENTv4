@@ -1,7 +1,7 @@
 // src/components/customs-inspection-form.tsx
 'use client';
 
-import React, { useTransition } from 'react';
+import React, { useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
@@ -68,7 +68,7 @@ export default function CustomsInspectionForm({
     },
   });
 
-  const onSubmit = (values: CustomsInspectionFormValues) => {
+  const onSubmit = useCallback((values: CustomsInspectionFormValues) => {
     startTransition(async () => {
       try {
         const updatedProduct = await performCustomsInspection(
@@ -91,7 +91,7 @@ export default function CustomsInspectionForm({
         });
       }
     });
-  };
+  }, [startTransition, product.id, product.productName, user.id, toast, onSave, onOpenChange, form]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
