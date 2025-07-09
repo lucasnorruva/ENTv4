@@ -132,7 +132,6 @@ export {
 } from './ticket-actions';
 
 export { globalSearch } from './search-actions';
-
 export { generateComponentTest } from './dev-tool-actions';
 export { runDailyComplianceCheck } from '@/triggers/scheduled-verifications';
 export { runDailyReferenceDataSync } from '@/triggers/scheduled-syncs';
