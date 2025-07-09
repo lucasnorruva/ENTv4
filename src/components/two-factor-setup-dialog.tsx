@@ -115,9 +115,10 @@ export default function TwoFactorSetupDialog({
     if (secret?.secretKey) {
       navigator.clipboard.writeText(secret.secretKey);
       setHasCopied(true);
+      toast({ title: 'Copied to clipboard!' });
       setTimeout(() => setHasCopied(false), 2000);
     }
-  }, [secret]);
+  }, [secret, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
