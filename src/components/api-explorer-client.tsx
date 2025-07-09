@@ -1,8 +1,15 @@
+
 // src/components/api-explorer-client.tsx
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useState, useTransition, useEffect, useCallback } from 'react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { getApiKeys } from '@/lib/actions/api-key-actions';
@@ -57,7 +64,9 @@ async function queryApi(query: string, variables: string, apiKey: string) {
 
 export default function ApiExplorerClient({ user }: { user: User }) {
   const [query, setQuery] = useState(sampleQueries[0].query);
-  const [variables, setVariables] = useState(sampleQueries[0].variables || '{}');
+  const [variables, setVariables] = useState(
+    sampleQueries[0].variables || '{}',
+  );
   const [response, setResponse] = useState('');
   const [isPending, startTransition] = useTransition();
   const [apiKey, setApiKey] = useState<string | null>(null);
@@ -72,35 +81,36 @@ export default function ApiExplorerClient({ user }: { user: User }) {
     borderRadius: 'var(--radius)',
   };
 
-  useEffect(() => {
-    async function fetchKey() {
-      try {
-        const keys = await getApiKeys(user.id);
-        const activeKey = keys.find(k => k.status === 'Active' && k.rawToken);
-        if (activeKey?.rawToken) {
-          setApiKey(activeKey.rawToken);
-        } else {
-          toast({
-            title: 'No Active API Key',
-            description:
-              'Please create an active API key in the "API Keys" tab to use the explorer.',
-            variant: 'destructive',
-          });
-        } 
-      } catch (error) {
+  const fetchKey = useCallback(async () => {
+    try {
+      const keys = await getApiKeys(user.id);
+      const activeKey = keys.find(k => k.status === 'Active' && k.rawToken);
+      if (activeKey?.rawToken) {
+        setApiKey(activeKey.rawToken);
+      } else {
         toast({
-          title: 'Error',
-          description: 'Could not fetch API keys.',
+          title: 'No Active API Key',
+          description:
+            'Please create an active API key in the "API Keys" tab to use the explorer.',
           variant: 'destructive',
         });
       }
-    }
-    if (user?.id) {
-      fetchKey();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Could not fetch API keys.',
+        variant: 'destructive',
+      });
     }
   }, [user.id, toast]);
 
-  const handleRunQuery = () => {
+  useEffect(() => {
+    if (user?.id) {
+      fetchKey();
+    }
+  }, [user?.id, fetchKey]);
+
+  const handleRunQuery = useCallback(() => {
     if (!apiKey) {
       toast({
         title: 'API Key Missing',
@@ -114,19 +124,19 @@ export default function ApiExplorerClient({ user }: { user: User }) {
       try {
         const result = await queryApi(query, variables, apiKey);
         setResponse(JSON.stringify(result, null, 2));
-      } catch (error: Error) {
+      } catch (error: any) {
         setResponse(JSON.stringify({ error: error.message }, null, 2));
       }
     });
-  };
-  
-  const handleSampleQueryChange = (queryName: string) => {
+  }, [apiKey, query, variables, toast, startTransition]);
+
+  const handleSampleQueryChange = useCallback((queryName: string) => {
     const selected = sampleQueries.find(q => q.name === queryName);
     if (selected) {
       setQuery(selected.query);
       setVariables(selected.variables || '{}');
     }
-  };
+  }, []);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
@@ -134,25 +144,29 @@ export default function ApiExplorerClient({ user }: { user: User }) {
         <CardHeader>
           <CardTitle>GraphQL Query</CardTitle>
           <CardDescription>
-            Write and execute GraphQL queries or select a sample query to get started.
+            Write and execute GraphQL queries or select a sample query to get
+            started.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex flex-col gap-4">
           <div>
-            <label htmlFor="sample-query" className="text-sm font-medium mb-2 block">
+            <label
+              htmlFor="sample-query"
+              className="text-sm font-medium mb-2 block"
+            >
               Sample Queries
             </label>
             <Select onValueChange={handleSampleQueryChange}>
-                <SelectTrigger id="sample-query">
-                    <SelectValue placeholder="Select a sample query..." />
-                </SelectTrigger>
-                <SelectContent>
-                    {sampleQueries.map(q => (
-                        <SelectItem key={q.name} value={q.name}>
-                            {q.name}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
+              <SelectTrigger id="sample-query">
+                <SelectValue placeholder="Select a sample query..." />
+              </SelectTrigger>
+              <SelectContent>
+                {sampleQueries.map(q => (
+                  <SelectItem key={q.name} value={q.name}>
+                    {q.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
           <div className="flex-1 flex flex-col">
@@ -163,7 +177,9 @@ export default function ApiExplorerClient({ user }: { user: User }) {
               <Editor
                 value={query}
                 onValueChange={code => setQuery(code)}
-                highlight={code => highlight(code, languages.graphql, 'graphql')}
+                highlight={code =>
+                  highlight(code, languages.graphql, 'graphql')
+                }
                 padding={10}
                 style={editorStyle}
                 className="h-full"
