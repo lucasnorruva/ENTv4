@@ -1,7 +1,7 @@
 // src/components/service-ticket-form.tsx
 'use client';
 
-import React, { useEffect, useTransition, useState } from 'react';
+import React, { useEffect, useTransition, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -117,93 +117,115 @@ export default function ServiceTicketForm({
     }
   }, [ticket, isOpen, form]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setImageFile(selectedFile);
-      setImagePreview(URL.createObjectURL(selectedFile));
-    }
-  };
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      if (selectedFile) {
+        setImageFile(selectedFile);
+        setImagePreview(URL.createObjectURL(selectedFile));
+      }
+    },
+    [],
+  );
 
-  const handleTicketTypeChange = (value: TicketType) => {
-    setTicketType(value);
-    if (value === 'product') {
-      form.setValue('productionLineId', '');
-    } else {
-      form.setValue('productId', '');
-    }
-  };
+  const handleTicketTypeChange = useCallback(
+    (value: TicketType) => {
+      setTicketType(value);
+      if (value === 'product') {
+        form.setValue('productionLineId', '');
+      } else {
+        form.setValue('productId', '');
+      }
+    },
+    [form],
+  );
 
-  const onSubmit = (values: ServiceTicketFormValues) => {
-    startSavingTransition(async () => {
-      let imageUrl = ticket?.imageUrl ?? '';
+  const onSubmit = useCallback(
+    (values: ServiceTicketFormValues) => {
+      startSavingTransition(async () => {
+        let imageUrl = ticket?.imageUrl ?? '';
 
-      if (imageFile) {
-        setIsUploading(true);
-        setUploadProgress(0);
-        const storageRef = ref(
-          storage,
-          `tickets/${user.id}/${Date.now()}-${imageFile.name}`,
-        );
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+        if (imageFile) {
+          setIsUploading(true);
+          setUploadProgress(0);
+          const storageRef = ref(
+            storage,
+            `tickets/${user.id}/${Date.now()}-${imageFile.name}`,
+          );
+          const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
+          try {
+            imageUrl = await new Promise<string>((resolve, reject) => {
+              uploadTask.on(
+                'state_changed',
+                snapshot => {
+                  const progress =
+                    (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                  setUploadProgress(progress);
+                },
+                error => {
+                  setIsUploading(false);
+                  reject(error);
+                },
+                async () => {
+                  const downloadURL = await getDownloadURL(
+                    uploadTask.snapshot.ref,
+                  );
+                  setIsUploading(false);
+                  resolve(downloadURL);
+                },
+              );
+            });
+          } catch (error) {
+            toast({
+              title: 'Image Upload Failed',
+              description:
+                'There was an error uploading your image. Please try again.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        }
+
+        const payload = {
+          ...values,
+          imageUrl,
+          productId: ticketType === 'product' ? values.productId : undefined,
+          productionLineId:
+            ticketType === 'line' ? values.productionLineId : undefined,
+        };
         try {
-          imageUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
-              snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-              },
-              error => {
-                setIsUploading(false);
-                reject(error);
-              },
-              async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
-                setIsUploading(false);
-                resolve(downloadURL);
-              },
-            );
+          const savedTicket = await saveServiceTicket(
+            payload,
+            user.id,
+            ticket?.id,
+          );
+          toast({
+            title: 'Success!',
+            description: `Service ticket ${ticket ? 'updated' : 'created'}.`,
           });
+          onSave(savedTicket);
+          onOpenChange(false);
         } catch (error) {
           toast({
-            title: 'Image Upload Failed',
-            description:
-              'There was an error uploading your image. Please try again.',
+            title: 'Error',
+            description: 'Failed to save the service ticket.',
             variant: 'destructive',
           });
-          return;
         }
-      }
-
-      const payload = {
-        ...values,
-        imageUrl,
-        productId: ticketType === 'product' ? values.productId : undefined,
-        productionLineId:
-          ticketType === 'line' ? values.productionLineId : undefined,
-      };
-      try {
-        const savedTicket = await saveServiceTicket(payload, user.id, ticket?.id);
-        toast({
-          title: 'Success!',
-          description: `Service ticket ${ticket ? 'updated' : 'created'}.`,
-        });
-        onSave(savedTicket);
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the service ticket.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+      });
+    },
+    [
+      startSavingTransition,
+      ticket,
+      imageFile,
+      user.id,
+      toast,
+      ticketType,
+      onSave,
+      onOpenChange,
+    ],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

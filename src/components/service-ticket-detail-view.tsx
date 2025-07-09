@@ -1,7 +1,7 @@
 // src/components/service-ticket-detail-view.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
@@ -96,7 +96,7 @@ export default function ServiceTicketDetailView({
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleStatusUpdate = (status: 'Open' | 'In Progress' | 'Closed') => {
+  const handleStatusUpdate = useCallback((status: 'Open' | 'In Progress' | 'Closed') => {
     startTransition(async () => {
       try {
         const updatedTicket = await updateServiceTicketStatus(
@@ -117,12 +117,12 @@ export default function ServiceTicketDetailView({
         });
       }
     });
-  };
+  }, [ticket.id, user.id, startTransition, toast]);
 
-  const handleSave = (savedTicket: ServiceTicket) => {
+  const handleSave = useCallback((savedTicket: ServiceTicket) => {
     setTicket(savedTicket);
     setIsFormOpen(false);
-  };
+  }, []);
 
   const canManageTicket = can(user, 'ticket:manage');
   const entity = ticket.productId
@@ -325,7 +325,7 @@ export default function ServiceTicketDetailView({
           isOpen={isFormOpen}
           onOpenChange={setIsFormOpen}
           ticket={ticket}
-          onSave={() => handleSave(ticket)}
+          onSave={handleSave}
           user={user}
           products={products}
           productionLines={productionLines}
