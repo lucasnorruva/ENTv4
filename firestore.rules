@@ -2,99 +2,87 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions to make rules more readable and reusable
-    function isAuthenticated() {
-      return request.auth != null;
-    }
 
-    function isUser(userId) {
-      return request.auth.uid == userId;
+    // Helper functions to make rules cleaner
+    function isAuthenticated() {
+      return request.auth != null && request.auth.uid != null;
     }
 
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
-    
+
     function isAdmin() {
-        return getUserData().roles.hasAny(['Admin']);
+      return isAuthenticated() && getUserData().roles.hasAny(['Admin']);
     }
 
-    function belongsToCompany(companyId) {
-        return getUserData().companyId == companyId;
+    function isCompanyMember(companyId) {
+        return isAuthenticated() && getUserData().companyId == companyId;
     }
 
-    // Rules for the 'products' collection
+    // Products can be read by anyone if published, or by company members/admins if not.
+    // Writes are restricted to company members with correct permissions.
     match /products/{productId} {
-      // Any authenticated user can read a published product.
-      // Users can read their own draft/archived products. Admins can read all.
-      allow get: if isAuthenticated() && (resource.data.status == 'Published' || belongsToCompany(resource.data.companyId) || isAdmin());
-      
-      // Allow authenticated users to list products (for dashboards/catalogs)
-      // The application logic should filter based on role.
+      allow get: if resource.data.status == 'Published' || (isAuthenticated() && (isAdmin() || isCompanyMember(resource.data.companyId)));
       allow list: if isAuthenticated();
-
-      // Only users from the product's company can create/update.
-      allow create, update: if isAuthenticated() && belongsToCompany(request.resource.data.companyId);
-
-      // Only admins or owners of DRAFT products can delete.
-      allow delete: if isAuthenticated() && (isAdmin() || (belongsToCompany(resource.data.companyId) && resource.data.status == 'Draft'));
+      allow create: if isAuthenticated() && isCompanyMember(request.resource.data.companyId);
+      allow update, delete: if isAuthenticated() && (isAdmin() || isCompanyMember(resource.data.companyId));
     }
 
-    // Rules for 'users' collection
+    // Users can be read by admins. Users can update their own data.
     match /users/{userId} {
-      // Admins can get any user. Users can get their own data.
-      allow get: if isAuthenticated() && (isAdmin() || isUser(userId));
-      
-      // Only Admins can list all users.
+      allow get: if isAuthenticated() && (isAdmin() || request.auth.uid == userId);
       allow list: if isAuthenticated() && isAdmin();
-
-      // Only Admins can create/update users. Users can update their own profile.
       allow create: if isAuthenticated() && isAdmin();
-      allow update: if isAuthenticated() && (isAdmin() || isUser(userId));
+      allow update: if isAuthenticated() && (isAdmin() || request.auth.uid == userId);
+      allow delete: if isAuthenticated() && isAdmin();
     }
 
-    // Rules for 'companies' collection
+    // Companies can be read by admins.
     match /companies/{companyId} {
-        // Any authenticated user can read company data (e.g., for displaying supplier names)
-        allow get, list: if isAuthenticated();
-        // Only admins can create or update company details
-        allow create, update, delete: if isAuthenticated() && isAdmin();
-    }
-    
-    // Rules for audit logs - append-only for authenticated users
-    match /auditLogs/{logId} {
-        allow create: if isAuthenticated();
-        // Only admins can read the full audit log
         allow get, list: if isAuthenticated() && isAdmin();
-    }
-
-    // Rules for compliance paths - readable by all authenticated, managed by admin
-    match /compliancePaths/{pathId} {
-        allow get, list: if isAuthenticated();
         allow create, update, delete: if isAuthenticated() && isAdmin();
     }
-    
-    // Rules for webhooks and API keys - only accessible by the user who owns them or admins
-    match /webhooks/{webhookId} {
-        allow read, write: if isAuthenticated() && (isUser(resource.data.userId) || isAdmin());
+
+    // Compliance Paths are public to all authenticated users. Only admins can write.
+    match /compliancePaths/{pathId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && isAdmin();
     }
 
+    // Audit Logs are write-only for the system and read-only for admins.
+    match /auditLogs/{logId} {
+        allow read: if isAuthenticated() && isAdmin();
+        allow create: if true;
+        allow update, delete: if false;
+    }
+    
+    // API Keys are only accessible by their owner or an admin.
     match /apiKeys/{keyId} {
-        allow read, write: if isAuthenticated() && (isUser(resource.data.userId) || isAdmin());
+      allow read, write: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
     }
     
-    // Rules for tickets and production lines
+    // Webhooks are only accessible by their owner or an admin.
+    match /webhooks/{webhookId} {
+      allow read, write: if isAuthenticated() && (isAdmin() || resource.data.userId == request.auth.uid);
+    }
+
+    // Service Tickets can be accessed by authenticated users.
+    // In a real app, this would be more granular.
     match /serviceTickets/{ticketId} {
-      allow read, write: if isAuthenticated(); // Simplified for now
+      allow read, write: if isAuthenticated();
     }
     
+    // Support tickets can be read/written by admins, and created by anyone.
     match /supportTickets/{ticketId} {
-        allow create: if isAuthenticated();
-        allow read, write: if isAuthenticated() && isAdmin();
+      allow read, write: if isAuthenticated() && isAdmin();
+      allow create: if true;
     }
     
+    // Production lines are accessible to authenticated users.
+    // In a real app, this would be restricted to company members.
     match /productionLines/{lineId} {
-        allow read, write: if isAuthenticated(); // Simplified for now
+      allow read, write: if isAuthenticated();
     }
   }
 }
