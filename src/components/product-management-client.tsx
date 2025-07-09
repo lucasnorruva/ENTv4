@@ -86,59 +86,74 @@ export default function ProductManagementClient({
   const handleImport = () => setIsImportOpen(true);
   const handleCreateFromImage = () => setIsCreateFromImageOpen(true);
 
-  const handleImportSave = () => {
+  const handleImportSave = useCallback(() => {
     toast({
       title: 'Import in Progress',
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
     fetchProducts(); // Refresh data after import
-  };
+  }, [fetchProducts, toast]);
 
-  const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
-    const query = new URLSearchParams({
-      productName: data.productName,
-      productDescription: data.productDescription,
-      category: data.category,
-    }).toString();
-    router.push(`/dashboard/${roleSlug}/products/new?${query}`);
-  };
+  const handleAnalysisComplete = useCallback(
+    (data: CreateProductFromImageOutput) => {
+      const query = new URLSearchParams({
+        productName: data.productName,
+        productDescription: data.productDescription,
+        category: data.category,
+      }).toString();
+      router.push(`/dashboard/${roleSlug}/products/new?${query}`);
+    },
+    [router, roleSlug],
+  );
 
-  const handleDelete = (id: string) => {
-    startTransition(async () => {
-      await deleteProduct(id, user.id);
-      fetchProducts(); // Refresh data
-      toast({ title: 'Product Deleted' });
-    });
-  };
+  const handleDelete = useCallback(
+    (id: string) => {
+      startTransition(async () => {
+        await deleteProduct(id, user.id);
+        fetchProducts(); // Refresh data
+        toast({ title: 'Product Deleted' });
+      });
+    },
+    [fetchProducts, toast, user.id],
+  );
 
-  const handleSubmitForReview = (id: string) => {
-    startTransition(async () => {
-      await submitForReview(id, user.id);
-      fetchProducts(); // Refresh data
-      toast({ title: 'Product Submitted' });
-    });
-  };
+  const handleSubmitForReview = useCallback(
+    (id: string) => {
+      startTransition(async () => {
+        await submitForReview(id, user.id);
+        fetchProducts(); // Refresh data
+        toast({ title: 'Product Submitted' });
+      });
+    },
+    [fetchProducts, toast, user.id],
+  );
 
-  const handleRecalculateScore = (id: string, name: string) => {
-    startTransition(async () => {
-      await recalculateScore(id, user.id);
-      fetchProducts(); // Refresh data
-      toast({ title: `Recalculating score for ${name}...` });
-    });
-  };
+  const handleRecalculateScore = useCallback(
+    (id: string, name: string) => {
+      startTransition(async () => {
+        await recalculateScore(id, user.id);
+        fetchProducts(); // Refresh data
+        toast({ title: `Recalculating score for ${name}...` });
+      });
+    },
+    [fetchProducts, toast, user.id],
+  );
 
-  const handleBulkAction = async (
-    action: (ids: string[], userId: string) => Promise<any>,
-    productIds: string[],
-    successMessage: string,
-  ) => {
-    startTransition(async () => {
-      await action(productIds, user.id);
-      fetchProducts(); // Refresh data
-      toast({ title: successMessage });
-    });
-  };
+  const handleBulkAction = useCallback(
+    async (
+      action: (ids: string[], userId: string) => Promise<any>,
+      productIds: string[],
+      successMessage: string,
+    ) => {
+      startTransition(async () => {
+        await action(productIds, user.id);
+        fetchProducts(); // Refresh data
+        toast({ title: successMessage });
+      });
+    },
+    [fetchProducts, toast, user.id],
+  );
 
   const [isPending, startTransition] = useTransition();
 
