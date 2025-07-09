@@ -1,7 +1,7 @@
 // src/components/webhook-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect } from 'react';
+import React, { useState, useTransition, useEffect, useCallback, useMemo } from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -103,12 +103,12 @@ export default function WebhookManagementClient({
     setIsFormOpen(true);
   };
 
-  const handleEdit = (webhook: Webhook) => {
+  const handleEdit = useCallback((webhook: Webhook) => {
     setSelectedWebhook(webhook);
     setIsFormOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (webhookId: string) => {
+  const handleDelete = useCallback((webhookId: string) => {
     startTransition(async () => {
       try {
         await deleteWebhook(webhookId, user.id);
@@ -124,12 +124,126 @@ export default function WebhookManagementClient({
         });
       }
     });
-  };
+  }, [user.id, toast]);
 
   const handleSave = (savedWebhook: Webhook) => {
     // State will be updated by the real-time listener.
     setIsFormOpen(false);
   };
+  
+  const columns: ColumnDef<Webhook>[] = useMemo(
+    () => [
+       {
+        accessorKey: 'url',
+        header: 'Endpoint URL',
+        cell: ({ row }) => (
+          <Link
+            href={`/dashboard/developer/webhooks/${row.original.id}`}
+            className="font-mono text-xs hover:underline"
+          >
+            {row.original.url}
+          </Link>
+        ),
+      },
+      {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => (
+          <Badge
+            variant={
+              row.original.status === 'active' ? 'default' : 'secondary'
+            }
+          >
+            {row.original.status}
+          </Badge>
+        ),
+      },
+      {
+        accessorKey: 'events',
+        header: 'Subscribed Events',
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1">
+            {row.original.events.map(event => (
+              <Badge key={event} variant="outline">
+                {event}
+              </Badge>
+            ))}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Created',
+        cell: ({ row }) => format(new Date(row.original.createdAt), 'PPP'),
+      },
+      {
+        id: 'actions',
+        cell: ({ row }) => {
+          const webhook = row.original;
+          return (
+            <div className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href={`/dashboard/developer/webhooks/${webhook.id}`}
+                    >
+                      <BookOpen className="mr-2 h-4 w-4" />
+                      View Logs
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleEdit(webhook)}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem
+                        onSelect={e => e.preventDefault()}
+                        className="text-destructive"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete the webhook for{' '}
+                          <span className="font-mono text-xs bg-muted p-1 rounded">
+                            {webhook.url}
+                          </span>
+                          .
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(webhook.id)}
+                          disabled={isPending}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          );
+        },
+      },
+    ],
+    [handleEdit, handleDelete, isPending],
+  );
 
   return (
     <>
@@ -156,109 +270,27 @@ export default function WebhookManagementClient({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Endpoint URL</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Subscribed Events</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  {columns.map(column => (
+                    <TableHead key={column.id}>
+                      {column.header}
+                    </TableHead>
+                  ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {webhooks.map(webhook => (
-                  <TableRow key={webhook.id}>
-                    <TableCell className="font-mono text-xs max-w-sm truncate">
-                      <Link
-                        href={`/dashboard/developer/webhooks/${webhook.id}`}
-                        className="hover:underline"
-                      >
-                        {webhook.url}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          webhook.status === 'active' ? 'default' : 'secondary'
-                        }
-                      >
-                        {webhook.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {webhook.events.map(event => (
-                          <Badge key={event} variant="outline">
-                            {event}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(webhook.createdAt), 'PPP')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem
-                            asChild
-                          >
-                            <Link href={`/dashboard/developer/webhooks/${webhook.id}`}>
-                              <BookOpen className="mr-2 h-4 w-4" />
-                              View Logs
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(webhook)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <DropdownMenuItem
-                                onSelect={e => e.preventDefault()}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Are you sure?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete the webhook for{' '}
-                                  <span className="font-mono text-xs bg-muted p-1 rounded">
-                                    {webhook.url}
-                                  </span>
-                                  .
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(webhook.id)}
-                                  disabled={isPending}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {webhooks.length === 0 && (
+                {webhooks.length > 0 ? (
+                  webhooks.map(webhook => (
+                    <TableRow key={webhook.id}>
+                      {columns.map(column => (
+                        <TableCell key={column.id}>
+                          {flexRender(column.cell, { row: { original: webhook }})}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-48 text-center">
+                    <TableCell colSpan={columns.length} className="h-48 text-center">
                       <div className="flex flex-col items-center justify-center gap-4">
                         <WebhookIcon className="h-12 w-12 text-muted-foreground" />
                         <h3 className="text-xl font-semibold">
