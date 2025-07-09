@@ -1,7 +1,8 @@
+
 // src/components/user-import-dialog.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import Papa from 'papaparse';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -54,46 +55,55 @@ export default function UserImportDialog({
   const [isSaving, startSavingTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setIsParsing(true);
-      setValidatedData([]);
-      Papa.parse(selectedFile, {
-        header: true,
-        skipEmptyLines: true,
-        complete: result => {
-          const validated = result.data.map(row => {
-            const parsed = bulkUserImportSchema.safeParse(row);
-            if (parsed.success) {
-              return { data: parsed.data, isValid: true };
-            } else {
-              return {
-                data: row,
-                isValid: false,
-                errors: parsed.error.errors.map(
-                  e => `${e.path.join('.')}: ${e.message}`,
-                ),
-              };
-            }
-          });
-          setValidatedData(validated);
-          setIsParsing(false);
-        },
-        error: () => {
-          toast({
-            title: 'Parsing Error',
-            description: 'Could not parse the CSV file.',
-            variant: 'destructive',
-          });
-          setIsParsing(false);
-        },
-      });
-    }
-  };
+  const handleClose = useCallback(() => {
+    setFile(null);
+    setValidatedData([]);
+    onOpenChange(false);
+  }, [onOpenChange]);
 
-  const handleImport = () => {
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selectedFile = event.target.files?.[0];
+      if (selectedFile) {
+        setFile(selectedFile);
+        setIsParsing(true);
+        setValidatedData([]);
+        Papa.parse(selectedFile, {
+          header: true,
+          skipEmptyLines: true,
+          complete: result => {
+            const validated = result.data.map(row => {
+              const parsed = bulkUserImportSchema.safeParse(row);
+              if (parsed.success) {
+                return { data: parsed.data, isValid: true };
+              } else {
+                return {
+                  data: row,
+                  isValid: false,
+                  errors: parsed.error.errors.map(
+                    e => `${e.path.join('.')}: ${e.message}`,
+                  ),
+                };
+              }
+            });
+            setValidatedData(validated);
+            setIsParsing(false);
+          },
+          error: () => {
+            toast({
+              title: 'Parsing Error',
+              description: 'Could not parse the CSV file.',
+              variant: 'destructive',
+            });
+            setIsParsing(false);
+          },
+        });
+      }
+    },
+    [toast],
+  );
+
+  const handleImport = useCallback(() => {
     const usersToImport = validatedData
       .filter(row => row.isValid)
       .map(row => row.data);
@@ -122,13 +132,7 @@ export default function UserImportDialog({
         });
       }
     });
-  };
-
-  const handleClose = () => {
-    setFile(null);
-    setValidatedData([]);
-    onOpenChange(false);
-  };
+  }, [validatedData, startSavingTransition, user.id, toast, onSave, handleClose]);
 
   const getTemplate = () => {
     const headers = 'fullName,email,roles';
