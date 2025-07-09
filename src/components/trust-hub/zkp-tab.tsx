@@ -1,7 +1,7 @@
 // src/components/trust-hub/zkp-tab.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import type { Product, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -22,7 +22,7 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleGenerateProof = (productId: string) => {
+  const handleGenerateProof = useCallback((productId: string) => {
     setProcessingId(productId);
     startTransition(async () => {
       try {
@@ -35,9 +35,9 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
         setProcessingId(null);
       }
     });
-  };
+  }, [onDataChange, startTransition, toast, user.id]);
 
-  const handleVerifyProof = (productId: string) => {
+  const handleVerifyProof = useCallback((productId: string) => {
     setProcessingId(productId);
     startTransition(async () => {
         try {
@@ -50,7 +50,7 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
             setProcessingId(null);
         }
     });
-  }
+  }, [onDataChange, startTransition, toast, user.id]);
 
   const productsWithProofs = initialProducts.filter(p => p.verificationStatus === 'Verified');
 
