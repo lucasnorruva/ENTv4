@@ -1,4 +1,3 @@
-
 // src/lib/actions/index.ts
 // This barrel file re-exports actions for easier importing.
 // It uses explicit exports to avoid issues with the Next.js server action bundler.
@@ -112,7 +111,8 @@ export {
   exportFullAuditTrail,
 } from './report-actions';
 
-export { getIntegrations, updateIntegrationStatus, syncWithErp } from './integration-actions';
+export { getIntegrations, updateIntegrationStatus } from './integration-actions';
+export { syncWithErp } from './sync-actions';
 
 export {
   getProductionLines,
