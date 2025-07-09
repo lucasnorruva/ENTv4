@@ -1,13 +1,16 @@
 // src/components/product-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useEffect, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useTransition,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import Link from 'next/link';
 import { Plus, Loader2, Upload, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -24,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ProductTable from './product-table';
 import {
+  getProducts,
   deleteProduct,
   submitForReview,
   recalculateScore,
@@ -55,34 +59,25 @@ export default function ProductManagementClient({
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
-  const fetchProducts = useCallback(() => {
+  const fetchProducts = useCallback(async () => {
     setIsLoading(true);
-
-    let q = query(collection(db, Collections.PRODUCTS), orderBy('lastUpdated', 'desc'));
-    if (!hasRole(user, UserRoles.ADMIN)) {
-        q = query(q, where('companyId', '==', user.companyId));
+    try {
+      const productsData = await getProducts(user.id);
+      setProducts(productsData);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load products.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        const productsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-        setProducts(productsData);
-        setIsLoading(false);
-    }, (error) => {
-        console.error('Error fetching products:', error);
-        toast({
-            title: 'Error',
-            description: 'Failed to load products in real-time.',
-            variant: 'destructive',
-          });
-        setIsLoading(false);
-    });
-
-    return unsubscribe;
-  }, [user, toast]);
+  }, [user.id, toast]);
 
   useEffect(() => {
-    const unsubscribe = fetchProducts();
-    return () => unsubscribe(); // Cleanup listener on unmount
+    fetchProducts();
   }, [fetchProducts]);
 
   const canCreate =
@@ -97,7 +92,7 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    // Real-time listener will handle the update.
+    fetchProducts(); // Refresh data after import
   };
 
   const handleAnalysisComplete = (data: CreateProductFromImageOutput) => {
@@ -112,7 +107,7 @@ export default function ProductManagementClient({
   const handleDelete = (id: string) => {
     startTransition(async () => {
       await deleteProduct(id, user.id);
-      // No need to fetch, listener will update UI
+      fetchProducts(); // Refresh data
       toast({ title: 'Product Deleted' });
     });
   };
@@ -120,7 +115,7 @@ export default function ProductManagementClient({
   const handleSubmitForReview = (id: string) => {
     startTransition(async () => {
       await submitForReview(id, user.id);
-      // No need to fetch, listener will update UI
+      fetchProducts(); // Refresh data
       toast({ title: 'Product Submitted' });
     });
   };
@@ -128,7 +123,7 @@ export default function ProductManagementClient({
   const handleRecalculateScore = (id: string, name: string) => {
     startTransition(async () => {
       await recalculateScore(id, user.id);
-      // No need to fetch, listener will update UI
+      fetchProducts(); // Refresh data
       toast({ title: `Recalculating score for ${name}...` });
     });
   };
@@ -140,7 +135,7 @@ export default function ProductManagementClient({
   ) => {
     startTransition(async () => {
       await action(productIds, user.id);
-      // No need to fetch, listener will update UI
+      fetchProducts(); // Refresh data
       toast({ title: successMessage });
     });
   };
@@ -199,21 +194,41 @@ export default function ProductManagementClient({
             onValueChange={setActiveTab}
           >
             <TabsList>
-              <TabsTrigger value="all">All ({products.filter(p => p.status !== 'Archived').length})</TabsTrigger>
-              <TabsTrigger value="needsAction">Needs Action ({products.filter(
-                  p => p.status === 'Draft' || p.verificationStatus === 'Failed',
-                ).length})</TabsTrigger>
-              <TabsTrigger value="live">Live ({products.filter(
-                  p => p.status === 'Published' && p.verificationStatus === 'Verified',
-                ).length})</TabsTrigger>
-              <TabsTrigger value="archived">Archived ({products.filter(p => p.status === 'Archived').length})</TabsTrigger>
+              <TabsTrigger value="all">
+                All ({products.filter(p => p.status !== 'Archived').length})
+              </TabsTrigger>
+              <TabsTrigger value="needsAction">
+                Needs Action (
+                {
+                  products.filter(
+                    p =>
+                      p.status === 'Draft' || p.verificationStatus === 'Failed',
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger value="live">
+                Live (
+                {
+                  products.filter(
+                    p =>
+                      p.status === 'Published' &&
+                      p.verificationStatus === 'Verified',
+                  ).length
+                }
+                )
+              </TabsTrigger>
+              <TabsTrigger value="archived">
+                Archived ({products.filter(p => p.status === 'Archived').length}
+                )
+              </TabsTrigger>
             </TabsList>
           </Tabs>
           {isLoading ? (
-             <div className="flex justify-center items-center h-96">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-             </div>
-          ): (
+            <div className="flex justify-center items-center h-96">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
             <ProductTable
               products={filteredProducts}
               user={user}
@@ -222,9 +237,27 @@ export default function ProductManagementClient({
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
               onRecalculateScore={handleRecalculateScore}
-              onBulkDelete={ids => handleBulkAction(bulkDeleteProducts, ids, `Deleted ${ids.length} products.`)}
-              onBulkSubmit={ids => handleBulkAction(bulkSubmitForReview, ids, `Submitted ${ids.length} products.`)}
-              onBulkArchive={ids => handleBulkAction(bulkArchiveProducts, ids, `Archived ${ids.length} products.`)}
+              onBulkDelete={ids =>
+                handleBulkAction(
+                  bulkDeleteProducts,
+                  ids,
+                  `Deleted ${ids.length} products.`,
+                )
+              }
+              onBulkSubmit={ids =>
+                handleBulkAction(
+                  bulkSubmitForReview,
+                  ids,
+                  `Submitted ${ids.length} products.`,
+                )
+              }
+              onBulkArchive={ids =>
+                handleBulkAction(
+                  bulkArchiveProducts,
+                  ids,
+                  `Archived ${ids.length} products.`,
+                )
+              }
             />
           )}
         </CardContent>
