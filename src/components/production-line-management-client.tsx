@@ -60,6 +60,18 @@ interface ProductionLineManagementClientProps {
   user: User;
 }
 
+const getStatusVariant = (status: string) => {
+  switch (status) {
+    case 'Active':
+      return 'default';
+    case 'Maintenance':
+      return 'destructive';
+    case 'Idle':
+    default:
+      return 'secondary';
+  }
+};
+
 export default function ProductionLineManagementClient({
   user,
 }: ProductionLineManagementClientProps) {
@@ -133,18 +145,6 @@ export default function ProductionLineManagementClient({
     fetchInitialData();
     setIsFormOpen(false);
   }, [fetchInitialData]);
-
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return 'default';
-      case 'Maintenance':
-        return 'destructive';
-      case 'Idle':
-      default:
-        return 'secondary';
-    }
-  };
 
   return (
     <>
