@@ -455,3 +455,14 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
+export interface Integration extends BaseEntity {
+  name: string;
+  type: 'ERP' | 'PLM' | 'E-commerce' | 'CRM' | 'Cloud Storage' | 'Analytics';
+  logo: string;
+  dataAiHint?: string;
+  description: string;
+  enabled: boolean;
+  status: 'Connected' | 'Disconnected' | 'Error';
+  lastSync?: string;
+  recordsSynced?: number;
+}
