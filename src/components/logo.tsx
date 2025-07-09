@@ -1,3 +1,4 @@
+// src/components/logo.tsx
 "use client";
 
 import { cn } from "@/lib/utils";
