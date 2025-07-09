@@ -9,9 +9,9 @@ import { GraphQLError } from 'graphql';
 import { PermissionError, RateLimitError } from '@/lib/permissions';
 import { checkRateLimit } from '@/services/rate-limiter';
 import { logAuditEvent } from '@/lib/actions/audit-actions';
+import { authenticateApiRequest } from '@/lib/api-auth';
 
 const server = new ApolloServer<MyContext>({
- authenticateApiRequest,
   typeDefs,
   resolvers,
 });
@@ -44,7 +44,7 @@ const baseHandler = startServerAndCreateNextHandler<NextRequest, MyContext>(serv
 async function handler(req: NextRequest) {
     const startTime = Date.now();
     let userIdForLogging: string | undefined;
-    let requestBodyForLogging: object;
+    let requestBodyForLogging: any;
 
     try {
         // Light authentication just to get the user ID for logging
