@@ -1,3 +1,4 @@
+
 // src/components/customs-requirements-page.tsx
 'use client';
 
@@ -24,6 +25,7 @@ import {
   AlertCircle,
   CalendarDays,
   Loader2,
+  Package,
 } from 'lucide-react';
 import {
   Accordion,
