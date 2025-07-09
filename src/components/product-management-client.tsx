@@ -83,8 +83,11 @@ export default function ProductManagementClient({
   const canCreate =
     hasRole(user, UserRoles.ADMIN) || hasRole(user, UserRoles.SUPPLIER);
 
-  const handleImport = () => setIsImportOpen(true);
-  const handleCreateFromImage = () => setIsCreateFromImageOpen(true);
+  const handleImport = useCallback(() => setIsImportOpen(true), []);
+  const handleCreateFromImage = useCallback(
+    () => setIsCreateFromImageOpen(true),
+    [],
+  );
 
   const handleImportSave = useCallback(() => {
     toast({
@@ -105,6 +108,23 @@ export default function ProductManagementClient({
       router.push(`/dashboard/${roleSlug}/products/new?${query}`);
     },
     [router, roleSlug],
+  );
+
+  const [isPending, startTransition] = useTransition();
+
+  const handleBulkAction = useCallback(
+    async (
+      action: (ids: string[], userId: string) => Promise<any>,
+      productIds: string[],
+      successMessage: string,
+    ) => {
+      startTransition(async () => {
+        await action(productIds, user.id);
+        fetchProducts(); // Refresh data
+        toast({ title: successMessage });
+      });
+    },
+    [fetchProducts, toast, user.id],
   );
 
   const handleDelete = useCallback(
@@ -140,22 +160,23 @@ export default function ProductManagementClient({
     [fetchProducts, toast, user.id],
   );
 
-  const handleBulkAction = useCallback(
-    async (
-      action: (ids: string[], userId: string) => Promise<any>,
-      productIds: string[],
-      successMessage: string,
-    ) => {
-      startTransition(async () => {
-        await action(productIds, user.id);
-        fetchProducts(); // Refresh data
-        toast({ title: successMessage });
-      });
-    },
-    [fetchProducts, toast, user.id],
+  const handleBulkDelete = useCallback(
+    (ids: string[]) =>
+      handleBulkAction(bulkDeleteProducts, ids, `Deleted ${ids.length} products.`),
+    [handleBulkAction],
   );
 
-  const [isPending, startTransition] = useTransition();
+  const handleBulkSubmit = useCallback(
+    (ids: string[]) =>
+      handleBulkAction(bulkSubmitForReview, ids, `Submitted ${ids.length} products.`),
+    [handleBulkAction],
+  );
+
+  const handleBulkArchive = useCallback(
+    (ids: string[]) =>
+      handleBulkAction(bulkArchiveProducts, ids, `Archived ${ids.length} products.`),
+    [handleBulkAction],
+  );
 
   const filteredProducts = useMemo(() => {
     switch (activeTab) {
@@ -252,27 +273,9 @@ export default function ProductManagementClient({
               onDelete={handleDelete}
               onSubmitForReview={handleSubmitForReview}
               onRecalculateScore={handleRecalculateScore}
-              onBulkDelete={ids =>
-                handleBulkAction(
-                  bulkDeleteProducts,
-                  ids,
-                  `Deleted ${ids.length} products.`,
-                )
-              }
-              onBulkSubmit={ids =>
-                handleBulkAction(
-                  bulkSubmitForReview,
-                  ids,
-                  `Submitted ${ids.length} products.`,
-                )
-              }
-              onBulkArchive={ids =>
-                handleBulkAction(
-                  bulkArchiveProducts,
-                  ids,
-                  `Archived ${ids.length} products.`,
-                )
-              }
+              onBulkDelete={handleBulkDelete}
+              onBulkSubmit={handleBulkSubmit}
+              onBulkArchive={handleBulkArchive}
             />
           )}
         </CardContent>
