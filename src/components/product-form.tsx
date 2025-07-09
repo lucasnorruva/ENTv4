@@ -48,6 +48,15 @@ interface ProductFormProps {
   roleSlug: string;
 }
 
+// Helper to calculate SHA-256 hash using Web Crypto API
+async function calculateFileHash(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return hashHex;
+}
+
 export default function ProductForm({
   initialData,
   user,
@@ -96,8 +105,10 @@ export default function ProductForm({
     manualUrl: '',
     manualFileName: '',
     manualFileSize: 0,
+    manualFileHash: '',
     model3dUrl: '',
     model3dFileName: '',
+    model3dFileHash: '',
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
@@ -162,10 +173,12 @@ export default function ProductForm({
     }
   }, [form]);
 
-  const handleManualChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleManualChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type === 'application/pdf') {
       setManualFile(file);
+      const hash = await calculateFileHash(file);
+      form.setValue('manualFileHash', hash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -173,12 +186,14 @@ export default function ProductForm({
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [form, toast]);
 
-  const handleModelChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleModelChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
       setModelFile(file);
+      const hash = await calculateFileHash(file);
+      form.setValue('model3dFileHash', hash);
     } else if (file) {
       toast({
         title: 'Invalid File Type',
@@ -186,7 +201,7 @@ export default function ProductForm({
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [form, toast]);
 
   const handleContextImageChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,6 +300,8 @@ export default function ProductForm({
       let manualFileSize = initialData?.manualFileSize;
       let model3dUrl = initialData?.model3dUrl;
       let model3dFileName = initialData?.model3dFileName;
+      let manualFileHash = values.manualFileHash || initialData?.manualFileHash;
+      let model3dFileHash = values.model3dFileHash || initialData?.model3dFileHash;
 
       if (imageFile) {
         setIsUploading(true);
@@ -410,8 +427,10 @@ export default function ProductForm({
           manualUrl,
           manualFileName,
           manualFileSize,
+          manualFileHash,
           model3dUrl,
           model3dFileName,
+          model3dFileHash,
         };
         const saved = await saveProduct(
           productData,

@@ -129,7 +129,7 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                  <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
+                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2 cursor-help">
                                 <Fingerprint className="h-3 w-3" />
                                 <span className="font-mono">SHA256: {product.manualFileHash.substring(0, 16)}...</span>
                             </div>
@@ -162,7 +162,7 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                  <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
+                             <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2 cursor-help">
                                 <Fingerprint className="h-3 w-3" />
                                 <span className="font-mono">SHA256: {product.model3dFileHash.substring(0, 16)}...</span>
                             </div>
