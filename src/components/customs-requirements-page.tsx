@@ -26,6 +26,7 @@ import {
   CalendarDays,
   Loader2,
   Package,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   Accordion,
