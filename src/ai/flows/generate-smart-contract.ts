@@ -9,7 +9,18 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { GenerateSmartContractInputSchema, GenerateSmartContractOutputSchema, type GenerateSmartContractInput, type GenerateSmartContractOutput } from '@/types/ai-outputs';
+import { z } from 'genkit';
+
+const GenerateSmartContractInputSchema = z.object({
+  pathName: z.string().describe('The name of the compliance path.'),
+  rules: z.custom<any>().describe('The structured compliance rules.'),
+});
+export type GenerateSmartContractInput = z.infer<typeof GenerateSmartContractInputSchema>;
+
+const GenerateSmartContractOutputSchema = z.object({
+  solidityCode: z.string().describe('The generated Solidity smart contract code.'),
+});
+export type GenerateSmartContractOutput = z.infer<typeof GenerateSmartContractOutputSchema>;
 
 
 export async function generateSmartContract(

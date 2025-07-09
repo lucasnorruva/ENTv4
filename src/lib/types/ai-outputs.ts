@@ -363,18 +363,6 @@ export const ClassifyHsCodeOutputSchema = z.object({
 export type HsCodeAnalysis = z.infer<typeof ClassifyHsCodeOutputSchema>;
 
 
-// generate-smart-contract
-export const GenerateSmartContractInputSchema = z.object({
-  pathName: z.string().describe('The name of the compliance path.'),
-  rules: z.custom<any>().describe('The structured compliance rules.'),
-});
-export type GenerateSmartContractInput = z.infer<typeof GenerateSmartContractInputSchema>;
-export const GenerateSmartContractOutputSchema = z.object({
-  solidityCode: z.string().describe('The generated Solidity smart contract code.'),
-});
-export type GenerateSmartContractOutput = z.infer<typeof GenerateSmartContractOutputSchema>;
-
-
 // generate-conformity-declaration
 export const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
