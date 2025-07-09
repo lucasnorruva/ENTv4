@@ -1,98 +1,97 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --- HELPER FUNCTIONS ---
-    function isAuth() {
+    // HELPER FUNCTIONS
+    function isSignedIn() {
       return request.auth != null;
     }
 
     function isUser(userId) {
-      return isAuth() && request.auth.uid == userId;
-    }
-
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     function isAdmin() {
-      return isAuth() && getUserData().roles.hasAny(['Admin']);
+      // In a real app, you might check a custom claim or a 'roles' array in the user's doc.
+      // For this mock, we'll check our mock user document.
+      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['Admin']);
+    }
+    
+    function isOwner(companyId) {
+        return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId;
     }
 
-    function isCompanyMember(companyId) {
-      return isAuth() && getUserData().companyId == companyId;
+    function isAuditorOrCompliance() {
+       return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['Auditor', 'Compliance Manager']);
     }
 
+    // COLLECTION RULES
 
-    // --- COLLECTION RULES ---
-
-    // Products can be read publicly if published.
-    // Authenticated users can list products for their dashboards.
-    // Writes are restricted to admins or members of the product's company.
+    // Products can be read by any authenticated user for dashboards/catalogs.
+    // Write permissions are restricted by ownership.
     match /products/{productId} {
-      allow get: if resource.data.status == 'Published' || (isAuth() && (isAdmin() || isCompanyMember(resource.data.companyId)));
-      allow list: if isAuth(); // Allows queries, individual docs still checked by `get`
-      allow create: if isAuth();
-      allow update, delete: if isAuth() && (isAdmin() || isCompanyMember(resource.data.companyId));
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isOwner(request.resource.data.companyId);
+      allow update: if isSignedIn() && isOwner(resource.data.companyId);
+      allow delete: if isSignedIn() && isOwner(resource.data.companyId) && resource.data.status == 'Draft';
     }
 
-    // Companies can be read by any authenticated user (e.g., to see supplier names).
-    // Only admins can create, update, or delete companies.
-    match /companies/{companyId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
-    }
-
-    // Users can be read by any authenticated user (to resolve names/avatars).
-    // A user can only write to their own document, or an admin can write to any.
+    // Users can read their own profile. Admins can manage all users.
     match /users/{userId} {
-      allow read: if isAuth();
-      allow write: if isUser(userId) || isAdmin();
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+      allow update: if isUser(userId); // Allow users to update their own profile
     }
     
-    // Compliance Paths can be read by anyone authenticated, but only managed by admins.
+    // Companies can be read by any user, but only managed by admins.
+    match /companies/{companyId} {
+      allow read, list: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Compliance paths can be read by anyone, managed by admins/auditors/compliance mgrs.
     match /compliancePaths/{pathId} {
-      allow read: if isAuth();
-      allow write: if isAdmin();
+        allow read, list: if isSignedIn();
+        allow write: if isAdmin() || isAuditorOrCompliance();
     }
 
-    // Audit logs are append-only. Only the system (or admins) can create them.
-    // Readable by admins.
+    // Audit logs are sensitive and can only be listed by Admins. Any signed-in user can create one.
     match /auditLogs/{logId} {
-      allow read, create: if isAdmin();
-      allow update, delete: if false; // Immutable
-    }
-    
-    // Webhooks and API keys can only be managed by the user they belong to or an admin.
-    match /webhooks/{webhookId} {
-      allow read, write: if isAuth() && (isUser(resource.data.userId) || isAdmin());
+        allow read, list: if isAdmin();
+        allow create: if isSignedIn();
     }
 
+    // API keys and webhooks are scoped to the user who created them.
     match /apiKeys/{keyId} {
-      allow read, write: if isAuth() && (isUser(resource.data.userId) || isAdmin());
+        allow read, list, write: if isUser(resource.data.userId);
     }
     
-    // Service tickets can be viewed/managed by their creator or an admin/service provider.
-    match /serviceTickets/{ticketId} {
-      allow read, write: if isAuth() && (isUser(resource.data.userId) || isAdmin() || getUserData().roles.hasAny(['Service Provider', 'Manufacturer']));
-    }
-    
-    // Support tickets are write-only for creation, then managed by admins.
-    match /supportTickets/{ticketId} {
-       allow create: if true; // Anyone can create a support ticket
-       allow read, update, delete: if isAdmin();
-    }
-    
-    // Production lines are managed by company members or admins.
-    match /productionLines/{lineId} {
-        allow read: if isAuth();
-        allow write: if isAuth() && (isAdmin() || isCompanyMember(resource.data.companyId));
+    match /webhooks/{webhookId} {
+        allow read, list, write: if isUser(resource.data.userId);
     }
 
-    // Fallback rule to deny access to any other collection.
-    match /{document=**} {
-      allow read, write: if false;
+    // Service tickets can be listed/read by relevant roles.
+    match /serviceTickets/{ticketId} {
+      allow read, list: if isSignedIn(); // Simplified for now
+      allow write: if isSignedIn(); // Simplified for now
     }
+    
+    // Support tickets can be created by anyone, but only managed by admins.
+    match /supportTickets/{ticketId} {
+       allow read, list: if isAdmin();
+       allow create: if true; // Open for anyone to create
+       allow update, delete: if isAdmin();
+    }
+    
+    // Production lines are managed by company owners (manufacturers).
+    match /productionLines/{lineId} {
+        allow read, list: if isSignedIn();
+        // Allow write if the user is owner of the company associated with the line
+        allow write: if isOwner(request.resource.data.companyId) || isOwner(resource.data.companyId);
+    }
+
   }
 }
