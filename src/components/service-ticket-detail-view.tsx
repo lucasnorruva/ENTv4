@@ -43,14 +43,6 @@ import { updateServiceTicketStatus } from '@/lib/actions/ticket-actions';
 import { useToast } from '@/hooks/use-toast';
 import ServiceTicketForm from './service-ticket-form';
 
-interface ServiceTicketDetailViewProps {
-  ticket: ServiceTicket;
-  user: User;
-  roleSlug: string;
-  products: Product[];
-  productionLines: ProductionLine[];
-}
-
 const getStatusVariant = (status: string) => {
   switch (status) {
     case 'Open':
@@ -81,6 +73,14 @@ function InfoRow({
       </div>
     </div>
   );
+}
+
+interface ServiceTicketDetailViewProps {
+  ticket: ServiceTicket;
+  user: User;
+  roleSlug: string;
+  products: Product[];
+  productionLines: ProductionLine[];
 }
 
 export default function ServiceTicketDetailView({
