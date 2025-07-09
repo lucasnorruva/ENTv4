@@ -1,4 +1,3 @@
-
 // src/types/transit.ts
 import type { AnalyzeSimulatedRouteOutput } from "./ai-outputs";
 

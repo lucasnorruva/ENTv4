@@ -29,7 +29,7 @@ const GlobeWrapper = memo(function GlobeInternal(props: any) {
         globeInstanceRef.current = null;
       }
     };
-  }, [Globe, props.onGlobeReady]);
+  }, [Globe, props, props.onGlobeReady]);
 
   React.useEffect(() => {
     if (globeInstanceRef.current && Globe) {

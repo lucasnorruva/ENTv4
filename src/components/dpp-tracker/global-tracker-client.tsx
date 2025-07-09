@@ -33,7 +33,7 @@ import SelectedProductCustomsInfoCard from './SelectedProductCustomsInfoCard';
 import OperationalPointInfoCard from './OperationalPointInfoCard';
 import RouteAnalysisPanel from './RouteAnalysisPanel';
 import { useToast } from '@/hooks/use-toast';
-import { analyzeSimulatedTransitRoute } from '@/lib/actions/product-ai-actions';
+import { analyzeSimulatedTransitRoute } from '@/lib/actions';
 import SimulatedRouteInfoCard from './SimulatedRouteInfoCard';
 
 const Globe = dynamic(() => import('./globe-wrapper'), {
@@ -481,5 +481,3 @@ export default function GlobalTrackerClient({
     </div>
   );
 }
-
-    

@@ -8,7 +8,7 @@ import {
   getIntegrations,
   updateIntegrationStatus,
 } from '@/lib/actions/integration-actions';
-import { syncWithErp } from '@/lib/actions/sync-actions';
+import { syncWithErp } from '@/lib/actions';
 import {
   Card,
   CardContent,
@@ -25,7 +25,6 @@ import {
   Loader2,
   RefreshCw,
   Cog,
-  History,
   CheckCircle,
   XCircle,
   AlertTriangle,
@@ -33,7 +32,6 @@ import {
 import { can } from '@/lib/permissions';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from './ui/badge';
-import { cn } from '@/lib/utils';
 import {
   Tooltip,
   TooltipContent,
@@ -198,7 +196,8 @@ export default function IntegrationManagementClient({
 
   const canSync = can(user, 'integration:sync');
 
-  useEffect(() => {
+  const fetchIntegrations = useCallback(() => {
+    setIsLoading(true);
     getIntegrations(user.id)
       .then(setIntegrations)
       .catch(() =>
@@ -210,6 +209,10 @@ export default function IntegrationManagementClient({
       )
       .finally(() => setIsLoading(false));
   }, [user.id, toast]);
+
+  useEffect(() => {
+    fetchIntegrations();
+  }, [fetchIntegrations]);
 
   const handleStatusChange = (id: string, enabled: boolean) => {
     startTransition(async () => {
@@ -240,7 +243,7 @@ export default function IntegrationManagementClient({
           description: `Synced ${result.createdCount} new and ${result.updatedCount} existing products from ${name}.`,
         });
         // Refetch integrations to update sync stats
-        getIntegrations(user.id).then(setIntegrations);
+        fetchIntegrations();
       } catch (error: any) {
         toast({
           title: 'Sync Failed',

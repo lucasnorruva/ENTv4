@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectValue,
 } from '@/components/ui/select';
-import { ProductTrackerSelector } from '@/components/product-tracker-selector';
+import { ProductTrackerSelector } from '@/components/dpp-tracker/product-tracker-selector';
 import type { Product } from '@/types';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';

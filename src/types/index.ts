@@ -16,6 +16,8 @@ import type {
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
+import type { Integration as IntegrationType } from './integrations';
+
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
@@ -24,6 +26,8 @@ export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
 export type TextileAnalysis = AnalyzeTextileOutput;
+export type Integration = IntegrationType;
+
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -455,14 +459,3 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
-export interface Integration extends BaseEntity {
-  name: string;
-  type: 'ERP' | 'PLM' | 'E-commerce' | 'CRM' | 'Cloud Storage' | 'Analytics';
-  logo: string;
-  dataAiHint?: string;
-  description: string;
-  enabled: boolean;
-  status: 'Connected' | 'Disconnected' | 'Error';
-  lastSync?: string;
-  recordsSynced?: number;
-}
