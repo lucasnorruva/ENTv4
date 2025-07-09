@@ -1,17 +1,7 @@
 
 {
   "hosting": {
-    "public": "out",
-    "ignore": [
-      "firebase.json",
-      "**/*.map"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
+    "public": "out"
   },
   "firestore": {
     "rules": "firestore.rules",
