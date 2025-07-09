@@ -11,7 +11,7 @@ import React, {
   useTransition,
 } from 'react';
 import dynamic from 'next/dynamic';
-import type { GlobeMethods } from 'react-globe.gl';
+import type { GlobeInstance } from 'globe.gl';
 import { MeshPhongMaterial } from 'three';
 import { Loader2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -36,7 +36,7 @@ import { useToast } from '@/hooks/use-toast';
 import { analyzeSimulatedTransitRoute } from '@/lib/actions/product-ai-actions';
 import SimulatedRouteInfoCard from './SimulatedRouteInfoCard';
 
-const Globe = dynamic(() => import('react-globe.gl'), {
+const Globe = dynamic(() => import('./globe-wrapper'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-full w-full bg-globe-background">
@@ -97,7 +97,7 @@ export default function GlobalTrackerClient({
   user,
   roleSlug,
 }: GlobalTrackerClientProps) {
-  const globeEl = useRef<GlobeMethods | undefined>(undefined);
+  const globeRef = useRef<GlobeInstance | undefined>(undefined);
   const { theme } = useTheme();
   const { toast } = useToast();
 
@@ -188,7 +188,7 @@ export default function GlobalTrackerClient({
   );
 
   useEffect(() => {
-    const globe = globeEl.current;
+    const globe = globeRef.current;
     if (!globe || !globeReady) return;
 
     if (simulatedRoute) {
@@ -234,7 +234,7 @@ export default function GlobalTrackerClient({
   }, [selectedProduct, clickedCountry, simulatedRoute, globeReady]);
 
   useEffect(() => {
-    const globe = globeEl.current;
+    const globe = globeRef.current;
     if (globe) {
       (globe.controls() as any).autoRotate = isAutoRotating;
     }
@@ -372,7 +372,10 @@ export default function GlobalTrackerClient({
     () =>
       isClientMounted ? (
         <Globe
-          ref={globeEl}
+          onGlobeReady={(globe: GlobeInstance) => {
+            globeRef.current = globe;
+            setGlobeReady(true);
+          }}
           backgroundColor="rgba(0,0,0,0)"
           globeMaterial={globeMaterial}
           polygonsData={landPolygons}
@@ -393,7 +396,6 @@ export default function GlobalTrackerClient({
           pointRadius="size"
           pointAltitude={0.01}
           onPointClick={handlePointClick}
-          onGlobeReady={() => setGlobeReady(true)}
         />
       ) : (
         <div className="flex items-center justify-center h-full w-full bg-globe-background">
@@ -479,3 +481,5 @@ export default function GlobalTrackerClient({
     </div>
   );
 }
+
+    
