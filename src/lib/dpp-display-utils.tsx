@@ -3,7 +3,6 @@
 
 import React from 'react';
 import { CheckCircle, Clock, ShieldAlert } from 'lucide-react';
-import { cn } from './utils';
 
 export function getStatusIcon(status: string | undefined) {
   switch (status) {
