@@ -25,6 +25,7 @@ export {
   resolveComplianceIssue,
   overrideVerification,
   performCustomsInspection,
+  bulkCreateProducts,
 } from './product-actions';
 
 export {

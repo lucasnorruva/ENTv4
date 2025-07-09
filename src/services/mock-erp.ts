@@ -1,4 +1,3 @@
-
 // src/services/mock-erp.ts
 'use server';
 
@@ -8,19 +7,32 @@
  * and robust error handling to connect to systems like SAP, Oracle, etc.
  */
 
-export interface ErpProduct {
-  sku: string;
-  gtin: string;
-  name: string;
-  description: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods';
-  manufacturing_plant: string;
-  country_of_origin: string;
-  bill_of_materials: {
-    material_name: string;
-    percentage: number;
-  }[];
-}
+import { type ProductFormValues } from "@/lib/schemas";
+
+export type ErpProduct = Omit<ProductFormValues, 'status'> & {
+    sku: string;
+    gtin: string;
+    name: string;
+    description: string;
+    category: 'Electronics' | 'Fashion' | 'Home Goods';
+    manufacturing_plant: string;
+    country_of_origin: string;
+    bill_of_materials: {
+      material_name: string;
+      percentage: number;
+    }[];
+};
+
+export type BulkProductImportValues = Pick<
+  ProductFormValues,
+  | 'productName'
+  | 'productDescription'
+  | 'gtin'
+  | 'category'
+  | 'productImage'
+  | 'manualUrl'
+> & { materials?: { name: string; percentage?: number }[] };
+
 
 const mockErpData: Record<string, ErpProduct[]> = {
   'SAP S/4HANA': [
@@ -28,7 +40,9 @@ const mockErpData: Record<string, ErpProduct[]> = {
       sku: 'SAP-SMW-01',
       gtin: '09501101530010',
       name: 'SAP Integrated Smart Watch',
+      productName: "SAP Integrated Smart Watch",
       description: 'A smart watch with direct integration to SAP logistics.',
+      productDescription: "A smart watch with direct integration to SAP logistics.",
       category: 'Electronics',
       manufacturing_plant: 'Heidelberg Plant',
       country_of_origin: 'Germany',
@@ -42,7 +56,9 @@ const mockErpData: Record<string, ErpProduct[]> = {
       sku: 'SAP-DRN-01',
       gtin: '09501101530027',
       name: 'Logistics Drone (SAP Edition)',
+      productName: "Logistics Drone (SAP Edition)",
       description: 'A drone for warehouse stock management, synced with SAP.',
+      productDescription: "A drone for warehouse stock management, synced with SAP.",
       category: 'Electronics',
       manufacturing_plant: 'Walldorf Drone Facility',
       country_of_origin: 'Germany',
@@ -57,7 +73,9 @@ const mockErpData: Record<string, ErpProduct[]> = {
       sku: 'ORA-TS-01',
       gtin: '09501101530034',
       name: 'NetSuite Organic T-Shirt',
+      productName: "NetSuite Organic T-Shirt",
       description: 'A 100% organic cotton t-shirt tracked via NetSuite SCM.',
+      productDescription: "A 100% organic cotton t-shirt tracked via NetSuite SCM.",
       category: 'Fashion',
       manufacturing_plant: 'Oracle Eco-Textiles',
       country_of_origin: 'USA',
@@ -71,7 +89,9 @@ const mockErpData: Record<string, ErpProduct[]> = {
         sku: 'DYN-CH-01',
         gtin: '09501101530041',
         name: 'Dynamics Connected Office Chair',
+        productName: "Dynamics Connected Office Chair",
         description: 'An ergonomic office chair with supply chain data managed in Dynamics 365.',
+        productDescription: "An ergonomic office chair with supply chain data managed in Dynamics 365.",
         category: 'Home Goods',
         manufacturing_plant: 'Redmond Seating Co.',
         country_of_origin: 'USA',

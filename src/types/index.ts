@@ -13,13 +13,13 @@ import type {
   HsCodeAnalysis,
   ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
-import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
+import type { ErpProduct as ErpProductType, BulkProductImportValues } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
+export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis, BulkProductImportValues };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
