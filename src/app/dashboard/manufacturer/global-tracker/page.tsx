@@ -1,3 +1,4 @@
+
 // src/app/dashboard/manufacturer/global-tracker/page.tsx
 import { getProducts } from '@/lib/actions/product-actions';
 import { getCurrentUser } from '@/lib/auth';

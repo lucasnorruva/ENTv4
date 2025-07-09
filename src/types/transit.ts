@@ -1,7 +1,7 @@
-// src/types/transit.ts
-import type { AnalyzeSimulatedRouteOutput, ProductTransitRiskAnalysis } from "./ai-outputs";
 
-export type { ProductTransitRiskAnalysis };
+// src/types/transit.ts
+import type { AnalyzeSimulatedRouteOutput } from "./ai-outputs";
+
 export type SimulatedRoute = AnalyzeSimulatedRouteOutput;
 
 export interface TransitInfo {

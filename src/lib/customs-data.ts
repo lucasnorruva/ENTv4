@@ -1,3 +1,4 @@
+
 // src/lib/customs-data.ts
 
 export interface CustomsRequirement {
@@ -70,7 +71,7 @@ export const MOCK_CUSTOMS_DATA: CustomsRequirement[] = [
     ],
     keywords: [
       'usa',
-      'united states',
+      'united states of america',
       'cpsc',
       'conflict minerals',
       'htsus',

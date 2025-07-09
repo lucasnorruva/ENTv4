@@ -1,3 +1,4 @@
+
 // src/components/dpp-tracker/SelectedProductCustomsInfoCard.tsx
 'use client';
 
@@ -17,6 +18,8 @@ import {
   X,
   Package,
   Truck,
+  Plane,
+  Ship,
   CalendarDays,
   ExternalLink,
   Globe,
@@ -33,6 +36,9 @@ import {
   getStatusBadgeClasses,
 } from '@/lib/dpp-display-utils';
 import { ScrollArea } from '../ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
+import { analyzeProductTransitRoute } from '@/lib/actions';
+
 
 interface SelectedProductCustomsInfoCardProps {
   product: Product;
