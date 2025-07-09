@@ -1,5 +1,4 @@
 
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -386,15 +385,3 @@ export const GenerateComponentTestsOutputSchema = z.object({
   testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
 });
 export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
-
-
-// generate-smart-contract
-export const GenerateSmartContractInputSchema = z.object({
-  pathName: z.string().describe('The name of the compliance path.'),
-  rules: z.custom<any>().describe('The structured compliance rules.'),
-});
-export type GenerateSmartContractInput = z.infer<typeof GenerateSmartContractInputSchema>;
-export const GenerateSmartContractOutputSchema = z.object({
-  solidityCode: z.string().describe('The generated Solidity smart contract code.'),
-});
-export type GenerateSmartContractOutput = z.infer<typeof GenerateSmartContractOutputSchema>;
