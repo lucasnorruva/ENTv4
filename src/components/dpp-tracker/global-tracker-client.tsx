@@ -121,10 +121,8 @@ export default function GlobalTrackerClient({
   const [showCustomsAlerts, setShowCustomsAlerts] = useState(true);
 
   const [isAnalyzerOpen, setIsAnalyzerOpen] = useState(false);
-  const [
-    simulatedRoute,
-    setSimulatedRoute,
-  ] = useState<(SimulatedRoute & { productName: string }) | null>(null);
+  const [simulatedRoute, setSimulatedRoute] =
+    useState<(SimulatedRoute & { productName: string }) | null>(null);
   const [isAnalyzing, startAnalysisTransition] = useTransition();
 
   useEffect(() => setIsClientMounted(true), []);
