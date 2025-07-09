@@ -48,6 +48,10 @@ import {
   AccordionTrigger,
 } from './ui/accordion';
 
+const getStatusVariant = (status: string) => {
+  return status === 'Open' ? 'destructive' : 'default';
+};
+
 interface SupportTicketManagementClientProps {
   user: User;
 }
@@ -105,10 +109,6 @@ export default function SupportTicketManagementClient({
     },
     [user.id, toast],
   );
-
-  const getStatusVariant = (status: string) => {
-    return status === 'Open' ? 'destructive' : 'default';
-  };
 
   if (isLoading) {
     return (
