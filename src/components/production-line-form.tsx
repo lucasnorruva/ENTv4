@@ -1,7 +1,7 @@
 // src/components/production-line-form.tsx
 'use client';
 
-import React, { useEffect, useTransition } from 'react';
+import React, { useEffect, useTransition, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -89,25 +89,28 @@ export default function ProductionLineForm({
     }
   }, [line, isOpen, form]);
 
-  const onSubmit = (values: ProductionLineFormValues) => {
-    startSavingTransition(async () => {
-      try {
-        const saved = await saveProductionLine(values, user.id, line?.id);
-        toast({
-          title: 'Success!',
-          description: `Production line "${saved.name}" has been saved.`,
-        });
-        onSave();
-        onOpenChange(false);
-      } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to save the production line.',
-          variant: 'destructive',
-        });
-      }
-    });
-  };
+  const onSubmit = useCallback(
+    (values: ProductionLineFormValues) => {
+      startSavingTransition(async () => {
+        try {
+          const saved = await saveProductionLine(values, user.id, line?.id);
+          toast({
+            title: 'Success!',
+            description: `Production line "${saved.name}" has been saved.`,
+          });
+          onSave();
+          onOpenChange(false);
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to save the production line.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [startSavingTransition, user.id, line?.id, toast, onSave, onOpenChange],
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
