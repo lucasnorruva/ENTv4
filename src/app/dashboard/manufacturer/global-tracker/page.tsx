@@ -4,7 +4,6 @@ import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import GlobalTrackerClient from '@/components/dpp-tracker/global-tracker-client';
 import { MOCK_CUSTOMS_ALERTS } from '@/lib/mockCustomsAlerts';
-import type { Product } from '@/types';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { getProductionLines } from '@/lib/actions/manufacturing-actions';
@@ -40,7 +39,7 @@ export default async function ManufacturerGlobalTrackerPage() {
           My Supply Chain Tracker
         </h1>
         <p className="text-muted-foreground">
-          Monitor your products' transit routes and customs status.
+          Monitor your products&apos; transit routes and customs status.
         </p>
       </div>
       <div className="flex-1 relative">

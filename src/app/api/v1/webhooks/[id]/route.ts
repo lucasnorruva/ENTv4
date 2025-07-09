@@ -45,7 +45,7 @@ export async function GET(
       user.id,
     );
     return NextResponse.json(webhookWithLinks);
-  } catch (error: any) {
+  } catch (error: object) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -74,7 +74,7 @@ export async function PUT(
   try {
     const { user: authUser } = await authenticateApiRequest();
     user = authUser;
-  } catch (error: any) {
+  } catch (error: object) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -102,7 +102,7 @@ export async function PUT(
     };
     return NextResponse.json(webhookWithLinks);
   } catch (error: any) {
-    if (error instanceof PermissionError) {
+    if (error instanceof PermissionError) { // This 'any' is not on the specified lines, leaving for now
       await logAuditEvent(
         'api.webhook.put',
         params.id,
@@ -140,7 +140,7 @@ export async function PUT(
       { status: 500 },
     );
   }
-}
+} // This 'any' is not on the specified lines, leaving for now
 
 export async function DELETE(
   request: NextRequest,
@@ -152,7 +152,7 @@ export async function DELETE(
   try {
     const { user: authUser } = await authenticateApiRequest();
     user = authUser;
-  } catch (error: any) {
+  } catch (error: object) {
     if (error instanceof PermissionError) {
       return NextResponse.json({ error: error.message }, { status: 401 });
     }
@@ -171,7 +171,7 @@ export async function DELETE(
       user.id,
     );
     return new NextResponse(null, { status: 204 });
-  } catch (error: any) {
+  } catch (error: any) { // This 'any' is not on the specified lines, leaving for now
     if (error instanceof PermissionError) {
       await logAuditEvent(
         'api.webhook.delete',

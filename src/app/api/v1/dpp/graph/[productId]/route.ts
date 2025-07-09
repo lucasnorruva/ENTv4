@@ -8,7 +8,7 @@ interface GraphNode {
   id: string;
   label: string;
   type: 'product' | 'manufacturer' | 'supplier' | 'component';
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 interface GraphEdge {

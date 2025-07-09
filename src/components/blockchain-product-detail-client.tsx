@@ -8,13 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
-  Fingerprint,
-  Link as LinkIcon,
-  FileJson,
   ShieldCheck,
-  ShieldQuestion,
-  KeyRound,
-  FileText,
   User as UserIcon,
   Bot,
   Loader2,
@@ -41,7 +35,6 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -124,7 +117,7 @@ export default function BlockchainProductDetailClient({
         const updatedProduct = await generateZkProofForProduct(
           product.id,
           user.id,
-        );
+);
         setProduct(updatedProduct);
         toast({ title: 'ZK Proof Generated' });
       } catch (error: any) {
@@ -138,7 +131,7 @@ export default function BlockchainProductDetailClient({
       try {
         const updatedProduct = await verifyZkProofForProduct(product.id, user.id);
         setProduct(updatedProduct);
-        toast({ title: 'ZK Proof Verified' });
+ toast({ title: 'ZK Proof Verified' });
       } catch (error: any) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       }
@@ -149,7 +142,7 @@ export default function BlockchainProductDetailClient({
     startCustodyTransition(async () => {
         try {
             const updatedProduct = await addCustodyStep(product.id, values, user.id);
-            setProduct(updatedProduct);
+ setProduct(updatedProduct);
             custodyForm.reset();
             toast({ title: 'Custody Step Added' });
         } catch (error: any) {
@@ -162,7 +155,7 @@ export default function BlockchainProductDetailClient({
     startTransferTransition(async () => {
         try {
             const updatedProduct = await transferOwnership(product.id, values, user.id);
-            setProduct(updatedProduct);
+ setProduct(updatedProduct);
             transferForm.reset();
             toast({ title: 'Ownership Transferred' });
         } catch(error: any) {
@@ -283,7 +276,7 @@ export default function BlockchainProductDetailClient({
           <Form {...custodyForm}>
             <form onSubmit={custodyForm.handleSubmit(onCustodySubmit)} className="space-y-4 mt-4 border-t pt-4">
               <FormField name="event" control={custodyForm.control} render={({field}) => (<FormItem><FormLabel>Event Description</FormLabel><FormControl><Input {...field} placeholder="e.g., Transfer to warehouse"/></FormControl><FormMessage/></FormItem>)}/>
-              <div className="grid grid-cols-2 gap-4">
+ <div className="grid grid-cols-2 gap-4">
                 <FormField name="location" control={custodyForm.control} render={({field}) => (<FormItem><FormLabel>Location</FormLabel><FormControl><Input {...field} placeholder="e.g., Hamburg, DE"/></FormControl><FormMessage/></FormItem>)}/>
                 <FormField name="actor" control={custodyForm.control} render={({field}) => (<FormItem><FormLabel>Actor</FormLabel><FormControl><Input {...field} placeholder="e.g., DHL Logistics"/></FormControl><FormMessage/></FormItem>)}/>
               </div>
@@ -304,7 +297,7 @@ export default function BlockchainProductDetailClient({
           <DetailRow label="Current Owner" value={<span className="font-mono text-xs">{product.ownershipNft?.ownerAddress || 'N/A'}</span>}/>
           <Form {...transferForm}>
             <form onSubmit={transferForm.handleSubmit(onTransferSubmit)} className="space-y-4 mt-4 border-t pt-4">
-               <FormField name="newOwnerAddress" control={transferForm.control} render={({field}) => (<FormItem><FormLabel>New Owner Address</FormLabel><FormControl><Input {...field} placeholder="0x... new owner wallet address"/></FormControl><FormMessage/></FormItem>)}/>
+ <FormField name="newOwnerAddress" control={transferForm.control} render={({field}) => (<FormItem><FormLabel>New Owner Address</FormLabel><FormControl><Input {...field} placeholder="0x... new owner wallet address"/></FormControl><FormMessage/></FormItem>)}/>
                <Button type="submit" disabled={isTransferPending || !product.ownershipNft} className="w-full">
                 {isTransferPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <UserPlus className="mr-2 h-4 w-4" />}
                 Transfer Ownership

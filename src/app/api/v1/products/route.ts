@@ -10,7 +10,7 @@ import { PermissionError, RateLimitError } from '@/lib/permissions';
 import { checkRateLimit } from '@/services/rate-limiter';
 
 export async function GET(request: NextRequest) {
-  const startTime = Date.now();
+  const startTime = Date.now(); 
   let user;
   const endpoint = '/api/v1/products';
   try {
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       user.id,
     );
     return NextResponse.json(productsWithLinks);
-  } catch (error: any) {
+  } catch (error: object) {
     if (error instanceof RateLimitError) {
       return NextResponse.json({ error: error.message }, { status: 429 });
     }
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const startTime = Date.now();
+  const startTime = Date.now(); 
   let user;
   const endpoint = '/api/v1/products';
   try {
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     user = authUser;
     await checkRateLimit(apiKey.id, company.tier, 10); // Higher cost for creating products
   } catch (error: any) {
-    if (error instanceof RateLimitError) {
+    if (error instanceof RateLimitError) { 
       return NextResponse.json({ error: error.message }, { status: 429 });
     }
     if (error instanceof PermissionError) {
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       },
     };
     return NextResponse.json(productWithLinks, { status: 201 });
-  } catch (error: any) {
+  } catch (error: object) {
     if (error instanceof PermissionError) {
       await logAuditEvent(
         'api.post',

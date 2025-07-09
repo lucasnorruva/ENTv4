@@ -15,7 +15,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -60,7 +59,7 @@ export default function ApiSettingsClient({
           description: 'The API settings have been successfully updated.',
         });
       } catch (error) {
-        toast({
+ toast({
           title: 'Error Saving Settings',
           description: 'An unexpected error occurred.',
           variant: 'destructive',

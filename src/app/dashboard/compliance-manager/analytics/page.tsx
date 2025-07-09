@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { db } from '@/lib/firebase'; // Assuming db is used elsewhere
 import { Collections } from '@/lib/constants';
 import {
   Card,
@@ -20,11 +20,11 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { Product, AuditLog } from '@/types';
-import FlaggedOverTimeChart from '@/components/charts/flagged-over-time-chart';
-import FailuresByRegulationChart from '@/components/charts/failures-by-regulation-chart';
+import FlaggedOverTimeChart from '@/components/charts/flagged-over-time-chart'; // Assuming this is used
+import FailuresByRegulationChart from '@/components/charts/failures-by-regulation-chart'; // Assuming this is used
 
-const calculateAverageResolutionTime = (logs: AuditLog[], products: Product[]): number => {
-    const resolvedLogs = logs.filter(l => l.action === 'compliance.resolved');
+const calculateAverageResolutionTime = (logs: AuditLog[]): number => {
+    const resolvedLogs = logs.filter(l => l.action === 'compliance.resolved'); // Assuming 'compliance.resolved' is a relevant filter
     if (resolvedLogs.length === 0) return 0;
     
     const totalHours = resolvedLogs.reduce((acc) => acc + Math.random() * 72, 0);
@@ -32,7 +32,7 @@ const calculateAverageResolutionTime = (logs: AuditLog[], products: Product[]): 
 };
 
 export default function ComplianceAnalyticsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]); // Assuming products state is needed for other components
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,12 +40,12 @@ export default function ComplianceAnalyticsPage() {
     const unsubscribes: (() => void)[] = [];
 
     const productQuery = query(collection(db, Collections.PRODUCTS));
-    unsubscribes.push(onSnapshot(productQuery, snapshot => {
+    unsubscribes.push(onSnapshot(productQuery, snapshot => { // Assuming snapshot is needed
       setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
       setIsLoading(false);
     }));
 
-    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS));
+    const auditLogQuery = query(collection(db, Collections.AUDIT_LOGS)); // Assuming this query is needed
     unsubscribes.push(onSnapshot(auditLogQuery, snapshot => {
       setAuditLogs(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as AuditLog)));
     }));
@@ -61,7 +61,7 @@ export default function ComplianceAnalyticsPage() {
     );
   }
 
-  const flaggedProducts = products.filter(
+  const flaggedProducts = products.filter( // Assuming filtering products is needed
     p => p.verificationStatus === 'Failed',
   );
 

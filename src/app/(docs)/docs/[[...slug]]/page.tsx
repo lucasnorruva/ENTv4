@@ -12,7 +12,7 @@ async function getDocContent(slug: string[] | undefined) {
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     return content;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

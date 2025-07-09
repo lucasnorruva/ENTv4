@@ -3,13 +3,12 @@
 
 import { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections, type Role } from '@/lib/constants';
+import { db } from '@/lib/firebase';import { Collections } from '@/lib/constants';
 import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle,
+  CardTitle,  CardDescription,
   CardDescription,
 } from '@/components/ui/card';
 import {
@@ -27,13 +26,12 @@ import {
   Calculator,
   Recycle,
   ShieldX,
-  Building2,
   Hourglass,
   Globe,
-  Wrench,
   Loader2,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
+
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';

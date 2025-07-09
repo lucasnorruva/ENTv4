@@ -32,7 +32,7 @@ import ComplianceOverviewChart from '@/components/charts/compliance-overview-cha
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
 import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
-import type { AuditLog, Product } from '@/types';
+import type { Product } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
 
 const actionIcons: Record<string, React.ElementType> = {

@@ -10,8 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-import type { Product } from '@/types';
+import { MOCK_CUSTOMS_DATA } from "@/lib/customs-data";
 import { AnalyzeProductTransitRiskInputSchema, AnalyzeProductTransitRiskOutputSchema, type AnalyzeProductTransitRiskInput, type ProductTransitRiskAnalysis } from '@/types/ai-outputs';
 
 // Helper to provide context data to the prompt

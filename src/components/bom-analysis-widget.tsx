@@ -60,7 +60,7 @@ export default function BomAnalysisWidget({ onApply, user }: BomAnalysisWidgetPr
         const result = await analyzeBillOfMaterials({ bomText }, user.id);
         setAnalysisResult(result);
         setIsDialogOpen(true);
-      } catch (error) {
+      } catch {
         toast({
           title: 'Error',
           description: 'Failed to analyze BOM.',

@@ -56,7 +56,7 @@ export function AuditReviewDialog({
           description: `"${updatedProduct.productName}" has been verified and anchored.`,
         });
         handleClose();
-      } catch (error: any) {
+      } catch (error) {
         toast({
           title: 'Approval Failed',
           description:
@@ -83,7 +83,7 @@ export function AuditReviewDialog({
         );
         toast({
           title: 'Passport Rejected',
-          description: `"${updatedProduct.productName}" has been marked as failed.`,
+          description: `"${updatedProduct.productName}" has been marked as rejected.`,
         });
         handleClose();
       } catch (error) {

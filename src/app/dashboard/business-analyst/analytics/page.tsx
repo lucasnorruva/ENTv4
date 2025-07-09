@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { onSnapshot, collection, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
+import { Collections } from '@/lib/constants'; // Import Collections
 import {
   Card,
   CardContent,
@@ -16,7 +16,6 @@ import {
   Activity,
   BookCopy,
   ShieldCheck,
-  Users,
   Clock,
   Edit,
   FilePlus,
@@ -78,7 +77,7 @@ const generateComplianceRateData = (products: Product[]) => {
 export default function BusinessAnalystAnalyticsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]); // auditLogs is used
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 

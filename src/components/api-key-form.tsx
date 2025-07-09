@@ -100,7 +100,7 @@ export default function ApiKeyForm({
           description: `API Key "${result.key.label}" has been saved.`,
         });
         onSave(result);
-        onOpenChange(false);
+ onOpenChange(false)
       } catch (error) {
         toast({
           title: 'Error',

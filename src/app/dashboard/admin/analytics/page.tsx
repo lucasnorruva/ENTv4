@@ -2,10 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
+import { onSnapshot, collection, query, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Collections, type Role } from '@/lib/constants';
-import {
+import { Collections } from '@/lib/constants';
   Card,
   CardContent,
   CardHeader,
@@ -13,7 +12,6 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import {
-  Activity,
   BookCopy,
   Users,
   Clock,
@@ -32,7 +30,7 @@ import {
   Wrench,
   Ticket,
   BrainCircuit,
-  Loader2,
+  Loader2, Activity,
 } from 'lucide-react';
 import ComplianceOverviewChart from '@/components/charts/compliance-overview-chart';
 import ProductsOverTimeChart from '@/components/charts/products-over-time-chart';
@@ -40,7 +38,7 @@ import ComplianceRateChart from '@/components/charts/compliance-rate-chart';
 import { format, subDays, formatDistanceToNow } from 'date-fns';
 import type { AuditLog, Product, User, Company, ServiceTicket } from '@/types';
 import EolStatusChart from '@/components/charts/eol-status-chart';
-import CustomsStatusChart from '@/components/charts/customs-status-chart';
+import CustomsStatusChart from '@/components/charts/customs-status-chart'; // Fix import
 
 const actionIcons: Record<string, React.ElementType> = {
   'product.created': FilePlus,

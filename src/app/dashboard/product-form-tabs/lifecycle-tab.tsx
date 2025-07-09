@@ -225,7 +225,7 @@ export default function LifecycleTab({
         <AccordionItem value="battery" className="border p-4 rounded-lg">
           <AccordionTrigger>
             <h3 className="text-lg font-semibold flex items-center gap-2">
-              <BatteryCharging />
+ <BatteryCharging />
               Battery Details (if applicable)
             </h3>
           </AccordionTrigger>
@@ -283,7 +283,7 @@ export default function LifecycleTab({
             </div>
             <FormField
               control={form.control}
-              name="battery.isRemovable"
+ name="battery.isRemovable"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                   <div className="space-y-0.5">

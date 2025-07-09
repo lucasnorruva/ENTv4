@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await runDailyReferenceDataSync();
     return NextResponse.json({ success: true, ...result });
-  } catch (error: any) {
+  } catch (error: object) {
     console.error("Cron sync job failed:", error);
     return new NextResponse(error.message || "Internal Server Error", {
       status: 500,

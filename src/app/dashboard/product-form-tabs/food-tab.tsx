@@ -1,8 +1,8 @@
 
 // src/components/product-form-tabs/food-tab.tsx
 'use client';
-
-import type { UseFormReturn, FieldArrayWithId, UseFieldArrayReturn } from 'react-hook-form';
+ 
+import type { UseFormReturn } from 'react-hook-form';
 import { Plus, Trash2, Bot, Loader2, Wheat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {

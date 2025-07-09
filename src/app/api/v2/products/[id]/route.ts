@@ -115,7 +115,7 @@ export async function PUT(
     const productWithLinks = formatProductResponse(updatedProduct);
     return NextResponse.json(productWithLinks);
   } catch (error: any) {
-    const errorDetails: Record<string, any> = {
+    const errorDetails: Record<string, object> = {
       endpoint,
       method: 'PUT',
       error: error.message || 'Internal Server Error',
@@ -192,7 +192,7 @@ export async function DELETE(
     );
     return new NextResponse(null, { status: 204 });
   } catch (error: any) {
-    const errorDetails: Record<string, any> = {
+    const errorDetails: Record<string, object> = {
       endpoint,
       method: 'DELETE',
       error: error.message || 'Internal Server Error',

@@ -1,7 +1,7 @@
 // src/components/add-service-record-dialog.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -76,7 +76,7 @@ export default function AddServiceRecordDialog({
         onSave(updatedProduct);
         onOpenChange(false);
         form.reset();
-      } catch (error: any) {
+      } catch (error: object) {
         toast({
           title: 'Error',
           description:
