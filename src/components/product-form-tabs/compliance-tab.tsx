@@ -1,7 +1,7 @@
 // src/components/product-form-tabs/compliance-tab.tsx
 'use client';
 
-import type { UseFormReturn } from 'react-hook-form';
+import type { UseFormReturn, UseFieldArrayReturn, FieldArrayWithId } from 'react-hook-form';
 import { Leaf, Recycle, Battery, TestTube2, Diamond, Briefcase, Megaphone, Plus, Trash2 } from 'lucide-react';
 
 import {
@@ -31,15 +31,22 @@ import { Switch } from '@/components/ui/switch';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { CompliancePath } from '@/types';
 import { Button } from '../ui/button';
+import { Textarea } from '../ui/textarea';
 
 interface ComplianceTabProps {
   form: UseFormReturn<ProductFormValues>;
   compliancePaths: CompliancePath[];
+  greenClaimFields: FieldArrayWithId<ProductFormValues, 'greenClaims', 'id'>[];
+  appendGreenClaim: UseFieldArrayReturn<ProductFormValues, 'greenClaims'>['append'];
+  removeGreenClaim: UseFieldArrayReturn<ProductFormValues, 'greenClaims'>['remove'];
 }
 
 export default function ComplianceTab({
   form,
   compliancePaths,
+  greenClaimFields,
+  appendGreenClaim,
+  removeGreenClaim,
 }: ComplianceTabProps) {
   return (
     <div className="p-6 space-y-6">
@@ -414,50 +421,76 @@ export default function ComplianceTab({
             />
           </AccordionContent>
         </AccordionItem>
-        <AccordionItem value="eudr" className="border p-4 rounded-lg">
+        <AccordionItem value="greenClaims" className="border p-4 rounded-lg">
           <AccordionTrigger>
-            <h3 className="flex items-center gap-2 font-semibold">
-              <Leaf className="h-4 w-4" />
-              EUDR
+             <h3 className="flex items-center gap-2 font-semibold">
+                <Megaphone className="h-4 w-4" />
+                Green Claims
             </h3>
           </AccordionTrigger>
           <AccordionContent className="pt-4 space-y-4">
-            <FormField
-              control={form.control}
-              name="compliance.eudr.compliant"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>EUDR Compliant</FormLabel>
-                    <FormDescription>
-                      Product is compliant with EU Deforestation-Free Regulation.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="compliance.eudr.diligenceId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>EUDR Due Diligence ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., DDS-12345-ABC" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The reference ID for the due diligence statement.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+             <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                Add marketing claims and provide their substantiation.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  appendGreenClaim({
+                    claim: '',
+                    substantiation: '',
+                  })
+                }
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Claim
+              </Button>
+            </div>
+            <div className="space-y-4">
+                {greenClaimFields.map((field, index) => (
+                    <div
+                        key={field.id}
+                        className="space-y-2 border p-4 rounded-md relative"
+                    >
+                        <FormField
+                        control={form.control}
+                        name={`greenClaims.${index}.claim`}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Claim</FormLabel>
+                            <FormControl>
+                                <Input placeholder="e.g. 100% Recyclable Packaging" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name={`greenClaims.${index}.substantiation`}
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Substantiation</FormLabel>
+                            <FormControl>
+                                <Textarea placeholder="e.g. Verified by ISO 14021. Certificate #12345." {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                         <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2"
+                            onClick={() => removeGreenClaim(index)}
+                        >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
           </AccordionContent>
         </AccordionItem>
         <AccordionItem value="additional" className="border p-4 rounded-lg">
