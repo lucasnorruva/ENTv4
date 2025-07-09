@@ -1,3 +1,4 @@
+
 // src/components/product-catalog-client.tsx
 'use client';
 
@@ -110,6 +111,7 @@ export default function ProductCatalogClient({
             <SelectItem value="Fashion">Fashion</SelectItem>
             <SelectItem value="Home Goods">Home Goods</SelectItem>
             <SelectItem value="Construction">Construction</SelectItem>
+            <SelectItem value="Food & Beverage">Food &amp; Beverage</SelectItem>
           </SelectContent>
         </Select>
         <Select

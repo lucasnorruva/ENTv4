@@ -1,3 +1,4 @@
+
 // src/lib/company-data.ts
 import type { Company } from '@/types';
 

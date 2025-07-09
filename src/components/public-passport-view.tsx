@@ -1,3 +1,4 @@
+
 // src/components/public-passport-view.tsx
 'use client';
 
@@ -20,6 +21,7 @@ import {
   Quote,
   Globe,
   Hammer,
+  Utensils,
 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -29,9 +31,10 @@ import LifecycleTab from './product-detail-tabs/lifecycle-tab';
 import ComplianceTab from './product-detail-tabs/compliance-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
-import { getStatusBadgeVariant } from '@/lib/dppDisplayUtils';
+import { getStatusBadgeVariant } from '@/lib/dpp-display-utils';
 import { Button } from './ui/button';
 import ConstructionTab from './product-detail-tabs/construction-tab';
+import ElectronicsTab from './product-detail-tabs/electronics-tab';
 
 export default function PublicPassportView({
   product,
@@ -44,6 +47,7 @@ export default function PublicPassportView({
 }) {
   const customsStatusVariant = getStatusBadgeVariant(product.customs?.status);
 
+  const showElectronicsTab = product.category === 'Electronics';
   const showTextileTab = product.category === 'Fashion';
   const showConstructionTab = product.category === 'Construction';
   const showFoodTab = product.category === 'Food & Beverage';
@@ -182,6 +186,7 @@ export default function PublicPassportView({
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="w-full h-auto flex-wrap justify-start">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
             {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
             {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
             {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
@@ -192,6 +197,11 @@ export default function PublicPassportView({
           <TabsContent value="overview" className="mt-4">
             <OverviewTab product={product} />
           </TabsContent>
+          {showElectronicsTab && (
+            <TabsContent value="electronics" className="mt-4">
+              <ElectronicsTab product={product} />
+            </TabsContent>
+          )}
           {showTextileTab && (
             <TabsContent value="textile" className="mt-4">
               <TextileTab product={product} />

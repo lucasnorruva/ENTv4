@@ -1,3 +1,4 @@
+
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -20,16 +21,11 @@ import { explainError as explainErrorFlow } from '@/ai/flows/explain-error';
 import { analyzeTextileComposition as analyzeTextileCompositionFlow } from '@/ai/flows/analyze-textile-composition';
 import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from '@/ai/flows/analyze-electronics-compliance';
 import { analyzeConstructionMaterial as analyzeConstructionMaterialFlow } from '@/ai/flows/analyze-construction-material';
-import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
-import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
-import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
-
 import type {
   AiProduct,
   CreateProductFromImageOutput,
   GenerateProductDescriptionOutput,
-  HsCodeAnalysis,
   PcdsOutput,
   ProductQuestionOutput,
   SuggestImprovementsOutput,
@@ -627,104 +623,4 @@ export async function analyzeConstructionData(productId: string, userId: string)
 
     await logAuditEvent('product.analysis.construction', productId, {}, userId);
     return Promise.resolve(mockProducts[productIndex]);
-}
-
-export async function analyzeProductTransitRoute(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-  if (!product.transit) throw new Error('Product is not in transit.');
-
-  checkPermission(user, 'product:run_compliance');
-
-  const company = await getCompanyById(product.companyId);
-  if (!company?.settings?.aiEnabled) {
-    throw new Error('AI features are not enabled for this company.');
-  }
-
-  const analysisResult = await analyzeProductTransitRiskFlow({
-    product: product,
-    originCountry: product.transit.origin,
-    destinationCountry: product.transit.destination,
-  });
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].transitRiskAnalysis = analysisResult;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent('product.analysis.transit_risk', productId, {}, userId);
-  return Promise.resolve(mockProducts[productIndex]);
-}
-
-export async function analyzeSimulatedTransitRoute(
-  productId: string,
-  originCountry: string,
-  destinationCountry: string,
-  userId: string,
-) {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-
-  checkPermission(user, 'product:run_compliance');
-
-  const company = await getCompanyById(product.companyId);
-  if (!company?.settings?.aiEnabled) {
-    throw new Error('AI features are not enabled for this company.');
-  }
-
-  return await analyzeSimulatedRouteFlow({
-    product,
-    originCountry,
-    destinationCountry,
-  });
-}
-
-export async function runHsCodeClassification(
-  productId: string,
-  userId: string,
-): Promise<Product> {
-  const user = await getUserById(userId);
-  if (!user) throw new PermissionError('User not found.');
-
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found or permission denied.');
-
-  checkPermission(user, 'product:classify_hs_code');
-
-  const company = await getCompanyById(product.companyId);
-  if (!company?.settings?.aiEnabled) {
-    throw new Error('AI features are not enabled for this company.');
-  }
-
-  const { productName, productDescription, category, materials } = product;
-  const analysisResult = await classifyHsCodeFlow({
-    productName,
-    productDescription,
-    category,
-    materials,
-  });
-
-  const productIndex = mockProducts.findIndex(p => p.id === productId);
-  if (productIndex === -1) throw new Error('Product not found in mock data');
-
-  mockProducts[productIndex].hsCodeAnalysis = analysisResult;
-  mockProducts[productIndex].lastUpdated = new Date().toISOString();
-
-  await logAuditEvent(
-    'product.analysis.hs_code',
-    productId,
-    { code: analysisResult.code },
-    userId,
-  );
-  return Promise.resolve(mockProducts[productIndex]);
 }

@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/food-safety-tab.tsx
 'use client';
 
@@ -35,60 +36,71 @@ interface FoodSafetyTabProps {
 }
 
 export default function FoodSafetyTab({ product }: FoodSafetyTabProps) {
-  const { foodSafetyAnalysis } = product;
+  const { foodSafetyAnalysis, foodSafety } = product;
 
-  if (!foodSafetyAnalysis) {
+  if (!foodSafetyAnalysis && !foodSafety) {
     return (
       <div className="text-center py-10 text-muted-foreground">
-        No food safety analysis available for this product.
+        No food safety information available for this product.
       </div>
     );
   }
 
-  const riskLevelVariant = {
-    Low: 'default',
-    Medium: 'secondary',
-    High: 'destructive',
-  }[foodSafetyAnalysis.riskLevel] as 'default' | 'secondary' | 'destructive';
+  const riskLevelVariant = foodSafetyAnalysis
+    ? {
+        Low: 'default',
+        Medium: 'secondary',
+        High: 'destructive',
+      }[foodSafetyAnalysis.riskLevel] as 'default' | 'secondary' | 'destructive'
+    : 'outline';
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
             <Utensils />
-            Food Safety Analysis
+            Food Safety Information
         </CardTitle>
         <CardDescription>
-          AI-powered analysis of the product's ingredients and packaging for food safety risks.
+          Details on ingredients, allergens, and AI-powered safety analysis.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <InfoRow icon={AlertTriangle} label="Overall Risk Level">
-            <Badge variant={riskLevelVariant}>{foodSafetyAnalysis.riskLevel}</Badge>
-        </InfoRow>
-
-        <InfoRow icon={AlertTriangle} label="Potential Allergens">
-            {foodSafetyAnalysis.potentialAllergens.length > 0 ? (
-                 <div className="flex flex-wrap gap-2 mt-1">
-                    {foodSafetyAnalysis.potentialAllergens.map((allergen, i) => (
-                        <Badge key={i} variant="destructive">{allergen}</Badge>
-                    ))}
-                 </div>
-            ) : (
-                <p className="text-sm text-muted-foreground">No common allergens detected.</p>
-            )}
-        </InfoRow>
-
-        <InfoRow icon={ShieldCheck} label="Compliance Notes">
-          <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1">
-            {foodSafetyAnalysis.complianceNotes.map((note, i) => (
-              <li key={i}>{note}</li>
-            ))}
-          </ul>
-        </InfoRow>
+        {foodSafety?.ingredients && foodSafety.ingredients.length > 0 && (
+          <InfoRow icon={Utensils} label="Ingredients">
+            <p className="text-sm text-muted-foreground">{foodSafety.ingredients.map(i => i.value).join(', ')}</p>
+          </InfoRow>
+        )}
+        {foodSafety?.allergens && (
+          <InfoRow icon={AlertTriangle} label="Allergen Statement" value={foodSafety.allergens} />
+        )}
+        
+        {foodSafetyAnalysis && (
+            <>
+                <InfoRow icon={AlertTriangle} label="AI Assessed Risk Level">
+                    <Badge variant={riskLevelVariant}>{foodSafetyAnalysis.riskLevel}</Badge>
+                </InfoRow>
+                <InfoRow icon={AlertTriangle} label="AI Identified Potential Allergens">
+                    {foodSafetyAnalysis.potentialAllergens.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mt-1">
+                            {foodSafetyAnalysis.potentialAllergens.map((allergen, i) => (
+                                <Badge key={i} variant="destructive">{allergen}</Badge>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No common allergens detected by AI.</p>
+                    )}
+                </InfoRow>
+                 <InfoRow icon={ShieldCheck} label="AI Compliance Notes">
+                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1">
+                        {foodSafetyAnalysis.complianceNotes.map((note, i) => (
+                        <li key={i}>{note}</li>
+                        ))}
+                    </ul>
+                </InfoRow>
+            </>
+        )}
       </CardContent>
     </Card>
   );
 }
-
-    

@@ -1,3 +1,4 @@
+
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
@@ -163,11 +164,6 @@ export const productFormSchema = z.object({
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
-  constructionAnalysis: z.any().optional(),
-  electronicsAnalysis: z.any().optional(),
-  foodSafetyAnalysis: z.any().optional(),
-  textileAnalysis: z.any().optional(),
-  hsCodeAnalysis: z.any().optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

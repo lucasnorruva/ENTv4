@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -9,6 +10,7 @@ import type {
   AnalyzeTextileOutput,
   AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
+  AnalyzeFoodSafetyOutput,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
@@ -20,6 +22,7 @@ export type { TransitInfo, CustomsAlert, CustomsStatus, ModelHotspot };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type TextileAnalysis = AnalyzeTextileOutput;
+export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -93,6 +96,7 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
+  documentUrl?: string;
 }
 
 export interface Manufacturing {
@@ -103,7 +107,9 @@ export interface Manufacturing {
 
 export interface Packaging {
   type: string;
+  recycledContent?: number;
   recyclable: boolean;
+  weight?: number;
 }
 
 export interface Lifecycle {
@@ -126,6 +132,16 @@ export interface TextileData {
   fiberComposition: { name: string; percentage: number }[];
   dyeProcess: string;
   weaveType?: string;
+}
+
+export interface FoodSafetyData {
+  ingredients: { value: string }[];
+  allergens?: string;
+}
+
+export interface GreenClaim {
+  claim: string;
+  substantiation: string;
 }
 
 export interface Compliance {
@@ -154,6 +170,26 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
+  };
+  epr?: {
+    schemeId?: string;
+    producerRegistrationNumber?: string;
+    wasteCategory?: string;
+  };
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared?: boolean;
+  };
+  conflictMinerals?: {
+    compliant?: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant?: boolean;
+    delegatedActUrl?: string;
   };
 }
 
@@ -217,7 +253,7 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction';
+  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
@@ -260,8 +296,12 @@ export interface Product extends BaseEntity {
   serviceHistory?: ServiceRecord[];
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
+  foodSafety?: FoodSafetyData;
+  greenClaims?: GreenClaim[];
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
+  textileAnalysis?: TextileAnalysis;
+  foodSafetyAnalysis?: FoodSafetyAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;

@@ -1,3 +1,4 @@
+
 // src/lib/user-data.ts
 import type { User } from '@/types';
 import { UserRoles } from './constants';
@@ -17,7 +18,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 5,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: true,
@@ -36,7 +36,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -55,7 +54,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -74,7 +72,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -93,7 +90,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -112,7 +108,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: true,
@@ -131,7 +126,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: true,
@@ -150,7 +144,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -169,7 +162,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: false,
       complianceAlerts: false,
@@ -188,7 +180,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 20,
     notificationPreferences: {
       productUpdates: false,
       complianceAlerts: false,
@@ -207,7 +198,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: false,
@@ -226,7 +216,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: false,
       complianceAlerts: true,
@@ -245,7 +234,6 @@ export let users: User[] = [
     onboardingComplete: true,
     isMfaEnabled: false,
     readNotificationIds: [],
-    circularityCredits: 0,
     notificationPreferences: {
       productUpdates: true,
       complianceAlerts: true,

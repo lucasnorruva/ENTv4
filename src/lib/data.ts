@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -52,7 +51,6 @@ export let products: Product[] = [
     manufacturing: {
       facility: 'Eco-Factory 1',
       country: 'Germany',
-      emissionsKgCo2e: 15.5,
       manufacturingProcess: 'CNC Milling & Assembly',
     },
     certifications: [
@@ -124,21 +122,6 @@ export let products: Product[] = [
       { date: new Date(Date.now() - 3*24*60*60*1000).toISOString(), event: 'Shipped', location: 'Hamburg Port', actor: 'DHL' },
     ],
     isMinting: false,
-    transit: {
-      stage: 'Cleared - Inland Transit (DE)',
-      eta: new Date(new Date(now).setDate(now.getDate() + 2)).toISOString(),
-      transport: 'Truck',
-      origin: 'Poland',
-      destination: 'Germany',
-      departureDate: new Date(new Date(now).setDate(now.getDate() - 3)).toISOString(),
-    },
-    customs: {
-      status: 'Cleared',
-      authority: 'German Customs (Zoll)',
-      location: 'Port of Gdansk',
-      date: new Date(new Date(now).setHours(now.getHours() - 12)).toISOString(),
-      notes: 'EORI number mismatch clarified and resolved.',
-    },
   },
   {
     id: 'pp-002',
@@ -212,21 +195,6 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
     isProcessing: false,
     isMinting: false,
-    transit: {
-      stage: 'At Customs (Rotterdam, NL)',
-      eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
-      transport: 'Ship',
-      origin: 'India',
-      destination: 'Netherlands',
-      departureDate: new Date(new Date(now).setDate(now.getDate() - 20)).toISOString(),
-    },
-    customs: {
-      status: 'Detained',
-      authority: 'Dutch Customs (Douane)',
-      location: 'Port of Rotterdam',
-      date: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
-      notes: 'Awaiting CBAM declaration.',
-    },
   },
   {
     id: 'pp-004',
@@ -273,14 +241,6 @@ export let products: Product[] = [
     },
     isProcessing: false,
     isMinting: false,
-    transit: {
-      stage: 'Airborne - Approaching EU',
-      eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
-      transport: 'Plane',
-      origin: 'China',
-      destination: 'France',
-      departureDate: new Date(new Date(now).setHours(now.getHours() - 18)).toISOString(),
-    },
   },
   {
     id: 'pp-005',
@@ -310,14 +270,6 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
     isProcessing: false,
     isMinting: false,
-    transit: {
-      stage: 'Awaiting Customs Clearance (Antwerp, BE)',
-      eta: new Date(new Date(now).setDate(now.getDate() + 1)).toISOString(),
-      transport: 'Ship',
-      origin: 'Vietnam',
-      destination: 'France',
-      departureDate: new Date(new Date(now).setDate(now.getDate() - 14)).toISOString(),
-    },
   },
   {
     id: 'pp-006',
@@ -355,14 +307,6 @@ export let products: Product[] = [
       complianceSummary: 'Product has multiple compliance failures.',
       isCompliant: false,
       gaps: [],
-    },
-    transit: {
-      stage: 'Pre-Arrival Notification Submitted (Bremerhaven, DE)',
-      eta: new Date(new Date(now).setDate(now.getDate() + 15)).toISOString(),
-      transport: 'Ship',
-      origin: 'USA',
-      destination: 'Germany',
-      departureDate: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
     },
   },
   {
