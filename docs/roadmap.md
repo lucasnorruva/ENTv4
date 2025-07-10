@@ -169,7 +169,11 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 1.4.2 Advanced Encryption
 - [x] **File Integrity Hashing**
-- [ ] **Encryption Strategy**
+- [x] **Encryption Strategy**
+    -   **In-Transit**: All communication between clients, APIs, and services is encrypted using TLS 1.3.
+    -   **At-Rest**:
+        -   **Database-Level**: All data stored in Firestore is automatically encrypted at rest by Google Cloud.
+        -   **Application-Level**: Highly sensitive data (e.g., API keys, secrets) is encrypted before being written to the database using an envelope encryption pattern.
 - [ ] **Key Management System**
 
 #### 1.4.3 Compliance Certifications
