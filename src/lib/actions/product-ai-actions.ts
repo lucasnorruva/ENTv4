@@ -1,3 +1,4 @@
+
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -76,8 +77,6 @@ export async function runDataValidationCheck(
   productId: string,
   userId: string,
 ): Promise<void> {
-  // This is a placeholder. The core logic is in `processProductAi`
-  // and is triggered on save. This could be adapted for on-demand checks.
   const user = await getUserById(userId);
   if (!user) throw new PermissionError('User not found.');
 

@@ -1,3 +1,4 @@
+
 // src/components/predictive-analytics-widget.tsx
 'use client';
 

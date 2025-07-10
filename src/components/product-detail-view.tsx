@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -36,6 +37,11 @@ import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import HsCodeWidget from './hs-code-widget';
 import CryptoTab from './product-detail-tabs/crypto-tab';
+import ElectronicsTab from './product-detail-tabs/electronics-tab';
+import TextileTab from './product-detail-tabs/textile-tab';
+import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
+import ConstructionTab from './product-detail-tabs/construction-tab';
+
 
 export default function ProductDetailView({
   product: productProp,
@@ -82,6 +88,11 @@ export default function ProductDetailView({
     setProduct(updatedProduct);
     router.refresh();
   }, [router]);
+
+  const showElectronicsTab = product.category === 'Electronics';
+  const showTextileTab = product.category === 'Fashion';
+  const showConstructionTab = product.category === 'Construction';
+  const showFoodTab = product.category === 'Food & Beverage';
 
   return (
     <>
@@ -146,21 +157,47 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full h-auto flex-wrap justify-start">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
-                <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-                <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-                <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto">
+                <TabsList className="w-max">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
+                  {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                  {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
+                  <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+                  <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                  <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                  <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="overview" className="mt-4">
                 <OverviewTab
                   product={product}
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
+               {showElectronicsTab && (
+                <TabsContent value="electronics" className="mt-4">
+                  <ElectronicsTab product={product} />
+                </TabsContent>
+              )}
+              {showTextileTab && (
+                <TabsContent value="textile" className="mt-4">
+                  <TextileTab product={product} />
+                </TabsContent>
+              )}
+               {showFoodTab && (
+                <TabsContent value="food" className="mt-4">
+                  <FoodSafetyTab product={product} />
+                </TabsContent>
+              )}
+              {showConstructionTab && (
+                <TabsContent value="construction" className="mt-4">
+                  <ConstructionTab product={product} />
+                </TabsContent>
+              )}
               <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
               </TabsContent>
