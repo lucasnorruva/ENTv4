@@ -1,15 +1,24 @@
 
-// src/app/dashboard/admin/ai-workbench/page.tsx
+'use client';
+
+import { useState } from 'react';
 import RegulationPredictor from '@/components/ai-workbench/regulation-predictor';
 import SupplierScorer from '@/components/ai-workbench/supplier-scorer';
 import RouteRiskAnalyzer from '@/components/ai-workbench/route-risk-analyzer';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
+import { type User } from '@/types';
 
-export const dynamic = 'force-dynamic';
+export default function AiWorkbenchPage() {
+  const [user, setUser] = useState<User | null>(null);
 
-export default async function AiWorkbenchPage() {
-  const user = await getCurrentUser(UserRoles.ADMIN);
+  useState(() => {
+    getCurrentUser(UserRoles.ADMIN).then(setUser);
+  });
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="space-y-8">

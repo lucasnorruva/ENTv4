@@ -1,4 +1,4 @@
-// src/components/product-form-tabs/construction-tab.tsx
+
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';

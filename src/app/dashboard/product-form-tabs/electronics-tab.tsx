@@ -1,4 +1,4 @@
-// src/components/product-form-tabs/electronics-tab.tsx
+
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';

@@ -1,4 +1,4 @@
-// src/components/product-form-tabs/textile-tab.tsx
+
 'use client';
 
 import type { UseFormReturn, FieldArrayWithId, UseFieldArrayReturn } from 'react-hook-form';
@@ -82,8 +82,8 @@ export default function TextileTab({ form, fiberFields, appendFiber, removeFiber
                                 <Input placeholder="e.g. Organic Cotton" {...field} />
                             </FormControl>
                             <FormMessage />
-                        </FormItem>
-                    )}
+                            </FormItem>
+                        )}
                 />
                 <FormField
                     control={form.control}

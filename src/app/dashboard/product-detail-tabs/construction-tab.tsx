@@ -1,5 +1,4 @@
 
-// src/components/product-detail-tabs/construction-tab.tsx
 'use client';
 
 import React from 'react';
