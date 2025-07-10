@@ -87,7 +87,7 @@ export default function RoiCalculatorWidget({ product }: RoiCalculatorWidgetProp
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <Label htmlFor="repairability-slider" className="flex items-center gap-2"><Wrench className="h-4 w-4"/> Repairability Score</Label>
-            <span className="font-bold">{repairabilityScore}/10</span>
+            <span className="font-bold">{repairabilityScore.toFixed(1)}/10</span>
           </div>
           <Slider
             id="repairability-slider"

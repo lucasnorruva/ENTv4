@@ -8,6 +8,7 @@ import RouteRiskAnalyzer from '@/components/ai-workbench/route-risk-analyzer';
 import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { type User } from '@/types';
+import RoiCalculator from '@/components/ai-workbench/roi-calculator';
 
 export default function AiWorkbenchPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -34,6 +35,7 @@ export default function AiWorkbenchPage() {
         <SupplierScorer user={user} />
       </div>
        <RouteRiskAnalyzer user={user} />
+       <RoiCalculator user={user} />
     </div>
   );
 }
