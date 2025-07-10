@@ -1,7 +1,13 @@
 // src/components/webhook-management-client.tsx
 'use client';
 
-import React, { useState, useTransition, useCallback, useMemo } from 'react';
+import React, {
+  useState,
+  useTransition,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react';
 import {
   MoreHorizontal,
   Plus,
@@ -9,9 +15,12 @@ import {
   Trash2,
   Webhook as WebhookIcon,
   BookOpen,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { onSnapshot, query, where, collection, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -62,18 +71,47 @@ import {
 
 interface WebhookManagementClientProps {
   user: User;
-  initialWebhooks: Webhook[];
 }
 
 export default function WebhookManagementClient({
   user,
-  initialWebhooks,
 }: WebhookManagementClientProps) {
+  const [webhooks, setWebhooks] = useState<Webhook[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const router = useRouter();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.WEBHOOKS),
+      where('userId', '==', user.id),
+      orderBy('createdAt', 'desc'),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      querySnapshot => {
+        setWebhooks(
+          querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Webhook)),
+        );
+        setIsLoading(false);
+      },
+      error => {
+        console.error('Error fetching webhooks:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not fetch webhooks.',
+          variant: 'destructive',
+        });
+        setIsLoading(false);
+      },
+    );
+
+    return () => unsubscribe();
+  }, [user.id, toast]);
 
   const handleCreateNew = useCallback(() => {
     setSelectedWebhook(null);
@@ -93,7 +131,7 @@ export default function WebhookManagementClient({
           title: 'Webhook Deleted',
           description: 'The webhook has been successfully deleted.',
         });
-        router.refresh();
+        // Listener will update the UI
       } catch (error) {
         toast({
           title: 'Error',
@@ -102,16 +140,16 @@ export default function WebhookManagementClient({
         });
       }
     });
-  }, [user.id, toast, router]);
+  }, [user.id, toast]);
 
   const handleSave = useCallback((savedWebhook: Webhook) => {
+    // Listener will update the UI, just close the form.
     setIsFormOpen(false);
-    router.refresh();
-  }, [router]);
-  
+  }, []);
+
   const columns: ColumnDef<Webhook>[] = useMemo(
     () => [
-       {
+      {
         accessorKey: 'url',
         header: 'Endpoint URL',
         cell: ({ row }) => (
@@ -163,9 +201,7 @@ export default function WebhookManagementClient({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem asChild>
-                    <Link
-                      href={`/dashboard/developer/webhooks/${webhook.id}`}
-                    >
+                    <Link href={`/dashboard/developer/webhooks/${webhook.id}`}>
                       <BookOpen className="mr-2 h-4 w-4" />
                       View Logs
                     </Link>
@@ -219,7 +255,7 @@ export default function WebhookManagementClient({
   );
 
   const table = useReactTable({
-    data: initialWebhooks,
+    data: webhooks,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -241,57 +277,68 @@ export default function WebhookManagementClient({
           </div>
         </CardHeader>
         <CardContent>
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map(header => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map(row => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
+          {isLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map(header => (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-48 text-center">
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <WebhookIcon className="h-12 w-12 text-muted-foreground" />
-                        <h3 className="text-xl font-semibold">
-                          No Webhooks Yet
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Create your first webhook to receive notifications.
-                        </p>
-                        <Button onClick={handleCreateNew}>
-                          <Plus className="mr-2 h-4 w-4" /> Create Webhook
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map(row => (
+                      <TableRow key={row.id}>
+                        {row.getVisibleCells().map(cell => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-48 text-center"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-4">
+                          <WebhookIcon className="h-12 w-12 text-muted-foreground" />
+                          <h3 className="text-xl font-semibold">
+                            No Webhooks Yet
+                          </h3>
+                          <p className="text-muted-foreground">
+                            Create your first webhook to receive notifications.
+                          </p>
+                          <Button onClick={handleCreateNew}>
+                            <Plus className="mr-2 h-4 w-4" /> Create Webhook
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
       </Card>
       <WebhookForm
