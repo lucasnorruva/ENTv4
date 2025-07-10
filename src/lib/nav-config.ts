@@ -1,4 +1,3 @@
-
 // src/lib/nav-config.ts
 import {
   BookCopy,
@@ -22,6 +21,7 @@ import {
   Fingerprint,
   RefreshCw,
   BrainCircuit,
+  Ticket,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -144,7 +144,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'All Products', icon: BookCopy, href: 'products' },
         { title: 'Production Lines', icon: Factory, href: 'lines' },
-        { title: 'Service Tickets', icon: Wrench, href: 'tickets' },
+        { title: 'Service Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
