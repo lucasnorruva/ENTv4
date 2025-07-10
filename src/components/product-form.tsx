@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useTransition, useCallback } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -392,11 +392,9 @@ export default function ProductForm({
 
         try {
           model3dUrl = await new Promise<string>((resolve, reject) => {
-            uploadTask.on(
-              'state_changed',
+            uploadTask.on('state_changed',
               snapshot => {
-                const progress =
-                  (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                 setModelUploadProgress(progress);
               },
               error => {
@@ -404,12 +402,10 @@ export default function ProductForm({
                 reject(error);
               },
               async () => {
-                const downloadURL = await getDownloadURL(
-                  uploadTask.snapshot.ref,
-                );
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 setIsUploadingModel(false);
                 resolve(downloadURL);
-              },
+              }
             );
           });
           model3dFileName = modelFile.name;

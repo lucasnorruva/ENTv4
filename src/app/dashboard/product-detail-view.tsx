@@ -156,19 +156,21 @@ export default function ProductDetailView({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="w-full h-auto flex-wrap justify-start">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
-                {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
-                {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
-                <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
-                <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-                <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-                <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto">
+                <TabsList className="w-max">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
+                  {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                  {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
+                  <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+                  <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                  <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                  <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="overview" className="mt-4">
                 <OverviewTab
                   product={product}
