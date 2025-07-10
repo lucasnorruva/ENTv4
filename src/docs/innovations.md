@@ -2,7 +2,9 @@
 
 ## Tokenization & Circular Economy Credits
 
-Products can be linked to on-chain “eco‐tokens” that represent sustainability value. For example, a DPP might record a product’s carbon footprint and automatically offset it by purchasing blockchain-based carbon credits (e.g. via Toucan or KlimaDAO). Carbon tokens on public ledgers are transparently traceable and “programmable” – effectively a composable “money Lego” for climate action. Likewise, DPPs could issue recyclability or repair tokens: when a consumer returns or repairs an item, a smart contract mints a token reward (or NFT badge) that can be traded or redeemed for benefits. Brands could gamify these rewards (e.g. deposit-refund tokens instead of cash) to strengthen loyalty and advance circularity. Over time, token incentives can be dynamically tuned: machine‑learning-driven contracts could boost rewards for recycling when raw-material supply is low, or shift tokens to promote reuse during low-demand periods.
+Products can be linked to on-chain “eco‐tokens” that represent sustainability value. Our platform introduces **Circularity Credits**, awarded to recyclers for processing end-of-life products. This creates a verifiable, tokenized incentive to close the loop. Brands can then acquire these credits to meet sustainability quotas or demonstrate their participation in the circular economy.
+
+This system is the foundation for advanced chain of custody models like **Mass Balancing**, where credits are used to administratively track sustainable material content in mixed supply chains, a key requirement for standards like ISCC PLUS.
 
 ### Tradable Climate Assets
 Encode product carbon or material attributes as blockchain tokens (carbon credit tokens, eco-score NFTs, recyclability badges). For example, a product’s lifecycle emissions could be routinely offset on-chain by retiring Toucan/Verra-based carbon tokens.

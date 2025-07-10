@@ -296,7 +296,7 @@ export const navConfig: NavConfig = {
     {
       label: 'Operations',
       items: [
-        { title: 'EOL Products', icon: Recycle, href: 'eol' },
+        { title: 'EOL Scanner', icon: Recycle, href: 'eol' },
         {
           title: 'Material Composition',
           icon: Recycle,
