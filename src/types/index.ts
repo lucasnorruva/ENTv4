@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -23,6 +22,7 @@ import { z } from 'zod';
 
 
 // Re-exporting for easy access elsewhere
+export type { Role } from '@/lib/constants';
 export type ErpProduct = ErpProductType;
 export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
@@ -318,6 +318,7 @@ export interface Product extends BaseEntity {
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
   massBalance?: MassBalance;
+  compliance?: Compliance;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
