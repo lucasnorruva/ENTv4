@@ -1,3 +1,4 @@
+
 // src/components/ai-workbench/regulation-predictor.tsx
 'use client';
 
@@ -16,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { BrainCircuit, Loader2, Telescope } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { runDailyReferenceDataSync } from '@/triggers/scheduled-syncs';
+import { runDailyReferenceDataSync } from '@/lib/actions';
 import type { User } from '@/types';
 
 interface PredictionResult {

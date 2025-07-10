@@ -149,6 +149,20 @@ export const CreateProductFromImageOutputSchema = z.object({
 export type CreateProductFromImageOutput = z.infer<typeof CreateProductFromImageOutputSchema>;
 
 
+// generate-compliance-rules
+export const GenerateComplianceRulesInputSchema = z.object({
+  name: z.string().describe('The name of the compliance path.'),
+  regulations: z.array(z.string()).describe('A list of regulations associated with this path.'),
+});
+export type GenerateComplianceRulesInput = z.infer<typeof GenerateComplianceRulesInputSchema>;
+export const GenerateComplianceRulesOutputSchema = z.object({
+  minSustainabilityScore: z.number().optional().describe('A suggested minimum ESG score (0-100) for this path.'),
+  requiredKeywords: z.array(z.string()).optional().describe('A list of required materials or keywords based on the regulations.'),
+  bannedKeywords: z.array(z.string()).optional().describe('A list of banned materials or substances based on the regulations.'),
+});
+export type GenerateComplianceRulesOutput = z.infer<typeof GenerateComplianceRulesOutputSchema>;
+
+
 // generate-product-description
 export const GenerateProductDescriptionInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -402,15 +416,4 @@ export const PredictRegulationChangeOutputSchema = z.object({
 });
 export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;
 
-// generate-compliance-rules
-export const GenerateComplianceRulesInputSchema = z.object({
-  name: z.string().describe('The name of the compliance path.'),
-  regulations: z.array(z.string()).describe('A list of regulations associated with this path.'),
-});
-export type GenerateComplianceRulesInput = z.infer<typeof GenerateComplianceRulesInputSchema>;
-export const GenerateComplianceRulesOutputSchema = z.object({
-  minSustainabilityScore: z.number().optional().describe('A suggested minimum ESG score (0-100) for this path.'),
-  requiredKeywords: z.array(z.string()).optional().describe('A list of required materials or keywords based on the regulations.'),
-  bannedKeywords: z.array(z.string()).optional().describe('A list of banned materials or substances based on the regulations.'),
-});
-export type GenerateComplianceRulesOutput = z.infer<typeof GenerateComplianceRulesOutputSchema>;
+    

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import RegulationPredictor from '@/components/ai-workbench/regulation-predictor';
 import SupplierScorer from '@/components/ai-workbench/supplier-scorer';
 import RouteRiskAnalyzer from '@/components/ai-workbench/route-risk-analyzer';
@@ -12,9 +12,9 @@ import { type User } from '@/types';
 export default function AiWorkbenchPage() {
   const [user, setUser] = useState<User | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     getCurrentUser(UserRoles.ADMIN).then(setUser);
-  });
+  }, []);
 
   if (!user) {
     return null;
