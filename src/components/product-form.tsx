@@ -87,7 +87,7 @@ export default function ProductForm({
 
   const isEditMode = !!initialData?.id;
 
-  const defaultNewValues = {
+  const defaultNewValues: ProductFormValues = {
     gtin: '',
     productName: '',
     productDescription: '',
@@ -148,12 +148,13 @@ export default function ProductForm({
     append: appendCert,
     remove: removeCert,
   } = useFieldArray({ control: form.control, name: 'certifications' });
-
+  
   const {
     fields: greenClaimFields,
     append: appendGreenClaim,
     remove: removeGreenClaim,
   } = useFieldArray({ control: form.control, name: 'greenClaims' });
+
 
   const {
     fields: fiberFields,

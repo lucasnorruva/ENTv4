@@ -109,5 +109,3 @@ This persona values robust APIs, security, scalability, and ease of integration.
 - **Advanced Security Features**: Includes Zero-Trust principles, support for SSO/SAML, and end-to-end data encryption.
 - **On-Prem/Hybrid Deployment Options**: Flexibility to deploy the platform in a private cloud or on-premises to meet enterprise data governance policies.
 - **Blockchain Anchoring Service**: A modular service that provides an immutable, auditable proof of data integrity without requiring deep blockchain expertise from the IT team.
-
-    
