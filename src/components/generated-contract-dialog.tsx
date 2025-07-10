@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -45,14 +45,14 @@ export default function GeneratedContractDialog({
     borderRadius: 'var(--radius)',
   };
 
-  const copyToClipboard = () => {
+  const copyToClipboard = useCallback(() => {
     if (code) {
       navigator.clipboard.writeText(code);
       setHasCopied(true);
       toast({ title: 'Copied to clipboard!' });
       setTimeout(() => setHasCopied(false), 2000);
     }
-  };
+  }, [code, toast]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -95,4 +95,3 @@ export default function GeneratedContractDialog({
     </Dialog>
   );
 }
-

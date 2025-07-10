@@ -27,7 +27,6 @@ import { UserRoles } from '@/lib/constants';
 import { useToast } from '@/hooks/use-toast';
 import {
   deleteCompliancePath,
-  getCompliancePaths,
   generateSmartContractForPath,
 } from '@/lib/actions/compliance-actions';
 import { hasRole } from '@/lib/auth-utils';
@@ -62,7 +61,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import CompliancePathForm from './compliance-path-form';
 import { Input } from './ui/input';
-import { getProducts } from '@/lib/actions';
 import {
   Select,
   SelectContent,
@@ -71,6 +69,9 @@ import {
   SelectValue,
 } from './ui/select';
 import GeneratedContractDialog from './generated-contract-dialog';
+import { collection, onSnapshot, query } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 interface CompliancePathManagementProps {
   user: User;
@@ -94,26 +95,23 @@ export default function CompliancePathManagement({
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const [isContractDialogOpen, setIsContractDialogOpen] = useState(false);
 
-  const fetchPaths = useCallback(() => {
-    setIsLoading(true);
-    Promise.all([getCompliancePaths(), getProducts(user.id)])
-      .then(([paths, prods]) => {
-        setPaths(paths);
-        setProducts(prods);
-      })
-      .catch(() => {
-        toast({
-          title: 'Error',
-          description: 'Failed to load initial data.',
-          variant: 'destructive',
-        });
-      })
-      .finally(() => setIsLoading(false));
-  }, [toast, user.id]);
-
   useEffect(() => {
-    fetchPaths();
-  }, [fetchPaths]);
+    setIsLoading(true);
+    const unsubscribes: (() => void)[] = [];
+
+    unsubscribes.push(onSnapshot(query(collection(db, Collections.COMPLIANCE_PATHS)), (snapshot) => {
+        setPaths(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as CompliancePath)));
+    }));
+
+    unsubscribes.push(onSnapshot(query(collection(db, Collections.PRODUCTS)), (snapshot) => {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+    }));
+    
+    setIsLoading(false);
+
+    return () => unsubscribes.forEach(unsub => unsub());
+
+  }, []);
 
   const pathUsageCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -170,7 +168,7 @@ export default function CompliancePathManagement({
       startTransition(async () => {
         try {
           await deleteCompliancePath(path.id, user.id);
-          setPaths(prev => prev.filter(p => p.id !== path.id));
+          // State will update via listener
           toast({ title: `Compliance Path "${path.name}" Deleted` });
         } catch (error: any) {
           toast({
@@ -185,13 +183,7 @@ export default function CompliancePathManagement({
   );
 
   const handleSave = useCallback((savedPath: CompliancePath) => {
-    setPaths(prev => {
-      const exists = prev.some(p => p.id === savedPath.id);
-      if (exists) {
-        return prev.map(p => (p.id === savedPath.id ? savedPath : p));
-      }
-      return [savedPath, ...prev];
-    });
+    // State will update via listener
     setIsFormOpen(false);
   }, []);
 
