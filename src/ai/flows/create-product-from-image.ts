@@ -46,5 +46,3 @@ const createProductFromImageFlow = ai.defineFlow(
     return output!;
   },
 );
-
-    
