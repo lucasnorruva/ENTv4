@@ -89,6 +89,11 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
+         {
+          title: 'Regulation Sync',
+          icon: RefreshCw,
+          href: 'reg-sync',
+        },
       ],
     },
     {

@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-sustainability-declaration.ts
 'use server';
 /**
@@ -52,7 +53,7 @@ const prompt = ai.definePrompt({
 
 **5. Greenhouse Gas (GHG) Emissions:**
 - **Total GHG Emissions:** \`{{#if product.lifecycle.carbonFootprint}}{{{product.lifecycle.carbonFootprint}}} kgCO2eq per unit{{else}}Not Assessed{{/if}}\`
-- **GHG Saving vs. Fossil Comparator:** \`[XX]% - Calculation pending`\`
+- **GHG Saving vs. Fossil Comparator:** \`[XX]% - Calculation pending\`
 - **Country of Origin (Raw Material):** \`{{#if product.materials}}{{{product.materials.0.origin}}}{{else}}Not specified{{/if}}\`
 
 **6. Declaration of Compliance:**
