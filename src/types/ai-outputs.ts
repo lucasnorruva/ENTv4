@@ -360,18 +360,6 @@ export const GenerateConformityDeclarationOutputSchema = z.object({
 export type GenerateConformityDeclarationOutput = z.infer<typeof GenerateConformityDeclarationOutputSchema>;
 
 
-// generate-sustainability-declaration
-export const GenerateSustainabilityDeclarationInputSchema = z.object({
-  product: AiProductSchema,
-  companyName: z.string().describe('The legal name of the manufacturer.'),
-});
-export type GenerateSustainabilityDeclarationInput = z.infer<typeof GenerateSustainabilityDeclarationInputSchema>;
-export const GenerateSustainabilityDeclarationOutputSchema = z.object({
-  declarationText: z.string().describe('The full text of the Sustainability Declaration in Markdown format.'),
-});
-export type GenerateSustainabilityDeclarationOutput = z.infer<typeof GenerateSustainabilityDeclarationOutputSchema>;
-
-
 // generate-component-tests
 export const GenerateComponentTestsInputSchema = z.object({
   componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),

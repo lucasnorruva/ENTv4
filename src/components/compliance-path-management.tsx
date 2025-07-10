@@ -1,4 +1,3 @@
-
 // src/components/compliance-path-management.tsx
 'use client';
 
@@ -19,7 +18,6 @@ import {
   Search,
   BookCopy,
   FileCode,
-  Globe,
 } from 'lucide-react';
 
 import type { CompliancePath, User, Product } from '@/types';
@@ -334,53 +332,10 @@ export default function CompliancePathManagement({
                   </CardTitle>
                   <CardDescription>{path.description}</CardDescription>
                 </CardHeader>
-                <CardContent className="flex-grow space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Metadata</h4>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{path.category}</Badge>
-                      <Badge
-                        variant="outline"
-                        className="border-sky-500/50 text-sky-700 dark:text-sky-400"
-                      >
-                        <Globe className="h-3 w-3 mr-1" />
-                        {path.jurisdiction}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Regulations</h4>
-                    <div className="flex flex-wrap gap-1">
-                      {path.regulations.map(reg => (
-                        <Badge key={reg} variant="secondary">
-                          {reg}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Rules</h4>
-                    <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                      {path.rules.minSustainabilityScore !== undefined && (
-                        <li>
-                          Min. ESG Score: {path.rules.minSustainabilityScore}
-                        </li>
-                      )}
-                      {path.rules.requiredKeywords &&
-                        path.rules.requiredKeywords.length > 0 && (
-                          <li>
-                            Required Materials:{' '}
-                            {path.rules.requiredKeywords.join(', ')}
-                          </li>
-                        )}
-                      {path.rules.bannedKeywords &&
-                        path.rules.bannedKeywords.length > 0 && (
-                          <li>
-                            Banned Materials:{' '}
-                            {path.rules.bannedKeywords.join(', ')}
-                          </li>
-                        )}
-                    </ul>
+                <CardContent className="flex-grow">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="outline">{path.category}</Badge>
+                    <Badge variant="outline">{path.jurisdiction}</Badge>
                   </div>
                 </CardContent>
                 <CardFooter className="mt-auto pt-4 border-t">
