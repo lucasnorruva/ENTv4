@@ -1,3 +1,4 @@
+
 // src/components/product-table.tsx
 "use client";
 
@@ -14,6 +15,9 @@ import {
   ChevronDown,
   BookCopy,
   Archive,
+  ListFilter,
+  CheckCircle,
+  AlertTriangle,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -46,6 +50,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -65,6 +71,7 @@ import { can } from "@/lib/permissions";
 import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dpp-display-utils";
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
+import { Tooltip, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 interface ProductTableProps {
   products: Product[];
@@ -190,6 +197,41 @@ export default function ProductTable({
             {row.original.verificationStatus ?? 'Not Submitted'}
           </Badge>
         ),
+      },
+      {
+        id: 'dataQuality',
+        header: 'Data Quality',
+        accessorFn: (row) => row.dataQualityWarnings?.length || 0,
+        cell: ({ row }) => {
+          const warnings = row.original.dataQualityWarnings;
+          const warningCount = warnings?.length || 0;
+          if (warningCount === 0) {
+            return (
+              <Badge variant="outline" className="border-green-300 dark:border-green-700">
+                <CheckCircle className="mr-1 h-3 w-3 text-green-500" />
+                Pass
+              </Badge>
+            );
+          }
+          return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                         <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700">
+                            <AlertTriangle className="mr-1 h-3 w-3 text-amber-500" />
+                            {warningCount} Warning(s)
+                        </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <ul className="list-disc list-inside text-xs">
+                           {warnings?.slice(0, 3).map((w,i) => <li key={i}>{w.field}: {w.warning}</li>)}
+                           {warnings && warnings.length > 3 && <li>...and more</li>}
+                        </ul>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+          );
+        },
       },
       {
         accessorKey: 'lastUpdated',
@@ -337,9 +379,12 @@ export default function ProductTable({
     can(user, 'product:archive') &&
     table.getFilteredSelectedRowModel().rows.every(row => can(user, 'product:archive', row.original));
 
+  const dataQualityFilter = table.getColumn('dataQuality')?.getFilterValue() as string | undefined;
+
+
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between py-4">
+      <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
         <Input
           placeholder="Filter by name, GTIN, or supplier..."
           value={globalFilter ?? ''}
@@ -349,32 +394,52 @@ export default function ProductTable({
           className="max-w-sm"
         />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columns <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id.replace(/([A-Z])/g, " $1")}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2 ml-auto">
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                        <ListFilter className="mr-2 h-4 w-4" />
+                        Data Quality
+                        {dataQualityFilter === 'warnings' && <span className="ml-2 rounded-full bg-destructive w-2 h-2"></span>}
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuLabel>Filter Data Quality</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuRadioGroup value={dataQualityFilter} onValueChange={(value) => table.getColumn('dataQuality')?.setFilterValue(value === 'all' ? undefined : value)}>
+                        <DropdownMenuRadioItem value="all">All</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="warnings">Has Warnings</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
+                    return (
+                    <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                        }
+                    >
+                        {column.id.replace(/([A-Z])/g, " $1")}
+                    </DropdownMenuCheckboxItem>
+                    );
+                })}
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       </div>
       {selectedRowCount > 0 && (
          <div className="flex-1 text-sm text-muted-foreground mb-4">

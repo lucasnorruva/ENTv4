@@ -1,3 +1,4 @@
+
 // src/lib/dpp-display-utils.ts
 'use client';
 
@@ -48,6 +49,13 @@ export function getStatusBadgeClasses(status: string | undefined): string {
       default:
         return '';
     }
+}
+
+export function getDataQualityBadgeClasses(warningCount: number): string {
+    if (warningCount > 0) {
+        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700';
+    }
+    return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
 }
 
 export function getFactoryColor(status: 'Active' | 'Idle' | 'Maintenance'): string {
