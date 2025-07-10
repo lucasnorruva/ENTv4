@@ -51,12 +51,6 @@ const greenClaimSchema = z.object({
   substantiation: z.string().min(10, 'Substantiation must be at least 10 characters.'),
 });
 
-const massBalanceSchema = z.object({
-  creditsAllocated: z.coerce.number().optional(),
-  certificationBody: z.string().optional(),
-  certificateNumber: z.string().optional(),
-});
-
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -169,7 +163,6 @@ export const productFormSchema = z.object({
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
-  massBalance: massBalanceSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
