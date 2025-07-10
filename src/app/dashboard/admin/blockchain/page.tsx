@@ -8,7 +8,7 @@ import BlockchainManagementClient from '@/components/blockchain-management-clien
 
 // This page now simply acts as a server-side entry point
 // for the real-time client component that handles all logic.
-export default async function BlockchainManagementPage() {
+export default async function TrustHubPage() {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
   if (!hasRole(user, UserRoles.ADMIN)) {

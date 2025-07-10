@@ -1,4 +1,3 @@
-
 // src/app/dashboard/admin/blockchain/[id]/page.tsx
 import {
   getProductById,
