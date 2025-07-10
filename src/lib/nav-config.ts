@@ -1,3 +1,4 @@
+
 // src/lib/nav-config.ts
 import {
   BookCopy,
@@ -55,6 +56,11 @@ export const developerNavItems = [
   },
   { href: `/dashboard/developer/webhooks`, icon: Webhook, text: 'Webhooks' },
   { href: `/dashboard/developer/analytics`, icon: BarChart3, text: 'Analytics' },
+  {
+    href: `/dashboard/developer/test-generator`,
+    icon: FileCode,
+    text: 'Test Generator',
+  },
   {
     href: `/docs`,
     icon: FileCode,
@@ -237,6 +243,7 @@ export const navConfig: NavConfig = {
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
         { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
         { title: 'API Explorer', icon: TestTubeDiagonal, href: 'explorer' },
+        { title: 'AI Test Generator', icon: FileCode, href: 'test-generator' },
         { title: 'Integrations', icon: Wrench, href: 'integrations' },
       ],
     },
