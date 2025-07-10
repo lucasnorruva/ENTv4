@@ -41,6 +41,7 @@ import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
 import CircularityTab from './product-detail-tabs/circularity-tab';
+import RoiCalculatorWidget from './roi-calculator-widget';
 
 
 export default function ProductDetailView({
@@ -224,6 +225,7 @@ export default function ProductDetailView({
                 <SupplyChainTab product={product} />
               </TabsContent>
             </Tabs>
+            <RoiCalculatorWidget product={product} />
             <ThreeDViewerTab product={product} />
             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
