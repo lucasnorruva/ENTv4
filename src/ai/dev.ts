@@ -31,3 +31,4 @@ import "@/ai/flows/analyze-news-reports.ts";
 import "@/ai/flows/predict-regulation-change.ts";
 
 import "@/triggers/scheduled-syncs.ts";
+import "@/ai/flows/analyze-electronics-compliance.ts";

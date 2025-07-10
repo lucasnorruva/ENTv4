@@ -1,3 +1,4 @@
+
 // src/components/product-form.tsx
 'use client';
 
@@ -98,7 +99,7 @@ export default function ProductForm({
     materials: [],
     manufacturing: { facility: '', country: '', manufacturingProcess: '' },
     certifications: [],
-    packaging: { type: '', recyclable: false },
+    packaging: { type: '', recyclable: false, weight: 0 },
     lifecycle: {},
     battery: {},
     compliance: {},
