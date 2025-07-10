@@ -9,14 +9,16 @@ import type {
   AnalyzeTextileOutput,
   AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
-  AnalyzeFoodSafetyOutput,
   HsCodeAnalysis,
   ProductTransitRiskAnalysis,
+  foodSafetyDataSchema
 } from '@/types/ai-outputs';
+import type { AnalyzeFoodSafetyOutput } from '@/ai/flows/analyze-food-safety'; // Import directly from flow
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 import type { Integration as IntegrationType } from './integrations';
+import { z } from 'zod';
 
 
 // Re-exporting for easy access elsewhere
@@ -141,10 +143,7 @@ export interface TextileData {
   weaveType?: string;
 }
 
-export interface FoodSafetyData {
-  ingredients: { value: string }[];
-  allergens?: string;
-}
+export type FoodSafetyData = z.infer<typeof foodSafetyDataSchema>;
 
 export interface GreenClaim {
   claim: string;

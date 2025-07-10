@@ -1,27 +1,7 @@
+
 // src/ai/schemas.ts
 import { z } from 'zod';
-
-/**
- * Zod schema for textile-specific data.
- * Moved here to break circular dependency.
- */
-export const textileDataSchema = z.object({
-  fiberComposition: z.array(z.object({
-    name: z.string().min(1, 'Fiber name is required.'),
-    percentage: z.coerce.number().min(0).max(100),
-  })).optional(),
-  dyeProcess: z.string().optional(),
-  weaveType: z.string().optional(),
-});
-
-/**
- * Zod schema for food safety-specific data.
- * Moved here to break circular dependency.
- */
-export const foodSafetyDataSchema = z.object({
-  ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
-  allergens: z.string().optional(),
-});
+import { textileDataSchema } from '@/types/ai-outputs';
 
 /**
  * A shared Zod schema for the product data passed to AI flows.
@@ -115,7 +95,7 @@ export const AiProductSchema = z.object({
     .optional()
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
-  foodSafety: foodSafetyDataSchema.optional().describe('Food safety data.'),
+  foodSafety: z.custom<any>().optional().describe('Food safety data.'),
   massBalance: z.object({
     creditsAllocated: z.coerce.number().optional(),
     certificationBody: z.string().optional(),
