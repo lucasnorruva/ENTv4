@@ -1,8 +1,7 @@
-
 // src/components/trust-hub/zkp-tab.tsx
 'use client';
 
-import React, { useState, useTransition, useCallback } from 'react';
+import React, { useState, useTransition, useCallback, useMemo } from 'react';
 import type { Product, User } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
@@ -13,12 +12,11 @@ import { useToast } from '@/hooks/use-toast';
 import { generateZkProofForProduct, verifyZkProofForProduct } from '@/lib/actions';
 
 interface ZkpTabProps {
-  initialProducts: Product[];
+  products: Product[];
   user: User;
-  onDataChange: () => void;
 }
 
-export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabProps) {
+export default function ZkpTab({ products, user }: ZkpTabProps) {
   const [isPending, startTransition] = useTransition();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { toast } = useToast();
@@ -29,14 +27,14 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
       try {
         await generateZkProofForProduct(productId, user.id);
         toast({ title: 'ZK Proof Generated' });
-        onDataChange();
+        // The listener will update the UI
       } catch (error: any) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } finally {
         setProcessingId(null);
       }
     });
-  }, [onDataChange, startTransition, toast, user.id]);
+  }, [startTransition, toast, user.id]);
 
   const handleVerifyProof = useCallback((productId: string) => {
     setProcessingId(productId);
@@ -44,16 +42,18 @@ export default function ZkpTab({ initialProducts, user, onDataChange }: ZkpTabPr
         try {
             await verifyZkProofForProduct(productId, user.id);
             toast({ title: 'ZK Proof Verified', description: "The proof has been successfully verified." });
-            onDataChange();
+             // The listener will update the UI
         } catch (error: any) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
         } finally {
             setProcessingId(null);
         }
     });
-  }, [onDataChange, startTransition, toast, user.id]);
+  }, [startTransition, toast, user.id]);
 
-  const productsWithProofs = initialProducts.filter(p => p.verificationStatus === 'Verified');
+  const productsWithProofs = useMemo(() => {
+    return products.filter(p => p.verificationStatus === 'Verified');
+  }, [products]);
 
   return (
     <Card>

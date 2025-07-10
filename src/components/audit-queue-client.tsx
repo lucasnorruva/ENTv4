@@ -1,7 +1,7 @@
 // src/components/audit-queue-client.tsx
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   ColumnDef,
   SortingState,
@@ -14,11 +14,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronDown, ShieldCheck } from 'lucide-react';
+import { ArrowUpDown, ChevronDown, ShieldCheck, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import type { Product, User } from '@/types';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,12 +43,28 @@ import { AuditReviewDialog } from '@/components/audit-review-dialog';
 
 interface AuditQueueClientProps {
   user: User;
-  initialProducts: Product[];
 }
 
-export function AuditQueueClient({ user, initialProducts }: AuditQueueClientProps) {
+export function AuditQueueClient({ user }: AuditQueueClientProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(
+      collection(db, Collections.PRODUCTS),
+      where('verificationStatus', '==', 'Pending'),
+    );
+    const unsubscribe = onSnapshot(q, snapshot => {
+      setProducts(
+        snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)),
+      );
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'updatedAt', desc: true },
@@ -136,7 +155,7 @@ export function AuditQueueClient({ user, initialProducts }: AuditQueueClientProp
   );
 
   const table = useReactTable({
-    data: initialProducts,
+    data: products,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -151,6 +170,14 @@ export function AuditQueueClient({ user, initialProducts }: AuditQueueClientProp
       columnVisibility,
     },
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>

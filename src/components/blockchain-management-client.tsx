@@ -1,13 +1,15 @@
-
+// src/components/blockchain-management-client.tsx
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import type { User, Product, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw } from 'lucide-react';
-import { getProducts } from '@/lib/actions';
-import { getCompanies } from '@/lib/auth';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
 import AnchoringTab from './trust-hub/anchoring-tab';
 import IssuersTab from './trust-hub/issuers-tab';
 import ZkpTab from './trust-hub/zkp-tab';
@@ -16,41 +18,43 @@ import { cn } from '@/lib/utils';
 
 interface BlockchainManagementClientProps {
   user: User;
-  initialProducts: Product[];
-  initialCompanies: Company[];
 }
 
 export default function BlockchainManagementClient({
   user,
-  initialProducts,
-  initialCompanies,
 }: BlockchainManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
-  const [isLoading, setIsLoading] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    try {
-      const [refreshedProducts, refreshedCompanies] = await Promise.all([
-        getProducts(user.id),
-        getCompanies(),
-      ]);
-      setProducts(refreshedProducts);
-      setCompanies(refreshedCompanies);
-    } catch (_error) {
-      toast({
-        title: 'Error fetching data',
-        description: 'Could not load the latest data for the hub.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast, user.id]);
+    // Data is now fetched via listeners, so this just acts as a manual trigger indicator.
+    await new Promise(res => setTimeout(res, 500)); // Simulate refetch delay
+    setIsLoading(false);
+    toast({ title: 'Data refreshed' });
+  }, [toast]);
 
-  if (isLoading && products.length === 0) {
+  useEffect(() => {
+    const qProducts = collection(db, Collections.PRODUCTS);
+    const unsubProducts = onSnapshot(qProducts, snapshot => {
+      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+      setIsLoading(false);
+    });
+
+    const qCompanies = collection(db, Collections.COMPANIES);
+    const unsubCompanies = onSnapshot(qCompanies, snapshot => {
+      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)));
+    });
+
+    return () => {
+      unsubProducts();
+      unsubCompanies();
+    };
+  }, []);
+
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -71,10 +75,12 @@ export default function BlockchainManagementClient({
           </p>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={fetchData} disabled={isLoading}>
-                <RefreshCw className={cn("mr-2 h-4 w-4", isLoading && "animate-spin")} />
-                Refresh Data
-            </Button>
+          <Button variant="outline" onClick={fetchData} disabled={isLoading}>
+            <RefreshCw
+              className={cn('mr-2 h-4 w-4', isLoading && 'animate-spin')}
+            />
+            Refresh Data
+          </Button>
         </div>
       </div>
 
@@ -85,25 +91,13 @@ export default function BlockchainManagementClient({
           <TabsTrigger value="zkp">Zero-Knowledge Proofs</TabsTrigger>
         </TabsList>
         <TabsContent value="anchoring" className="mt-4">
-          <AnchoringTab
-            initialProducts={products}
-            user={user}
-            onDataChange={fetchData}
-          />
+          <AnchoringTab products={products} user={user} />
         </TabsContent>
         <TabsContent value="issuers" className="mt-4">
-          <IssuersTab
-            initialCompanies={companies}
-            user={user}
-            onDataChange={fetchData}
-          />
+          <IssuersTab companies={companies} user={user} onDataChange={fetchData} />
         </TabsContent>
         <TabsContent value="zkp" className="mt-4">
-          <ZkpTab
-            initialProducts={products}
-            user={user}
-            onDataChange={fetchData}
-          />
+          <ZkpTab products={products} user={user} />
         </TabsContent>
       </Tabs>
     </div>

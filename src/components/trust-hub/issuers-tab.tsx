@@ -1,4 +1,3 @@
-
 // src/components/trust-hub/issuers-tab.tsx
 'use client';
 
@@ -12,12 +11,12 @@ import { Edit, ShieldCheck, ShieldAlert } from 'lucide-react';
 import CompanyForm from '../company-form';
 
 interface IssuersTabProps {
-  initialCompanies: Company[];
+  companies: Company[];
   user: User;
   onDataChange: () => void;
 }
 
-export default function IssuersTab({ initialCompanies, user, onDataChange }: IssuersTabProps) {
+export default function IssuersTab({ companies, user, onDataChange }: IssuersTabProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
@@ -50,7 +49,7 @@ export default function IssuersTab({ initialCompanies, user, onDataChange }: Iss
               </TableRow>
             </TableHeader>
             <TableBody>
-              {initialCompanies.map(company => (
+              {companies.map(company => (
                 <TableRow key={company.id}>
                   <TableCell className="font-medium">{company.name}</TableCell>
                   <TableCell>{company.industry}</TableCell>

@@ -1,4 +1,3 @@
-
 // src/components/trust-hub/anchoring-tab.tsx
 'use client';
 
@@ -15,27 +14,28 @@ import { useToast } from '@/hooks/use-toast';
 import { bulkAnchorProducts } from '@/lib/actions';
 import { Checkbox } from '../ui/checkbox';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface AnchoringTabProps {
-  initialProducts: Product[];
+  products: Product[];
   user: User;
-  onDataChange: () => void;
 }
 
-export default function AnchoringTab({ initialProducts, user, onDataChange }: AnchoringTabProps) {
+export default function AnchoringTab({ products, user }: AnchoringTabProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   const productsReadyToMint = useMemo(() => {
-    return initialProducts.filter(p => p.verificationStatus === 'Verified' && !p.blockchainProof && !p.isMinting);
-  }, [initialProducts]);
+    return products.filter(p => p.verificationStatus === 'Verified' && !p.blockchainProof && !p.isMinting);
+  }, [products]);
 
   const mintingActivity = useMemo(() => {
-    return initialProducts
+    return products
       .filter(p => p.blockchainProof || p.isMinting)
       .sort((a, b) => new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime());
-  }, [initialProducts]);
+  }, [products]);
 
 
   const handleBulkAnchor = () => {
@@ -46,7 +46,7 @@ export default function AnchoringTab({ initialProducts, user, onDataChange }: An
         await bulkAnchorProducts(selectedProductIds, user.id);
         toast({ title: 'Success!', description: 'Bulk anchoring process initiated.' });
         setSelectedProductIds([]);
-        onDataChange();
+        // The listener will automatically update the UI.
       } catch (error: any) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       }

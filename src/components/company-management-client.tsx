@@ -6,6 +6,7 @@ import React, {
   useTransition,
   useCallback,
   useMemo,
+  useEffect,
 } from 'react';
 import {
   MoreHorizontal,
@@ -16,6 +17,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Cog,
+  Loader2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
@@ -31,6 +33,9 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Card,
@@ -76,18 +81,30 @@ import CompanyForm from './company-form';
 
 interface CompanyManagementClientProps {
   adminUser: User;
-  initialCompanies: Company[];
 }
 
 export default function CompanyManagementClient({
   adminUser,
-  initialCompanies,
 }: CompanyManagementClientProps) {
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = collection(db, Collections.COMPANIES);
+    const unsubscribe = onSnapshot(q, snapshot => {
+      setCompanies(
+        snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)),
+      );
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
@@ -117,7 +134,7 @@ export default function CompanyManagementClient({
             title: 'Company Deleted',
             description: `Company "${company.name}" has been successfully deleted.`,
           });
-          router.refresh();
+          // No need to manually refresh, listener will update state
         } catch (error) {
           console.error('Error deleting company:', error);
           toast({
@@ -128,16 +145,13 @@ export default function CompanyManagementClient({
         }
       });
     },
-    [adminUser.id, toast, router],
+    [adminUser.id, toast],
   );
 
-  const handleSave = useCallback(
-    (savedCompany: Company) => {
-      setIsFormOpen(false);
-      router.refresh();
-    },
-    [router],
-  );
+  const handleSave = useCallback((savedCompany: Company) => {
+    setIsFormOpen(false);
+    // No need to manually refresh, listener will update state
+  }, []);
 
   const columns: ColumnDef<Company>[] = useMemo(
     () => [
@@ -249,7 +263,7 @@ export default function CompanyManagementClient({
   );
 
   const table = useReactTable({
-    data: initialCompanies,
+    data: companies,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -320,65 +334,71 @@ export default function CompanyManagementClient({
           </div>
 
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map(header => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map(row => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
+            {isLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map(header => {
+                        return (
+                          <TableHead key={header.id}>
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-48 text-center"
-                    >
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <Building2 className="h-12 w-12 text-muted-foreground" />
-                        <h3 className="text-xl font-semibold">
-                          No Companies Found
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Create the first company to get started.
-                        </p>
-                        <Button onClick={handleCreateNew}>
-                          <Plus className="mr-2 h-4 w-4" /> Create Company
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map(row => (
+                      <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                      >
+                        {row.getVisibleCells().map(cell => (
+                          <TableCell key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-48 text-center"
+                      >
+                        <div className="flex flex-col items-center justify-center gap-4">
+                          <Building2 className="h-12 w-12 text-muted-foreground" />
+                          <h3 className="text-xl font-semibold">
+                            No Companies Found
+                          </h3>
+                          <p className="text-muted-foreground">
+                            Create the first company to get started.
+                          </p>
+                          <Button onClick={handleCreateNew}>
+                            <Plus className="mr-2 h-4 w-4" /> Create Company
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            )}
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
