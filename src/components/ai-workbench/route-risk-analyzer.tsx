@@ -116,16 +116,22 @@ export default function RouteRiskAnalyzer({ user }: { user: User }) {
           </div>
           <div>
             <Label htmlFor="origin-select">Origin Country</Label>
-            <Select onValueChange={setOrigin} value={origin}>
+            <Select onValueChange={(value) => setOrigin(value === 'clear-selection' ? '' : value)} value={origin}>
               <SelectTrigger id="origin-select"><SelectValue placeholder="Select Origin" /></SelectTrigger>
-              <SelectContent><SelectItem value="">Clear</SelectItem>{countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                  <SelectItem value="clear-selection">Clear Selection</SelectItem>
+                  {countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
           <div>
             <Label htmlFor="destination-select">Destination Country</Label>
-            <Select onValueChange={setDestination} value={destination}>
+            <Select onValueChange={(value) => setDestination(value === 'clear-selection' ? '' : value)} value={destination}>
               <SelectTrigger id="destination-select"><SelectValue placeholder="Select Destination" /></SelectTrigger>
-              <SelectContent><SelectItem value="">Clear</SelectItem>{countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              <SelectContent>
+                  <SelectItem value="clear-selection">Clear Selection</SelectItem>
+                  {countryOptions.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
             </Select>
           </div>
         </div>
