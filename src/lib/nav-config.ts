@@ -19,6 +19,7 @@ import {
   Scale,
   Building2,
   Fingerprint,
+  RefreshCw,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -89,6 +90,7 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
+        { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
       ],
     },
     {
@@ -304,3 +306,5 @@ export const navConfig: NavConfig = {
     },
   ],
 };
+
+    

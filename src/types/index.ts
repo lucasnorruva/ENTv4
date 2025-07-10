@@ -471,3 +471,5 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
+
+    

@@ -9,6 +9,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Operational',
     version: 'v3.1',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'token_access',
@@ -44,6 +46,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Operational',
     version: 'v1.1',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'confirm_schema',
@@ -79,6 +83,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Operational',
     version: 'v2.0',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'fetch_structure',
@@ -108,6 +114,8 @@ export const regulationSyncData: RegulationSource[] = [
     type: 'API',
     status: 'Operational',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'pull_classes',
@@ -133,6 +141,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Degraded Performance',
     version: 'v4.5',
     lastSync: new Date(new Date().setHours(new Date().getHours() - 3)).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'connect_schema',
@@ -158,6 +168,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Operational',
     version: 'v1.8',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'sync_schema',
@@ -182,6 +194,8 @@ export const regulationSyncData: RegulationSource[] = [
     type: 'API',
     status: 'Operational',
     lastSync: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'fetch_texts',
@@ -206,6 +220,8 @@ export const regulationSyncData: RegulationSource[] = [
     type: 'Manual',
     status: 'Operational',
     lastSync: new Date(new Date().setDate(new Date().getDate() - 7)).toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'align_fields',
@@ -231,6 +247,8 @@ export const regulationSyncData: RegulationSource[] = [
     status: 'Not Implemented',
     version: 'v2.8',
     lastSync: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     checklist: [
       {
         id: 'sync_entries',
@@ -250,3 +268,5 @@ export const regulationSyncData: RegulationSource[] = [
     ],
   },
 ];
+
+    
