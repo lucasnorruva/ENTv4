@@ -1,7 +1,6 @@
-
 // src/components/product-form-tabs/food-tab.tsx
 'use client';
- 
+
 import type { UseFormReturn } from 'react-hook-form';
 import { Plus, Trash2, Bot, Loader2, Wheat } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,8 +16,9 @@ import { Input } from '@/components/ui/input';
 import type { ProductFormValues } from '@/lib/schemas';
 import type { User } from '@/types';
 import { useToast } from '@/hooks/use-toast';
-import { useTransition } from 'react';
+import { useTransition, useCallback } from 'react';
 import { analyzeFoodSafetyData } from '@/lib/actions/product-ai-actions';
+import { useFieldArray } from 'react-hook-form';
 
 interface FoodTabProps {
   form: UseFormReturn<ProductFormValues>;
@@ -36,7 +36,7 @@ export default function FoodTab({ form, user, productId, isAiEnabled }: FoodTabP
     name: 'foodSafety.ingredients',
   });
 
-  const handleAnalyze = () => {
+  const handleAnalyze = useCallback(() => {
     if (!productId) {
       toast({ title: 'Please save the product first.', variant: 'destructive' });
       return;
@@ -56,7 +56,7 @@ export default function FoodTab({ form, user, productId, isAiEnabled }: FoodTabP
         toast({ title: 'Analysis Failed', description: error.message, variant: 'destructive' });
       }
     });
-  };
+  }, [productId, toast, form, startAnalysisTransition, user.id]);
 
   return (
     <div className="p-6 space-y-6">
