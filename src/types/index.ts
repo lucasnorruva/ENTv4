@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -282,7 +281,7 @@ export interface Product extends BaseEntity {
     tokenId: string;
     contractAddress: string;
     ownerAddress: string;
-  }
+  };
   chainOfCustody?: {
     date: string;
     event: string;
@@ -460,5 +459,3 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
-
-    
