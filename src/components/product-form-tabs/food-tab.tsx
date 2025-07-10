@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/food-tab.tsx
 'use client';
 
