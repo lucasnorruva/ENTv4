@@ -49,6 +49,7 @@ import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
 
 
 export default function ProductDetailView({
@@ -238,7 +239,19 @@ export default function ProductDetailView({
             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
-            <ProductAIChatbot productId={product.id} />
+            <Card>
+                <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="ai-chatbot" className="border-none">
+                    <AccordionTrigger className="px-6 hover:no-underline">
+                    <h3 className="text-lg font-semibold">Ask AI</h3>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                    <ProductAIChatbot productId={product.id} />
+                    </AccordionContent>
+                </AccordionItem>
+                </Accordion>
+            </Card>
+
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
