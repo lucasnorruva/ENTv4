@@ -5,6 +5,7 @@ import { Leaf, Quote } from 'lucide-react';
 import type { Product } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import RoiCalculatorWidget from '../roi-calculator-widget';
 
 function InfoRow({
   icon: Icon,
@@ -37,6 +38,7 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
     const esg = product.sustainability;
     
     return (
+      <div className="space-y-6">
         <Card>
             <CardHeader>
             <CardTitle>Sustainability & ESG Metrics</CardTitle>
@@ -92,5 +94,7 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
             )}
             </CardContent>
         </Card>
+        <RoiCalculatorWidget product={product} />
+      </div>
     )
 }
