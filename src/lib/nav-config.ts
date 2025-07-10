@@ -91,7 +91,7 @@ export const navConfig: NavConfig = {
           icon: Wrench,
           href: 'integrations',
         },
-        { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
+        { title: 'Regulation Hub', icon: RefreshCw, href: 'reg-sync' },
         { title: 'AI Workbench', icon: BrainCircuit, href: 'ai-workbench' },
       ],
     },

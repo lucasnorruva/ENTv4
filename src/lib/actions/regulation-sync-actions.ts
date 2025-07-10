@@ -1,11 +1,14 @@
 // src/lib/actions/regulation-sync-actions.ts
 'use server';
 
-import type { RegulationSource } from '@/types';
+import type { CompliancePath, ComplianceGap, RegulationSource, User, Product } from '@/types';
 import { regulationSyncData } from '../regulation-sync-data';
 import { getUserById } from '../auth';
 import { checkPermission } from '../permissions';
 import { logAuditEvent } from './audit-actions';
+import { getProductById } from './product-actions';
+import { getCompliancePathById } from './compliance-actions';
+import { verifyProductAgainstPath } from '@/services/compliance';
 
 // In a real app, this would trigger external API calls.
 // Here, we just mock the data fetching and status updates.
@@ -66,4 +69,49 @@ export async function runSync(
   return Promise.resolve(source);
 }
 
-    
+export async function runTemporalComplianceCheck(
+  productId: string,
+  scenario: 'past' | 'present' | 'future',
+  userId: string,
+): Promise<{ isCompliant: boolean; gaps: ComplianceGap[], scenario: string }> {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'admin:manage_settings');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found');
+  if (!product.compliancePathId) throw new Error('Product has no compliance path assigned.');
+
+  const compliancePath = await getCompliancePathById(product.compliancePathId);
+  if (!compliancePath) throw new Error('Compliance path not found.');
+
+  // Create a modified copy of the path for the simulation
+  let simulatedPath = JSON.parse(JSON.stringify(compliancePath)) as CompliancePath;
+
+  switch (scenario) {
+    case 'past':
+      // Looser rules for the past
+      if (simulatedPath.rules.minSustainabilityScore) {
+        simulatedPath.rules.minSustainabilityScore -= 10;
+      }
+      simulatedPath.regulations = simulatedPath.regulations.filter(r => r === 'RoHS' || r === 'REACH'); // Only older regulations
+      break;
+    case 'future':
+      // Stricter rules for the future
+      if (simulatedPath.rules.minSustainabilityScore) {
+        simulatedPath.rules.minSustainabilityScore += 15;
+      }
+      simulatedPath.rules.bannedKeywords = [...(simulatedPath.rules.bannedKeywords || []), 'PVC'];
+      break;
+    case 'present':
+    default:
+      // Use current rules
+      break;
+  }
+  
+  const { isCompliant, gaps } = await verifyProductAgainstPath(product, simulatedPath);
+
+  await logAuditEvent('regulation.time_machine.run', productId, { scenario, isCompliant, gapCount: gaps.length }, userId);
+  
+  return { isCompliant, gaps, scenario };
+}

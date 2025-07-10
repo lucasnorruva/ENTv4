@@ -17,5 +17,3 @@ export default async function RegulationSyncPage() {
   // The client component will handle all data fetching and state logic
   return <RegulationSyncClient user={user} />;
 }
-
-    
