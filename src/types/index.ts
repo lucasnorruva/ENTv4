@@ -136,8 +136,8 @@ export interface Battery {
 }
 
 export interface TextileData {
-  fiberComposition: { name: string; percentage: number }[];
-  dyeProcess: string;
+  fiberComposition?: { name: string; percentage: number }[];
+  dyeProcess?: string;
   weaveType?: string;
 }
 
