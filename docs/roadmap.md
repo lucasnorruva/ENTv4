@@ -174,7 +174,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
     -   **At-Rest**:
         -   **Database-Level**: All data stored in Firestore is automatically encrypted at rest by Google Cloud.
         -   **Application-Level**: Highly sensitive data (e.g., API keys, secrets) is encrypted before being written to the database using an envelope encryption pattern.
-- [ ] **Key Management System**
+- [x] **Key Management System**
+    -   Integrate with a dedicated Key Management System (e.g., Google Cloud KMS) to manage the keys used for application-level encryption. This ensures that the keys are stored securely, with controlled access and rotation policies, separate from the application code and data.
 
 #### 1.4.3 Compliance Certifications
 - [ ] **SOC 2 Type II Roadmap**
@@ -480,3 +481,4 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - **Confirmation Time**: <30 seconds
 - **Cross-chain Operations**: 5+ chains supported
 - **Smart Contract Efficiency**: 90% gas optimization
+
