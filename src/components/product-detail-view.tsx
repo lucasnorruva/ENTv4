@@ -42,6 +42,8 @@ import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
 import CircularityTab from './product-detail-tabs/circularity-tab';
 import RoiCalculatorWidget from './roi-calculator-widget';
+import DataCompositionTab from './product-detail-tabs/data-composition-tab';
+import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
 
 
 export default function ProductDetailView({
@@ -89,11 +91,6 @@ export default function ProductDetailView({
     setProduct(updatedProduct);
     router.refresh();
   }, [router]);
-
-  const showElectronicsTab = product.category === 'Electronics';
-  const showTextileTab = product.category === 'Fashion';
-  const showConstructionTab = product.category === 'Construction';
-  const showFoodTab = product.category === 'Food & Beverage';
 
   return (
     <>
@@ -161,17 +158,12 @@ export default function ProductDetailView({
               <div className="w-full overflow-x-auto">
                 <TabsList className="w-max">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
-                  {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
-                  {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
-                  <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
-                  <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
-                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
-                  <TabsTrigger value="circularity">Circularity</TabsTrigger>
-                  <TabsTrigger value="crypto">Crypto</TabsTrigger>
-                  <TabsTrigger value="history">History</TabsTrigger>
+                  <TabsTrigger value="data">Data & Composition</TabsTrigger>
+                  <TabsTrigger value="lifecycle">Lifecycle & Circularity</TabsTrigger>
+                  <TabsTrigger value="sustainability">Sustainability & Compliance</TabsTrigger>
+                  <TabsTrigger value="credentials">Digital Credentials</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
                 </TabsList>
               </div>
               <TabsContent value="overview" className="mt-4">
@@ -180,43 +172,17 @@ export default function ProductDetailView({
                   customFields={company?.settings?.customFields}
                 />
               </TabsContent>
-               {showElectronicsTab && (
-                <TabsContent value="electronics" className="mt-4">
-                  <ElectronicsTab product={product} />
-                </TabsContent>
-              )}
-              {showTextileTab && (
-                <TabsContent value="textile" className="mt-4">
-                  <TextileTab product={product} />
-                </TabsContent>
-              )}
-               {showFoodTab && (
-                <TabsContent value="food" className="mt-4">
-                  <FoodSafetyTab product={product} />
-                </TabsContent>
-              )}
-              {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                  <ConstructionTab product={product} />
-                </TabsContent>
-              )}
-              <TabsContent value="sustainability" className="mt-4">
-                <SustainabilityTab product={product} />
+               <TabsContent value="data" className="mt-4">
+                  <DataCompositionTab product={product} />
               </TabsContent>
               <TabsContent value="lifecycle" className="mt-4">
                 <LifecycleTab product={product} />
               </TabsContent>
-              <TabsContent value="compliance" className="mt-4">
-                <ComplianceTab
-                  product={product}
-                  compliancePath={compliancePath}
-                />
+               <TabsContent value="sustainability" className="mt-4">
+                <SustainabilityTab product={product} compliancePath={compliancePath} />
               </TabsContent>
-               <TabsContent value="circularity" className="mt-4">
-                <CircularityTab product={product} />
-              </TabsContent>
-              <TabsContent value="crypto" className="mt-4">
-                <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
+              <TabsContent value="credentials" className="mt-4">
+                <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
               </TabsContent>
               <TabsContent value="history" className="mt-4">
                 <HistoryTab product={product} />
