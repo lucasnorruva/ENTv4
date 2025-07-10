@@ -1,3 +1,4 @@
+
 // src/lib/actions/index.ts
 // This barrel file re-exports actions for easier importing.
 // It uses explicit exports to avoid issues with the Next.js server action bundler.
@@ -36,7 +37,6 @@ export {
   generateAndSaveProductImage,
   generateConformityDeclarationText,
   generateAndSaveConformityDeclaration,
-  generateAndSaveSustainabilityDeclaration,
   createProductFromImage,
   analyzeBillOfMaterials,
   suggestImprovements,
@@ -50,8 +50,6 @@ export {
   analyzeFoodSafetyData,
   analyzeConstructionData,
   analyzeProductTransitRoute,
-  analyzeSimulatedTransitRoute,
-  runHsCodeClassification,
 } from './product-ai-actions';
 
 export {
@@ -137,4 +135,3 @@ export { generateComponentTest } from './dev-tool-actions';
 export { runDailyComplianceCheck } from '@/triggers/scheduled-verifications';
 export { runDailyReferenceDataSync } from '@/triggers/scheduled-syncs';
 export { onProductChange } from '@/triggers/on-product-change';
-export { getRegulationSources, runHealthCheck, runSync } from './regulation-sync-actions';

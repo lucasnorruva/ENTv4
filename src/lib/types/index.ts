@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -14,14 +15,14 @@ import type {
   ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
+import type { TransitInfo, CustomsAlert, CustomsStatus } from './transit';
 import type { ModelHotspot } from './3d';
 import type { Integration as IntegrationType } from './integrations';
 
 
 // Re-exporting for easy access elsewhere
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
+export type { TransitInfo, CustomsAlert, CustomsStatus, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
 export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
@@ -146,17 +147,6 @@ export interface FoodSafetyData {
   allergens?: string;
 }
 
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
-}
-
-export interface MassBalance {
-  creditsAllocated?: number;
-  certificationBody?: string;
-  certificateNumber?: string;
-}
-
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -183,30 +173,6 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
-  };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
-  cbam?: {
-    emissionsReported?: boolean;
-    declarationId?: string;
   };
 }
 
@@ -284,7 +250,6 @@ export interface Product extends BaseEntity {
   model3dFileHash?: string;
   modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
-  sustainabilityDeclaration?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
@@ -315,8 +280,6 @@ export interface Product extends BaseEntity {
   customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
-  greenClaims?: GreenClaim[];
-  massBalance?: MassBalance;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
@@ -459,16 +422,3 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
-
-export interface RegulationSource extends BaseEntity {
-    name: string;
-    type: 'API' | 'Feed' | 'Manual';
-    status: 'Operational' | 'Degraded Performance' | 'Offline' | 'Not Implemented';
-    version?: string;
-    lastSync: string; // ISO 8601 string
-    checklist: {
-      id: string;
-      description: string;
-      status: boolean;
-    }[];
-  }
