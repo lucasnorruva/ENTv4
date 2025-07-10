@@ -345,33 +345,3 @@ export const customsInspectionFormSchema = z.object({
   notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
-
-export const bulkProductImportSchema = z.object({
-  productName: z.string().min(3),
-  productDescription: z.string().min(10),
-  gtin: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
-  productImage: z.string().url().optional(),
-  manualUrl: z.string().url().optional(),
-  materials: z
-    .string()
-    .optional()
-    .transform((val, ctx) => {
-      if (!val) return [];
-      try {
-        const parsed = JSON.parse(val);
-        if (!Array.isArray(parsed)) {
-          throw new Error('Materials must be a JSON array.');
-        }
-        // You could add more specific Zod validation for the array contents here
-        return parsed;
-      } catch (e) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Invalid JSON format for materials.',
-        });
-        return z.NEVER;
-      }
-    }),
-});
-export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;

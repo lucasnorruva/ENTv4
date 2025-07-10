@@ -12,8 +12,9 @@ import {
   type ProfileFormValues,
   type PasswordFormValues,
   type NotificationsFormValues,
+  deleteAccountSchema,
 } from '@/lib/schemas';
-import { getUserById } from '@/lib/auth';
+import { getUserById, getCompanies } from '@/lib/auth';
 import { checkPermission } from '@/lib/permissions';
 import { users as mockUsers } from '@/lib/user-data';
 import { logAuditEvent } from './audit-actions';
