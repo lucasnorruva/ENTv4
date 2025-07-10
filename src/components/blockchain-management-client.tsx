@@ -6,61 +6,51 @@ import type { User, Product, Company } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, RefreshCw } from 'lucide-react';
-import { onSnapshot, collection } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import AnchoringTab from './trust-hub/anchoring-tab';
 import IssuersTab from './trust-hub/issuers-tab';
 import ZkpTab from './trust-hub/zkp-tab';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import { getCompanies } from '@/lib/auth';
+import { getProducts } from '@/lib/actions';
 
 interface BlockchainManagementClientProps {
   user: User;
+  initialProducts: Product[];
+  initialCompanies: Company[];
 }
 
 export default function BlockchainManagementClient({
   user,
+  initialProducts,
+  initialCompanies,
 }: BlockchainManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [companies, setCompanies] = useState<Company[]>(initialCompanies);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
-    // Data is now fetched via listeners, so this just acts as a manual trigger indicator.
-    await new Promise(res => setTimeout(res, 500)); // Simulate refetch delay
-    setIsLoading(false);
-    toast({ title: 'Data refreshed' });
-  }, [toast]);
-
-  useEffect(() => {
-    const qProducts = collection(db, Collections.PRODUCTS);
-    const unsubProducts = onSnapshot(qProducts, snapshot => {
-      setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+    try {
+      const [refreshedProducts, refreshedCompanies] = await Promise.all([
+        getProducts(user.id),
+        getCompanies(),
+      ]);
+      setProducts(refreshedProducts);
+      setCompanies(refreshedCompanies);
+      toast({ title: 'Data refreshed' });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to refresh data.',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    });
-
-    const qCompanies = collection(db, Collections.COMPANIES);
-    const unsubCompanies = onSnapshot(qCompanies, snapshot => {
-      setCompanies(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Company)));
-    });
-
-    return () => {
-      unsubProducts();
-      unsubCompanies();
-    };
-  }, []);
-
-  if (isLoading && products.length === 0) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+    }
+  }, [user.id, toast]);
 
   return (
     <div className="space-y-6">
