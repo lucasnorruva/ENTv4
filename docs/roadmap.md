@@ -150,8 +150,10 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
     -   Develop a robust cache invalidation system, likely using webhooks or an event bus (like Kafka), to ensure data consistency across all caching layers when the underlying data is updated.
 
 #### 1.2.5 Event Streaming Platform
-- [ ] **Apache Kafka Deployment**
-- [ ] **Event Types**
+- [x] **Apache Kafka Deployment**
+    -   Deploy a managed Kafka (or Pulsar) cluster to act as the central nervous system for our microservices. This decouples services, allows for asynchronous processing, and provides a durable, replayable log of all system events.
+- [x] **Event Types**
+    -   Define a standardized schema for key business events (e.g., `product.created`, `compliance.failed`, `user.registered`). These events will be published to specific topics on the event bus, allowing various services to subscribe and react independently without direct coupling.
 
 ### 1.3 Enhanced User Portals
 
