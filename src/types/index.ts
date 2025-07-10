@@ -151,6 +151,12 @@ export interface GreenClaim {
   substantiation: string;
 }
 
+export interface MassBalance {
+  creditsAllocated?: number;
+  certificationBody?: string;
+  certificateNumber?: string;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -197,6 +203,10 @@ export interface Compliance {
   espr?: {
     compliant?: boolean;
     delegatedActUrl?: string;
+  };
+  cbam?: {
+    emissionsReported?: boolean;
+    declarationId?: string;
   };
 }
 
@@ -274,6 +284,7 @@ export interface Product extends BaseEntity {
   model3dFileHash?: string;
   modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
+  sustainabilityDeclaration?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
@@ -305,6 +316,7 @@ export interface Product extends BaseEntity {
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
+  massBalance?: MassBalance;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;

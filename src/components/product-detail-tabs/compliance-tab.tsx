@@ -22,6 +22,7 @@ import {
   Briefcase,
   Battery,
   TestTube2,
+  Sprout,
 } from 'lucide-react';
 import type { Product, CompliancePath, Certification, GreenClaim } from '@/types';
 import {
@@ -154,6 +155,17 @@ export default function ComplianceTab({
           <InfoRow icon={Stamp} label="CE Marked">
             <div className="text-sm text-muted-foreground">
               {compliance?.ce?.marked ? 'Yes' : 'No'}
+            </div>
+          </InfoRow>
+          <InfoRow icon={Sprout} label="CBAM (Carbon Border Adjustment)">
+            <div className="text-sm text-muted-foreground">
+              Emissions Reported:{' '}
+              {compliance?.cbam?.emissionsReported ? 'Yes' : 'No'}
+              {compliance?.cbam?.declarationId && (
+                <span className="ml-2 block mt-1 font-mono text-xs">
+                  Declaration ID: {compliance.cbam.declarationId}
+                </span>
+              )}
             </div>
           </InfoRow>
           <InfoRow icon={Fingerprint} label="REACH SVHC & SCIP">

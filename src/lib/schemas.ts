@@ -51,6 +51,12 @@ const greenClaimSchema = z.object({
   substantiation: z.string().min(10, 'Substantiation must be at least 10 characters.'),
 });
 
+const massBalanceSchema = z.object({
+  creditsAllocated: z.coerce.number().optional(),
+  certificationBody: z.string().optional(),
+  certificateNumber: z.string().optional(),
+});
+
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -118,6 +124,12 @@ const complianceSchema = z.object({
       delegatedActUrl: z.string().url().or(z.literal('')).optional(),
     })
     .optional(),
+  cbam: z
+    .object({
+      emissionsReported: z.boolean().optional(),
+      declarationId: z.string().optional(),
+    })
+    .optional(),
 });
 
 const textileSchema = z.object({
@@ -152,6 +164,7 @@ export const productFormSchema = z.object({
   model3dFileName: z.string().optional(),
   model3dFileHash: z.string().optional(),
   declarationOfConformity: z.string().optional(),
+  sustainabilityDeclaration: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),
@@ -163,6 +176,7 @@ export const productFormSchema = z.object({
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
+  massBalance: massBalanceSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
