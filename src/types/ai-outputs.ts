@@ -1,4 +1,3 @@
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -318,6 +317,21 @@ export const AnalyzeSimulatedRouteOutputSchema = z.object({
 export type AnalyzeSimulatedRouteOutput = z.infer<typeof AnalyzeSimulatedRouteOutputSchema>;
 
 
+// analyze-food-safety
+export const AnalyzeFoodSafetyInputSchema = z.object({
+  productName: z.string().describe('The name of the food product.'),
+  ingredients: z.array(z.string()).describe('The list of ingredients.'),
+  packagingMaterials: z.array(z.string()).describe('The list of packaging materials that come into contact with the food.'),
+});
+export type AnalyzeFoodSafetyInput = z.infer<typeof AnalyzeFoodSafetyInputSchema>;
+export const AnalyzeFoodSafetyOutputSchema = z.object({
+  riskLevel: z.enum(['Low', 'Medium', 'High']).describe('The overall food safety risk assessment.'),
+  potentialAllergens: z.array(z.string()).describe('A list of potential allergens identified from the ingredients.'),
+  complianceNotes: z.array(z.string()).describe('A list of notes regarding food contact material compliance (e.g., "Check for BPA in polycarbonate packaging", "Verify compliance with EU 10/2011 for plastics").'),
+});
+export type AnalyzeFoodSafetyOutput = z.infer<typeof AnalyzeFoodSafetyOutputSchema>;
+
+
 // classify-hs-code
 export const ClassifyHsCodeInputSchema = z.object({
   productName: z.string().describe('The name of the product.'),
@@ -346,18 +360,6 @@ export const GenerateConformityDeclarationOutputSchema = z.object({
 export type GenerateConformityDeclarationOutput = z.infer<typeof GenerateConformityDeclarationOutputSchema>;
 
 
-// generate-component-tests
-export const GenerateComponentTestsInputSchema = z.object({
-  componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),
-  componentCode: z.string().describe('The full source code of the React component.'),
-});
-export type GenerateComponentTestsInput = z.infer<typeof GenerateComponentTestsInputSchema>;
-export const GenerateComponentTestsOutputSchema = z.object({
-  testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
-});
-export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
-
-
 // generate-sustainability-declaration
 export const GenerateSustainabilityDeclarationInputSchema = z.object({
   product: AiProductSchema,
@@ -369,63 +371,44 @@ export const GenerateSustainabilityDeclarationOutputSchema = z.object({
 });
 export type GenerateSustainabilityDeclarationOutput = z.infer<typeof GenerateSustainabilityDeclarationOutputSchema>;
 
-// analyze-food-safety
-export const AnalyzeFoodSafetyInputSchema = z.object({
-    productName: z.string().describe('The name of the food product.'),
-    ingredients: z.array(z.string()).describe('The list of ingredients.'),
-    packagingMaterials: z
-      .array(z.string())
-      .describe(
-        'The list of packaging materials that come into contact with the food.',
-      ),
-  });
-  export type AnalyzeFoodSafetyInput = z.infer<
-    typeof AnalyzeFoodSafetyInputSchema
-  >;
-  export const AnalyzeFoodSafetyOutputSchema = z.object({
-    riskLevel: z
-      .enum(['Low', 'Medium', 'High'])
-      .describe('The overall food safety risk assessment.'),
-    potentialAllergens: z
-      .array(z.string())
-      .describe('A list of potential allergens identified from the ingredients.'),
-    complianceNotes: z
-      .array(z.string())
-      .describe(
-        'A list of notes regarding food contact material compliance (e.g., "Check for BPA in polycarbonate packaging", "Verify compliance with EU 10/2011 for plastics").',
-      ),
-  });
-  export type AnalyzeFoodSafetyOutput = z.infer<
-    typeof AnalyzeFoodSafetyOutputSchema
-  >;
-
+// generate-component-tests
+export const GenerateComponentTestsInputSchema = z.object({
+  componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),
+  componentCode: z.string().describe('The full source code of the React component.'),
+});
+export type GenerateComponentTestsInput = z.infer<typeof GenerateComponentTestsInputSchema>;
+export const GenerateComponentTestsOutputSchema = z.object({
+  testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
+});
+export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
 
 // analyze-news-reports
+const NewsArticleSchema = z.object({
+  headline: z.string().describe('The headline of the news article.'),
+  content: z.string().describe('The full content of the news article.'),
+});
 export const AnalyzeNewsInputSchema = z.object({
-  articles: z.array(z.object({
-    headline: z.string(),
-    content: z.string(),
-  })).describe('A list of news articles to analyze.'),
+  articles: z.array(NewsArticleSchema).describe('A list of news articles to analyze.'),
 });
 export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
 export const AnalyzeNewsOutputSchema = z.object({
-  keyTakeaways: z.array(z.string()).describe('A list of key takeaways or signals related to potential regulatory changes.'),
-  sentiment: z.enum(['Positive', 'Negative', 'Neutral']).describe('The overall sentiment of the news regarding regulatory pressure.'),
+  keyTakeaways: z.array(z.string()).describe('A bulleted list of the most important takeaways and signals from the news articles.'),
+  sentiment: z.enum(['Positive', 'Neutral', 'Negative']).describe('The overall sentiment towards increased regulatory pressure.'),
 });
 export type AnalyzeNewsOutput = z.infer<typeof AnalyzeNewsOutputSchema>;
 
 
 // predict-regulation-change
 export const PredictRegulationChangeInputSchema = z.object({
-  signals: z.array(z.string()).describe('A list of key takeaways and signals from various sources like news, policy papers, etc.'),
-  targetIndustry: z.string().describe('The industry to focus the prediction on (e.g., Electronics, Fashion).'),
+  signals: z.array(z.string()).describe('A list of key signals and takeaways from various sources (news, policy papers, etc.).'),
+  targetIndustry: z.string().describe('The industry to focus the prediction on.'),
 });
 export type PredictRegulationChangeInput = z.infer<typeof PredictRegulationChangeInputSchema>;
 export const PredictRegulationChangeOutputSchema = z.object({
-  prediction: z.string().describe('A specific, actionable prediction about a potential regulatory change.'),
-  confidence: z.number().min(0).max(1).describe('The confidence score (0.0 to 1.0) for this prediction.'),
-  timeframe: z.string().describe('The estimated timeframe for this change (e.g., "6-12 months", "1-2 years").'),
-  impactedRegulations: z.array(z.string()).describe('A list of existing regulations that might be affected.'),
-  suggestedAction: z.string().describe('A suggested proactive action for a company in the target industry.'),
+  prediction: z.string().describe('A single, specific prediction about a potential new regulation or a change to an existing one.'),
+  confidence: z.number().min(0).max(1).describe('The confidence level of the prediction (0.0 to 1.0).'),
+  timeframe: z.enum(['6-12 months', '12-24 months', '24+ months']).describe('The likely timeframe for the predicted change.'),
+  impactedRegulations: z.array(z.string()).describe('A list of existing regulations that might be amended or replaced.'),
+  proactiveSteps: z.string().describe('A single, high-impact proactive step a company should consider taking in response to this prediction.'),
 });
 export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;

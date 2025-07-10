@@ -1,7 +1,7 @@
 // src/components/roi-calculator-widget.tsx
 'use client';
 
-import React, 'useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Product } from '@/types';
 import {
   Card,
