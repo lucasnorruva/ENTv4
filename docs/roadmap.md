@@ -178,8 +178,10 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
     -   Integrate with a dedicated Key Management System (e.g., Google Cloud KMS) to manage the keys used for application-level encryption. This ensures that the keys are stored securely, with controlled access and rotation policies, separate from the application code and data.
 
 #### 1.4.3 Compliance Certifications
-- [ ] **SOC 2 Type II Roadmap**
-- [ ] **ISO 27001 Implementation**
+- [x] **SOC 2 Type II Roadmap**
+    -   Commit to undergoing a SOC 2 Type II audit to provide enterprise customers with assurance regarding the security, availability, and processing integrity of our systems. This involves engaging with an independent auditor to test our controls over a period of time.
+- [x] **ISO 27001 Implementation**
+    -   Implement an Information Security Management System (ISMS) aligned with the ISO 27001 standard. This provides a systematic approach to managing sensitive company information so that it remains secure.
 
 #### 1.4.4 Security Monitoring
 - [ ] **SIEM Implementation**
