@@ -96,10 +96,10 @@ export default function ProductDetailView({
     router.refresh();
   }, [router]);
 
-  const showElectronicsTab = product.category === 'Electronics';
-  const showTextileTab = product.category === 'Fashion';
-  const showConstructionTab = product.category === 'Construction';
-  const showFoodTab = product.category === 'Food & Beverage';
+  const showElectronicsTab = product.category === 'Electronics' && product.electronicsAnalysis;
+  const showTextileTab = product.category === 'Fashion' && product.textileAnalysis;
+  const showConstructionTab = product.category === 'Construction' && product.constructionAnalysis;
+  const showFoodTab = product.category === 'Food & Beverage' && product.foodSafetyAnalysis;
 
   return (
     <>
@@ -222,7 +222,7 @@ export default function ProductDetailView({
                 <LifecycleTab product={product} />
               </TabsContent>
                <TabsContent value="sustainability" className="mt-4">
-                <SustainabilityTab product={product} compliancePath={compliancePath} />
+                <SustainabilityTab product={product} />
               </TabsContent>
               <TabsContent value="credentials" className="mt-4">
                 <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
