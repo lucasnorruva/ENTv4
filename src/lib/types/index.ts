@@ -136,8 +136,8 @@ export interface Battery {
 }
 
 export interface TextileData {
-  fiberComposition: { name: string; percentage: number }[];
-  dyeProcess: string;
+  fiberComposition?: { name: string; percentage: number }[];
+  dyeProcess?: string;
   weaveType?: string;
 }
 
@@ -149,6 +149,12 @@ export interface FoodSafetyData {
 export interface GreenClaim {
   claim: string;
   substantiation: string;
+}
+
+export interface MassBalance {
+  creditsAllocated?: number;
+  certificationBody?: string;
+  certificateNumber?: string;
 }
 
 export interface Compliance {
@@ -274,6 +280,7 @@ export interface Product extends BaseEntity {
   model3dFileHash?: string;
   modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
+  sustainabilityDeclaration?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
@@ -281,7 +288,7 @@ export interface Product extends BaseEntity {
     tokenId: string;
     contractAddress: string;
     ownerAddress: string;
-  }
+  };
   chainOfCustody?: {
     date: string;
     event: string;
@@ -305,6 +312,7 @@ export interface Product extends BaseEntity {
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
+  massBalance?: MassBalance;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
