@@ -1,4 +1,3 @@
-
 // src/lib/actions/product-ai-actions.ts
 'use server';
 
@@ -107,7 +106,7 @@ export async function runComplianceCheck(
   const product = await getProductById(productId, user.id);
   if (!product) throw new Error('Product not found or permission denied.');
 
-  checkPermission(user, 'product:run_compliance', product);
+  checkPermission(user, 'product:run_compliance');
 
   if (!product.compliancePathId) {
     throw new Error('This product does not have a compliance path assigned.');
