@@ -24,6 +24,7 @@ import { analyzeElectronicsCompliance as analyzeElectronicsComplianceFlow } from
 import { analyzeFoodSafety as analyzeFoodSafetyFlow } from '@/ai/flows/analyze-food-safety';
 import { analyzeProductTransitRisk as analyzeProductTransitRiskFlow } from '@/ai/flows/analyze-product-transit-risk';
 import { analyzeSimulatedRoute as analyzeSimulatedRouteFlow } from '@/ai/flows/analyze-simulated-route';
+import { classifyHsCode as classifyHsCodeFlow } from '@/ai/flows/classify-hs-code';
 
 import type {
   AiProduct,
@@ -692,4 +693,41 @@ export async function analyzeSimulatedTransitRoute(
   
   await logAuditEvent('product.simulated_transit_risk.analyzed', productId, { result }, userId);
   return result;
+}
+
+export async function runHsCodeClassification(
+  productId: string,
+  userId: string,
+): Promise<Product> {
+  const user = await getUserById(userId);
+  if (!user) throw new PermissionError('User not found.');
+
+  const product = await getProductById(productId, user.id);
+  if (!product) throw new Error('Product not found or permission denied.');
+
+  checkPermission(user, 'product:classify_hs_code');
+
+  const result = await classifyHsCodeFlow({
+    productName: product.productName,
+    productDescription: product.productDescription,
+    category: product.category,
+    materials: product.materials,
+  });
+
+  const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) {
+    throw new Error('Product not found in mock data after analysis.');
+  }
+
+  mockProducts[productIndex].hsCodeAnalysis = result;
+  mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+  await logAuditEvent(
+    'product.hs_code.classified',
+    productId,
+    { code: result.code, confidence: result.confidence },
+    userId,
+  );
+
+  return mockProducts[productIndex];
 }
