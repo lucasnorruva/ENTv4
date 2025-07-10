@@ -1,3 +1,4 @@
+
 // src/lib/nav-config.ts
 import {
   BookCopy,
@@ -19,6 +20,7 @@ import {
   Scale,
   Building2,
   Fingerprint,
+  RefreshCw,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
