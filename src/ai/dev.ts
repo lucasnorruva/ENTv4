@@ -29,5 +29,6 @@ import "@/ai/flows/analyze-simulated-route.ts";
 import "@/ai/flows/analyze-news-reports.ts";
 import "@/ai/flows/predict-regulation-change.ts";
 import "@/ai/flows/analyze-electronics-compliance.ts";
+import "@/ai/flows/generate-component-tests.ts";
 
 import "@/triggers/scheduled-syncs.ts";
