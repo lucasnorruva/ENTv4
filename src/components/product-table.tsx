@@ -69,6 +69,7 @@ import { Input } from "./ui/input";
 interface ProductTableProps {
   products: Product[];
   user: User;
+  isProcessingAction: boolean;
   onDelete: (id: string) => void;
   onSubmitForReview: (id: string) => void;
   onRecalculateScore: (id: string, productName: string) => void;
@@ -80,6 +81,7 @@ interface ProductTableProps {
 export default function ProductTable({
   products,
   user,
+  isProcessingAction,
   onDelete,
   onSubmitForReview,
   onRecalculateScore,
@@ -212,6 +214,7 @@ export default function ProductTable({
                 <Button
                   variant="ghost"
                   size="icon"
+                  disabled={isProcessingAction}
                 >
                   <span className="sr-only">Open menu</span>
                   <MoreHorizontal className="h-4 w-4" />
@@ -233,6 +236,7 @@ export default function ProductTable({
                       onClick={() =>
                         onRecalculateScore(product.id, product.productName)
                       }
+                      disabled={isProcessingAction}
                     >
                       <RefreshCw className="mr-2 h-4 w-4" />
                       Recalculate AI Score
@@ -240,6 +244,7 @@ export default function ProductTable({
                     <DropdownMenuItem
                       onClick={() => onSubmitForReview(product.id)}
                       disabled={
+                        isProcessingAction ||
                         product.verificationStatus === 'Pending' ||
                         product.verificationStatus === 'Verified'
                       }
@@ -253,7 +258,7 @@ export default function ProductTable({
                         <DropdownMenuItem
                           onSelect={e => e.preventDefault()}
                           className="text-destructive"
-                          disabled={!can(user, 'product:delete', product)}
+                          disabled={isProcessingAction || !can(user, 'product:delete', product)}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -287,7 +292,7 @@ export default function ProductTable({
       },
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onDelete, onRecalculateScore, onSubmitForReview, user, roleSlug],
+    [onDelete, onRecalculateScore, onSubmitForReview, user, roleSlug, isProcessingAction],
   );
 
   const table = useReactTable({
