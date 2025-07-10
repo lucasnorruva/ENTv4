@@ -36,6 +36,7 @@ export {
   generateAndSaveProductImage,
   generateConformityDeclarationText,
   generateAndSaveConformityDeclaration,
+  generateAndSaveSustainabilityDeclaration,
   createProductFromImage,
   analyzeBillOfMaterials,
   suggestImprovements,
@@ -49,8 +50,8 @@ export {
   analyzeFoodSafetyData,
   analyzeConstructionData,
   analyzeProductTransitRoute,
-  generateAndSaveSustainabilityDeclaration,
   analyzeSimulatedTransitRoute,
+  runHsCodeClassification,
 } from './product-ai-actions';
 
 export {

@@ -285,20 +285,6 @@ export const AnalyzeConstructionMaterialOutputSchema = z.object({
 export type AnalyzeConstructionMaterialOutput = z.infer<typeof AnalyzeConstructionMaterialOutputSchema>;
 
 
-// analyze-transit-risk
-export const AnalyzeTransitRiskInputSchema = z.object({
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z.string().describe('The destination country for the shipment.'),
-});
-export type AnalyzeTransitRiskInput = z.infer<typeof AnalyzeTransitRiskInputSchema>;
-export const AnalyzeTransitRiskOutputSchema = z.object({
-  riskLevel: z.enum(['Low', 'Medium', 'High', 'Very High']).describe('The overall assessed risk level for this transit route.'),
-  summary: z.string().describe('A concise summary (2-3 sentences) of the key risks and considerations.'),
-  keyConsiderations: z.array(z.string()).describe('A bulleted list of the most important factors to consider for this route.'),
-});
-export type AnalyzeTransitRiskOutput = z.infer<typeof AnalyzeTransitRiskOutputSchema>;
-
-
 // analyze-product-transit-risk
 export const AnalyzeProductTransitRiskInputSchema = z.object({
   product: z.custom<any>().describe('The product being shipped.'),
@@ -332,8 +318,18 @@ export type AnalyzeSimulatedRouteOutput = z.infer<typeof AnalyzeSimulatedRouteOu
 
 
 // analyze-food-safety
-// The schemas for food safety are now defined directly in the flow to avoid circular dependencies.
-// See src/ai/flows/analyze-food-safety.ts
+export const AnalyzeFoodSafetyInputSchema = z.object({
+  productName: z.string().describe('The name of the food product.'),
+  ingredients: z.array(z.string()).describe('The list of ingredients.'),
+  packagingMaterials: z.array(z.string()).describe('The list of packaging materials that come into contact with the food.'),
+});
+export type AnalyzeFoodSafetyInput = z.infer<typeof AnalyzeFoodSafetyInputSchema>;
+export const AnalyzeFoodSafetyOutputSchema = z.object({
+  riskLevel: z.enum(['Low', 'Medium', 'High']).describe('The overall food safety risk assessment.'),
+  potentialAllergens: z.array(z.string()).describe('A list of potential allergens identified from the ingredients.'),
+  complianceNotes: z.array(z.string()).describe('A list of notes regarding food contact material compliance (e.g., "Check for BPA in polycarbonate packaging", "Verify compliance with EU 10/2011 for plastics").'),
+});
+export type AnalyzeFoodSafetyOutput = z.infer<typeof AnalyzeFoodSafetyOutputSchema>;
 
 
 // classify-hs-code
