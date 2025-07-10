@@ -98,6 +98,7 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
     blockchainProof: {
       type: 'SINGLE_HASH',
+      chain: 'Polygon',
       txHash: '0x123abcde1234567890abcdef1234567890',
       explorerUrl: 'https://www.oklink.com/amoy/tx/0x123abcde1234567890abcdef1234567890',
       blockHeight: 123456,
@@ -211,7 +212,7 @@ export let products: Product[] = [
     isProcessing: false,
     isMinting: false,
     transit: {
-      stage: 'At Customs',
+      stage: 'At Customs (Rotterdam, NL)',
       eta: new Date(new Date(now).setDate(now.getDate() + 5)).toISOString(),
       transport: 'Ship',
       origin: 'Mumbai, India',

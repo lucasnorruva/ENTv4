@@ -9,10 +9,14 @@ import {
   Component,
   Loader2,
   Share2,
+  ListOrdered,
+  MapPin,
+  Calendar,
 } from 'lucide-react';
 import type { Product } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { format } from 'date-fns';
 
 interface GraphNode {
   id: string;
@@ -142,19 +146,65 @@ export default function SupplyChainTab({ product }: SupplyChainTabProps) {
   const productNode = graphData?.nodes.find(n => n.type === 'product');
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Share2 /> Supply Chain Provenance
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {productNode ? (
-          renderTree(productNode.id)
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Share2 /> Supply Chain Provenance Graph
+          </CardTitle>
+          <CardDescription>A hierarchical view of the product's supply chain, from suppliers to components.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {productNode ? (
+            renderTree(productNode.id)
+          ) : (
+            <p>No supply chain data available.</p>
+          )}
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <ListOrdered /> Chain of Custody
+            </CardTitle>
+            <CardDescription>A chronological log of the product's physical journey and ownership.</CardDescription>
+        </CardHeader>
+        <CardContent>
+        {product.chainOfCustody && product.chainOfCustody.length > 0 ? (
+          <div className="relative pl-6">
+            <div className="absolute left-[29px] top-0 h-full w-px bg-border -translate-x-1/2" />
+            {product.chainOfCustody.map((step, index) => (
+              <div
+                key={index}
+                className="relative mb-6 flex items-start pl-8"
+              >
+                <div className="absolute left-0 top-1 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-secondary-foreground -translate-x-1/2">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">{step.event}</p>
+                  <p className="text-sm text-muted-foreground">
+                    by {step.actor} at {step.location}
+                  </p>
+                  <p
+                    className="text-xs text-muted-foreground mt-1 flex items-center gap-1"
+                    suppressHydrationWarning
+                  >
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(step.date), 'PPP')}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
-          <p>No supply chain data available.</p>
+          <p className="text-center text-sm text-muted-foreground py-4">
+            No custody events have been logged for this product.
+          </p>
         )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
