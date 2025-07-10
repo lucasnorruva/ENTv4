@@ -216,7 +216,9 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 
 #### 2.1.2 Regulatory Intelligence System
 - [x] **Automated Regulation Monitoring**
+    -   Deploy an automated system that scrapes and ingests data from official regulatory sources (e.g., EUR-Lex, national standards bodies) to detect changes, new legislation, and upcoming deadlines.
 - [x] **Compliance Mapping Engine**
+    -   Develop an AI-powered knowledge graph that links regulations to specific product categories, materials, and data fields. This allows the system to dynamically update compliance paths and proactively alert users to relevant changes.
 
 #### 2.1.3 Industry-Specific AI Models
 - [x] **Electronics Compliance AI**
@@ -498,4 +500,3 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - **Confirmation Time**: <30 seconds
 - **Cross-chain Operations**: 5+ chains supported
 - **Smart Contract Efficiency**: 90% gas optimization
-
