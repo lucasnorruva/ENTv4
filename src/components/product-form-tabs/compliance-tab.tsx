@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn, UseFieldArrayReturn, FieldArrayWithId } from 'react-hook-form';
-import { Leaf, Recycle, Battery, TestTube2, Diamond, Briefcase, Megaphone, Plus, Trash2, Sprout } from 'lucide-react';
+import { Leaf, Recycle, Battery, TestTube2, Diamond, Briefcase, Megaphone, Plus, Trash2 } from 'lucide-react';
 
 import {
   Accordion,
@@ -157,52 +157,6 @@ export default function ComplianceTab({
                   </FormControl>
                   <FormDescription>
                     The reference number from the SCIP database, if applicable.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </AccordionContent>
-        </AccordionItem>
-        <AccordionItem value="cbam" className="border p-4 rounded-lg">
-          <AccordionTrigger>
-            <h3 className="flex items-center gap-2 font-semibold">
-              <Sprout className="h-4 w-4" />
-              Carbon Border Adjustment (CBAM)
-            </h3>
-          </AccordionTrigger>
-          <AccordionContent className="pt-4 space-y-4">
-            <FormField
-              control={form.control}
-              name="compliance.cbam.emissionsReported"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>CBAM Emissions Reported</FormLabel>
-                    <FormDescription>
-                      Confirm if a CBAM declaration has been filed for this product.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="compliance.cbam.declarationId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CBAM Declaration ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., CBAM-DEC-2024-..." {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    The unique identifier for the CBAM declaration.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

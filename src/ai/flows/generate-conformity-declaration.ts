@@ -65,7 +65,7 @@ const prompt = ai.definePrompt({
     - Regulation (EU) 2023/1115 (EUDR) on deforestation-free products.
     {{/if}}
     {{#if product.compliance.espr.compliant}}
-    - Regulation (EU) 2023/XXXX (ESPR) on ecodesign for sustainable products.
+    - Regulation (EU) 2024/XXXX (ESPR) on ecodesign for sustainable products.
     {{/if}}
     {{#if product.compliance.battery.compliant}}
     - Regulation (EU) 2023/1542 on batteries and waste batteries.

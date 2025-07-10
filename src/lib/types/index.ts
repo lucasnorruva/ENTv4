@@ -204,6 +204,10 @@ export interface Compliance {
     compliant?: boolean;
     delegatedActUrl?: string;
   };
+  cbam?: {
+    emissionsReported?: boolean;
+    declarationId?: string;
+  };
 }
 
 export interface ComplianceGap {
