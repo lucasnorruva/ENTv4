@@ -6,6 +6,7 @@ import React, {
   useTransition,
   useMemo,
   useCallback,
+  useEffect,
 } from 'react';
 import {
   MoreHorizontal,
@@ -16,6 +17,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   Upload,
+  Loader2,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import {
@@ -31,6 +33,10 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { onSnapshot, collection } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
+
 
 import {
   Card,
@@ -79,21 +85,31 @@ import UserImportDialog from './user-import-dialog';
 
 interface UserManagementClientProps {
   adminUser: User;
-  initialUsers: User[];
   initialCompanies: Company[];
 }
 
 export default function UserManagementClient({
   adminUser,
-  initialUsers,
   initialCompanies,
 }: UserManagementClientProps) {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const q = collection(db, Collections.USERS);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User)));
+        setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: 'createdAt', desc: true },
@@ -116,8 +132,8 @@ export default function UserManagementClient({
       description: 'New users will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    router.refresh();
-  }, [toast, router]);
+    // Real-time listener will handle the update.
+  }, [toast]);
 
   const handleEdit = useCallback((user: User) => {
     setSelectedUser(user);
@@ -133,7 +149,7 @@ export default function UserManagementClient({
             title: 'User Deleted',
             description: `User "${userToDelete.fullName}" has been successfully deleted.`,
           });
-          router.refresh();
+          // Real-time listener handles UI update
         } catch (error) {
           toast({
             title: 'Error',
@@ -143,13 +159,13 @@ export default function UserManagementClient({
         }
       });
     },
-    [adminUser.id, toast, router],
+    [adminUser.id, toast],
   );
 
   const handleSave = useCallback(() => {
     setIsFormOpen(false);
-    router.refresh();
-  }, [router]);
+    // Real-time listener handles UI update
+  }, []);
 
   const companyMap = useMemo(() => {
     return new Map(initialCompanies.map(c => [c.id, c.name]));
@@ -267,7 +283,7 @@ export default function UserManagementClient({
   );
 
   const table = useReactTable({
-    data: initialUsers,
+    data: users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -352,63 +368,69 @@ export default function UserManagementClient({
             </DropdownMenu>
           </div>
           <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map(headerGroup => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map(header => {
-                      return (
-                        <TableHead key={header.id}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map(row => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
-                      {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </TableCell>
-                      ))}
+            {isLoading ? (
+                <div className="h-96 flex items-center justify-center">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+            ) : (
+                <Table>
+                <TableHeader>
+                    {table.getHeaderGroups().map(headerGroup => (
+                    <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map(header => {
+                        return (
+                            <TableHead key={header.id}>
+                            {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext(),
+                                )}
+                            </TableHead>
+                        );
+                        })}
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-48 text-center"
-                    >
-                      <div className="flex flex-col items-center justify-center gap-4">
-                        <Users className="h-12 w-12 text-muted-foreground" />
-                        <h3 className="text-xl font-semibold">
-                          No Users Found
-                        </h3>
-                        <p className="text-muted-foreground">
-                          Invite the first user to get started.
-                        </p>
-                        <Button onClick={handleCreateNew}>Invite User</Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                    ))}
+                </TableHeader>
+                <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                    table.getRowModel().rows.map(row => (
+                        <TableRow
+                        key={row.id}
+                        data-state={row.getIsSelected() && 'selected'}
+                        >
+                        {row.getVisibleCells().map(cell => (
+                            <TableCell key={cell.id}>
+                            {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                            )}
+                            </TableCell>
+                        ))}
+                        </TableRow>
+                    ))
+                    ) : (
+                    <TableRow>
+                        <TableCell
+                        colSpan={columns.length}
+                        className="h-48 text-center"
+                        >
+                        <div className="flex flex-col items-center justify-center gap-4">
+                            <Users className="h-12 w-12 text-muted-foreground" />
+                            <h3 className="text-xl font-semibold">
+                            No Users Found
+                            </h3>
+                            <p className="text-muted-foreground">
+                            Invite the first user to get started.
+                            </p>
+                            <Button onClick={handleCreateNew}>Invite User</Button>
+                        </div>
+                        </TableCell>
+                    </TableRow>
+                    )}
+                </TableBody>
+                </Table>
+            )}
           </div>
           <div className="flex items-center justify-end space-x-2 py-4">
             <Button
