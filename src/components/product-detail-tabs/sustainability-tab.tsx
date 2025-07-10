@@ -2,7 +2,7 @@
 'use client';
 
 import { Leaf, Quote, Thermometer } from 'lucide-react';
-import type { Product, CompliancePath } from '@/types';
+import type { Product } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
@@ -31,10 +31,9 @@ function InfoRow({
 
 interface SustainabilityTabProps {
   product: Product;
-  compliancePath?: CompliancePath;
 }
 
-export default function SustainabilityTab({ product, compliancePath }: SustainabilityTabProps) {
+export default function SustainabilityTab({ product }: SustainabilityTabProps) {
   const esg = product.sustainability;
   const aiLifecycle = product.sustainability?.lifecycleAnalysis;
 
@@ -122,8 +121,6 @@ export default function SustainabilityTab({ product, compliancePath }: Sustainab
           )}
         </CardContent>
       </Card>
-      
-      <ComplianceTab product={product} compliancePath={compliancePath} />
     </div>
   );
 }
