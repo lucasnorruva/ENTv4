@@ -397,3 +397,18 @@ export const AnalyzeFoodSafetyInputSchema = z.object({
   export type AnalyzeFoodSafetyOutput = z.infer<
     typeof AnalyzeFoodSafetyOutputSchema
   >;
+
+
+// analyze-news-reports
+export const AnalyzeNewsInputSchema = z.object({
+  articles: z.array(z.object({
+    headline: z.string(),
+    content: z.string(),
+  })).describe('A list of news articles to analyze.'),
+});
+export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
+export const AnalyzeNewsOutputSchema = z.object({
+  keyTakeaways: z.array(z.string()).describe('A list of key takeaways or signals related to potential regulatory changes.'),
+  sentiment: z.enum(['Positive', 'Negative', 'Neutral']).describe('The overall sentiment of the news regarding regulatory pressure.'),
+});
+export type AnalyzeNewsOutput = z.infer<typeof AnalyzeNewsOutputSchema>;

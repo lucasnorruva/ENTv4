@@ -9,22 +9,12 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-export const AnalyzeNewsInputSchema = z.object({
-  articles: z.array(z.object({
-    headline: z.string(),
-    content: z.string(),
-  })).describe('A list of news articles to analyze.'),
-});
-export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
-
-export const AnalyzeNewsOutputSchema = z.object({
-  keyTakeaways: z.array(z.string()).describe('A list of key takeaways or signals related to potential regulatory changes.'),
-  sentiment: z.enum(['Positive', 'Negative', 'Neutral']).describe('The overall sentiment of the news regarding regulatory pressure.'),
-});
-export type AnalyzeNewsOutput = z.infer<typeof AnalyzeNewsOutputSchema>;
-
+import {
+  AnalyzeNewsInputSchema,
+  AnalyzeNewsOutputSchema,
+  type AnalyzeNewsInput,
+  type AnalyzeNewsOutput,
+} from '@/types/ai-outputs';
 
 export async function analyzeNewsReports(
   input: AnalyzeNewsInput,
