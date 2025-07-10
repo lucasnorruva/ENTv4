@@ -5,19 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { developerNavItems } from '@/lib/nav-config';
-import { Beaker } from 'lucide-react';
 
 export default function DeveloperNavTabs() {
   const pathname = usePathname();
-
-  const navItemsWithTestGenerator = [
-      ...developerNavItems,
-      { href: `/dashboard/developer/test-generator`, icon: Beaker, text: 'Test Generator' },
-  ].filter((item, index, self) => 
-      index === self.findIndex((t) => (
-        t.text === item.text
-      ))
-  );
 
   return (
     <div className="border-b">
@@ -25,7 +15,7 @@ export default function DeveloperNavTabs() {
         className="-mb-px flex space-x-2 lg:space-x-4 px-4 md:px-6 overflow-x-auto"
         aria-label="Tabs"
       >
-        {navItemsWithTestGenerator.map(item => (
+        {developerNavItems.map(item => (
           <Link
             key={item.text}
             href={item.href}
