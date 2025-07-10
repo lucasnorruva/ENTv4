@@ -1,3 +1,4 @@
+
 // src/app/products/[id]/page.tsx
 import { getProductById } from "@/lib/actions/product-actions";
 import { getCompliancePathById } from "@/lib/actions/compliance-actions";
@@ -9,6 +10,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/logo";
 import ProductAIChatbot from "@/components/product-ai-chatbot";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export default async function ProductPassportPage({
   params,
@@ -52,7 +59,16 @@ export default async function ProductPassportPage({
             />
           </div>
           <div className="lg:col-span-1">
-            <ProductAIChatbot productId={product.id} />
+             <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="ai-chatbot" className="border rounded-lg bg-card shadow-sm">
+                <AccordionTrigger className="px-6 hover:no-underline">
+                  <h3 className="text-lg font-semibold">Ask AI about this Product</h3>
+                </AccordionTrigger>
+                <AccordionContent className="pt-0">
+                  <ProductAIChatbot productId={product.id} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </main>

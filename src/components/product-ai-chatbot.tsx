@@ -1,9 +1,10 @@
+
 // src/components/product-ai-chatbot.tsx
 'use client';
 
 import { useState, useTransition, useRef, useEffect } from 'react';
 import { Bot, Send, User as UserIcon, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { CardContent, CardFooter } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { ScrollArea } from './ui/scroll-area';
@@ -60,12 +61,7 @@ export default function ProductAIChatbot({ productId }: ProductAIChatbotProps) {
   };
 
   return (
-    <Card className="h-[500px] flex flex-col">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Bot /> Ask AI about this Product
-        </CardTitle>
-      </CardHeader>
+    <div className="flex flex-col h-[450px]">
       <CardContent className="flex-1 min-h-0">
         <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
           <div className="space-y-4">
@@ -109,11 +105,16 @@ export default function ProductAIChatbot({ productId }: ProductAIChatbotProps) {
                 </div>
               </div>
             )}
+             {messages.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-sm">Ask a question about the product's data, like "What is this made of?" or "Is it compliant with RoHS?".</p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </CardContent>
-      <div className="p-4 border-t">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+      <CardFooter>
+        <form onSubmit={handleSubmit} className="flex gap-2 w-full">
           <Input
             value={input}
             onChange={e => setInput(e.target.value)}
@@ -124,7 +125,7 @@ export default function ProductAIChatbot({ productId }: ProductAIChatbotProps) {
             <Send size={16} />
           </Button>
         </form>
-      </div>
-    </Card>
+      </CardFooter>
+    </div>
   );
 }
