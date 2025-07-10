@@ -1,11 +1,14 @@
 // src/components/flagged-products-client.tsx
 'use client';
 
-import React, { useTransition, useCallback } from 'react';
+import React, { useTransition, useCallback, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Loader2, ShieldCheck } from 'lucide-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import {
   Table,
@@ -22,18 +25,27 @@ import type { Product, User } from '@/types';
 
 interface FlaggedProductsClientProps {
   user: User;
-  initialProducts: Product[];
 }
 
 export default function FlaggedProductsClient({
   user,
-  initialProducts,
 }: FlaggedProductsClientProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  const router = useRouter();
 
-  const handleResolve = (product: Product) => {
+  useEffect(() => {
+    setIsLoading(true);
+    const q = query(collection(db, Collections.PRODUCTS), where('verificationStatus', '==', 'Failed'));
+    const unsubscribe = onSnapshot(q, snapshot => {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+        setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleResolve = useCallback((product: Product) => {
     startTransition(async () => {
       try {
         await resolveComplianceIssue(product.id, user.id);
@@ -41,7 +53,7 @@ export default function FlaggedProductsClient({
           title: 'Issue Resolved',
           description: `Product "${product.productName}" has been sent back to the supplier for revision.`,
         });
-        router.refresh();
+        // The real-time listener will automatically update the UI.
       } catch (error) {
         toast({
           title: 'Error',
@@ -50,7 +62,15 @@ export default function FlaggedProductsClient({
         });
       }
     });
-  };
+  }, [user.id, toast]);
+
+  if (isLoading) {
+    return (
+        <div className="flex h-64 items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+    )
+  }
 
   return (
     <Table>
@@ -63,8 +83,8 @@ export default function FlaggedProductsClient({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {initialProducts.length > 0 ? (
-          initialProducts.map(product => (
+        {products.length > 0 ? (
+          products.map(product => (
             <TableRow key={product.id}>
               <TableCell className="font-medium">
                 {product.productName}
