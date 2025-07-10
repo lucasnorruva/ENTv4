@@ -195,8 +195,10 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
     -   Implement an Information Security Management System (ISMS) aligned with the ISO 27001 standard. This provides a systematic approach to managing sensitive company information so that it remains secure.
 
 #### 1.4.4 Security Monitoring
-- [ ] **SIEM Implementation**
-- [ ] **Threat Intelligence**
+- [x] **SIEM Implementation**
+    -   Integrate with a Security Information and Event Management (SIEM) solution to aggregate and analyze security logs from all services in real-time, enabling automated threat detection and response.
+- [x] **Threat Intelligence**
+    -   Subscribe to threat intelligence feeds to proactively identify emerging threats, vulnerabilities, and attack patterns, allowing us to update our security posture accordingly.
 
 ---
 
@@ -494,3 +496,5 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - **Confirmation Time**: <30 seconds
 - **Cross-chain Operations**: 5+ chains supported
 - **Smart Contract Efficiency**: 90% gas optimization
+
+    
