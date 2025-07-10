@@ -9,22 +9,12 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-
-export const PredictRegulationChangeInputSchema = z.object({
-  signals: z.array(z.string()).describe('A list of key takeaways and signals from various sources like news, policy papers, etc.'),
-  targetIndustry: z.string().describe('The industry to focus the prediction on (e.g., Electronics, Fashion).'),
-});
-export type PredictRegulationChangeInput = z.infer<typeof PredictRegulationChangeInputSchema>;
-
-export const PredictRegulationChangeOutputSchema = z.object({
-  prediction: z.string().describe('A specific, actionable prediction about a potential regulatory change.'),
-  confidence: z.number().min(0).max(1).describe('The confidence score (0.0 to 1.0) for this prediction.'),
-  timeframe: z.string().describe('The estimated timeframe for this change (e.g., "6-12 months", "1-2 years").'),
-  impactedRegulations: z.array(z.string()).describe('A list of existing regulations that might be affected.'),
-  suggestedAction: z.string().describe('A suggested proactive action for a company in the target industry.'),
-});
-export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;
+import {
+  PredictRegulationChangeInputSchema,
+  PredictRegulationChangeOutputSchema,
+  type PredictRegulationChangeInput,
+  type PredictRegulationChangeOutput,
+} from '@/types/ai-outputs';
 
 export async function predictRegulationChange(
   input: PredictRegulationChangeInput,
