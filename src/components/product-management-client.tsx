@@ -11,9 +11,6 @@ import React, {
 import Link from 'next/link';
 import { Plus, Upload, Sparkles, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { onSnapshot, collection, query, where } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -44,40 +41,26 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
+  initialProducts: Product[];
   compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagementClient({
   user,
+  initialProducts,
   compliancePaths,
 }: ProductManagementClientProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [activeTab, setActiveTab] = useState('all');
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
+  // Update products when initialProducts prop changes
   useEffect(() => {
-    setIsLoading(true);
-    const isAdmin = hasRole(user, UserRoles.ADMIN);
-    
-    const q = isAdmin
-      ? query(collection(db, Collections.PRODUCTS))
-      : query(collection(db, Collections.PRODUCTS), where('companyId', '==', user.companyId));
-    
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
-        setIsLoading(false);
-    }, (error) => {
-        console.error("Error fetching products:", error);
-        toast({ title: 'Error', description: 'Could not fetch products.', variant: 'destructive' });
-        setIsLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user.id, user.companyId, toast]);
+    setProducts(initialProducts);
+  }, [initialProducts]);
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
@@ -96,8 +79,8 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    // Real-time listener handles the update, no refresh needed.
-  }, [toast]);
+    router.refresh(); // Refresh to get new products
+  }, [toast, router]);
 
   const handleAnalysisComplete = useCallback(
     (data: CreateProductFromImageOutput) => {
@@ -113,23 +96,51 @@ export default function ProductManagementClient({
 
   const [isPending, startTransition] = useTransition();
 
-  const handleAction = useCallback((action: () => Promise<any>, successMessage: string) => {
-    startTransition(async () => {
-        await action();
-        toast({ title: successMessage });
-        // Real-time listener handles UI updates, so no router.refresh() needed.
-    });
-  }, [toast, startTransition]);
+  const handleAction = useCallback(
+    (action: () => Promise<any>, successMessage: string) => {
+      startTransition(async () => {
+        try {
+          await action();
+          toast({ title: successMessage });
+          router.refresh();
+        } catch (error: any) {
+          toast({
+            title: 'Action Failed',
+            description: error.message || 'An unexpected error occurred.',
+            variant: 'destructive',
+          });
+        }
+      });
+    },
+    [toast, startTransition, router],
+  );
 
-  const handleDelete = useCallback((id: string) => handleAction(() => deleteProduct(id, user.id), 'Product Deleted'), [handleAction, user.id]);
-  const handleSubmitForReview = useCallback((id: string) => handleAction(() => submitForReview(id, user.id), 'Product Submitted'), [handleAction, user.id]);
-  const handleRecalculateScore = useCallback((id: string, name: string) => handleAction(() => recalculateScore(id, user.id), `Recalculating score for ${name}...`), [handleAction, user.id]);
-  const handleBulkDelete = useCallback((ids: string[]) => handleAction(() => bulkDeleteProducts(ids, user.id), `Deleted ${ids.length} products.`), [handleAction, user.id]);
-  const handleBulkSubmit = useCallback((ids: string[]) => handleAction(() => bulkSubmitForReview(ids, user.id), `Submitted ${ids.length} products.`), [handleAction, user.id]);
-  const handleBulkArchive = useCallback((ids: string[]) => handleAction(() => bulkArchiveProducts(ids, user.id), `Archived ${ids.length} products.`), [handleAction, user.id]);
+  const handleDelete = useCallback(
+    (id: string) => handleAction(() => deleteProduct(id, user.id), 'Product Deleted'),
+    [handleAction, user.id],
+  );
+  const handleSubmitForReview = useCallback(
+    (id: string) => handleAction(() => submitForReview(id, user.id), 'Product Submitted'),
+    [handleAction, user.id],
+  );
+  const handleRecalculateScore = useCallback(
+    (id: string, name: string) => handleAction(() => recalculateScore(id, user.id), `Recalculating score for ${name}...`),
+    [handleAction, user.id],
+  );
+  const handleBulkDelete = useCallback(
+    (ids: string[]) => handleAction(() => bulkDeleteProducts(ids, user.id), `Deleted ${ids.length} products.`),
+    [handleAction, user.id],
+  );
+  const handleBulkSubmit = useCallback(
+    (ids: string[]) => handleAction(() => bulkSubmitForReview(ids, user.id), `Submitted ${ids.length} products.`),
+    [handleAction, user.id],
+  );
+  const handleBulkArchive = useCallback(
+    (ids: string[]) => handleAction(() => bulkArchiveProducts(ids, user.id), `Archived ${ids.length} products.`),
+    [handleAction, user.id],
+  );
 
   const filteredProducts = useMemo(() => {
-    if (isLoading) return [];
     switch (activeTab) {
       case 'needsAction':
         return products.filter(
@@ -144,27 +155,7 @@ export default function ProductManagementClient({
       default:
         return products.filter(p => p.status !== 'Archived');
     }
-  }, [products, activeTab, isLoading]);
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <CardTitle>My Product Passports</CardTitle>
-              <CardDescription>
-                Manage and display digital product passports for your products.
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex justify-center items-center h-96">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </CardContent>
-      </Card>
-    );
-  }
+  }, [products, activeTab]);
 
   return (
     <>
