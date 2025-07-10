@@ -151,6 +151,12 @@ export interface GreenClaim {
   substantiation: string;
 }
 
+export interface MassBalance {
+  creditsAllocated?: number;
+  certificationBody?: string;
+  certificateNumber?: string;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -305,6 +311,7 @@ export interface Product extends BaseEntity {
   textile?: TextileData;
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
+  massBalance?: MassBalance;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;

@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -41,6 +40,7 @@ import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
+import CircularityTab from './product-detail-tabs/circularity-tab';
 
 
 export default function ProductDetailView({
@@ -167,6 +167,7 @@ export default function ProductDetailView({
                   <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                   <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                   <TabsTrigger value="compliance">Compliance</TabsTrigger>
+                  <TabsTrigger value="circularity">Circularity</TabsTrigger>
                   <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
@@ -209,6 +210,9 @@ export default function ProductDetailView({
                   product={product}
                   compliancePath={compliancePath}
                 />
+              </TabsContent>
+               <TabsContent value="circularity" className="mt-4">
+                <CircularityTab product={product} />
               </TabsContent>
               <TabsContent value="trust" className="mt-4">
                 <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />

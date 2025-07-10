@@ -51,6 +51,12 @@ const greenClaimSchema = z.object({
   substantiation: z.string().min(10, 'Substantiation must be at least 10 characters.'),
 });
 
+const massBalanceSchema = z.object({
+  creditsAllocated: z.coerce.number().optional(),
+  certificationBody: z.string().optional(),
+  certificateNumber: z.string().optional(),
+});
+
 const complianceSchema = z.object({
   rohs: z
     .object({
@@ -163,6 +169,7 @@ export const productFormSchema = z.object({
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
+  massBalance: massBalanceSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -345,3 +352,32 @@ export const customsInspectionFormSchema = z.object({
   notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
+
+export const bulkProductImportSchema = z.object({
+  productName: z.string().min(1),
+  productDescription: z.string().min(1),
+  gtin: z.string().optional(),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
+  productImage: z.string().url().optional(),
+  manualUrl: z.string().url().optional(),
+  materials: z.string().transform((val, ctx) => {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Materials must be a valid JSON array.',
+      });
+      return z.NEVER;
+    } catch (e) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Materials must be valid JSON.',
+      });
+      return z.NEVER;
+    }
+  }).optional(),
+});
+export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
