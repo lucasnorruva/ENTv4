@@ -1,5 +1,5 @@
-
-// src/components/predictive-analytics-widget.tsx
+// This component is no longer used and has been replaced by `src/components/ai-workbench/lifecycle-predictor.tsx`.
+// It is kept here for reference but can be safely deleted.
 'use client';
 
 import React, { useTransition } from 'react';

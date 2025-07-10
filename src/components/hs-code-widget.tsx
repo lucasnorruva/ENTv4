@@ -1,4 +1,5 @@
-// src/components/hs-code-widget.tsx
+// This component is no longer used and has been replaced by `src/components/ai-workbench/hs-code-classifier.tsx`.
+// It is kept here for reference but can be safely deleted.
 'use client';
 
 import React, { useTransition } from 'react';

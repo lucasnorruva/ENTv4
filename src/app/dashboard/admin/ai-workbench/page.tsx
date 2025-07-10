@@ -9,6 +9,8 @@ import { getCurrentUser } from '@/lib/auth';
 import { UserRoles } from '@/lib/constants';
 import { type User } from '@/types';
 import RoiCalculator from '@/components/ai-workbench/roi-calculator';
+import HsCodeClassifier from '@/components/ai-workbench/hs-code-classifier';
+import LifecyclePredictor from '@/components/ai-workbench/lifecycle-predictor';
 
 export default function AiWorkbenchPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +35,8 @@ export default function AiWorkbenchPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <RegulationPredictor user={user} />
         <SupplierScorer user={user} />
+        <HsCodeClassifier user={user} />
+        <LifecyclePredictor user={user} />
       </div>
        <RouteRiskAnalyzer user={user} />
        <RoiCalculator user={user} />

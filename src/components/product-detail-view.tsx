@@ -29,7 +29,6 @@ import AddServiceRecordDialog from './add-service-record-dialog';
 import AiActionsWidget from './ai-actions-widget';
 import { runSubmissionValidation } from '@/services/validation';
 import { AuditLogTimeline } from './audit-log-timeline';
-import PredictiveAnalyticsWidget from './predictive-analytics-widget';
 import ProductAIChatbot from './product-ai-chatbot';
 
 // Import newly created tab components
@@ -41,7 +40,6 @@ import HistoryTab from './product-detail-tabs/history-tab';
 import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
-import HsCodeWidget from './hs-code-widget';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
@@ -88,7 +86,6 @@ export default function ProductDetailView({
   const canGenerateDoc = can(user, 'product:edit', product);
   const canLogInspection = can(user, 'product:customs_inspect');
   const canExportData = can(user, 'product:export_data', product);
-  const canRunPrediction = can(user, 'product:run_prediction', product);
   const isAiEnabled = company?.settings?.aiEnabled ?? false;
 
   const roleSlug =
@@ -275,19 +272,6 @@ export default function ProductDetailView({
               </CardContent>
             </Card>
 
-            <HsCodeWidget 
-              product={product} 
-              user={user} 
-              onUpdate={handleUpdateAndRefresh} 
-              isAiEnabled={isAiEnabled} 
-            />
-            {canRunPrediction && isAiEnabled && (
-              <PredictiveAnalyticsWidget
-                product={product}
-                user={user}
-                onPredictionComplete={handleUpdateAndRefresh}
-              />
-            )}
             <AiActionsWidget
               product={product}
               user={user}
