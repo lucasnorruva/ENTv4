@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/data-composition-tab.tsx
 'use client';
 
@@ -113,11 +114,12 @@ export default function DataCompositionTab({ product }: DataCompositionTabProps)
             }
           </InfoRow>
           <InfoRow icon={Package} label="Packaging">
-            <p className="text-sm text-muted-foreground">
-              {product.packaging?.type}
-              {product.packaging?.weight && ` (${product.packaging.weight}g)`}.
-              Recyclable: {product.packaging?.recyclable ? 'Yes' : 'No'}.
-            </p>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>Type: {product.packaging?.type}</p>
+              <p>Recyclable: {product.packaging?.recyclable ? 'Yes' : 'No'}</p>
+              {product.packaging?.weight && <p>Weight: {product.packaging.weight}g</p>}
+              {product.packaging?.recycledContent !== undefined && <p>Recycled Content: {product.packaging.recycledContent}%</p>}
+            </div>
           </InfoRow>
         </CardContent>
       </Card>
