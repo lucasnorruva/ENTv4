@@ -24,6 +24,7 @@ import AiActionsWidget from './ai-actions-widget';
 import { runSubmissionValidation } from '@/services/validation';
 import { AuditLogTimeline } from './audit-log-timeline';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
+import ProductAIChatbot from './product-ai-chatbot';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -228,6 +229,7 @@ export default function ProductDetailView({
             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
+            <ProductAIChatbot productId={product.id} />
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
