@@ -1,3 +1,4 @@
+
 // src/lib/schemas.ts
 import { z } from 'zod';
 import type { Role } from './constants';
@@ -55,6 +56,12 @@ const massBalanceSchema = z.object({
   creditsAllocated: z.coerce.number().optional(),
   certificationBody: z.string().optional(),
   certificateNumber: z.string().optional(),
+});
+
+const nfcSchema = z.object({
+  uid: z.string().optional(),
+  technology: z.string().optional(),
+  writeProtected: z.boolean().optional(),
 });
 
 const complianceSchema = z.object({
@@ -177,6 +184,7 @@ export const productFormSchema = z.object({
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
   massBalance: massBalanceSchema.optional(),
+  nfc: nfcSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

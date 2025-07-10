@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -10,6 +11,8 @@ import {
   ArrowLeft,
   Landmark,
   Clock,
+  QrCode,
+  Rss,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
@@ -39,7 +42,6 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import HsCodeWidget from './hs-code-widget';
-import CryptoTab from './product-detail-tabs/crypto-tab';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
@@ -50,6 +52,7 @@ import DataCompositionTab from './product-detail-tabs/data-composition-tab';
 import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 import { cn } from '@/lib/utils';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 
 
 export default function ProductDetailView({
@@ -224,7 +227,7 @@ export default function ProductDetailView({
                 <LifecycleTab product={product} />
               </TabsContent>
                <TabsContent value="sustainability" className="mt-4">
-                <SustainabilityTab product={product} compliancePath={compliancePath} />
+                <SustainabilityTab product={product} />
               </TabsContent>
               <TabsContent value="credentials" className="mt-4">
                 <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
@@ -245,7 +248,36 @@ export default function ProductDetailView({
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
-            <DppQrCodeWidget productId={product.id} />
+            <Card>
+              <CardHeader>
+                <CardTitle>Digital Link</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="qr">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="qr"><QrCode className="h-4 w-4 mr-2"/>QR Code</TabsTrigger>
+                        <TabsTrigger value="nfc"><Rss className="h-4 w-4 mr-2"/>NFC Chip</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="qr" className="mt-4">
+                        <DppQrCodeWidget productId={product.id} />
+                    </TabsContent>
+                    <TabsContent value="nfc" className="mt-4">
+                       <CardContent>
+                          {product.nfc ? (
+                            <div className="space-y-2 text-sm">
+                              <p><strong>UID:</strong> <span className="font-mono">{product.nfc.uid}</span></p>
+                              <p><strong>Technology:</strong> {product.nfc.technology}</p>
+                              <p><strong>Write Protected:</strong> {product.nfc.writeProtected ? 'Yes' : 'No'}</p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground text-center py-4">No NFC chip data provided.</p>
+                          )}
+                        </CardContent>
+                    </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+
             <HsCodeWidget 
               product={product} 
               user={user} 

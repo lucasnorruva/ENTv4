@@ -156,6 +156,12 @@ export interface MassBalance {
   certificateNumber?: string;
 }
 
+export interface NfcData {
+  uid: string;
+  technology: string;
+  writeProtected: boolean;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -317,6 +323,7 @@ export interface Product extends BaseEntity {
   greenClaims?: GreenClaim[];
   massBalance?: MassBalance;
   compliance?: Compliance;
+  nfc?: NfcData;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
