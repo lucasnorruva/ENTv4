@@ -1,4 +1,3 @@
-
 // src/lib/nav-config.ts
 import {
   BookCopy,
@@ -228,11 +227,7 @@ export const navConfig: NavConfig = {
           icon: BookCopy,
           href: 'products',
         },
-        {
-          title: 'Compliance Reports',
-          icon: FileText,
-          href: 'reports',
-        },
+        { title: 'Reports', icon: FileText, href: 'reports' },
       ],
     },
   ],

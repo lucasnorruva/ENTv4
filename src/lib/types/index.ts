@@ -452,6 +452,7 @@ export interface ProductionLine extends BaseEntity {
 
 export interface BlockchainProof {
   type: 'SINGLE_HASH' | 'MERKLE_PROOF';
+  chain: 'Polygon' | 'EBSI' | 'Hyperledger';
   txHash: string;
   explorerUrl: string;
   blockHeight: number;
