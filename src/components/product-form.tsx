@@ -1,4 +1,3 @@
-
 // src/components/product-form.tsx
 'use client';
 
@@ -519,7 +518,6 @@ export default function ProductForm({
       show: category === 'Electronics',
       component: (
         <ElectronicsTab
-          form={form}
           user={user}
           productId={initialData?.id}
           isAiEnabled={isAiEnabled}
