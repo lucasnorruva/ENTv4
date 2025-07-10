@@ -16,18 +16,25 @@ interface ZkpTabProps {
   user: User;
 }
 
-export default function ZkpTab({ products, user }: ZkpTabProps) {
+export default function ZkpTab({ products: initialProducts, user }: ZkpTabProps) {
   const [isPending, startTransition] = useTransition();
   const [processingId, setProcessingId] = useState<string | null>(null);
   const { toast } = useToast();
+  // We need local state to reflect UI changes immediately after an action
+  const [products, setProducts] = useState(initialProducts);
+
+  React.useEffect(() => {
+    setProducts(initialProducts);
+  }, [initialProducts]);
+
 
   const handleGenerateProof = useCallback((productId: string) => {
     setProcessingId(productId);
     startTransition(async () => {
       try {
-        await generateZkProofForProduct(productId, user.id);
+        const updatedProduct = await generateZkProofForProduct(productId, user.id);
+        setProducts(prev => prev.map(p => p.id === productId ? updatedProduct : p));
         toast({ title: 'ZK Proof Generated' });
-        // The listener will update the UI
       } catch (error: any) {
         toast({ title: 'Error', description: error.message, variant: 'destructive' });
       } finally {
@@ -40,9 +47,9 @@ export default function ZkpTab({ products, user }: ZkpTabProps) {
     setProcessingId(productId);
     startTransition(async () => {
         try {
-            await verifyZkProofForProduct(productId, user.id);
+            const updatedProduct = await verifyZkProofForProduct(productId, user.id);
+            setProducts(prev => prev.map(p => p.id === productId ? updatedProduct : p));
             toast({ title: 'ZK Proof Verified', description: "The proof has been successfully verified." });
-             // The listener will update the UI
         } catch (error: any) {
             toast({ title: 'Error', description: error.message, variant: 'destructive' });
         } finally {

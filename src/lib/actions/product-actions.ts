@@ -375,6 +375,7 @@ export async function generateZkProofForProduct(
 
   const proof = await generateComplianceProof(product);
   const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
   mockProducts[productIndex].zkProof = proof;
 
   await logAuditEvent('product.zkp.generated', productId, {}, userId);
@@ -397,6 +398,7 @@ export async function verifyZkProofForProduct(
   }
 
   const productIndex = mockProducts.findIndex(p => p.id === productId);
+  if (productIndex === -1) throw new Error('Product not found in mock data');
   mockProducts[productIndex].zkProof!.isVerified = true;
   mockProducts[productIndex].zkProof!.verifiedAt = new Date().toISOString();
 
