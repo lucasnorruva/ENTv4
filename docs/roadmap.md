@@ -169,7 +169,8 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 #### 1.4.1 Zero-Trust Security Architecture
 - [x] **Identity & Access Management**
 - [x] **Multi-Factor Authentication (MFA)**
-- [ ] **Service Mesh Implementation**
+- [x] **Service Mesh Implementation**
+    -   Implement a service mesh (e.g., Istio or Linkerd) to enforce mutual TLS (mTLS) for all internal service-to-service communication. This ensures that no service can communicate with another without a verified identity, providing deep observability and control over traffic flow.
 
 #### 1.4.2 Advanced Encryption
 - [x] **File Integrity Hashing**
