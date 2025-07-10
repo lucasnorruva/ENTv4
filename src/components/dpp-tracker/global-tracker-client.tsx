@@ -309,33 +309,50 @@ export default function GlobalTrackerClient({
     [theme, riskFilteredData],
   );
 
-  const arcsData = useMemo(
-    () =>
-      products
-        .map(p => {
-          if (!p.transit) return null;
-          const origin = mockCountryCoordinates[p.transit.origin];
-          const dest = mockCountryCoordinates[p.transit.destination];
-          if (!origin || !dest) return null;
+  const arcsData = useMemo(() => {
+    const visibleProducts = selectedProductId ? [selectedProduct] : products;
 
- const color =
-            selectedProductId === p.id
-              ? 'rgba(255, 255, 0, 0.9)'
-              : 'rgba(139, 92, 246, 0.6)';
+    return visibleProducts
+      .map(p => {
+        if (!p?.transit) return null;
+        const origin = mockCountryCoordinates[p.transit.origin];
+        const dest = mockCountryCoordinates[p.transit.destination];
+        if (!origin || !dest) return null;
 
-          return {
-            startLat: origin.lat,
-            startLng: origin.lng,
-            endLat: dest.lat,
-            endLng: dest.lng,
-            color,
-            stroke: selectedProductId === p.id ? 2 : 0.5,
-            product: p,
-          };
-        })
-        .filter(Boolean),
-    [products, selectedProductId],
-  );
+        const color =
+          selectedProductId === p.id
+            ? 'rgba(255, 255, 0, 0.9)'
+            : 'rgba(139, 92, 246, 0.6)';
+
+        return {
+          startLat: origin.lat,
+          startLng: origin.lng,
+          endLat: dest.lat,
+          endLng: dest.lng,
+          color,
+          stroke: selectedProductId === p.id ? 2 : 0.5,
+          product: p,
+        };
+      })
+      .filter(Boolean);
+  }, [products, selectedProduct, selectedProductId]);
+
+  const simulatedArcData = useMemo(() => {
+    if (!simulatedRoute) return [];
+    const origin = mockCountryCoordinates[simulatedRoute.origin];
+    const dest = mockCountryCoordinates[simulatedRoute.destination];
+    if (!origin || !dest) return [];
+    return [
+      {
+        startLat: origin.lat,
+        startLng: origin.lng,
+        endLat: dest.lat,
+        endLng: dest.lng,
+        color: 'rgba(234, 179, 8, 0.8)', // yellow-500
+        stroke: 2,
+      },
+    ];
+  }, [simulatedRoute]);
 
   const factoryPoints = useMemo(() => {
     if (!showFactories) return [];
@@ -383,7 +400,7 @@ export default function GlobalTrackerClient({
           polygonSideColor={() => 'rgba(0,0,0,0)'}
           polygonStrokeColor={() => (theme === 'dark' ? '#475569' : '#94a3b8')}
           onPolygonClick={handleCountryClick}
-          arcsData={arcsData}
+          arcsData={[...arcsData, ...simulatedArcData]}
           arcColor={'color'}
           arcStroke={'stroke'}
           arcDashLength={0.4}
@@ -410,6 +427,7 @@ export default function GlobalTrackerClient({
       handleCountryClick,
       handlePointClick,
       arcsData,
+      simulatedArcData,
       alertPoints,
       factoryPoints,
       theme,

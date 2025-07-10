@@ -153,4 +153,72 @@ export const MOCK_CUSTOMS_DATA: CustomsRequirement[] = [
     ],
     keywords: ['japan', 'pse', 'denan', 'cscl'],
   },
+  {
+    region: 'India',
+    summary:
+      'Bureau of Indian Standards (BIS) certification is mandatory for many electronics and IT goods. E-waste management rules are strictly enforced.',
+    keyDocs: [
+      'BIS Certificate',
+      'Bill of Entry',
+      'Commercial Invoice',
+    ],
+    tariffs:
+      'High tariffs on many imported goods, particularly consumer electronics.',
+    riskLevel: 'High' as const,
+    notes:
+      'The customs clearance process can be slow and bureaucratic. Accurate paperwork is critical.',
+    relatedRegulations: [
+      {
+        name: 'BIS Certification',
+        link: 'https://www.bis.gov.in/',
+      },
+    ],
+    keywords: ['india', 'bis', 'e-waste'],
+  },
+   {
+    region: 'Vietnam',
+    summary:
+      'Growing manufacturing hub. Requires energy efficiency labeling (VNEEP) for certain products. Member of several free trade agreements (e.g., EVFTA, CPTPP) which can reduce tariffs.',
+    keyDocs: [
+      'Certificate of Origin (for FTA benefits)',
+      'Invoice',
+      'Packing List',
+      'Quality Inspection Certificate',
+    ],
+    tariffs:
+      'Tariffs vary. Leveraging FTAs is key to cost-effective importation.',
+    riskLevel: 'Medium' as const,
+    notes:
+      'Customs procedures are modernizing but can still be inconsistent across different ports.',
+    relatedRegulations: [
+      {
+        name: 'VNEEP',
+        link: 'http://vneec.gov.vn/',
+      },
+    ],
+    keywords: ['vietnam', 'vneep', 'evfta'],
+  },
+   {
+    region: 'Brazil',
+    summary:
+      'Complex tax and import system (INMETRO certification required for many goods). High import duties and taxes. Known for bureaucratic customs clearance.',
+    keyDocs: [
+      'INMETRO Certificate',
+      'Import Declaration (DI)',
+      'Radar License (for importer)',
+      'Commercial Invoice',
+    ],
+    tariffs:
+      'Part of Mercosur customs union. High tariffs and taxes are common.',
+    riskLevel: 'High' as const,
+    notes:
+      'Requires a registered Brazilian entity (CNPJ) to act as the importer of record.',
+    relatedRegulations: [
+      {
+        name: 'INMETRO',
+        link: 'http://www.inmetro.gov.br/english/',
+      },
+    ],
+    keywords: ['brazil', 'inmetro', 'cnpj', 'mercosur'],
+  },
 ];

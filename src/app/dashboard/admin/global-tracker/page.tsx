@@ -39,7 +39,7 @@ export default async function AdminGlobalTrackerPage() {
       <div className="flex-1 relative">
         <Suspense fallback={<div className="flex h-full w-full items-center justify-center"><Loader2 className="h-8 w-8 animate-spin" /></div>}>
           <GlobalTrackerClient
-            products={transitProducts}
+            products={allProducts}
             alerts={relevantAlerts}
             productionLines={allProductionLines}
             user={user}
