@@ -6,11 +6,10 @@
  */
 
 import { z } from "zod";
-import { AiProductSchema, textileDataSchema } from "@/ai/schemas";
+import { AiProductSchema } from "@/ai/schemas";
 
 // Re-export AI Product Schema for convenience
 export type { AiProduct } from "@/ai/schemas";
-export { textileDataSchema };
 
 // calculate-sustainability
 export const CalculateSustainabilityInputSchema = z.object({ product: AiProductSchema });
@@ -333,10 +332,6 @@ export type AnalyzeSimulatedRouteOutput = z.infer<typeof AnalyzeSimulatedRouteOu
 
 
 // analyze-food-safety
-export const foodSafetyDataSchema = z.object({
-  ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
-  allergens: z.string().optional(),
-});
 // The schemas for food safety are now defined directly in the flow to avoid circular dependencies.
 // See src/ai/flows/analyze-food-safety.ts
 

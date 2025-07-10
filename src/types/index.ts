@@ -13,13 +13,13 @@ import type {
   HsCodeAnalysis,
   ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
-import { textileDataSchema, foodSafetyDataSchema } from '@/ai/schemas';
+import { textileDataSchema } from '@/ai/schemas';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 import type { Integration as IntegrationType } from './integrations';
 import { z } from 'zod';
-
+import type { AnalyzeFoodSafetyInput } from '@/ai/flows/analyze-food-safety';
 
 // Re-exporting for easy access elsewhere
 export type { Role } from '@/lib/constants';
@@ -139,7 +139,10 @@ export interface Battery {
 }
 
 export type TextileData = z.infer<typeof textileDataSchema>;
-export type FoodSafetyData = z.infer<typeof foodSafetyDataSchema>;
+export interface FoodSafetyData {
+  ingredients: { value: string }[];
+  allergens?: string;
+}
 
 
 export interface GreenClaim {
