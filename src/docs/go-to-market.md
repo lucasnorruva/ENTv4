@@ -1,4 +1,3 @@
-
 # 8. Go-to-Market Strategy & Regulatory Alignment
 
 ## Vertical-Specific Go-to-Market (GTM)
@@ -6,9 +5,9 @@
 The platform must bridge multiple regulatory schemes. This section outlines the specific GTM strategy for key international markets.
 
 ### European Union (EU)
-- **Mandate**: The Ecodesign for Sustainable Products Regulation (ESPR) enforces DPPs, requiring products to carry them from 2026 onward (textiles first).
-- **Platform Alignment**: The Norruva data model includes all ESPR-mandated fields, such as material composition, recyclability info, and carbon footprint data. EU rules apply equally to imports, broadening our scope to global suppliers.
-- **GTM Focus**: Target EU-based companies and global suppliers who import into the EU, emphasizing turnkey ESPR compliance.
+- **Mandate**: The Ecodesign for Sustainable Products Regulation (ESPR) enforces DPPs, requiring products to carry them from 2026 onward (textiles first). The upcoming **Green Claims Directive** will also require verifiable proof for environmental marketing.
+- **Platform Alignment**: The Norruva data model includes all ESPR-mandated fields, such as material composition, recyclability info, and carbon footprint data. The `greenClaims` feature allows companies to link marketing claims to verifiable data, aligning with the Green Claims Directive. EU rules apply equally to imports, broadening our scope to global suppliers.
+- **GTM Focus**: Target EU-based companies and global suppliers who import into the EU, emphasizing turnkey ESPR and Green Claims compliance.
 
 ### United States (US)
 - **Mandate**: The FTC’s Green Guides demand substantiation for environmental marketing claims like "eco-friendly" or "recyclable."
@@ -110,3 +109,5 @@ This persona values robust APIs, security, scalability, and ease of integration.
 - **Advanced Security Features**: Includes Zero-Trust principles, support for SSO/SAML, and end-to-end data encryption.
 - **On-Prem/Hybrid Deployment Options**: Flexibility to deploy the platform in a private cloud or on-premises to meet enterprise data governance policies.
 - **Blockchain Anchoring Service**: A modular service that provides an immutable, auditable proof of data integrity without requiring deep blockchain expertise from the IT team.
+
+    
