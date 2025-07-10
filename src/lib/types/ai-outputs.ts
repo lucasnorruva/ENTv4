@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -285,20 +286,6 @@ export const AnalyzeConstructionMaterialOutputSchema = z.object({
 export type AnalyzeConstructionMaterialOutput = z.infer<typeof AnalyzeConstructionMaterialOutputSchema>;
 
 
-// analyze-transit-risk
-export const AnalyzeTransitRiskInputSchema = z.object({
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z.string().describe('The destination country for the shipment.'),
-});
-export type AnalyzeTransitRiskInput = z.infer<typeof AnalyzeTransitRiskInputSchema>;
-export const AnalyzeTransitRiskOutputSchema = z.object({
-  riskLevel: z.enum(['Low', 'Medium', 'High', 'Very High']).describe('The overall assessed risk level for this transit route.'),
-  summary: z.string().describe('A concise summary (2-3 sentences) of the key risks and considerations.'),
-  keyConsiderations: z.array(z.string()).describe('A bulleted list of the most important factors to consider for this route.'),
-});
-export type AnalyzeTransitRiskOutput = z.infer<typeof AnalyzeTransitRiskOutputSchema>;
-
-
 // analyze-product-transit-risk
 export const AnalyzeProductTransitRiskInputSchema = z.object({
   product: z.custom<any>().describe('The product being shipped.'),
@@ -374,6 +361,18 @@ export const GenerateConformityDeclarationOutputSchema = z.object({
 export type GenerateConformityDeclarationOutput = z.infer<typeof GenerateConformityDeclarationOutputSchema>;
 
 
+// generate-sustainability-declaration
+export const GenerateSustainabilityDeclarationInputSchema = z.object({
+  product: AiProductSchema,
+  companyName: z.string().describe('The legal name of the manufacturer.'),
+});
+export type GenerateSustainabilityDeclarationInput = z.infer<typeof GenerateSustainabilityDeclarationInputSchema>;
+export const GenerateSustainabilityDeclarationOutputSchema = z.object({
+  declarationText: z.string().describe('The full text of the Sustainability Declaration in Markdown format.'),
+});
+export type GenerateSustainabilityDeclarationOutput = z.infer<typeof GenerateSustainabilityDeclarationOutputSchema>;
+
+
 // generate-component-tests
 export const GenerateComponentTestsInputSchema = z.object({
   componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),
@@ -384,3 +383,35 @@ export const GenerateComponentTestsOutputSchema = z.object({
   testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
 });
 export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
+
+
+// analyze-news-reports
+const NewsArticleSchema = z.object({
+  headline: z.string().describe('The headline of the news article.'),
+  content: z.string().describe('The full content of the news article.'),
+});
+export const AnalyzeNewsInputSchema = z.object({
+  articles: z.array(NewsArticleSchema).describe('A list of news articles to analyze.'),
+});
+export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
+export const AnalyzeNewsOutputSchema = z.object({
+  keyTakeaways: z.array(z.string()).describe('A bulleted list of the most important takeaways and signals from the news articles.'),
+  sentiment: z.enum(['Positive', 'Neutral', 'Negative']).describe('The overall sentiment towards increased regulatory pressure.'),
+});
+export type AnalyzeNewsOutput = z.infer<typeof AnalyzeNewsOutputSchema>;
+
+
+// predict-regulation-change
+export const PredictRegulationChangeInputSchema = z.object({
+  signals: z.array(z.string()).describe('A list of key signals and takeaways from various sources (news, policy papers, etc.).'),
+  targetIndustry: z.string().describe('The industry to focus the prediction on.'),
+});
+export type PredictRegulationChangeInput = z.infer<typeof PredictRegulationChangeInputSchema>;
+export const PredictRegulationChangeOutputSchema = z.object({
+  prediction: z.string().describe('A single, specific prediction about a potential new regulation or a change to an existing one.'),
+  confidence: z.number().min(0).max(1).describe('The confidence level of the prediction (0.0 to 1.0).'),
+  timeframe: z.enum(['6-12 months', '12-24 months', '24+ months']).describe('The likely timeframe for the predicted change.'),
+  impactedRegulations: z.array(z.string()).describe('A list of existing regulations that might be amended or replaced.'),
+  proactiveSteps: z.string().describe('A single, high-impact proactive step a company should consider taking in response to this prediction.'),
+});
+export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;

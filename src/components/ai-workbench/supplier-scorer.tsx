@@ -1,3 +1,4 @@
+
 // src/components/ai-workbench/supplier-scorer.tsx
 'use client';
 
@@ -96,7 +97,12 @@ export default function SupplierScorer({ user }: { user: User }) {
           </Button>
         </div>
         <div className="min-h-[160px] pt-4">
-            {result && (
+            {isPending ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+                    <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                    <p>Scoring supplier...</p>
+                </div>
+            ) : result ? (
                 <Alert>
                     <div className="flex justify-between items-center mb-2">
                         <AlertTitle>Compliance Score</AlertTitle>
@@ -120,6 +126,10 @@ export default function SupplierScorer({ user }: { user: User }) {
                          </div>
                     </AlertDescription>
                 </Alert>
+            ) : (
+                 <div className="text-center text-muted-foreground pt-8">
+                    Enter a URL to score a supplier.
+                </div>
             )}
         </div>
       </CardContent>
