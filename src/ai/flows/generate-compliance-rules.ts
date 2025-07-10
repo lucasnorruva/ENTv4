@@ -29,7 +29,7 @@ const prompt = ai.definePrompt({
 - Based on the regulations (e.g., RoHS, REACH, GOTS), determine a list of 'bannedKeywords' (e.g., restricted substances like 'Lead', 'Mercury').
 - If applicable, determine a list of 'requiredKeywords' (e.g., 'Organic Cotton' for GOTS).
 - If no specific keywords apply, return empty arrays.
-- Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text outside the JSON structure.
+- Your output must be a JSON object that strictly adheres to the provided schema. Do not add any text or explanation outside of the JSON structure.
 
 USER_DATA:
 """
