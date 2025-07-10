@@ -23,7 +23,6 @@ export const foodSafetyDataSchema = z.object({
   allergens: z.string().optional(),
 });
 
-
 /**
  * A shared Zod schema for the product data passed to AI flows.
  * This ensures consistency and reusability across different AI agents.
@@ -117,6 +116,11 @@ export const AiProductSchema = z.object({
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
   foodSafety: foodSafetyDataSchema.optional().describe('Food safety data.'),
+  massBalance: z.object({
+    creditsAllocated: z.coerce.number().optional(),
+    certificationBody: z.string().optional(),
+    certificateNumber: z.string().optional(),
+  }).optional(),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;

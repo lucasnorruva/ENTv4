@@ -6,6 +6,7 @@ import { products as mockProducts } from '@/lib/data';
 import { suggestImprovements as suggestImprovementsFlow } from '@/ai/flows/enhance-passport-information';
 import { generateProductImage as generateProductImageFlow } from '@/ai/flows/generate-product-image';
 import { generateConformityDeclaration as generateConformityDeclarationFlow } from '@/ai/flows/generate-conformity-declaration';
+import { generateSustainabilityDeclaration as generateSustainabilityDeclarationFlow } from '@/ai/flows/generate-sustainability-declaration';
 import { analyzeBillOfMaterials as analyzeBillOfMaterialsFlow } from '@/ai/flows/analyze-bom';
 import { createProductFromImage as createProductFromImageFlow } from '@/ai/flows/create-product-from-image';
 import { summarizeComplianceGaps } from '@/ai/flows/summarize-compliance-gaps';
@@ -277,6 +278,58 @@ export async function generateConformityDeclarationText(
   });
 
   return declarationText;
+}
+
+export async function generateAndSaveSustainabilityDeclaration(
+    productId: string,
+    userId: string,
+): Promise<void> {
+    const user = await getUserById(userId);
+    if (!user) throw new Error('User not found');
+    const product = await getProductById(productId, user.id);
+    if (!product) throw new Error('Product not found');
+
+    checkPermission(user, 'product:edit', product);
+
+    const company = await getCompanyById(product.companyId);
+    if (!company) throw new Error('Company not found');
+
+    if (!product.massBalance?.certificationBody || !product.massBalance?.certificateNumber) {
+        throw new Error("Mass balance certification details are required to generate this declaration.");
+    }
+
+    const aiProductInput: AiProduct = {
+        productName: product.productName,
+        productDescription: product.productDescription,
+        category: product.category,
+        supplier: product.supplier,
+        materials: product.materials,
+        gtin: product.gtin,
+        manufacturing: product.manufacturing,
+        certifications: product.certifications,
+        packaging: product.packaging,
+        lifecycle: product.lifecycle,
+        battery: product.battery,
+        compliance: product.compliance,
+        verificationStatus: product.verificationStatus ?? 'Not Submitted',
+        complianceSummary: product.sustainability?.complianceSummary,
+        massBalance: product.massBalance,
+    };
+
+    const { declarationText } = await generateSustainabilityDeclarationFlow({
+        product: aiProductInput,
+        companyName: company.name,
+    });
+    
+    const productIndex = mockProducts.findIndex(p => p.id === productId);
+    if (productIndex === -1) throw new Error('Product not found');
+
+    mockProducts[productIndex].sustainabilityDeclaration = declarationText;
+    mockProducts[productIndex].lastUpdated = new Date().toISOString();
+
+    await logAuditEvent('doc.generated', productId, { type: 'SustainabilityDeclaration' }, userId);
+
+    return Promise.resolve();
 }
 
 export async function createProductFromImage(

@@ -3,7 +3,7 @@
 
 import React, { useState, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson } from 'lucide-react';
+import { Bot, Sparkles, ListChecks, FileText, Loader2, FileJson, Award } from 'lucide-react';
 import type { Product, User } from '@/types';
 import type {
   SuggestImprovementsOutput,
@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import {
   suggestImprovements,
   generateAndSaveConformityDeclaration,
+  generateAndSaveSustainabilityDeclaration,
   generatePcdsForProduct,
   runDataValidationCheck,
   runComplianceCheck,
@@ -287,32 +288,60 @@ export default function AiActionsWidget({
                     passport's data.
                   </p>
                   {canGenerateDoc && (
-                    <Button
-                      className="w-full"
-                      variant="outline"
-                      onClick={() =>
-                        handleAction(
-                          () =>
-                            generateAndSaveConformityDeclaration(
-                              product.id,
-                              user.id,
-                            ),
-                          'docgen',
-                          'Document Generated',
-                          'The Declaration of Conformity has been saved.',
-                        )
-                      }
-                      disabled={!isAiEnabled || isPending}
-                    >
-                      {isPending && activeAction === 'docgen' ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <FileText className="mr-2 h-4 w-4" />
-                      )}
-                      {isPending && activeAction === 'docgen'
-                        ? 'Generating...'
-                        : 'Generate Declaration of Conformity'}
-                    </Button>
+                    <>
+                      <Button
+                        className="w-full"
+                        variant="outline"
+                        onClick={() =>
+                          handleAction(
+                            () =>
+                              generateAndSaveConformityDeclaration(
+                                product.id,
+                                user.id,
+                              ),
+                            'docgen_conformity',
+                            'Document Generated',
+                            'The Declaration of Conformity has been saved.',
+                          )
+                        }
+                        disabled={!isAiEnabled || isPending}
+                      >
+                        {isPending && activeAction === 'docgen_conformity' ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <FileText className="mr-2 h-4 w-4" />
+                        )}
+                        {isPending && activeAction === 'docgen_conformity'
+                          ? 'Generating...'
+                          : 'Declaration of Conformity'}
+                      </Button>
+                      <Button
+                        className="w-full mt-2"
+                        variant="outline"
+                        onClick={() =>
+                          handleAction(
+                            () =>
+                              generateAndSaveSustainabilityDeclaration(
+                                product.id,
+                                user.id,
+                              ),
+                            'docgen_sustainability',
+                            'Document Generated',
+                            'The Sustainability Declaration has been saved.',
+                          )
+                        }
+                        disabled={!isAiEnabled || isPending || !product.massBalance?.certificationBody}
+                      >
+                        {isPending && activeAction === 'docgen_sustainability' ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Award className="mr-2 h-4 w-4" />
+                        )}
+                        {isPending && activeAction === 'docgen_sustainability'
+                          ? 'Generating...'
+                          : 'Sustainability Declaration (ISCC)'}
+                      </Button>
+                    </>
                   )}
                   {canExportData && (
                     <Button

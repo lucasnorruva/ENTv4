@@ -280,6 +280,7 @@ export interface Product extends BaseEntity {
   model3dFileHash?: string;
   modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
+  sustainabilityDeclaration?: string;
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;

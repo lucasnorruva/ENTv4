@@ -384,3 +384,15 @@ export const GenerateComponentTestsOutputSchema = z.object({
   testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
 });
 export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
+
+
+// generate-sustainability-declaration
+export const GenerateSustainabilityDeclarationInputSchema = z.object({
+  product: AiProductSchema,
+  companyName: z.string().describe('The legal name of the manufacturer.'),
+});
+export type GenerateSustainabilityDeclarationInput = z.infer<typeof GenerateSustainabilityDeclarationInputSchema>;
+export const GenerateSustainabilityDeclarationOutputSchema = z.object({
+  declarationText: z.string().describe('The full text of the Sustainability Declaration in Markdown format.'),
+});
+export type GenerateSustainabilityDeclarationOutput = z.infer<typeof GenerateSustainabilityDeclarationOutputSchema>;
