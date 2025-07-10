@@ -23,13 +23,10 @@ export default async function ProductsPage() {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
-  // Products are now fetched on the client side with a real-time listener.
+  // Products are now fetched on the client side.
   const compliancePaths = await getCompliancePaths();
 
   return (
-    <ProductManagementClient
-      user={user}
-      compliancePaths={compliancePaths}
-    />
+    <ProductManagementClient user={user} compliancePaths={compliancePaths} />
   );
 }

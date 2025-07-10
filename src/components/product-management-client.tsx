@@ -4,12 +4,16 @@
 import React, {
   useState,
   useTransition,
+  useEffect,
   useCallback,
   useMemo,
 } from 'react';
 import Link from 'next/link';
-import { Plus, Upload, Sparkles } from 'lucide-react';
+import { Plus, Upload, Sparkles, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { onSnapshot, collection, query, where } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { Collections } from '@/lib/constants';
 
 import type { Product, User, CompliancePath } from '@/types';
 import { UserRoles } from '@/lib/constants';
@@ -40,20 +44,40 @@ import ProductCreationFromImageDialog from './product-creation-from-image-dialog
 
 interface ProductManagementClientProps {
   user: User;
-  initialProducts: Product[];
   compliancePaths: CompliancePath[];
 }
 
 export default function ProductManagementClient({
   user,
-  initialProducts,
   compliancePaths,
 }: ProductManagementClientProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateFromImageOpen, setIsCreateFromImageOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  useEffect(() => {
+    setIsLoading(true);
+    const isAdmin = hasRole(user, UserRoles.ADMIN);
+    
+    const q = isAdmin
+      ? query(collection(db, Collections.PRODUCTS))
+      : query(collection(db, Collections.PRODUCTS), where('companyId', '==', user.companyId));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        setProducts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product)));
+        setIsLoading(false);
+    }, (error) => {
+        console.error("Error fetching products:", error);
+        toast({ title: 'Error', description: 'Could not fetch products.', variant: 'destructive' });
+        setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user.id, user.companyId, toast]);
 
   const roleSlug = user.roles[0].toLowerCase().replace(/ /g, '-');
 
@@ -72,8 +96,8 @@ export default function ProductManagementClient({
       description: 'New products will appear in the table shortly.',
     });
     setIsImportOpen(false);
-    router.refresh();
-  }, [toast, router]);
+    // Real-time listener handles the update, no refresh needed.
+  }, [toast]);
 
   const handleAnalysisComplete = useCallback(
     (data: CreateProductFromImageOutput) => {
@@ -93,9 +117,9 @@ export default function ProductManagementClient({
     startTransition(async () => {
         await action();
         toast({ title: successMessage });
-        router.refresh();
+        // Real-time listener handles UI updates, so no router.refresh() needed.
     });
-  }, [toast, router, startTransition]);
+  }, [toast, startTransition]);
 
   const handleDelete = useCallback((id: string) => handleAction(() => deleteProduct(id, user.id), 'Product Deleted'), [handleAction, user.id]);
   const handleSubmitForReview = useCallback((id: string) => handleAction(() => submitForReview(id, user.id), 'Product Submitted'), [handleAction, user.id]);
@@ -105,21 +129,42 @@ export default function ProductManagementClient({
   const handleBulkArchive = useCallback((ids: string[]) => handleAction(() => bulkArchiveProducts(ids, user.id), `Archived ${ids.length} products.`), [handleAction, user.id]);
 
   const filteredProducts = useMemo(() => {
+    if (isLoading) return [];
     switch (activeTab) {
       case 'needsAction':
-        return initialProducts.filter(
+        return products.filter(
           p => p.status === 'Draft' || p.verificationStatus === 'Failed',
         );
       case 'live':
-        return initialProducts.filter(
+        return products.filter(
           p => p.status === 'Published' && p.verificationStatus === 'Verified',
         );
       case 'archived':
-        return initialProducts.filter(p => p.status === 'Archived');
+        return products.filter(p => p.status === 'Archived');
       default:
-        return initialProducts.filter(p => p.status !== 'Archived');
+        return products.filter(p => p.status !== 'Archived');
     }
-  }, [initialProducts, activeTab]);
+  }, [products, activeTab, isLoading]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <CardTitle>My Product Passports</CardTitle>
+              <CardDescription>
+                Manage and display digital product passports for your products.
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -157,12 +202,12 @@ export default function ProductManagementClient({
           >
             <TabsList>
               <TabsTrigger value="all">
-                All ({initialProducts.filter(p => p.status !== 'Archived').length})
+                All ({products.filter(p => p.status !== 'Archived').length})
               </TabsTrigger>
               <TabsTrigger value="needsAction">
                 Needs Action (
                 {
-                  initialProducts.filter(
+                  products.filter(
                     p =>
                       p.status === 'Draft' || p.verificationStatus === 'Failed',
                   ).length
@@ -172,7 +217,7 @@ export default function ProductManagementClient({
               <TabsTrigger value="live">
                 Live (
                 {
-                  initialProducts.filter(
+                  products.filter(
                     p =>
                       p.status === 'Published' &&
                       p.verificationStatus === 'Verified',
@@ -181,7 +226,7 @@ export default function ProductManagementClient({
                 )
               </TabsTrigger>
               <TabsTrigger value="archived">
-                Archived ({initialProducts.filter(p => p.status === 'Archived').length}
+                Archived ({products.filter(p => p.status === 'Archived').length}
                 )
               </TabsTrigger>
             </TabsList>
