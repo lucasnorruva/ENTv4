@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -6,10 +7,11 @@
  */
 
 import { z } from "zod";
-import { AiProductSchema } from "@/ai/schemas";
+import { AiProductSchema, textileDataSchema } from "@/ai/schemas";
 
 // Re-export AI Product Schema for convenience
 export type { AiProduct } from "@/ai/schemas";
+export { textileDataSchema };
 
 // calculate-sustainability
 export const CalculateSustainabilityInputSchema = z.object({ product: AiProductSchema });
@@ -234,14 +236,6 @@ export type ExplainErrorOutput = z.infer<typeof ExplainErrorOutputSchema>;
 
 
 // analyze-textile-composition
-export const textileDataSchema = z.object({
-  fiberComposition: z.array(z.object({
-    name: z.string().min(1, 'Fiber name is required.'),
-    percentage: z.coerce.number().min(0).max(100),
-  })).optional(),
-  dyeProcess: z.string().optional(),
-  weaveType: z.string().optional(),
-});
 export const AnalyzeTextileInputSchema = z.object({
   fiberComposition: z.array(z.object({ name: z.string(), percentage: z.number() })).describe('The fiber composition of the textile product.'),
   dyeProcess: z.string().optional().describe('Description of the dyeing process used.'),
