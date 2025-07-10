@@ -1,3 +1,4 @@
+
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -9,12 +10,15 @@ import {
   AlertTriangle,
   ArrowLeft,
   Landmark,
+  Clock,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
+import { Badge } from '@/components/ui/badge';
+import RelativeTime from './relative-time';
 
 import DppQrCodeWidget from './dpp-qr-code-widget';
 import SubmissionChecklist from './submission-checklist';
@@ -24,6 +28,7 @@ import AiActionsWidget from './ai-actions-widget';
 import { runSubmissionValidation } from '@/services/validation';
 import { AuditLogTimeline } from './audit-log-timeline';
 import PredictiveAnalyticsWidget from './predictive-analytics-widget';
+import ProductAIChatbot from './product-ai-chatbot';
 
 // Import newly created tab components
 import OverviewTab from './product-detail-tabs/overview-tab';
@@ -35,7 +40,6 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import HsCodeWidget from './hs-code-widget';
-import CryptoTab from './product-detail-tabs/crypto-tab';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
@@ -44,6 +48,8 @@ import CircularityTab from './product-detail-tabs/circularity-tab';
 import RoiCalculatorWidget from './roi-calculator-widget';
 import DataCompositionTab from './product-detail-tabs/data-composition-tab';
 import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
+import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
+import { cn } from '@/lib/utils';
 
 
 export default function ProductDetailView({
@@ -92,48 +98,63 @@ export default function ProductDetailView({
     router.refresh();
   }, [router]);
 
+  const showElectronicsTab = product.category === 'Electronics';
+  const showTextileTab = product.category === 'Fashion';
+  const showConstructionTab = product.category === 'Construction';
+  const showFoodTab = product.category === 'Food & Beverage';
+
   return (
     <>
       <div className="space-y-6">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <Button asChild variant="outline" size="sm" className="mb-4">
-              <Link href={`/dashboard/${roleSlug}/products`}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Products
-              </Link>
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {canEditProduct && (
-              <Button asChild>
-                <Link
-                  href={`/dashboard/${roleSlug}/products/${product.id}/edit`}
-                >
-                  Edit Passport
-                </Link>
-              </Button>
-            )}
-            {canAddServiceRecord && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsServiceDialogOpen(true)}
-              >
-                <Wrench className="mr-2 h-4 w-4" /> Add Service
-              </Button>
-            )}
-            {canLogInspection && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsCustomsFormOpen(true)}
-              >
-                <Landmark className="mr-2 h-4 w-4" /> Log Inspection
-              </Button>
-            )}
-          </div>
-        </header>
+        <header className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <Button asChild variant="outline" size="sm" className="mb-2">
+                  <Link href={`/dashboard/${roleSlug}/products`}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Products
+                  </Link>
+                </Button>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {product.productName}
+                </h1>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                    <Badge variant={product.status === 'Published' ? 'default' : 'secondary'}>{product.status}</Badge>
+                    <Badge variant={getStatusBadgeVariant(product.verificationStatus)} className={cn('capitalize', getStatusBadgeClasses(product.verificationStatus))}>{product.verificationStatus || 'Not Submitted'}</Badge>
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3"/> Last updated <RelativeTime date={product.lastUpdated} /></span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                {canEditProduct && (
+                  <Button asChild>
+                    <Link
+                      href={`/dashboard/${roleSlug}/products/${product.id}/edit`}
+                    >
+                      Edit Passport
+                    </Link>
+                  </Button>
+                )}
+                {canAddServiceRecord && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsServiceDialogOpen(true)}
+                  >
+                    <Wrench className="mr-2 h-4 w-4" /> Add Service
+                  </Button>
+                )}
+                {canLogInspection && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCustomsFormOpen(true)}
+                  >
+                    <Landmark className="mr-2 h-4 w-4" /> Log Inspection
+                  </Button>
+                )}
+              </div>
+            </div>
+          </header>
 
         {product.dataQualityWarnings &&
           product.dataQualityWarnings.length > 0 && (
@@ -159,6 +180,10 @@ export default function ProductDetailView({
                 <TabsList className="w-max">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
                   <TabsTrigger value="data">Data & Composition</TabsTrigger>
+                  {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
+                  {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
+                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                  {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                   <TabsTrigger value="lifecycle">Lifecycle & Circularity</TabsTrigger>
                   <TabsTrigger value="sustainability">Sustainability & Compliance</TabsTrigger>
                   <TabsTrigger value="credentials">Digital Credentials</TabsTrigger>
@@ -175,6 +200,26 @@ export default function ProductDetailView({
                <TabsContent value="data" className="mt-4">
                   <DataCompositionTab product={product} />
               </TabsContent>
+               {showElectronicsTab && (
+                <TabsContent value="electronics" className="mt-4">
+                  <ElectronicsTab product={product} />
+                </TabsContent>
+              )}
+              {showTextileTab && (
+                <TabsContent value="textile" className="mt-4">
+                  <TextileTab product={product} />
+                </TabsContent>
+              )}
+               {showFoodTab && (
+                <TabsContent value="food" className="mt-4">
+                  <FoodSafetyTab product={product} />
+                </TabsContent>
+              )}
+              {showConstructionTab && (
+                <TabsContent value="construction" className="mt-4">
+                  <ConstructionTab product={product} />
+                </TabsContent>
+              )}
               <TabsContent value="lifecycle" className="mt-4">
                 <LifecycleTab product={product} />
               </TabsContent>
@@ -196,6 +241,7 @@ export default function ProductDetailView({
             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
+            <ProductAIChatbot productId={product.id} />
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
