@@ -18,6 +18,7 @@ import {
   ListFilter,
   CheckCircle,
   AlertTriangle,
+  Loader2 as Loader2Icon,
 } from "lucide-react";
 import {
   ColumnDef,
@@ -181,9 +182,15 @@ export default function ProductTable({
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => (
-          <Badge variant={getStatusVariant(row.original.status)}>
-            {row.original.status}
-          </Badge>
+            row.original.isMinting ? (
+                <Badge variant="secondary">
+                    <Loader2Icon className="mr-1 h-3 w-3 animate-spin"/> Minting...
+                </Badge>
+            ) : (
+                <Badge variant={getStatusVariant(row.original.status)}>
+                    {row.original.status}
+                </Badge>
+            )
         ),
       },
       {
@@ -357,7 +364,7 @@ export default function ProductTable({
       globalFilter,
     },
     globalFilterFn: (row, columnId, filterValue) => {
-        const s = filterValue.toLowerCase();
+        const search = filterValue.toLowerCase();
         return (
           row.original.productName.toLowerCase().includes(s) ||
           row.original.supplier.toLowerCase().includes(s) ||
