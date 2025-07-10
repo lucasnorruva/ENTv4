@@ -137,8 +137,3 @@ export { generateComponentTest } from './dev-tool-actions';
 export { runDailyComplianceCheck } from '@/triggers/scheduled-verifications';
 export { runDailyReferenceDataSync } from '@/triggers/scheduled-syncs';
 export { onProductChange } from '@/triggers/on-product-change';
-export {
-  getRegulationSources,
-  runHealthCheck,
-  runSync,
-} from './regulation-sync-actions';

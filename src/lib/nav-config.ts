@@ -19,11 +19,6 @@ import {
   Scale,
   Building2,
   Fingerprint,
-  RefreshCw,
-  TestTubeDiagonal,
-  Ticket,
-  Lock,
-  Award,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -50,16 +45,11 @@ export const developerNavItems = [
   { href: `/dashboard/developer/keys`, icon: KeyRound, text: 'API Keys' },
   {
     href: `/dashboard/developer/explorer`,
-    icon: TestTubeDiagonal,
+    icon: FileCode,
     text: 'API Explorer',
   },
   { href: `/dashboard/developer/webhooks`, icon: Webhook, text: 'Webhooks' },
   { href: `/dashboard/developer/analytics`, icon: BarChart3, text: 'Analytics' },
-  {
-    href: `/dashboard/developer/test-generator`,
-    icon: FileCode,
-    text: 'Test Generator',
-  },
   {
     href: `/docs`,
     icon: FileCode,
@@ -87,21 +77,12 @@ export const navConfig: NavConfig = {
           href: 'compliance',
         },
         { title: 'Trust & Verification', icon: Fingerprint, href: 'blockchain' },
-        { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
         { title: 'Platform Logs', icon: Clock, href: 'logs' },
-      ],
-    },
-    {
-      label: 'Operations',
-      items: [
-          { title: 'Service Tickets', icon: Wrench, href: 'service-tickets'},
-          { title: 'Support Tickets', icon: Ticket, href: 'tickets' },
       ],
     },
     {
       label: 'System Configuration',
       items: [
-        { title: 'Permissions', icon: Lock, href: 'permissions' },
         { title: 'API Settings', icon: Cog, href: 'api-settings' },
         {
           title: 'Integrations',
@@ -237,8 +218,7 @@ export const navConfig: NavConfig = {
       items: [
         { title: 'API Keys', icon: KeyRound, href: 'keys' },
         { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
-        { title: 'API Explorer', icon: TestTubeDiagonal, href: 'explorer' },
-        { title: 'AI Test Generator', icon: FileCode, href: 'test-generator' },
+        { title: 'API Explorer', icon: FileCode, href: 'explorer' },
         { title: 'Integrations', icon: Wrench, href: 'integrations' },
       ],
     },
@@ -306,10 +286,6 @@ export const navConfig: NavConfig = {
         },
         { title: 'Analytics', icon: BarChart3, href: 'analytics' },
       ],
-    },
-    {
-      label: 'Rewards',
-      items: [{ title: 'Credit History', icon: Award, href: 'credits' }],
     },
   ],
   [UserRoles.SERVICE_PROVIDER]: [
