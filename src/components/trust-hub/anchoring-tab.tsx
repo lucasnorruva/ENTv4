@@ -14,7 +14,6 @@ import { useToast } from '@/hooks/use-toast';
 import { bulkAnchorProducts } from '@/lib/actions';
 import { Checkbox } from '../ui/checkbox';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 interface AnchoringTabProps {
   products: Product[];
@@ -25,7 +24,6 @@ export default function AnchoringTab({ products, user }: AnchoringTabProps) {
   const [isPending, startTransition] = useTransition();
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const { toast } = useToast();
-  const router = useRouter();
 
   const productsReadyToMint = useMemo(() => {
     return products.filter(p => p.verificationStatus === 'Verified' && !p.blockchainProof && !p.isMinting);
@@ -170,7 +168,7 @@ export default function AnchoringTab({ products, user }: AnchoringTabProps) {
                   <TableCell>{formatDistanceToNow(new Date(p.lastUpdated), { addSuffix: true })}</TableCell>
                    <TableCell className="text-right">
                     <Button asChild variant="outline" size="sm">
-                        <Link href={`/dashboard/admin/products/${p.id}`}>
+                        <Link href={`/dashboard/admin/blockchain/${p.id}`}>
                             <Edit className="h-3 w-3 mr-2"/>
                             View Details
                         </Link>

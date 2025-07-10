@@ -670,3 +670,9 @@ export async function addServiceRecord(
 
   return Promise.resolve(product);
 }
+
+// Internal helper for hashing
+async function hashData(data: object): Promise<string> {
+  const dataString = JSON.stringify(data, Object.keys(data).sort());
+  return createHash('sha256').update(dataString).digest('hex');
+}

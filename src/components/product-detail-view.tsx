@@ -168,7 +168,7 @@ export default function ProductDetailView({
                   <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                   <TabsTrigger value="compliance">Compliance</TabsTrigger>
                   <TabsTrigger value="circularity">Circularity</TabsTrigger>
-                  <TabsTrigger value="trust">Trust &amp; Verification</TabsTrigger>
+                  <TabsTrigger value="crypto">Crypto</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                 </TabsList>
@@ -214,7 +214,7 @@ export default function ProductDetailView({
                <TabsContent value="circularity" className="mt-4">
                 <CircularityTab product={product} />
               </TabsContent>
-              <TabsContent value="trust" className="mt-4">
+              <TabsContent value="crypto" className="mt-4">
                 <CryptoTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
               </TabsContent>
               <TabsContent value="history" className="mt-4">
