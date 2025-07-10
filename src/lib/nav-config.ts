@@ -24,6 +24,7 @@ import {
   Ticket,
   Lock,
   Award,
+  Beaker,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -70,6 +71,11 @@ export const developerNavItems = [
     href: `/dashboard/developer/integrations`,
     icon: Wrench,
     text: 'Integrations',
+  },
+  {
+    href: `/dashboard/developer/test-generator`,
+    icon: Beaker,
+    text: 'Test Generator',
   },
   {
     href: `/dashboard/developer/settings`,
@@ -248,6 +254,7 @@ export const navConfig: NavConfig = {
         { title: 'Webhooks', icon: Webhook, href: 'webhooks' },
         { title: 'API Explorer', icon: TestTubeDiagonal, href: 'explorer' },
         { title: 'Integrations', icon: Wrench, href: 'integrations' },
+        { title: 'Test Generator', icon: Beaker, href: 'test-generator' },
       ],
     },
     {
