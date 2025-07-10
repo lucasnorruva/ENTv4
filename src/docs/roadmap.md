@@ -142,7 +142,7 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [ ] **Apache Kafka Deployment**
 - [ ] **Event Types**
 
-### 1.3 Enhanced User Portals
+### 1.3 Enhanced User Portals & ESPR Compliance
 
 #### 1.3.1 Universal Component Library
 - [x] **Design System Implementation**
@@ -159,6 +159,10 @@ Build the world's most advanced, developer-friendly, and compliance-automated Di
 - [x] **Business Intelligence Integration**
 - [x] **Real-time Analytics Engine**
 - [x] **Predictive Analytics Engine**
+
+#### 1.3.4 ESPR Data Model
+- [x] **Core ESPR Fields (Materials, Lifecycle, Repairability)**
+- [x] **CBAM, EPR, Green Claims Modules**
 
 ### 1.4 Security & Compliance Foundation
 

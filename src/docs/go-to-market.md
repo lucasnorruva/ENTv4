@@ -6,7 +6,7 @@ The platform must bridge multiple regulatory schemes. This section outlines the 
 
 ### European Union (EU)
 - **Mandate**: The Ecodesign for Sustainable Products Regulation (ESPR) enforces DPPs, requiring products to carry them from 2026 onward (textiles first). The upcoming **Green Claims Directive** will also require verifiable proof for environmental marketing.
-- **Platform Alignment**: The Norruva data model includes all ESPR-mandated fields, such as material composition, recyclability info, and carbon footprint data. The `greenClaims` feature allows companies to link marketing claims to verifiable data, aligning with the Green Claims Directive. EU rules apply equally to imports, broadening our scope to global suppliers.
+- **Platform Alignment**: The Norruva data model is built around ESPR's core requirements, including fields for material composition, recyclability, carbon footprint, and specific data points from delegated acts. Our dedicated **ESPR Module** ensures full compliance. The `greenClaims` feature allows companies to link marketing claims to verifiable data, aligning with the Green Claims Directive. EU rules apply equally to imports, broadening our scope to global suppliers.
 - **GTM Focus**: Target EU-based companies and global suppliers who import into the EU, emphasizing turnkey ESPR and Green Claims compliance.
 
 ### United States (US)

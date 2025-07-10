@@ -89,6 +89,12 @@ Different regions have different compliance requirements. The platform introduce
 ### EU Roadmap Frameworks
 The regulatory landscape is rapidly evolving, especially in the EU where new sustainability and circular economy directives are coming into force. The DPP platform is built to stay ahead by incorporating a roadmap of EU frameworks as modular components. We have structured placeholders and modules for upcoming regulations such as the CSRD, PCDS, and ESPR, each of which can be toggled on when relevant.
 
+#### ESPR Module
+The Ecodesign for Sustainable Products Regulation (ESPR) is the foundational EU regulation mandating DPPs. Our platform is built around its principles.
+- **Core Alignment**: The platform's entire data model, from materials to lifecycle and repairability scores, is designed to meet ESPR's data requirements.
+- **Functionality**: The ESPR module ensures full compliance by enforcing data requirements from product-specific delegated acts, providing authenticity verification for customs, and managing product markings.
+- **Future-Proof**: As new product-specific rules (delegated acts) are released by the EU, the platform's compliance engine will be updated modularly to incorporate them without requiring a platform overhaul.
+
 #### CSRD Module
 The Corporate Sustainability Reporting Directive (CSRD) requires large companies to report on sustainability impacts.
 - **Data Fields**: The platform will extend the DPP schema with fields that can feed into ESRS (European Sustainability Reporting Standards) reports, such as product-level carbon footprints, water usage, and social impact metrics.
@@ -100,9 +106,3 @@ The Product Circularity Data Sheet (PCDS) is a standardized format for communica
 - **Functionality**: When enabled, the platform will capture data according to the PCDS standard, including material reuse, recycled content, and disassembly information.
 - **Interoperability**: The platform will be able to export a product's circularity data as a standardized PCDS file or API payload, ensuring interoperability with other systems.
 - **Toggle**: The `Circularity_DataSheet_Module` flag will enable PCDS features.
-
-#### ESPR Module
-The Ecodesign for Sustainable Products Regulation (ESPR) is the foundational EU regulation mandating DPPs.
-- **Core Alignment**: The entire platform is built around ESPR principles, providing a digital identity card for products.
-- **Functionality**: The ESPR module ensures full compliance by enforcing data requirements from delegated acts, providing authenticity verification for customs, and managing product markings.
-- **Future-Proof**: As product-specific rules are released, the compliance engine will be updated modularly.
