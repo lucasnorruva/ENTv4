@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/electronics-tab.tsx
 'use client';
 
