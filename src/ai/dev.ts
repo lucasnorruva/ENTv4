@@ -24,5 +24,7 @@ import "@/ai/flows/analyze-construction-material.ts";
 import "@/ai/flows/analyze-food-safety.ts";
 import "@/ai/flows/classify-hs-code.ts";
 import "@/ai/flows/generate-smart-contract.ts";
+import "@/ai/flows/analyze-product-transit-risk.ts";
+import "@/ai/flows/analyze-simulated-route.ts";
 
 import "@/triggers/scheduled-syncs.ts";
