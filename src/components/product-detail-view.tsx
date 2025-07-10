@@ -13,6 +13,7 @@ import {
   Clock,
   QrCode,
   Rss,
+  ExternalLink,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
@@ -124,6 +125,13 @@ export default function ProductDetailView({
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                 {product.status === 'Published' && (
+                  <Button asChild variant="secondary">
+                    <Link href={`/products/${product.id}`} target="_blank">
+                      View Public Passport <ExternalLink className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
                 {canEditProduct && (
                   <Button asChild>
                     <Link
@@ -262,8 +270,8 @@ export default function ProductDetailView({
               <CardContent>
                 <Tabs defaultValue="qr">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="qr"><QrCode className="h-4 w-4 mr-2"/>QR Code</TabsTrigger>
-                        <TabsTrigger value="nfc"><Rss className="h-4 w-4 mr-2"/>NFC Chip</TabsTrigger>
+                        <TabsTrigger value="qr"><QrCode className="mr-2 h-4 w-4"/>QR Code</TabsTrigger>
+                        <TabsTrigger value="nfc"><Rss className="mr-2 h-4 w-4"/>NFC Chip</TabsTrigger>
                     </TabsList>
                     <TabsContent value="qr" className="mt-4">
                         <DppQrCodeWidget productId={product.id} />
