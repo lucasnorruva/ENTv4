@@ -35,6 +35,7 @@ export {
   runComplianceCheck,
   generateAndSaveProductImage,
   generateAndSaveConformityDeclaration,
+  generateAndSaveSustainabilityDeclaration,
   generateConformityDeclarationText,
   createProductFromImage,
   analyzeBillOfMaterials,
