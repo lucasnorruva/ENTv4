@@ -1,7 +1,7 @@
 // src/app/dashboard/recycler/credits/page.tsx
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { getAuditLogsForUser } from '@/lib/actions';
+import { getAuditLogsForUser } from '@/lib/actions/audit-actions';
 import { UserRoles } from '@/lib/constants';
 import { hasRole } from '@/lib/auth-utils';
 import {
