@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -40,6 +39,7 @@ import SupplyChainTab from './product-detail-tabs/supply-chain-tab';
 import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import HsCodeWidget from './hs-code-widget';
+import CryptoTab from './product-detail-tabs/crypto-tab';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
 import FoodSafetyTab from './product-detail-tabs/food-safety-tab';

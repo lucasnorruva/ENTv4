@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/overview-tab.tsx
 'use client';
 
@@ -11,11 +10,11 @@ import {
   Landmark,
   ListPlus,
   ShieldCheck,
+  Clock,
   Calendar,
 } from 'lucide-react';
 import type { Product, CustomFieldDefinition } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { format } from 'date-fns';
 import RelativeTime from '../relative-time';
 
 function InfoRow({
@@ -46,7 +45,7 @@ function StatusCard({ product }: { product: Product }) {
             </CardHeader>
             <CardContent className="text-sm">
                 <InfoRow icon={Calendar} label="Created" value={<RelativeTime date={product.createdAt} />} />
-                <InfoRow icon={Calendar} label="Last Updated" value={<RelativeTime date={product.lastUpdated} />} />
+                <InfoRow icon={Clock} label="Last Updated" value={<RelativeTime date={product.lastUpdated} />} />
                 <InfoRow icon={ShieldCheck} label="Verification" value={product.verificationStatus || 'Not Submitted'} />
                 {product.lastVerificationDate && <InfoRow icon={Calendar} label="Last Verified" value={<RelativeTime date={product.lastVerificationDate} />} />}
             </CardContent>
