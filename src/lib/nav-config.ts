@@ -20,6 +20,7 @@ import {
   Building2,
   Fingerprint,
   RefreshCw,
+  BrainCircuit,
 } from 'lucide-react';
 import { UserRoles, type Role } from './constants';
 
@@ -91,6 +92,7 @@ export const navConfig: NavConfig = {
           href: 'integrations',
         },
         { title: 'Regulation Sync', icon: RefreshCw, href: 'reg-sync' },
+        { title: 'AI Workbench', icon: BrainCircuit, href: 'ai-workbench' },
       ],
     },
     {
@@ -306,5 +308,3 @@ export const navConfig: NavConfig = {
     },
   ],
 };
-
-    
