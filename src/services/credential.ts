@@ -52,12 +52,16 @@ export async function createVerifiableCredential(
       id: ISSUER_DID,
       name: 'Norruva Platform',
     },
+    credentialStatus: {
+        id: company.revocationListUrl || `https://api.norruva.com/vc/status/${company.id}/1`,
+        type: "StatusList2021"
+    },
     issuanceDate: issuanceDate,
     credentialSubject,
   };
 
   // For this mock, we'll just sign the stringified payload.
-  const payloadHash = await hashData(credentialPayload);
+  const payloadHash = await hashData(JSON.stringify(credentialPayload));
   const signature = await account.signMessage({
     message: payloadHash,
   });

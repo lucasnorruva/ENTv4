@@ -1,7 +1,7 @@
 // src/services/blockchain.ts
 "use server";
 
-import { createHash } from "crypto";
+import { createHash } from 'crypto';
 import type { Product, BlockchainProof } from "@/types";
 import {
   createWalletClient,
@@ -17,30 +17,13 @@ import { storeOnIpfs as mockStoreOnIpfs } from "./ipfs";
 // --- HASHING ---
 
 /**
- * Creates a deterministic SHA-256 hash of an object.
- * In a real-world scenario, this would involve a proper JSON-LD
- * canonicalization algorithm (e.g., RDF Dataset Canonicalization) to ensure
- * the hash is based on the semantic graph, not the specific JSON formatting.
- * For this mock, we'll stringify with sorted keys.
+ * Creates a deterministic SHA-256 hash of a string.
  *
- * @param data The object to hash.
+ * @param data The string to hash.
  * @returns A SHA-256 hash of the key product data.
  */
-export async function hashData(data: object): Promise<string> {
-  // A simple but effective way to make the stringify deterministic
-  const stableStringify = (obj: any): string => {
-    if (obj === null) return 'null';
-    if (typeof obj !== 'object') return JSON.stringify(obj);
-    if (Array.isArray(obj)) {
-      return `[${obj.map(stableStringify).join(',')}]`;
-    }
-    const keys = Object.keys(obj).sort();
-    const kvPairs = keys.map(key => `${JSON.stringify(key)}:${stableStringify(obj[key])}`);
-    return `{${kvPairs.join(',')}}`;
-  };
-
-  const dataString = stableStringify(data);
-  return createHash("sha256").update(dataString).digest("hex");
+export async function hashData(data: string): Promise<string> {
+  return createHash("sha256").update(data).digest("hex");
 }
 
 // --- IPFS (MOCK) ---
@@ -64,27 +47,30 @@ const contractAddress = process.env.SMART_CONTRACT_ADDRESS as
   | Address
   | undefined;
 
-// A simple ABI for a mock contract that registers a Merkle root.
+// A simple ABI for a mock contract that registers a hash.
 // In a real project, this would be imported from your contract artifacts.
 const contractAbi = [
   {
     type: "function",
-    name: "anchorMerkleRoot",
-    inputs: [{ name: "merkleRoot", type: "bytes32", internalType: "bytes32" }],
+    name: "registerPassport",
+    inputs: [
+        { name: "_productId", type: "bytes32", internalType: "bytes32" },
+        { name: "_dataHash", type: "bytes32", internalType: "bytes32" }
+    ],
     outputs: [],
     stateMutability: "nonpayable",
   },
 ] as const;
 
 /**
- * Anchors a data hash (representing a Merkle root) to the Polygon Amoy testnet.
+ * Anchors a data hash to the Polygon Amoy testnet.
  *
- * @param hash The hash (Merkle root) to be anchored on the blockchain.
+ * @param hash The hash to be anchored on the blockchain.
  * @returns A promise that resolves to an object with the transaction hash and a link to a block explorer.
  */
 export async function anchorToPolygon(
   hash: string,
-): Promise<Omit<BlockchainProof, 'type' | 'merkleRoot' | 'proof'>> {
+): Promise<Omit<BlockchainProof, 'type' | 'chain' | 'merkleRoot' | 'proof'>> {
   if (!rpcUrl || !privateKey || !contractAddress) {
     console.warn(
       "Blockchain environment variables (POLYGON_AMOY_RPC_URL, WALLET_PRIVATE_KEY, SMART_CONTRACT_ADDRESS) are not set. Returning mock data.",
@@ -105,17 +91,19 @@ export async function anchorToPolygon(
       transport: http(rpcUrl),
     }).extend(publicActions);
 
-    console.log(`Anchoring root hash ${hash} to Polygon Amoy...`);
+    console.log(`Anchoring hash ${hash} to Polygon Amoy...`);
     console.log(`Using wallet: ${account.address}`);
     console.log(`Contract: ${contractAddress}`);
 
+    // For a real contract, you might pass a product ID as well
+    const productIdBytes32 = ("0x" + "0".repeat(64)) as Hex; // Mock product ID
     const dataHashBytes32 = ("0x" + hash) as Hex;
 
     const { request } = await client.simulateContract({
       address: contractAddress,
       abi: contractAbi,
-      functionName: "anchorMerkleRoot",
-      args: [dataHashBytes32],
+      functionName: "registerPassport",
+      args: [productIdBytes32, dataHashBytes32],
       account,
     });
 

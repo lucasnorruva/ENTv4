@@ -240,23 +240,22 @@ export async function anchorProductOnChain(
 
   const now = new Date().toISOString();
 
-  const dataToHash = {
-    productId: product.id,
-    gtin: product.gtin,
-    materials: product.materials,
-    timestamp: now,
-  };
-  const hash = await hashData(dataToHash);
+  // Create the VC first
+  const vc = await createVerifiableCredential(product, company);
+  const vcString = JSON.stringify(vc);
 
+  // Hash the VC string
+  const hash = await hashData(vcString);
+
+  // Anchor the hash
   const blockchainProof = await anchorToPolygon(hash);
 
-  const vc = await createVerifiableCredential(product, company);
-  product.verifiableCredential = JSON.stringify(vc);
-
+  // Update the product document
+  product.verifiableCredential = vcString;
   product.verificationStatus = 'Verified';
   product.lastVerificationDate = now;
   product.lastUpdated = now;
-  product.blockchainProof = { type: 'SINGLE_HASH', ...blockchainProof };
+  product.blockchainProof = { type: 'SINGLE_HASH', chain: 'Polygon', ...blockchainProof };
   product.status = 'Published';
   product.isMinting = false;
   

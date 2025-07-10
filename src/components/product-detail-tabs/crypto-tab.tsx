@@ -27,6 +27,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { can } from '@/lib/permissions';
 import { generateZkProofForProduct } from '@/lib/actions/product-actions';
+import { Badge } from '../ui/badge';
 
 function InfoRow({
   icon: Icon,
@@ -138,16 +139,18 @@ export default function CryptoTab({
             </InfoRow>
           )}
           {product.blockchainProof && (
-            <InfoRow
+             <InfoRow
               icon={LinkIcon}
               label="Blockchain Transaction"
-              value={product.blockchainProof.txHash}
             >
-              <Button asChild variant="link" size="sm" className="p-0 h-auto">
-                <Link href={product.blockchainProof.explorerUrl} target="_blank">
-                  View on Polygonscan
-                </Link>
-              </Button>
+                <div className="flex items-center gap-4">
+                     <Badge variant="outline">{product.blockchainProof.chain}</Badge>
+                     <Button asChild variant="link" size="sm" className="p-0 h-auto">
+                        <Link href={product.blockchainProof.explorerUrl} target="_blank">
+                          {product.blockchainProof.txHash.slice(0, 10)}...{product.blockchainProof.txHash.slice(-8)}
+                        </Link>
+                      </Button>
+                </div>
             </InfoRow>
           )}
         </CardContent>
@@ -156,7 +159,7 @@ export default function CryptoTab({
         <CardHeader>
           <CardTitle>Zero-Knowledge Proof</CardTitle>
           <CardDescription>
-            Generate and verify a ZK proof to attest compliance without revealing
+            Generate and verify a ZKP to attest compliance without revealing
             sensitive data.
           </CardDescription>
         </CardHeader>
