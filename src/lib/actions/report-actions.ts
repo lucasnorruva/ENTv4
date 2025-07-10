@@ -1,12 +1,11 @@
 // src/lib/actions/report-actions.ts
 'use server';
 
-import { products as mockProducts } from '../data';
-import { auditLogs as mockAuditLogs } from '../audit-log-data';
-import { users as mockUsers } from '../user-data';
 import Papa from 'papaparse';
 import { getProducts } from './product-actions';
 import { getAuditLogs } from './audit-actions';
+import { users as mockUsers } from '../user-data';
+import { products as mockProducts } from '../data';
 
 const flattenObject = (
   obj: any,

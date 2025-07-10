@@ -8,7 +8,14 @@ import DataExportClient from '@/components/data-export-client';
 export default async function DataExportPage() {
   const user = await getCurrentUser(UserRoles.BUSINESS_ANALYST);
 
-  if (!hasRole(user, UserRoles.BUSINESS_ANALYST)) {
+  const allowedRoles = [
+    UserRoles.AUDITOR,
+    UserRoles.BUSINESS_ANALYST,
+    UserRoles.COMPLIANCE_MANAGER,
+    UserRoles.ADMIN,
+  ];
+
+  if (!allowedRoles.some(role => hasRole(user, role))) {
     redirect(`/dashboard/${user.roles[0].toLowerCase().replace(/ /g, '-')}`);
   }
 
