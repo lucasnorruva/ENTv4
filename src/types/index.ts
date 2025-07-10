@@ -19,7 +19,6 @@ import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from '.
 import type { ModelHotspot } from './3d';
 import type { Integration as IntegrationType } from './integrations';
 import { z } from 'zod';
-import type { AnalyzeFoodSafetyInput } from '@/ai/flows/analyze-food-safety';
 
 // Re-exporting for easy access elsewhere
 export type { Role } from '@/lib/constants';

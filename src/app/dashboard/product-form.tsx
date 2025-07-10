@@ -39,6 +39,7 @@ import TextileTab from './product-form-tabs/textile-tab';
 import ConstructionTab from './product-form-tabs/construction-tab';
 import ElectronicsTab from './product-form-tabs/electronics-tab';
 import FoodTab from './product-form-tabs/food-tab';
+import CircularityTab from './product-form-tabs/circularity-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -114,6 +115,7 @@ export default function ProductForm({
     textile: { fiberComposition: [] },
     foodSafety: { ingredients: [], allergens: '' },
     greenClaims: [],
+    massBalance: {},
   };
 
   const form = useForm<ProductFormValues>({
@@ -593,6 +595,12 @@ export default function ProductForm({
           removeGreenClaim={removeGreenClaim}
         />
       ),
+    },
+     {
+      value: 'circularity',
+      label: 'Circularity',
+      show: true,
+      component: <CircularityTab form={form} />,
     },
     {
       value: 'custom',
