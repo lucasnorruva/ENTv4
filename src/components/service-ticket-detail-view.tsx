@@ -35,6 +35,7 @@ import { can } from '@/lib/permissions';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Loader2 } from 'lucide-react';

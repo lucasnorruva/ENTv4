@@ -50,6 +50,7 @@ export {
   analyzeConstructionData,
   analyzeProductTransitRoute,
   generateAndSaveSustainabilityDeclaration,
+  analyzeSimulatedTransitRoute,
 } from './product-ai-actions';
 
 export {

@@ -9,11 +9,11 @@ import type {
   AnalyzeTextileOutput,
   AnalyzeElectronicsComplianceOutput,
   AnalyzeConstructionMaterialOutput,
+  AnalyzeFoodSafetyOutput,
   HsCodeAnalysis,
   ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
-import type { AnalyzeFoodSafetyOutput } from '@/ai/flows/analyze-food-safety'; // Import directly from flow
-import { textileDataSchema } from '@/ai/schemas';
+import { textileDataSchema, foodSafetyDataSchema } from '@/ai/schemas';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
@@ -139,11 +139,6 @@ export interface Battery {
 }
 
 export type TextileData = z.infer<typeof textileDataSchema>;
-
-export const foodSafetyDataSchema = z.object({
-    ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
-    allergens: z.string().optional(),
-});
 export type FoodSafetyData = z.infer<typeof foodSafetyDataSchema>;
 
 
