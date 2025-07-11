@@ -43,6 +43,16 @@ export default function ComplianceOverviewChart({ data }: { data: ChartData }) {
       failed: data.failed,
     },
   ];
+
+  const total = data.verified + data.pending + data.failed;
+  if (total === 0) {
+    return (
+      <div className="flex justify-center items-center h-[200px] text-muted-foreground text-sm">
+        No product data available.
+      </div>
+    );
+  }
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
       <BarChart
