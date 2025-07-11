@@ -1,3 +1,4 @@
+
 // src/lib/actions/compliance-actions.ts
 'use server';
 
@@ -30,7 +31,7 @@ export async function saveCompliancePath(
   pathId?: string,
 ): Promise<CompliancePath> {
   const user = await getUserById(userId);
-  if (!user && userId !== 'system') throw new Error('User not found');
+  if (!user && userId !== 'system' && !userId.startsWith('system:')) throw new Error('User not found');
   if (user) {
     checkPermission(user, 'compliance:manage');
   }

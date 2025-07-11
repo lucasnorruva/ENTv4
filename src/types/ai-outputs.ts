@@ -1,3 +1,4 @@
+
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -709,11 +710,15 @@ export type GenerateComponentTestsOutput = z.infer<
 >;
 
 // analyze-news-reports
+const NewsArticleSchema = z.object({
+  headline: z.string().describe('The headline of the news article.'),
+  content: z.string().describe('The full content of the news article.'),
+});
 export const AnalyzeNewsInputSchema = z.object({
-  topic: z.string().describe('The topic to search for news articles about.'),
   articles: z
-    .array(z.object({ headline: z.string(), content: z.string() }))
+    .array(NewsArticleSchema)
     .describe('A list of news articles to analyze.'),
+  topic: z.string().describe('The topic to search for news articles about.'),
 });
 export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
 export const AnalyzeNewsOutputSchema = z.object({
@@ -770,3 +775,19 @@ export const PredictRegulationChangeOutputSchema = z.object({
 export type PredictRegulationChangeOutput = z.infer<
   typeof PredictRegulationChangeOutputSchema
 >;
+
+// generate-smart-contract
+const ComplianceRulesSchema = z.object({
+  minSustainabilityScore: z.number().optional(),
+  requiredKeywords: z.array(z.string()).optional(),
+  bannedKeywords: z.array(z.string()).optional(),
+});
+export const GenerateSmartContractInputSchema = z.object({
+  pathName: z.string().describe('The name of the compliance path.'),
+  rules: ComplianceRulesSchema.describe('The set of compliance rules.'),
+});
+export type GenerateSmartContractInput = z.infer<typeof GenerateSmartContractInputSchema>;
+export const GenerateSmartContractOutputSchema = z.object({
+  solidityCode: z.string().describe('The generated Solidity smart contract code.'),
+});
+export type GenerateSmartContractOutput = z.infer<typeof GenerateSmartContractOutputSchema>;
