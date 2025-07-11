@@ -5,7 +5,7 @@ import { useState, useTransition, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { generateComponentTest } from '@/lib/actions/ai';
+import { generateComponentTest } from '@/lib/actions/dev-tool-actions';
 import type { User } from '@/types';
 import { Beaker, Loader2, Copy, Check } from 'lucide-react';
 import Editor from 'react-simple-code-editor';
