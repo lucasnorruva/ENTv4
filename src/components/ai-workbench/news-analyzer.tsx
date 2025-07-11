@@ -1,7 +1,7 @@
 // src/components/ai-workbench/news-analyzer.tsx
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -72,7 +72,7 @@ export default function NewsAnalyzer({ user }: { user: User }) {
   const [topic, setTopic] = useState('PFAS regulations');
   const { toast } = useToast();
 
-  const handleRunAnalysis = () => {
+  const handleRunAnalysis = useCallback(() => {
     if (!topic.trim()) {
       toast({
         title: 'No topic provided',
@@ -99,7 +99,8 @@ export default function NewsAnalyzer({ user }: { user: User }) {
         });
       }
     });
-  };
+  }, [topic, user.id, toast]);
+
 
   return (
     <Card>
