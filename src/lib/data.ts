@@ -21,10 +21,10 @@ export let products: Product[] = [
     manualFileSize: 1258291,
     manualFileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     // Point to a public GLB file for the 3D model
-    model3dUrl: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
+    model3dUrl: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Watch/glTF-Binary/Watch.glb',
     modelHotspots: [
-      { position: [0, 0.5, 0], data: { name: 'Visor', material: 'Reinforced Glass' }, interactionType: 'showInfo' },
-      { position: [0.5, 0, 0], data: { name: 'Side Panel', material: 'Composite Weave' }, interactionType: 'showInfo' },
+      { position: [0, 0.5, 0.5], data: { name: 'Watch Face', material: 'Sapphire Crystal' }, interactionType: 'showInfo' },
+      { position: [1.2, 0.2, 0], data: { name: 'Crown', material: 'Recycled Aluminum' }, interactionType: 'showInfo' },
     ],
     createdAt: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
