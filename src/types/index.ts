@@ -14,12 +14,10 @@ import type {
   HsCodeAnalysis,
   ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
-import { textileDataSchema } from '@/ai/schemas';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
 import type { ModelHotspot } from './3d';
 import type { Integration as IntegrationType } from './integrations';
-import { z } from 'zod';
 
 // Re-exporting for easy access elsewhere
 export type { Role } from '@/lib/constants';
@@ -145,7 +143,12 @@ export interface Battery {
   isRemovable?: boolean;
 }
 
-export type TextileData = z.infer<typeof textileDataSchema>;
+export interface TextileData {
+  fiberComposition?: { name: string; percentage: number }[];
+  dyeProcess?: string;
+  weaveType?: string;
+}
+
 export interface FoodSafetyData {
   ingredients: { value: string }[];
   allergens?: string;
@@ -160,12 +163,6 @@ export interface MassBalance {
   creditsAllocated?: number;
   certificationBody?: string;
   certificateNumber?: string;
-}
-
-export interface NfcData {
-  uid: string;
-  technology: string;
-  writeProtected: boolean;
 }
 
 export interface Compliance {
@@ -194,30 +191,6 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
-  };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared?: boolean;
-  };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
-  cbam?: {
-    emissionsReported?: boolean;
-    declarationId?: string;
   };
 }
 
@@ -330,7 +303,6 @@ export interface Product extends BaseEntity {
   greenClaims?: GreenClaim[];
   massBalance?: MassBalance;
   compliance?: Compliance;
-  nfc?: NfcData;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;

@@ -33,7 +33,7 @@ const prompt = ai.definePrompt({
 
 **Sustainability Declaration (Mass Balance)**
 
-**1. Declaration Number:** \`{{{product.id}}}-MB-{{currentDate}}\`
+**1. Declaration Number:** \`{{{product.gtin}}}-MB-{{currentDate}}\`
 
 **2. Certified Company (Economic Operator):**
 - Name: \`{{companyName}}\`

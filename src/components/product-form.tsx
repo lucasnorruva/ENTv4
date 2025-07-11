@@ -41,7 +41,6 @@ import ConstructionTab from './product-form-tabs/construction-tab';
 import ElectronicsTab from './product-form-tabs/electronics-tab';
 import FoodTab from './product-form-tabs/food-tab';
 import CircularityTab from './product-form-tabs/circularity-tab';
-import DigitalLinkTab from './product-form-tabs/digital-link-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -118,7 +117,6 @@ export default function ProductForm({
     foodSafety: { ingredients: [], allergens: '' },
     greenClaims: [],
     massBalance: {},
-    nfc: { uid: '', technology: '', writeProtected: false },
   };
 
   const form = useForm<ProductFormValues>({
@@ -584,12 +582,6 @@ export default function ProductForm({
           isSaving={isSaving}
         />
       ),
-    },
-    {
-      value: 'digital_link',
-      label: 'Digital Link',
-      show: true,
-      component: <DigitalLinkTab form={form} />,
     },
     {
       value: 'compliance',

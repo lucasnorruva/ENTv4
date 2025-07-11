@@ -13,6 +13,7 @@ import {
   Clock,
   QrCode,
   Rss,
+  ExternalLink,
 } from 'lucide-react';
 
 import type { Product, User, CompliancePath, AuditLog, Company } from '@/types';
@@ -46,6 +47,7 @@ import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
 import DataCompositionTab from './product-detail-tabs/data-composition-tab';
 import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
+import CircularityTab from './product-detail-tabs/circularity-tab';
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -124,6 +126,13 @@ export default function ProductDetailView({
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                 {product.status === 'Published' && (
+                  <Button asChild variant="secondary">
+                    <Link href={`/products/${product.id}`} target="_blank">
+                      View Public Passport <ExternalLink className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                )}
                 {canEditProduct && (
                   <Button asChild>
                     <Link
@@ -183,8 +192,9 @@ export default function ProductDetailView({
                   {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                   {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
                   {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
-                  <TabsTrigger value="lifecycle">Lifecycle & Circularity</TabsTrigger>
-                  <TabsTrigger value="sustainability">Sustainability & Compliance</TabsTrigger>
+                  <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                  <TabsTrigger value="circularity">Circularity</TabsTrigger>
+                  <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
                   <TabsTrigger value="credentials">Digital Credentials</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
@@ -222,8 +232,11 @@ export default function ProductDetailView({
               <TabsContent value="lifecycle" className="mt-4">
                 <LifecycleTab product={product} />
               </TabsContent>
+              <TabsContent value="circularity" className="mt-4">
+                <CircularityTab product={product} />
+              </TabsContent>
                <TabsContent value="sustainability" className="mt-4">
-                <SustainabilityTab product={product} />
+                <SustainabilityTab product={product} compliancePath={compliancePath}/>
               </TabsContent>
               <TabsContent value="credentials" className="mt-4">
                 <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />
@@ -239,17 +252,19 @@ export default function ProductDetailView({
             <AuditLogTimeline logs={auditLogs} userMap={userMap} />
           </div>
           <div className="space-y-6">
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="ai-chatbot" className="border rounded-lg">
-                <AccordionTrigger className="px-6">
-                  <h3 className="text-lg font-semibold">Ask AI</h3>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ProductAIChatbot productId={product.id} />
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-            
+            <Card>
+                <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="ai-chatbot" className="border-none">
+                    <AccordionTrigger className="px-6 hover:no-underline">
+                    <h3 className="text-lg font-semibold">Ask AI</h3>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                    <ProductAIChatbot productId={product.id} />
+                    </AccordionContent>
+                </AccordionItem>
+                </Accordion>
+            </Card>
+
             {product.submissionChecklist && (
               <SubmissionChecklist checklist={product.submissionChecklist} />
             )}
@@ -260,8 +275,8 @@ export default function ProductDetailView({
               <CardContent>
                 <Tabs defaultValue="qr">
                     <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="qr"><QrCode className="h-4 w-4 mr-2"/>QR Code</TabsTrigger>
-                        <TabsTrigger value="nfc"><Rss className="h-4 w-4 mr-2"/>NFC Chip</TabsTrigger>
+                        <TabsTrigger value="qr"><QrCode className="mr-2 h-4 w-4"/>QR Code</TabsTrigger>
+                        <TabsTrigger value="nfc"><Rss className="mr-2 h-4 w-4"/>NFC Chip</TabsTrigger>
                     </TabsList>
                     <TabsContent value="qr" className="mt-4">
                         <DppQrCodeWidget productId={product.id} />
