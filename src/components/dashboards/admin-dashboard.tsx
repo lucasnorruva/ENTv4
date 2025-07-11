@@ -20,7 +20,7 @@ export default async function AdminDashboard({ user }: { user: User }) {
     getProducts(), // Admin should see all products, remove user ID scope.
     getAuditLogs(),
     getCompanies(),
-    getServiceTickets(), // Admin should see all service tickets.
+    getServiceTickets(user.id), // Admin should see all service tickets.
     getWebhooks(), // Admin should see all webhooks.
   ]);
 
