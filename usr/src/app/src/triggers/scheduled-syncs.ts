@@ -3,6 +3,7 @@
 
 import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/lib/actions";
 import { predictRegulationChange } from "@/ai/flows/predict-regulation-change";
+import { analyzeNewsReports } from "@/ai/flows/analyze-news-reports";
 
 export async function runDailyReferenceDataSync(): Promise<{
   syncedItems: number;
@@ -13,13 +14,10 @@ export async function runDailyReferenceDataSync(): Promise<{
   await logAuditEvent("cron.prediction_engine.start", 'dailyRegulatoryPrediction', {}, "system");
 
   // This mock simulates deriving signals from internal data, not external news.
-  const internalSignals = [
-    'Increased number of products failing RoHS compliance in the last month.',
-    'High number of service tickets related to battery degradation.',
-  ];
+  const newsAnalysis = await analyzeNewsReports({ topic: 'default', articles: [] });
 
   const prediction = await predictRegulationChange({
-    signals: internalSignals,
+    signals: newsAnalysis.keyTakeaways,
     targetIndustry: 'Electronics',
   });
   console.log("AI regulatory prediction:", prediction);
