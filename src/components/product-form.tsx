@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useEffect, useState, useTransition, useCallback } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Save, ArrowLeft } from 'lucide-react';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -27,6 +27,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { productFormSchema, type ProductFormValues } from '@/lib/schemas';
 import { can } from '@/lib/permissions';
+import { cn } from '@/lib/utils';
 import { getCompanyById } from '@/lib/auth';
 
 import GeneralTab from './product-form-tabs/general-tab';
@@ -39,7 +40,6 @@ import ConstructionTab from './product-form-tabs/construction-tab';
 import ElectronicsTab from './product-form-tabs/electronics-tab';
 import FoodTab from './product-form-tabs/food-tab';
 import CircularityTab from './product-form-tabs/circularity-tab';
-import DigitalLinkTab from './product-form-tabs/digital-link-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -98,7 +98,7 @@ export default function ProductForm({
     materials: [],
     manufacturing: { facility: '', country: '', manufacturingProcess: '' },
     certifications: [],
-    packaging: { type: '', recyclable: false, weight: 0 },
+    packaging: { type: '', recyclable: false },
     lifecycle: {},
     battery: {},
     compliance: {},
@@ -109,7 +109,6 @@ export default function ProductForm({
     model3dUrl: '',
     model3dFileName: '',
     model3dFileHash: '',
-    modelHotspots: [],
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
@@ -117,7 +116,6 @@ export default function ProductForm({
     foodSafety: { ingredients: [], allergens: '' },
     greenClaims: [],
     massBalance: {},
-    nfc: {},
   };
 
   const form = useForm<ProductFormValues>({
@@ -605,12 +603,6 @@ export default function ProductForm({
       component: <CircularityTab form={form} />,
     },
     {
-      value: 'digital_link',
-      label: 'Digital Link',
-      show: true,
-      component: <DigitalLinkTab form={form} />,
-    },
-    {
       value: 'custom',
       label: 'Custom Data',
       show: customFields.length > 0,
@@ -656,8 +648,10 @@ export default function ProductForm({
               isUploading ||
               isGeneratingImage ||
               isUploadingManual ||
-              isUploadingModel) && (
+              isUploadingModel) ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="mr-2 h-4 w-4" />
               )}
               {isUploading
                 ? 'Uploading Image...'

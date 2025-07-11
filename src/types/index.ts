@@ -119,16 +119,9 @@ export interface Packaging {
   weight?: number;
 }
 
-export interface ScopeEmissions {
-    scope1?: number;
-    scope2?: number;
-    scope3?: number;
-}
-
 export interface Lifecycle {
   carbonFootprint?: number; // in kg CO2-eq
   carbonFootprintMethod?: string;
-  scopeEmissions?: ScopeEmissions;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
@@ -151,12 +144,6 @@ export interface MassBalance {
   creditsAllocated?: number;
   certificationBody?: string;
   certificateNumber?: string;
-}
-
-export interface NFC {
-  uid?: string;
-  technology?: string;
-  writeProtected?: boolean;
 }
 
 export interface TextileData {
@@ -197,28 +184,6 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: { declared?: boolean };
-  conflictMinerals?: {
-    compliant?: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant?: boolean;
-    delegatedActUrl?: string;
-  };
-  cbam?: {
-    emissionsReported?: boolean;
-    declarationId?: string;
-  }
 }
 
 export interface ComplianceGap {
@@ -227,21 +192,25 @@ export interface ComplianceGap {
 }
 
 /**
+ * Represents a single service or repair record.
+ */
+export interface ServiceRecord extends BaseEntity {
+  providerId: string;
+  providerName: string;
+  notes: string;
+}
+
+/**
  * Groups all AI-generated and compliance-related data.
  */
-export interface SustainabilityData {
-  score?: number;
-  environmental?: number;
-  social?: number;
-  governance?: number;
-  summary?: string;
+export interface SustainabilityData extends EsgScoreOutput {
+  classification?: ClassifyProductOutput;
+  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
+  lifecyclePrediction?: PredictLifecycleOutput;
   isCompliant: boolean;
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
-  traceabilityScore?: number;
-  lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
-  lifecyclePrediction?: PredictLifecycleOutput;
 }
 
 /**
@@ -324,15 +293,14 @@ export interface Product extends BaseEntity {
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
   massBalance?: MassBalance;
-  nfc?: NFC;
-
-  // AI-Generated & Compliance Data
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
   foodSafetyAnalysis?: FoodSafetyAnalysis;
   transitRiskAnalysis?: ProductTransitRiskAnalysis;
   hsCodeAnalysis?: HsCodeAnalysis;
+
+  // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];

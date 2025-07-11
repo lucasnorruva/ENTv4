@@ -30,16 +30,9 @@ const packagingSchema = z.object({
   weight: z.coerce.number().optional(),
 });
 
-const scopeEmissionsSchema = z.object({
-    scope1: z.coerce.number().optional(),
-    scope2: z.coerce.number().optional(),
-    scope3: z.coerce.number().optional(),
-});
-
 const lifecycleSchema = z.object({
   carbonFootprint: z.coerce.number().optional(),
   carbonFootprintMethod: z.string().optional(),
-  scopeEmissions: scopeEmissionsSchema.optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
@@ -62,12 +55,6 @@ const massBalanceSchema = z.object({
   creditsAllocated: z.coerce.number().optional(),
   certificationBody: z.string().optional(),
   certificateNumber: z.string().optional(),
-});
-
-const nfcSchema = z.object({
-  uid: z.string().optional(),
-  technology: z.string().optional(),
-  writeProtected: z.boolean().optional(),
 });
 
 const complianceSchema = z.object({
@@ -111,38 +98,6 @@ const complianceSchema = z.object({
       standard: z.string().optional(),
     })
     .optional(),
-  epr: z
-    .object({
-      schemeId: z.string().optional(),
-      producerRegistrationNumber: z.string().optional(),
-      wasteCategory: z.string().optional(),
-    })
-    .optional(),
-  battery: z
-    .object({
-      compliant: z.boolean().optional(),
-      passportId: z.string().optional(),
-    })
-    .optional(),
-  pfas: z.object({ declared: z.boolean().optional() }).optional(),
-  conflictMinerals: z
-    .object({
-      compliant: z.boolean().optional(),
-      reportUrl: z.string().url().or(z.literal('')).optional(),
-    })
-    .optional(),
-  espr: z
-    .object({
-      compliant: z.boolean().optional(),
-      delegatedActUrl: z.string().url().or(z.literal('')).optional(),
-    })
-    .optional(),
-  cbam: z
-    .object({
-      emissionsReported: z.boolean().optional(),
-      declarationId: z.string().optional(),
-    })
-    .optional(),
 });
 
 const textileSchema = z.object({
@@ -157,12 +112,6 @@ const textileSchema = z.object({
 const foodSafetySchema = z.object({
   ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
   allergens: z.string().optional(),
-});
-
-const modelHotspotSchema = z.object({
-    position: z.tuple([z.number(), z.number(), z.number()]),
-    data: z.any(),
-    interactionType: z.enum(['showInfo', 'playAnimation']),
 });
 
 export const productFormSchema = z.object({
@@ -183,7 +132,6 @@ export const productFormSchema = z.object({
   model3dFileName: z.string().optional(),
   model3dFileHash: z.string().optional(),
   declarationOfConformity: z.string().optional(),
-  sustainabilityDeclaration: z.string().optional(),
   materials: z.array(materialSchema).optional(),
   manufacturing: manufacturingSchema.optional(),
   certifications: z.array(certificationSchema).optional(),
@@ -196,8 +144,6 @@ export const productFormSchema = z.object({
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
   massBalance: massBalanceSchema.optional(),
-  nfc: nfcSchema.optional(),
-  modelHotspots: z.array(modelHotspotSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

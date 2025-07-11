@@ -99,9 +99,9 @@ export default function ProductDetailView({
   }, [router]);
 
   const showElectronicsTab = product.category === 'Electronics' && product.electronicsAnalysis;
-  const showTextileTab = product.category === 'Fashion' && product.textileAnalysis;
+  const showTextileTab = product.category === 'Fashion' && (product.textile || product.textileAnalysis);
+  const showFoodTab = product.category === 'Food & Beverage' && (product.foodSafety || product.foodSafetyAnalysis);
   const showConstructionTab = product.category === 'Construction' && product.constructionAnalysis;
-  const showFoodTab = product.category === 'Food & Beverage' && product.foodSafetyAnalysis;
 
   return (
     <>
