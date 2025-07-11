@@ -1,3 +1,4 @@
+
 // src/components/product-detail-tabs/3d-viewer-tab.tsx
 'use client';
 
@@ -45,7 +46,7 @@ export default function ThreeDViewerTab({ product }: ThreeDViewerTabProps) {
       <CardHeader>
         <CardTitle>Digital Twin</CardTitle>
         <CardDescription>
-          Interact with the product's digital twin. Click hotspots for more info.
+          Interact with the product's digital twin. Click hotspots for more info. (Note: This is a placeholder model).
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -54,3 +55,5 @@ export default function ThreeDViewerTab({ product }: ThreeDViewerTabProps) {
     </Card>
   );
 }
+
+    

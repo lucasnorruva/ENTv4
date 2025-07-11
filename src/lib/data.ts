@@ -1,3 +1,4 @@
+
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -19,10 +20,11 @@ export let products: Product[] = [
     manualFileName: 'smartwatch-manual-v5.pdf',
     manualFileSize: 1258291,
     manualFileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-    model3dUrl: '/mock-assets/smartwatch.glb',
+    // Point to a public GLB file for the 3D model
+    model3dUrl: 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF-Binary/DamagedHelmet.glb',
     modelHotspots: [
-      { position: [0, 0.5, 0], data: { name: 'Watch Face', material: 'Gorilla Glass' }, interactionType: 'showInfo' },
-      { position: [0.5, 0, 0], data: { name: 'Crown', material: 'Recycled Aluminum' }, interactionType: 'showInfo' },
+      { position: [0, 0.5, 0], data: { name: 'Visor', material: 'Reinforced Glass' }, interactionType: 'showInfo' },
+      { position: [0.5, 0, 0], data: { name: 'Side Panel', material: 'Composite Weave' }, interactionType: 'showInfo' },
     ],
     createdAt: new Date(new Date(now).setDate(now.getDate() - 2)).toISOString(),
     updatedAt: new Date(new Date(now).setDate(now.getDate() - 1)).toISOString(),
@@ -386,3 +388,5 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
   },
 ];
+
+    
