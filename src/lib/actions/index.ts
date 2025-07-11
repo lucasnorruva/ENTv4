@@ -18,3 +18,6 @@ export * from './ticket-actions';
 export * from './search-actions';
 export * from './dev-tool-actions';
 export * from './regulation-sync-actions';
+export * from '@/triggers/scheduled-verifications';
+export * from '@/triggers/scheduled-syncs';
+export * from '@/triggers/on-product-change';

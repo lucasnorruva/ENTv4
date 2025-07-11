@@ -240,7 +240,7 @@ export const passwordFormSchema = z
     currentPassword: z.string().min(1, 'Current password is required.'),
     newPassword: z
       .string()
-      .min(8, 'New password must be at least 8 characters.'),
+      .min(8, { message: 'New password must be at least 8 characters.' }),
     confirmPassword: z.string(),
   })
   .refine(data => data.newPassword === data.confirmPassword, {
@@ -255,13 +255,6 @@ export const notificationsFormSchema = z.object({
   platformNews: z.boolean(),
 });
 export type NotificationsFormValues = z.infer<typeof notificationsFormSchema>;
-
-export const bulkUserImportSchema = z.object({
-  fullName: z.string().min(2),
-  email: z.string().email(),
-  roles: z.string().transform(val => val.split(',').map(s => s.trim() as Role)),
-});
-export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
 
 export const deleteAccountSchema = z.object({
   confirmText: z
@@ -290,6 +283,17 @@ export const customsInspectionFormSchema = z.object({
 export type CustomsInspectionFormValues = z.infer<
   typeof customsInspectionFormSchema
 >;
+
+export const apiSettingsSchema = z.object({
+    isPublicApiEnabled: z.boolean(),
+    rateLimits: z.object({
+      free: z.number().int().min(0),
+      pro: z.number().int().min(0),
+      enterprise: z.number().int().min(0),
+    }),
+    isWebhookSigningEnabled: z.boolean(),
+  });
+export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
 
 export const companySettingsSchema = z.object({
   aiEnabled: z.boolean(),
@@ -376,3 +380,22 @@ export const ownershipTransferSchema = z.object({
   newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
 });
 export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
+
+export const bulkUserImportSchema = z.object({
+  fullName: z.string().min(2),
+  email: z.string().email(),
+  roles: z.string().transform((val, ctx) => {
+    const roles = val.split(',').map(r => r.trim());
+    const validRoles = Object.values(UserRoles);
+    const invalidRoles = roles.filter(r => !validRoles.includes(r as Role));
+    if (invalidRoles.length > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Invalid role(s): ${invalidRoles.join(', ')}`,
+      });
+      return z.NEVER;
+    }
+    return roles as Role[];
+  }),
+});
+export type BulkUserImportValues = z.infer<typeof bulkUserImportSchema>;
