@@ -14,7 +14,6 @@ const certificationSchema = z.object({
   name: z.string().min(1, 'Certificate name is required.'),
   issuer: z.string().min(1, 'Issuer is required.'),
   validUntil: z.string().optional(),
-  documentUrl: z.string().url().or(z.literal('')).optional(),
 });
 
 const manufacturingSchema = z.object({
@@ -33,11 +32,6 @@ const packagingSchema = z.object({
 const lifecycleSchema = z.object({
   carbonFootprint: z.coerce.number().optional(),
   carbonFootprintMethod: z.string().optional(),
-  scopeEmissions: z.object({
-    scope1: z.coerce.number().optional(),
-    scope2: z.coerce.number().optional(),
-    scope3: z.coerce.number().optional(),
-  }).optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
@@ -49,17 +43,6 @@ const batterySchema = z.object({
   capacityMah: z.coerce.number().optional(),
   voltage: z.coerce.number().optional(),
   isRemovable: z.boolean().optional(),
-});
-
-const greenClaimSchema = z.object({
-  claim: z.string().min(5, 'Claim must be at least 5 characters.'),
-  substantiation: z.string().min(10, 'Substantiation must be at least 10 characters.'),
-});
-
-const massBalanceSchema = z.object({
-  creditsAllocated: z.coerce.number().optional(),
-  certificationBody: z.string().optional(),
-  certificateNumber: z.string().optional(),
 });
 
 const textileSchema = z.object({
@@ -74,12 +57,6 @@ const textileSchema = z.object({
 const foodSafetySchema = z.object({
   ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
   allergens: z.string().optional(),
-});
-
-const nfcSchema = z.object({
-  uid: z.string().optional(),
-  technology: z.string().optional(),
-  writeProtected: z.boolean().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -110,9 +87,6 @@ export const productFormSchema = z.object({
   customData: z.record(z.any()).optional(),
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
-  greenClaims: z.array(greenClaimSchema).optional(),
-  massBalance: massBalanceSchema.optional(),
-  nfc: nfcSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;
@@ -241,53 +215,6 @@ export const overrideVerificationSchema = z.object({
 });
 export type OverrideVerificationFormValues = z.infer<typeof overrideVerificationSchema>;
 
-export const custodyStepSchema = z.object({
-  event: z.string().min(3, "Event description is required."),
-  location: z.string().min(2, "Location is required."),
-  actor: z.string().min(2, "Actor is required."),
-});
-export type CustodyStepFormValues = z.infer<typeof custodyStepSchema>;
-
-export const ownershipTransferSchema = z.object({
-  newOwnerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
-});
-export type OwnershipTransferFormValues = z.infer<typeof ownershipTransferSchema>;
-
-export const companySettingsSchema = z.object({
-  aiEnabled: z.boolean(),
-  apiAccess: z.boolean(),
-  brandingCustomization: z.boolean(),
-  logoUrl: z.string().optional(),
-  logoFileName: z.string().optional(),
-  theme: z
-    .object({
-      light: z.object({ primary: z.string().optional(), accent: z.string().optional() }),
-      dark: z.object({ primary: z.string().optional(), accent: z.string().optional() }),
-    })
-    .optional(),
-  customFields: z
-    .array(
-      z.object({
-        id: z.string().min(1, 'ID is required').regex(/^[a-z0-9_]+$/, 'ID must be lowercase letters, numbers, and underscores.'),
-        label: z.string().min(1, 'Label is required'),
-        type: z.enum(['text', 'number', 'boolean']),
-      }),
-    )
-    .optional(),
-});
-export type CompanySettingsFormValues = z.infer<typeof companySettingsSchema>;
-
-export const apiSettingsSchema = z.object({
-  isPublicApiEnabled: z.boolean(),
-  rateLimits: z.object({
-    free: z.number().int().min(0),
-    pro: z.number().int().min(0),
-    enterprise: z.number().int().min(0),
-  }),
-  isWebhookSigningEnabled: z.boolean(),
-});
-export type ApiSettingsFormValues = z.infer<typeof apiSettingsSchema>;
-
 export const customsInspectionFormSchema = z.object({
   status: z.enum(['Cleared', 'Detained', 'Rejected']),
   authority: z.string().min(2, 'Authority name is required.'),
@@ -295,32 +222,3 @@ export const customsInspectionFormSchema = z.object({
   notes: z.string().optional(),
 });
 export type CustomsInspectionFormValues = z.infer<typeof customsInspectionFormSchema>;
-
-export const bulkProductImportSchema = z.object({
-  productName: z.string().min(1),
-  productDescription: z.string().min(1),
-  gtin: z.string().optional(),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']),
-  productImage: z.string().url().optional(),
-  manualUrl: z.string().url().optional(),
-  materials: z.string().transform((val, ctx) => {
-    try {
-      const parsed = JSON.parse(val);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Materials must be a valid JSON array.',
-      });
-      return z.NEVER;
-    } catch (e) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Materials must be valid JSON.',
-      });
-      return z.NEVER;
-    }
-  }).optional(),
-});
-export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;

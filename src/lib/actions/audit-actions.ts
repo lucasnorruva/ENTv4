@@ -1,7 +1,7 @@
 // src/lib/actions/audit-actions.ts
 'use server';
 
-import type { AuditLog, User } from '@/types';
+import type { AuditLog } from '@/types';
 import { auditLogs as mockAuditLogs } from '@/lib/audit-log-data';
 import { getUserById } from '@/lib/auth';
 import { newId } from './utils';
@@ -35,8 +35,7 @@ export async function logAuditEvent(
   return Promise.resolve();
 }
 
-export async function getAuditLogs(filters?: { companyId?: string }): Promise<AuditLog[]> {
-  // Mock filtering if needed, for now returns all
+export async function getAuditLogs(): Promise<AuditLog[]> {
   return Promise.resolve(
     [...mockAuditLogs].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
