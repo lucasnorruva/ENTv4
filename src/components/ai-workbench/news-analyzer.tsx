@@ -1,4 +1,3 @@
-
 // src/components/ai-workbench/news-analyzer.tsx
 'use client';
 
@@ -22,7 +21,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { runNewsAnalysis } from '@/lib/actions';
+import { runNewsAnalysis } from '@/lib/actions/ai';
 import type { User } from '@/types';
 import type { AnalyzeNewsOutput } from '@/types/ai-outputs';
 import { Badge } from '../ui/badge';
