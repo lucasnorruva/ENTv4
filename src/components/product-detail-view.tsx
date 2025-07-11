@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 

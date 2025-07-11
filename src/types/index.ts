@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -165,6 +164,12 @@ export interface MassBalance {
   certificateNumber?: string;
 }
 
+export interface NfcData {
+  uid?: string;
+  technology?: string;
+  writeProtected?: boolean;
+}
+
 export interface Compliance {
   rohs?: {
     compliant?: boolean;
@@ -191,6 +196,30 @@ export interface Compliance {
   foodContact?: {
     safe?: boolean;
     standard?: string;
+  };
+  epr?: {
+    schemeId?: string;
+    producerRegistrationNumber?: string;
+    wasteCategory?: string;
+  };
+  battery?: {
+    compliant?: boolean;
+    passportId?: string;
+  };
+  pfas?: {
+    declared: boolean;
+  };
+  conflictMinerals?: {
+    compliant: boolean;
+    reportUrl?: string;
+  };
+  espr?: {
+    compliant: boolean;
+    delegatedActUrl?: string;
+  };
+  cbam?: {
+    emissionsReported: boolean;
+    declarationId?: string;
   };
 }
 
@@ -302,7 +331,8 @@ export interface Product extends BaseEntity {
   foodSafety?: FoodSafetyData;
   greenClaims?: GreenClaim[];
   massBalance?: MassBalance;
-  compliance?: Compliance;
+  compliance?: Partial<Compliance>;
+  nfc?: NfcData;
   constructionAnalysis?: ConstructionAnalysis;
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
