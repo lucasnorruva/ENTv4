@@ -1,3 +1,4 @@
+
 // src/components/ai-workbench/lifecycle-predictor.tsx
 'use client';
 

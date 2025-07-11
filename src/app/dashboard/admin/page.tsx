@@ -1,3 +1,4 @@
+
 // src/app/dashboard/admin/page.tsx
 import AdminDashboard from '@/components/dashboards/admin-dashboard';
 import { getCurrentUser } from '@/lib/auth';

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -34,11 +35,11 @@ export default function AiWorkbenchPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-8">
           <h2 className="text-xl font-semibold border-b pb-2">Business &amp; Risk Analysis</h2>
-          <SupplierScorer user={user} />
           <HsCodeClassifier user={user} />
           <LifecyclePredictor user={user} />
           <RoiCalculator user={user} />
           <RouteRiskAnalyzer user={user} />
+          <SupplierScorer user={user} />
         </div>
         <div className="space-y-8">
           <h2 className="text-xl font-semibold border-b pb-2">Developer Tools</h2>
