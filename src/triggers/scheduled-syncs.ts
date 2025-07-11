@@ -1,22 +1,10 @@
+
 // src/triggers/scheduled-syncs.ts
 "use server";
 
 import { getCompliancePaths, saveCompliancePath, logAuditEvent } from "@/lib/actions";
-import { analyzeNewsReports } from "@/ai/flows/analyze-news-reports";
 import { predictRegulationChange } from "@/ai/flows/predict-regulation-change";
-
-// Mock data source for the prediction engine
-const MOCK_NEWS_ARTICLES = [
-    {
-      headline: "EU Parliament Debates Stricter Rules on Microplastic Shedding from Textiles",
-      content: "A new report from the European Environment Agency has highlighted the significant contribution of synthetic textiles to microplastic pollution. Members of Parliament are now pushing for amendments to the ESPR to include mandatory shedding tests and labeling for garments containing more than 50% synthetic fibers."
-    },
-    {
-      headline: "Chemical Watch: Calls for Broader PFAS Restrictions in Consumer Electronics",
-      content: "Environmental NGOs are petitioning the ECHA to expand the scope of PFAS restrictions under REACH to include all non-essential uses in consumer electronics, citing concerns over bio-accumulation and difficulties in recycling."
-    }
-];
-
+import { analyzeNewsReports } from "@/ai/flows/analyze-news-reports";
 
 export async function runDailyReferenceDataSync(): Promise<{
   syncedItems: number;
@@ -26,19 +14,15 @@ export async function runDailyReferenceDataSync(): Promise<{
   console.log("Running scheduled AI-powered regulatory prediction...");
   await logAuditEvent("cron.prediction_engine.start", 'dailyRegulatoryPrediction', {}, "system");
 
-  // 1. Analyze Signals (e.g., from news)
-  const newsAnalysis = await analyzeNewsReports({ articles: MOCK_NEWS_ARTICLES });
-  console.log("AI analysis of news signals complete:", newsAnalysis);
+  // This mock simulates deriving signals from internal data, not external news.
+  const newsAnalysis = await analyzeNewsReports({ topic: 'default', articles: [] });
 
-  // 2. Make a Prediction based on signals
   const prediction = await predictRegulationChange({
     signals: newsAnalysis.keyTakeaways,
-    targetIndustry: 'Electronics' // Focus on one for this mock
+    targetIndustry: 'Electronics',
   });
   console.log("AI regulatory prediction:", prediction);
 
-  // 3. Act on the Prediction
-  // Find a compliance path related to the prediction to update it.
   const allPaths = await getCompliancePaths();
   const pathToUpdate = allPaths.find(p => 
     prediction.impactedRegulations.some(reg => p.regulations.includes(reg)) && p.category === 'Electronics'
@@ -62,8 +46,8 @@ export async function runDailyReferenceDataSync(): Promise<{
       jurisdiction: pathToUpdate.jurisdiction,
       regulations: pathToUpdate.regulations.map(r => ({value: r})),
       minSustainabilityScore: newScore,
-      requiredKeywords: pathToUpdate.rules.requiredKeywords?.map(r => ({value: r})),
-      bannedKeywords: pathToUpdate.rules.bannedKeywords?.map(r => ({value: r})),
+      requiredKeywords: pathToUpdate.rules.requiredKeywords?.map(r => ({value: r})) || [],
+      bannedKeywords: pathToUpdate.rules.bannedKeywords?.map(r => ({value: r})) || [],
   }
 
   await saveCompliancePath(updatedValues, "system:prediction_engine", pathToUpdate.id);

@@ -11,6 +11,7 @@ import RoiCalculator from '@/components/ai-workbench/roi-calculator';
 import HsCodeClassifier from '@/components/ai-workbench/hs-code-classifier';
 import LifecyclePredictor from '@/components/ai-workbench/lifecycle-predictor';
 import TestGeneratorClient from '@/components/test-generator-client';
+import NewsAnalyzer from '@/components/ai-workbench/news-analyzer';
 
 export default function AiWorkbenchPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -37,8 +38,9 @@ export default function AiWorkbenchPage() {
           <h2 className="text-xl font-semibold border-b pb-2">Business &amp; Risk Analysis</h2>
           <HsCodeClassifier user={user} />
           <LifecyclePredictor user={user} />
-          <RoiCalculator user={user} />
           <RouteRiskAnalyzer user={user} />
+          <NewsAnalyzer user={user} />
+          <RoiCalculator user={user} />
           <SupplierScorer user={user} />
         </div>
         <div className="space-y-8">

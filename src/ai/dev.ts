@@ -33,3 +33,5 @@ import '@/ai/flows/analyze-simulated-route.ts';
 import '@/ai/flows/classify-hs-code.ts';
 import '@/ai/flows/predict-regulation-change.ts';
 import '@/ai/flows/generate-smart-contract.ts';
+import '@/ai/flows/analyze-news-reports.ts';
+

@@ -1,3 +1,4 @@
+
 // src/components/ai-workbench/news-analyzer.tsx
 'use client';
 
