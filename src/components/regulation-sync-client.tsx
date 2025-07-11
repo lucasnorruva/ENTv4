@@ -37,9 +37,9 @@ import {
   runHealthCheck,
   runSync,
   runTemporalComplianceCheck,
-} from '@/lib/actions';
+} from '@/lib/actions/regulation-sync-actions';
+import { getProducts } from '@/lib/actions/product-actions';
 import { formatDistanceToNow } from 'date-fns';
-import { getProducts } from '../lib/actions';
 import { ProductTrackerSelector } from './dpp-tracker/product-tracker-selector';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 
