@@ -122,6 +122,11 @@ export interface Packaging {
 export interface Lifecycle {
   carbonFootprint?: number; // in kg CO2-eq
   carbonFootprintMethod?: string;
+  scopeEmissions?: {
+    scope1?: number;
+    scope2?: number;
+    scope3?: number;
+  },
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
@@ -158,32 +163,18 @@ export interface FoodSafetyData {
 }
 
 export interface Compliance {
-  rohs?: {
-    compliant?: boolean;
-    exemption?: string;
-  };
-  reach?: {
-    svhcDeclared?: boolean;
-    scipReference?: string;
-  };
-  weee?: {
-    registered?: boolean;
-    registrationNumber?: string;
-  };
-  eudr?: {
-    compliant?: boolean;
-    diligenceId?: string;
-  };
-  ce?: {
-    marked?: boolean;
-  };
-  prop65?: {
-    warningRequired?: boolean;
-  };
-  foodContact?: {
-    safe?: boolean;
-    standard?: string;
-  };
+  rohs?: { compliant?: boolean; exemption?: string };
+  reach?: { svhcDeclared?: boolean; scipReference?: string };
+  weee?: { registered?: boolean; registrationNumber?: string };
+  eudr?: { compliant?: boolean; diligenceId?: string };
+  ce?: { marked?: boolean };
+  prop65?: { warningRequired?: boolean };
+  foodContact?: { safe?: boolean; standard?: string };
+  epr?: { schemeId?: string; producerRegistrationNumber?: string; wasteCategory?: string };
+  battery?: { compliant?: boolean; passportId?: string };
+  pfas?: { declared?: boolean };
+  conflictMinerals?: { compliant?: boolean; reportUrl?: string };
+  espr?: { compliant?: boolean; delegatedActUrl?: string };
 }
 
 export interface ComplianceGap {
@@ -211,6 +202,7 @@ export interface SustainabilityData extends EsgScoreOutput {
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
+  traceabilityScore?: number;
 }
 
 /**
@@ -235,6 +227,12 @@ export interface VerificationOverride {
   userId: string;
   reason: string;
   date: string;
+}
+
+export interface NfcData {
+  uid: string;
+  technology: string;
+  writeProtected: boolean;
 }
 
 /**
@@ -264,6 +262,7 @@ export interface Product extends BaseEntity {
   verifiableCredential?: string;
   ebsiVcId?: string;
   zkProof?: ZkProof;
+  nfc?: NfcData;
   ownershipNft?: {
     tokenId: string;
     contractAddress: string;

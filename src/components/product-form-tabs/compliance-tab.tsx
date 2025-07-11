@@ -1,4 +1,3 @@
-
 // src/components/product-form-tabs/compliance-tab.tsx
 'use client';
 

@@ -33,6 +33,11 @@ const packagingSchema = z.object({
 const lifecycleSchema = z.object({
   carbonFootprint: z.coerce.number().optional(),
   carbonFootprintMethod: z.string().optional(),
+  scopeEmissions: z.object({
+    scope1: z.coerce.number().optional(),
+    scope2: z.coerce.number().optional(),
+    scope3: z.coerce.number().optional(),
+  }).optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
@@ -58,46 +63,18 @@ const massBalanceSchema = z.object({
 });
 
 const complianceSchema = z.object({
-  rohs: z
-    .object({
-      compliant: z.boolean().optional(),
-      exemption: z.string().optional(),
-    })
-    .optional(),
-  reach: z
-    .object({
-      svhcDeclared: z.boolean().optional(),
-      scipReference: z.string().optional(),
-    })
-    .optional(),
-  weee: z
-    .object({
-      registered: z.boolean().optional(),
-      registrationNumber: z.string().optional(),
-    })
-    .optional(),
-  eudr: z
-    .object({
-      compliant: z.boolean().optional(),
-      diligenceId: z.string().optional(),
-    })
-    .optional(),
-  ce: z
-    .object({
-      marked: z.boolean().optional(),
-    })
-    .optional(),
-  prop65: z
-    .object({
-      warningRequired: z.boolean().optional(),
-    })
-    .optional(),
-  foodContact: z
-    .object({
-      safe: z.boolean().optional(),
-      standard: z.string().optional(),
-    })
-    .optional(),
+  rohs: z.object({ compliant: z.boolean().optional(), exemption: z.string().optional() }).optional(),
+  reach: z.object({ svhcDeclared: z.boolean().optional(), scipReference: z.string().optional() }).optional(),
+  weee: z.object({ registered: z.boolean().optional(), registrationNumber: z.string().optional() }).optional(),
+  eudr: z.object({ compliant: z.boolean().optional(), diligenceId: z.string().optional() }).optional(),
+  ce: z.object({ marked: z.boolean().optional() }).optional(),
+  prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
+  foodContact: z.object({ safe: z.boolean().optional(), standard: z.string().optional() }).optional(),
+  epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional(), wasteCategory: z.string().optional() }).optional(),
+  battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
+  pfas: z.object({ declared: z.boolean().optional() }).optional(),
+  conflictMinerals: z.object({ compliant: z.boolean().optional(), reportUrl: z.string().optional() }).optional(),
+  espr: z.object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().optional() }).optional(),
 });
 
 const textileSchema = z.object({
