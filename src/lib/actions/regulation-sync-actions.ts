@@ -1,8 +1,7 @@
-
 // src/lib/actions/regulation-sync-actions.ts
 'use server';
 
-import type { CompliancePath, RegulationSource, User } from '@/types';
+import type { CompliancePath, RegulationSource, User, Product } from '@/types';
 import { regulationSyncData } from '../regulation-sync-data';
 import { getUserById } from '../auth';
 import { checkPermission } from '../permissions';
@@ -11,6 +10,8 @@ import { getCompliancePaths, saveCompliancePath } from './compliance-actions';
 import { analyzeNewsReports as analyzeNewsReportsFlow } from '@/ai/flows/analyze-news-reports';
 import { predictRegulationChange } from '@/ai/flows/predict-regulation-change';
 import type { AnalyzeNewsOutput } from '@/types/ai-outputs';
+import { getProductById } from './product-actions';
+import { verifyProductAgainstPath } from '@/services/compliance';
 
 // In a real app, this would trigger external API calls.
 // Here, we just mock the data fetching and status updates.
@@ -170,4 +171,53 @@ export async function runNewsAnalysis(
   checkPermission(user, 'admin:manage_settings');
 
   return analyzeNewsReportsFlow({ topic, articles: [] }); // Articles are now fetched inside the flow
+}
+
+// Simulates running compliance checks under different regulatory scenarios
+export async function runTemporalComplianceCheck(
+  productId: string,
+  scenario: 'past' | 'present' | 'future',
+  userId: string,
+) {
+  const user = await getUserById(userId);
+  if (!user) throw new Error('User not found');
+  checkPermission(user, 'admin:manage_settings');
+
+  const product = await getProductById(productId);
+  if (!product) throw new Error('Product not found');
+
+  const allPaths = await getCompliancePaths();
+  const originalPath = allPaths.find(p => p.id === product.compliancePathId);
+  if (!originalPath) throw new Error('Original compliance path not found.');
+
+  // Create a mock path based on the scenario
+  let mockPath: CompliancePath = JSON.parse(JSON.stringify(originalPath));
+  switch (scenario) {
+    case 'past': // 2022 rules - less strict
+      mockPath.name = `${originalPath.name} (2022 Scenario)`;
+      mockPath.rules.minSustainabilityScore = (mockPath.rules.minSustainabilityScore || 50) - 10;
+      mockPath.rules.bannedKeywords = []; // Assume less strict rules in the past
+      break;
+    case 'future': // 2026 rules - more strict
+      mockPath.name = `${originalPath.name} (2026 Scenario)`;
+      mockPath.rules.minSustainabilityScore = (mockPath.rules.minSustainabilityScore || 50) + 15;
+      mockPath.rules.bannedKeywords = [...(mockPath.rules.bannedKeywords || []), 'PVC'];
+      break;
+    case 'present': // Use current rules
+    default:
+      break;
+  }
+
+  await logAuditEvent(
+    'simulation.temporal_compliance.run',
+    productId,
+    { scenario },
+    userId,
+  );
+
+  // Simulate a delay for the analysis
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  const result = await verifyProductAgainstPath(product, mockPath);
+  return { ...result, scenario };
 }
