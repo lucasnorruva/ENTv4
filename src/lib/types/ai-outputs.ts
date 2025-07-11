@@ -1,4 +1,3 @@
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -392,6 +391,7 @@ const NewsArticleSchema = z.object({
 });
 export const AnalyzeNewsInputSchema = z.object({
   articles: z.array(NewsArticleSchema).describe('A list of news articles to analyze.'),
+  topic: z.string().describe('The topic to search for news articles about.'),
 });
 export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
 export const AnalyzeNewsOutputSchema = z.object({

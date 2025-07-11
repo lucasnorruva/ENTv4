@@ -1,4 +1,7 @@
 // src/types/transit.ts
+import type { AnalyzeSimulatedRouteOutput } from "./ai-outputs";
+
+export type { AnalyzeSimulatedRouteOutput };
 
 export interface TransitInfo {
   stage: string;
@@ -29,3 +32,6 @@ export interface CustomsStatus {
   notes?: string;
   history?: Omit<CustomsStatus, 'history'>[];
 }
+
+// Add the SimulatedRoute type for the new UI
+export type SimulatedRoute = AnalyzeSimulatedRouteOutput;

@@ -1,3 +1,4 @@
+
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -11,6 +12,7 @@ import type {
   AnalyzeConstructionMaterialOutput,
   AnalyzeFoodSafetyOutput,
   HsCodeAnalysis,
+  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
 import type {
@@ -31,6 +33,7 @@ export type {
   ModelHotspot,
   SimulatedRoute,
   HsCodeAnalysis,
+  ProductTransitRiskAnalysis,
 };
 export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
 export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
@@ -348,7 +351,7 @@ export interface Product extends BaseEntity {
   electronicsAnalysis?: ElectronicsAnalysis;
   textileAnalysis?: TextileAnalysis;
   foodSafetyAnalysis?: FoodSafetyAnalysis;
-  transitRiskAnalysis?: any; // To be replaced with a specific type if defined
+  transitRiskAnalysis?: ProductTransitRiskAnalysis;
   hsCodeAnalysis?: HsCodeAnalysis;
 
   // AI-Generated & Compliance Data

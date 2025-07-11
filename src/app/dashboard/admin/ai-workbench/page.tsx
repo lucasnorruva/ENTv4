@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -11,7 +10,6 @@ import RoiCalculator from '@/components/ai-workbench/roi-calculator';
 import HsCodeClassifier from '@/components/ai-workbench/hs-code-classifier';
 import LifecyclePredictor from '@/components/ai-workbench/lifecycle-predictor';
 import TestGeneratorClient from '@/components/test-generator-client';
-import NewsAnalyzer from '@/components/ai-workbench/news-analyzer';
 
 export default function AiWorkbenchPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -36,7 +34,6 @@ export default function AiWorkbenchPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-8">
           <h2 className="text-xl font-semibold border-b pb-2">Business &amp; Risk Analysis</h2>
-          <NewsAnalyzer user={user} />
           <SupplierScorer user={user} />
           <HsCodeClassifier user={user} />
           <LifecyclePredictor user={user} />

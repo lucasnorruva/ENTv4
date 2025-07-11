@@ -10,22 +10,12 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { MOCK_CUSTOMS_DATA } from '@/lib/customs-data';
-
-// Schemas are defined locally to avoid exporting non-functions from a 'use server' file.
-export const AnalyzeProductTransitRiskInputSchema = z.object({
-  product: z.custom<any>().describe('The product being shipped.'),
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z.string().describe('The destination country for the shipment.'),
-});
-export type AnalyzeProductTransitRiskInput = z.infer<typeof AnalyzeProductTransitRiskInputSchema>;
-
-export const AnalyzeProductTransitRiskOutputSchema = z.object({
-  riskLevel: z.enum(['Low', 'Medium', 'High', 'Very High']).describe('The overall assessed risk level for this transit route.'),
-  summary: z.string().describe('A concise summary (2-3 sentences) of the key risks and considerations for this specific product.'),
-  keyConsiderations: z.array(z.string()).describe('A bulleted list of the most important factors to consider for this route.'),
-});
-export type ProductTransitRiskAnalysis = z.infer<typeof AnalyzeProductTransitRiskOutputSchema>;
-
+import {
+  AnalyzeProductTransitRiskInputSchema,
+  AnalyzeProductTransitRiskOutputSchema,
+  type AnalyzeProductTransitRiskInput,
+  type ProductTransitRiskAnalysis,
+} from '@/types/ai-outputs';
 
 const CustomsDataSchema = z.object({
   region: z.string(),
