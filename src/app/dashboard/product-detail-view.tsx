@@ -42,16 +42,13 @@ import ThreeDViewerTab from './product-detail-tabs/3d-viewer-tab';
 import CustomsInspectionForm from './customs-inspection-form';
 import ElectronicsTab from './product-detail-tabs/electronics-tab';
 import TextileTab from './product-detail-tabs/textile-tab';
-import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
-import ConstructionTab from './product-detail-tabs/construction-tab';
-import DataCompositionTab from './product-detail-tabs/data-composition-tab';
-import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
-import CircularityTab from './product-detail-tabs/circularity-tab';
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-
+import CircularityTab from './product-detail-tabs/circularity-tab';
+import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
+import DataCompositionTab from './product-detail-tabs/data-composition-tab';
 
 export default function ProductDetailView({
   product: productProp,
@@ -98,10 +95,8 @@ export default function ProductDetailView({
     router.refresh();
   }, [router]);
 
-  const showElectronicsTab = product.category === 'Electronics' && product.electronicsAnalysis;
-  const showTextileTab = product.category === 'Fashion' && product.textileAnalysis;
-  const showConstructionTab = product.category === 'Construction' && product.constructionAnalysis;
-  const showFoodTab = product.category === 'Food & Beverage' && product.foodSafetyAnalysis;
+  const showElectronicsTab = product.category === 'Electronics';
+  const showTextileTab = product.category === 'Fashion' && (product.textile || product.textileAnalysis);
 
   return (
     <>
@@ -186,11 +181,9 @@ export default function ProductDetailView({
               <div className="w-full overflow-x-auto">
                 <TabsList className="w-max">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="data">Data &amp; Composition</TabsTrigger>
+                  <TabsTrigger value="data">Data & Composition</TabsTrigger>
                   {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                   {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                  {showFoodTab && <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>}
-                  {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                   <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                   <TabsTrigger value="circularity">Circularity</TabsTrigger>
                   <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
@@ -217,16 +210,6 @@ export default function ProductDetailView({
               {showTextileTab && (
                 <TabsContent value="textile" className="mt-4">
                   <TextileTab product={product} />
-                </TabsContent>
-              )}
-               {showFoodTab && (
-                <TabsContent value="food" className="mt-4">
-                  <FoodSafetyTab product={product} />
-                </TabsContent>
-              )}
-              {showConstructionTab && (
-                <TabsContent value="construction" className="mt-4">
-                  <ConstructionTab product={product} />
                 </TabsContent>
               )}
               <TabsContent value="lifecycle" className="mt-4">
@@ -285,17 +268,7 @@ export default function ProductDetailView({
                         <DppQrCodeWidget productId={product.id} />
                     </TabsContent>
                     <TabsContent value="nfc" className="mt-4">
-                       <CardContent>
-                          {product.nfc ? (
-                            <div className="space-y-2 text-sm">
-                              <p><strong>UID:</strong> <span className="font-mono">{product.nfc.uid}</span></p>
-                              <p><strong>Technology:</strong> {product.nfc.technology}</p>
-                              <p><strong>Write Protected:</strong> {product.nfc.writeProtected ? 'Yes' : 'No'}</p>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">No NFC chip data provided.</p>
-                          )}
-                        </CardContent>
+                        <p className="text-sm text-muted-foreground text-center py-4">NFC chip data not provided.</p>
                     </TabsContent>
                 </Tabs>
               </CardContent>

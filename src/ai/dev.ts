@@ -22,14 +22,6 @@ import "@/ai/flows/generate-pcds.ts";
 import "@/ai/flows/predict-product-lifecycle.ts";
 import "@/ai/flows/explain-error.ts";
 import "@/ai/flows/analyze-textile-composition.ts";
-import "@/ai/flows/analyze-construction-material.ts";
-import "@/ai/flows/analyze-food-safety.ts";
-import "@/ai/flows/classify-hs-code.ts";
-import "@/ai/flows/generate-smart-contract.ts";
-import "@/ai/flows/analyze-product-transit-risk.ts";
-import "@/ai/flows/analyze-simulated-route.ts";
-import "@/ai/flows/analyze-news-reports.ts";
-import "@/ai/flows/predict-regulation-change.ts";
 
 import "@/triggers/scheduled-syncs.ts";
 import "@/ai/flows/analyze-electronics-compliance.ts";

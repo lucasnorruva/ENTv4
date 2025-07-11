@@ -7,27 +7,13 @@ import type {
   EsgScoreOutput,
   PredictLifecycleOutput,
   AnalyzeTextileOutput,
-  AnalyzeElectronicsComplianceOutput,
-  AnalyzeConstructionMaterialOutput,
-  AnalyzeFoodSafetyOutput,
-  HsCodeAnalysis,
-  ProductTransitRiskAnalysis,
 } from '@/types/ai-outputs';
 import type { ErpProduct as ErpProductType } from '@/services/mock-erp';
-import type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute } from './transit';
-import type { ModelHotspot } from './3d';
-import type { Integration as IntegrationType } from './integrations';
 
 // Re-exporting for easy access elsewhere
 export type { Role } from '@/lib/constants';
 export type ErpProduct = ErpProductType;
-export type { TransitInfo, CustomsAlert, CustomsStatus, SimulatedRoute, ModelHotspot, ProductTransitRiskAnalysis, HsCodeAnalysis };
-export type ConstructionAnalysis = AnalyzeConstructionMaterialOutput;
-export type ElectronicsAnalysis = AnalyzeElectronicsComplianceOutput;
-export type FoodSafetyAnalysis = AnalyzeFoodSafetyOutput;
 export type TextileAnalysis = AnalyzeTextileOutput;
-export type Integration = IntegrationType;
-
 
 /**
  * A base interface for all Firestore documents, ensuring consistent
@@ -56,7 +42,6 @@ export interface User extends BaseEntity {
     complianceAlerts?: boolean;
     platformNews?: boolean;
   };
-  circularityCredits?: number;
 }
 
 /**
@@ -66,27 +51,6 @@ export interface Company extends BaseEntity {
   name: string;
   ownerId: string; // ID of the user who created the company
   industry?: string;
-  tier?: 'free' | 'pro' | 'enterprise';
-  isTrustedIssuer: boolean;
-  revocationListUrl?: string;
-  settings?: {
-    aiEnabled: boolean;
-    apiAccess: boolean;
-    brandingCustomization: boolean;
-    logoUrl?: string;
-    logoFileName?: string;
-    theme?: {
-      light: { primary: string; accent: string };
-      dark: { primary: string; accent: string };
-    };
-    customFields?: CustomFieldDefinition[];
-  };
-}
-
-export interface CustomFieldDefinition {
-  id: string;
-  label: string;
-  type: 'text' | 'number' | 'boolean';
 }
 
 // --- PRODUCT DATA STRUCTURES ---
@@ -102,33 +66,21 @@ export interface Certification {
   name: string;
   issuer: string;
   validUntil?: string;
-  documentUrl?: string;
 }
 
 export interface Manufacturing {
   facility: string;
   country: string;
-  manufacturingProcess?: string;
-  emissionsKgCo2e?: number;
 }
 
 export interface Packaging {
   type: string;
-  recycledContent?: number;
   recyclable: boolean;
-  weight?: number;
-}
-
-export interface ScopeEmissions {
-    scope1?: number; // Direct emissions
-    scope2?: number; // Indirect emissions from purchased energy
-    scope3?: number; // All other indirect emissions
 }
 
 export interface Lifecycle {
   carbonFootprint?: number; // in kg CO2-eq
   carbonFootprintMethod?: string;
-  scopeEmissions?: ScopeEmissions;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
@@ -146,28 +98,6 @@ export interface TextileData {
   fiberComposition?: { name: string; percentage: number }[];
   dyeProcess?: string;
   weaveType?: string;
-}
-
-export interface FoodSafetyData {
-  ingredients: { value: string }[];
-  allergens?: string;
-}
-
-export interface GreenClaim {
-  claim: string;
-  substantiation: string;
-}
-
-export interface MassBalance {
-  creditsAllocated?: number;
-  certificationBody?: string;
-  certificateNumber?: string;
-}
-
-export interface NfcData {
-  uid?: string;
-  technology?: string;
-  writeProtected?: boolean;
 }
 
 export interface Compliance {
@@ -197,30 +127,6 @@ export interface Compliance {
     safe?: boolean;
     standard?: string;
   };
-  epr?: {
-    schemeId?: string;
-    producerRegistrationNumber?: string;
-    wasteCategory?: string;
-  };
-  battery?: {
-    compliant?: boolean;
-    passportId?: string;
-  };
-  pfas?: {
-    declared: boolean;
-  };
-  conflictMinerals?: {
-    compliant: boolean;
-    reportUrl?: string;
-  };
-  espr?: {
-    compliant: boolean;
-    delegatedActUrl?: string;
-  };
-  cbam?: {
-    emissionsReported: boolean;
-    declarationId?: string;
-  };
 }
 
 export interface ComplianceGap {
@@ -229,23 +135,9 @@ export interface ComplianceGap {
 }
 
 /**
- * Represents a single service or repair record.
- */
-export interface ServiceRecord extends BaseEntity {
-  providerId: string;
-  providerName: string;
-  notes: string;
-}
-
-/**
  * Groups all AI-generated and compliance-related data.
  */
-export interface SustainabilityData {
-  score?: number;
-  environmental?: number;
-  social?: number;
-  governance?: number;
-  summary?: string;
+export interface SustainabilityData extends EsgScoreOutput {
   classification?: ClassifyProductOutput;
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
   lifecyclePrediction?: PredictLifecycleOutput;
@@ -253,7 +145,6 @@ export interface SustainabilityData {
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
-  traceabilityScore?: number;
 }
 
 /**
@@ -268,18 +159,6 @@ export interface SubmissionChecklist {
   passesDataQuality: boolean;
 }
 
-export interface ZkProof {
-  proofData: string;
-  isVerified: boolean;
-  verifiedAt: string;
-}
-
-export interface VerificationOverride {
-  userId: string;
-  reason: string;
-  date: string;
-}
-
 /**
  * The core Digital Product Passport entity.
  */
@@ -289,40 +168,15 @@ export interface Product extends BaseEntity {
   productName: string;
   productDescription: string;
   productImage: string;
-  category: 'Electronics' | 'Fashion' | 'Home Goods' | 'Construction' | 'Food & Beverage';
+  category: 'Electronics' | 'Fashion' | 'Home Goods';
   supplier: string;
   status: 'Published' | 'Draft' | 'Archived';
   lastUpdated: string; // ISO 8601 date string for display purposes
   compliancePathId?: string;
   manualUrl?: string;
-  manualFileName?: string;
-  manualFileSize?: number;
-  manualFileHash?: string;
   model3dUrl?: string;
-  model3dFileName?: string;
-  model3dFileHash?: string;
-  modelHotspots?: ModelHotspot[];
   declarationOfConformity?: string;
-  sustainabilityDeclaration?: string;
-  verifiableCredential?: string;
-  ebsiVcId?: string;
-  zkProof?: ZkProof;
-  ownershipNft?: {
-    tokenId: string;
-    contractAddress: string;
-    ownerAddress: string;
-  };
-  chainOfCustody?: {
-    date: string;
-    event: string;
-    location: string;
-    actor: string;
-  }[];
-  ebsiDetails?: {
-    status: 'Verified' | 'Pending' | 'Failed';
-    conformanceResultUrl?: string;
-  };
-  
+
   // Structured Data Fields
   materials: Material[];
   manufacturing?: Manufacturing;
@@ -330,37 +184,20 @@ export interface Product extends BaseEntity {
   packaging?: Packaging;
   lifecycle?: Lifecycle;
   battery?: Battery;
-  serviceHistory?: ServiceRecord[];
-  customData?: Record<string, string | number | boolean>;
   textile?: TextileData;
-  foodSafety?: FoodSafetyData;
-  greenClaims?: GreenClaim[];
-  massBalance?: MassBalance;
-  compliance?: Partial<Compliance>;
-  nfc?: NfcData;
-  constructionAnalysis?: ConstructionAnalysis;
-  electronicsAnalysis?: ElectronicsAnalysis;
-  textileAnalysis?: TextileAnalysis;
-  foodSafetyAnalysis?: FoodSafetyAnalysis;
-  transitRiskAnalysis?: ProductTransitRiskAnalysis;
-  hsCodeAnalysis?: HsCodeAnalysis;
 
   // AI-Generated & Compliance Data
   sustainability?: SustainabilityData;
   qrLabelText?: string;
   dataQualityWarnings?: DataQualityWarning[];
+  textileAnalysis?: TextileAnalysis;
   isProcessing?: boolean;
   submissionChecklist?: SubmissionChecklist;
 
   // Lifecycle & Verification
   lastVerificationDate?: string;
   verificationStatus?: 'Verified' | 'Pending' | 'Failed' | 'Not Submitted';
-  verificationOverride?: VerificationOverride;
   endOfLifeStatus?: 'Active' | 'Recycled' | 'Disposed';
-  blockchainProof?: BlockchainProof;
-  isMinting?: boolean;
-  transit?: TransitInfo;
-  customs?: CustomsStatus;
 }
 
 /**
@@ -371,7 +208,6 @@ export interface CompliancePath extends BaseEntity {
   description: string;
   regulations: string[];
   category: string;
-  jurisdiction: string;
   rules: {
     minSustainabilityScore?: number;
     requiredKeywords?: string[];
@@ -387,28 +223,6 @@ export interface AuditLog extends BaseEntity {
   action: string;
   entityId: string;
   details: Record<string, any>;
-}
-
-/**
- * Represents a service ticket for product repair or issues.
- */
-export interface ServiceTicket extends BaseEntity {
-  productId?: string;
-  productionLineId?: string;
-  userId: string;
-  customerName: string;
-  issue: string;
-  status: 'Open' | 'In Progress' | 'Closed';
-  imageUrl?: string;
-}
-
-export interface SupportTicket extends BaseEntity {
-  userId?: string;
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
-  status: 'Open' | 'Closed';
 }
 
 /**
@@ -456,40 +270,3 @@ export interface ApiRateLimit {
   tokens: number;
   lastRefilled: number; // Unix timestamp
 }
-
-/**
- * Represents a production line in a manufacturing facility.
- */
-export interface ProductionLine extends BaseEntity {
-  companyId: string;
-  name: string;
-  location: string;
-  status: 'Active' | 'Idle' | 'Maintenance';
-  outputPerHour: number;
-  currentProduct: string;
-  productId?: string;
-  lastMaintenance: string; // ISO 8601 string
-}
-
-export interface BlockchainProof {
-  type: 'SINGLE_HASH' | 'MERKLE_PROOF';
-  chain: 'Polygon' | 'EBSI' | 'Hyperledger';
-  txHash: string;
-  explorerUrl: string;
-  blockHeight: number;
-  merkleRoot?: string;
-  proof?: string[]; // Array of hashes for Merkle proof
-}
-
-export interface RegulationSource extends BaseEntity {
-    name: string;
-    type: 'API' | 'Feed' | 'Manual';
-    status: 'Operational' | 'Degraded Performance' | 'Offline' | 'Not Implemented';
-    version?: string;
-    lastSync: string; // ISO 8601 string
-    checklist: {
-      id: string;
-      description: string;
-      status: boolean;
-    }[];
-  }

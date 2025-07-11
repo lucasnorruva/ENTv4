@@ -24,7 +24,7 @@ export const AiProductSchema = z.object({
   gtin: z.string().optional().describe('The Global Trade Item Number (GTIN) of the product.'),
   productName: z.string().describe('The name of the product.'),
   productDescription: z.string().describe('A description of the product.'),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']).describe('The product category.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods']),
   supplier: z.string().describe('The name of the product supplier or brand.'),
   materials: z
     .array(
@@ -40,7 +40,6 @@ export const AiProductSchema = z.object({
     .object({
       facility: z.string(),
       country: z.string(),
-      manufacturingProcess: z.string().optional(),
     })
     .describe('Manufacturing details.')
     .optional(),
@@ -87,11 +86,6 @@ export const AiProductSchema = z.object({
       eudr: z.object({ compliant: z.boolean().optional() }).optional(),
       ce: z.object({ marked: z.boolean().optional() }).optional(),
       prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
-      epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional() }).optional(),
-      battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
-      pfas: z.object({ declared: z.boolean().optional() }).optional(),
-      conflictMinerals: z.object({ compliant: z.boolean().optional() }).optional(),
-      espr: z.object({ compliant: z.boolean().optional() }).optional(),
     })
     .describe('Specific compliance declarations.')
     .optional(),
@@ -106,12 +100,6 @@ export const AiProductSchema = z.object({
     .optional()
     .describe("A summary of the product's compliance status."),
   textile: textileDataSchema.optional().describe('Textile-specific data.'),
-  foodSafety: z.custom<any>().optional().describe('Food safety data.'),
-  massBalance: z.object({
-    creditsAllocated: z.coerce.number().optional(),
-    certificationBody: z.string().optional(),
-    certificateNumber: z.string().optional(),
-  }).optional(),
 });
 
 export type AiProduct = z.infer<typeof AiProductSchema>;
