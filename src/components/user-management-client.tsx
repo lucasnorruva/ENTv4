@@ -32,11 +32,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { onSnapshot, collection } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Collections } from '@/lib/constants';
-
 
 import {
   Card,
@@ -82,6 +80,7 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteUser } from '@/lib/actions/user-actions';
 import UserForm from './user-form';
 import UserImportDialog from './user-import-dialog';
+import RelativeTime from './relative-time';
 
 interface UserManagementClientProps {
   adminUser: User;
@@ -222,7 +221,7 @@ export default function UserManagementClient({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => format(new Date(row.original.createdAt), 'PPP'),
+        cell: ({ row }) => <RelativeTime date={row.original.createdAt} />,
       },
       {
         id: 'actions',

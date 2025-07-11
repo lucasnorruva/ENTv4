@@ -73,6 +73,7 @@ import { getStatusBadgeClasses, getStatusBadgeVariant } from "@/lib/dpp-display-
 import { cn } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Tooltip, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import RelativeTime from "./relative-time";
 
 interface ProductTableProps {
   products: Product[];
@@ -251,7 +252,7 @@ export default function ProductTable({
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
         ),
-        cell: ({ row }) => format(new Date(row.original.lastUpdated), 'PPP'),
+        cell: ({ row }) => <RelativeTime date={row.original.lastUpdated} />,
       },
       {
         id: 'actions',
@@ -366,9 +367,9 @@ export default function ProductTable({
     globalFilterFn: (row, columnId, filterValue) => {
         const search = filterValue.toLowerCase();
         return (
-          row.original.productName.toLowerCase().includes(s) ||
-          row.original.supplier.toLowerCase().includes(s) ||
-          (row.original.gtin || '').toLowerCase().includes(s)
+          row.original.productName.toLowerCase().includes(search) ||
+          row.original.supplier.toLowerCase().includes(search) ||
+          (row.original.gtin || '').toLowerCase().includes(search)
         );
       },
   });
