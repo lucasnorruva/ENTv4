@@ -101,7 +101,7 @@ export default function DataCompositionTab({ product }: DataCompositionTabProps)
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Manufacturing & Packaging</CardTitle>
+          <CardTitle>Manufacturing &amp; Packaging</CardTitle>
         </CardHeader>
         <CardContent>
           <InfoRow icon={Factory} label="Manufacturing">

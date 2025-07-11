@@ -40,6 +40,7 @@ import ConstructionTab from './product-form-tabs/construction-tab';
 import ElectronicsTab from './product-form-tabs/electronics-tab';
 import FoodTab from './product-form-tabs/food-tab';
 import CircularityTab from './product-form-tabs/circularity-tab';
+import DigitalLinkTab from './product-form-tabs/digital-link-tab';
 
 interface ProductFormProps {
   initialData?: Partial<Product>;
@@ -541,7 +542,7 @@ export default function ProductForm({
     },
     {
       value: 'food',
-      label: 'Food & Beverage',
+      label: 'Food &amp; Beverage',
       show: category === 'Food & Beverage',
       component: (
         <FoodTab
@@ -601,6 +602,12 @@ export default function ProductForm({
       label: 'Circularity',
       show: true,
       component: <CircularityTab form={form} />,
+    },
+    {
+      value: 'digitalLink',
+      label: 'Digital Link',
+      show: true,
+      component: <DigitalLinkTab form={form} />,
     },
     {
       value: 'custom',
