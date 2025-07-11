@@ -32,3 +32,4 @@ import "@/ai/flows/predict-regulation-change.ts";
 
 import "@/triggers/scheduled-syncs.ts";
 import "@/ai/flows/analyze-electronics-compliance.ts";
+import "@/ai/flows/generate-component-tests.ts";
