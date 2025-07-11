@@ -62,21 +62,6 @@ const massBalanceSchema = z.object({
   certificateNumber: z.string().optional(),
 });
 
-const complianceSchema = z.object({
-  rohs: z.object({ compliant: z.boolean().optional(), exemption: z.string().optional() }).optional(),
-  reach: z.object({ svhcDeclared: z.boolean().optional(), scipReference: z.string().optional() }).optional(),
-  weee: z.object({ registered: z.boolean().optional(), registrationNumber: z.string().optional() }).optional(),
-  eudr: z.object({ compliant: z.boolean().optional(), diligenceId: z.string().optional() }).optional(),
-  ce: z.object({ marked: z.boolean().optional() }).optional(),
-  prop65: z.object({ warningRequired: z.boolean().optional() }).optional(),
-  foodContact: z.object({ safe: z.boolean().optional(), standard: z.string().optional() }).optional(),
-  epr: z.object({ schemeId: z.string().optional(), producerRegistrationNumber: z.string().optional(), wasteCategory: z.string().optional() }).optional(),
-  battery: z.object({ compliant: z.boolean().optional(), passportId: z.string().optional() }).optional(),
-  pfas: z.object({ declared: z.boolean().optional() }).optional(),
-  conflictMinerals: z.object({ compliant: z.boolean().optional(), reportUrl: z.string().optional() }).optional(),
-  espr: z.object({ compliant: z.boolean().optional(), delegatedActUrl: z.string().optional() }).optional(),
-});
-
 const textileSchema = z.object({
   fiberComposition: z.array(z.object({
     name: z.string().min(1, 'Fiber name is required.'),
@@ -89,6 +74,12 @@ const textileSchema = z.object({
 const foodSafetySchema = z.object({
   ingredients: z.array(z.object({ value: z.string().min(1) })).optional(),
   allergens: z.string().optional(),
+});
+
+const nfcSchema = z.object({
+  uid: z.string().optional(),
+  technology: z.string().optional(),
+  writeProtected: z.boolean().optional(),
 });
 
 export const productFormSchema = z.object({
@@ -115,12 +106,13 @@ export const productFormSchema = z.object({
   packaging: packagingSchema.optional(),
   lifecycle: lifecycleSchema.optional(),
   battery: batterySchema.optional(),
-  compliance: complianceSchema.optional(),
+  compliance: z.object({}).passthrough().optional(), // Allow any compliance fields
   customData: z.record(z.any()).optional(),
   textile: textileSchema.optional(),
   foodSafety: foodSafetySchema.optional(),
   greenClaims: z.array(greenClaimSchema).optional(),
   massBalance: massBalanceSchema.optional(),
+  nfc: nfcSchema.optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

@@ -117,6 +117,7 @@ export default function ProductForm({
     foodSafety: { ingredients: [], allergens: '' },
     greenClaims: [],
     massBalance: {},
+    nfc: { uid: '', technology: '', writeProtected: false },
   };
 
   const form = useForm<ProductFormValues>({
@@ -542,7 +543,7 @@ export default function ProductForm({
     },
     {
       value: 'food',
-      label: 'Food &amp; Beverage',
+      label: 'Food & Beverage',
       show: category === 'Food & Beverage',
       component: (
         <FoodTab
