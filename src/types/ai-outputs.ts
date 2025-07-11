@@ -144,7 +144,7 @@ export type CreateProductFromImageInput = z.infer<typeof CreateProductFromImageI
 export const CreateProductFromImageOutputSchema = z.object({
   productName: z.string().describe('A concise and accurate name for the identified product.'),
   productDescription: z.string().describe('A detailed, marketing-friendly description of the product, highlighting key visual features.'),
-  category: z.enum(['Electronics', 'Fashion', 'Home Goods']).describe('The most appropriate category for the product from the provided options.'),
+  category: z.enum(['Electronics', 'Fashion', 'Home Goods', 'Construction', 'Food & Beverage']).describe('The most appropriate category for the product from the provided options.'),
 });
 export type CreateProductFromImageOutput = z.infer<typeof CreateProductFromImageOutputSchema>;
 
@@ -250,6 +250,105 @@ export const AnalyzeTextileOutputSchema = z.object({
 });
 export type AnalyzeTextileOutput = z.infer<typeof AnalyzeTextileOutputSchema>;
 
+
+// analyze-electronics-compliance
+export const AnalyzeElectronicsComplianceInputSchema = z.object({ product: AiProductSchema });
+export type AnalyzeElectronicsComplianceInput = z.infer<typeof AnalyzeElectronicsComplianceInputSchema>;
+const ComplianceCheckSchema = z.object({
+  compliant: z.boolean(),
+  reason: z.string().describe("Explanation for the compliance status."),
+});
+export const AnalyzeElectronicsComplianceOutputSchema = z.object({
+  rohs: ComplianceCheckSchema.describe("RoHS compliance assessment."),
+  weee: ComplianceCheckSchema.describe("WEEE compliance assessment."),
+  ceMarking: ComplianceCheckSchema.describe("CE Marking assessment."),
+  summary: z.string().describe("An overall summary of the compliance findings."),
+});
+export type AnalyzeElectronicsComplianceOutput = z.infer<typeof AnalyzeElectronicsComplianceOutputSchema>;
+
+
+// analyze-construction-material
+export const AnalyzeConstructionMaterialInputSchema = z.object({
+  materialName: z.string().describe('The name of the construction material (e.g., "Portland Cement", "Structural Steel").'),
+  manufacturingProcess: z.string().optional().describe('A brief description of the manufacturing process (e.g., "Blast Furnace").'),
+  recycledContentPercentage: z.number().optional().describe('The percentage of recycled content in the material.'),
+});
+export type AnalyzeConstructionMaterialInput = z.infer<typeof AnalyzeConstructionMaterialInputSchema>;
+export const AnalyzeConstructionMaterialOutputSchema = z.object({
+  embodiedCarbon: z.object({
+      value: z.number().describe("The estimated embodied carbon value."),
+      unit: z.string().default('kgCO2e/kg').describe('The unit for the embodied carbon.'),
+      assessment: z.string().describe("A brief explanation of the carbon assessment based on the material and process."),
+  }),
+  recyclabilityPotential: z.enum(['High', 'Medium', 'Low', 'Not Recyclable']).describe('The potential for this material to be recycled at end-of-life.'),
+  complianceNotes: z.array(z.string()).describe('A list of notes regarding potential compliance issues or standards (e.g., "Check local building codes for usage", "May require EPD").'),
+});
+export type AnalyzeConstructionMaterialOutput = z.infer<typeof AnalyzeConstructionMaterialOutputSchema>;
+
+
+// analyze-product-transit-risk
+export const AnalyzeProductTransitRiskInputSchema = z.object({
+  product: z.custom<any>().describe('The product being shipped.'),
+  originCountry: z.string().describe('The country of origin for the shipment.'),
+  destinationCountry: z.string().describe('The destination country for the shipment.'),
+});
+export type AnalyzeProductTransitRiskInput = z.infer<typeof AnalyzeProductTransitRiskInputSchema>;
+export const AnalyzeProductTransitRiskOutputSchema = z.object({
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Very High']).describe('The overall assessed risk level for this transit route.'),
+  summary: z.string().describe('A concise summary (2-3 sentences) of the key risks and considerations for this specific product.'),
+  keyConsiderations: z.array(z.string()).describe('A bulleted list of the most important factors to consider for this route.'),
+});
+export type ProductTransitRiskAnalysis = z.infer<typeof AnalyzeProductTransitRiskOutputSchema>;
+
+
+// analyze-simulated-route
+export const AnalyzeSimulatedRouteInputSchema = z.object({
+  product: z.custom<any>().describe('The product being shipped.'),
+  originCountry: z.string().describe('The country of origin for the shipment.'),
+  destinationCountry: z.string().describe('The destination country for the shipment.'),
+});
+export type AnalyzeSimulatedRouteInput = z.infer<typeof AnalyzeSimulatedRouteInputSchema>;
+export const AnalyzeSimulatedRouteOutputSchema = z.object({
+  origin: z.string(),
+  destination: z.string(),
+  riskLevel: z.enum(['Low', 'Medium', 'High', 'Very High']).describe('The overall assessed risk level for this transit route.'),
+  summary: z.string().describe('A concise summary (2-3 sentences) of the key risks and considerations for this specific product on this route.'),
+  keyConsiderations: z.array(z.string()).describe('A bulleted list of the most important factors to consider for this route.'),
+});
+export type AnalyzeSimulatedRouteOutput = z.infer<typeof AnalyzeSimulatedRouteOutputSchema>;
+
+
+// analyze-food-safety
+export const AnalyzeFoodSafetyInputSchema = z.object({
+  productName: z.string().describe('The name of the food product.'),
+  ingredients: z.array(z.string()).describe('The list of ingredients.'),
+  packagingMaterials: z.array(z.string()).describe('The list of packaging materials that come into contact with the food.'),
+});
+export type AnalyzeFoodSafetyInput = z.infer<typeof AnalyzeFoodSafetyInputSchema>;
+export const AnalyzeFoodSafetyOutputSchema = z.object({
+  riskLevel: z.enum(['Low', 'Medium', 'High']).describe('The overall food safety risk assessment.'),
+  potentialAllergens: z.array(z.string()).describe('A list of potential allergens identified from the ingredients.'),
+  complianceNotes: z.array(z.string()).describe('A list of notes regarding food contact material compliance (e.g., "Check for BPA in polycarbonate packaging", "Verify compliance with EU 10/2011 for plastics").'),
+});
+export type AnalyzeFoodSafetyOutput = z.infer<typeof AnalyzeFoodSafetyOutputSchema>;
+
+
+// classify-hs-code
+export const ClassifyHsCodeInputSchema = z.object({
+  productName: z.string().describe('The name of the product.'),
+  productDescription: z.string().describe('A detailed description of the product.'),
+  category: z.string().describe('The general category of the product (e.g., "Electronics", "Fashion").'),
+  materials: z.array(z.object({ name: z.string(), percentage: z.number().optional() })).optional().describe("An optional list of the product's key materials."),
+});
+export type ClassifyHsCodeInput = z.infer<typeof ClassifyHsCodeInputSchema>;
+export const ClassifyHsCodeOutputSchema = z.object({
+  code: z.string().regex(/^\d{4}\.\d{2}$/, 'HS Code must be in the format XXXX.XX').describe('The 6-digit Harmonized System (HS) code.'),
+  description: z.string().describe('The official description of the HS code category.'),
+  confidence: z.number().min(0).max(1).describe('The confidence score of the classification (0.0 to 1.0).'),
+});
+export type HsCodeAnalysis = z.infer<typeof ClassifyHsCodeOutputSchema>;
+
+
 // generate-conformity-declaration
 export const GenerateConformityDeclarationInputSchema = z.object({
   product: AiProductSchema,
@@ -272,3 +371,44 @@ export const GenerateSustainabilityDeclarationOutputSchema = z.object({
   declarationText: z.string().describe('The full text of the Sustainability Declaration in Markdown format.'),
 });
 export type GenerateSustainabilityDeclarationOutput = z.infer<typeof GenerateSustainabilityDeclarationOutputSchema>;
+
+// analyze-news-reports
+const NewsArticleSchema = z.object({
+  headline: z.string().describe('The headline of the news article.'),
+  content: z.string().describe('The full content of the news article.'),
+});
+export const AnalyzeNewsInputSchema = z.object({
+  articles: z.array(NewsArticleSchema).describe('A list of news articles to analyze.'),
+});
+export type AnalyzeNewsInput = z.infer<typeof AnalyzeNewsInputSchema>;
+export const AnalyzeNewsOutputSchema = z.object({
+  keyTakeaways: z.array(z.string()).describe('A bulleted list of the most important takeaways and signals from the news articles.'),
+  sentiment: z.enum(['Positive', 'Neutral', 'Negative']).describe('The overall sentiment towards increased regulatory pressure.'),
+});
+export type AnalyzeNewsOutput = z.infer<typeof AnalyzeNewsOutputSchema>;
+
+// predict-regulation-change
+export const PredictRegulationChangeInputSchema = z.object({
+  signals: z.array(z.string()).describe('A list of key signals and takeaways from various sources (news, policy papers, etc.).'),
+  targetIndustry: z.string().describe('The industry to focus the prediction on.'),
+});
+export type PredictRegulationChangeInput = z.infer<typeof PredictRegulationChangeInputSchema>;
+export const PredictRegulationChangeOutputSchema = z.object({
+  prediction: z.string().describe('A single, specific prediction about a potential new regulation or a change to an existing one.'),
+  confidence: z.number().min(0).max(1).describe('The confidence level of the prediction (0.0 to 1.0).'),
+  timeframe: z.enum(['6-12 months', '12-24 months', '24+ months']).describe('The likely timeframe for the predicted change.'),
+  impactedRegulations: z.array(z.string()).describe('A list of existing regulations that might be amended or replaced.'),
+  proactiveSteps: z.string().describe('A single, high-impact proactive step a company should consider taking in response to this prediction.'),
+});
+export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;
+
+// generate-component-tests
+export const GenerateComponentTestsInputSchema = z.object({
+  componentName: z.string().describe('The name of the React component (e.g., "MyButton").'),
+  componentCode: z.string().describe('The full source code of the React component.'),
+});
+export type GenerateComponentTestsInput = z.infer<typeof GenerateComponentTestsInputSchema>;
+export const GenerateComponentTestsOutputSchema = z.object({
+  testCode: z.string().describe('The generated test code using Jest and React Testing Library.'),
+});
+export type GenerateComponentTestsOutput = z.infer<typeof GenerateComponentTestsOutputSchema>;
