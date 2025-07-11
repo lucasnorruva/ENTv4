@@ -1,4 +1,3 @@
-
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -429,5 +428,3 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
   }
 ];
-
-    

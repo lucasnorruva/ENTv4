@@ -159,6 +159,12 @@ const foodSafetySchema = z.object({
   allergens: z.string().optional(),
 });
 
+const modelHotspotSchema = z.object({
+    position: z.tuple([z.number(), z.number(), z.number()]),
+    data: z.any(),
+    interactionType: z.enum(['showInfo', 'playAnimation']),
+});
+
 export const productFormSchema = z.object({
   gtin: z.string().optional(),
   productName: z.string().min(3, 'Product name must be at least 3 characters.'),
@@ -191,6 +197,7 @@ export const productFormSchema = z.object({
   greenClaims: z.array(greenClaimSchema).optional(),
   massBalance: massBalanceSchema.optional(),
   nfc: nfcSchema.optional(),
+  modelHotspots: z.array(modelHotspotSchema).optional(),
 });
 
 export type ProductFormValues = z.infer<typeof productFormSchema>;

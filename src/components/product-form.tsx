@@ -109,6 +109,7 @@ export default function ProductForm({
     model3dUrl: '',
     model3dFileName: '',
     model3dFileHash: '',
+    modelHotspots: [],
     declarationOfConformity: '',
     compliancePathId: '',
     customData: {},
