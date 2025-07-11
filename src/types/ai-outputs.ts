@@ -552,40 +552,6 @@ export type AnalyzeConstructionMaterialOutput = z.infer<
   typeof AnalyzeConstructionMaterialOutputSchema
 >;
 
-// analyze-simulated-route
-export const AnalyzeSimulatedRouteInputSchema = z.object({
-  product: z.custom<any>().describe('The product being shipped.'),
-  originCountry: z.string().describe('The country of origin for the shipment.'),
-  destinationCountry: z
-    .string()
-    .describe('The destination country for the shipment.'),
-});
-export type AnalyzeSimulatedRouteInput = z.infer<
-  typeof AnalyzeSimulatedRouteInputSchema
->;
-export const AnalyzeSimulatedRouteOutputSchema = z.object({
-  origin: z.string(),
-  destination: z.string(),
-  riskLevel: z
-    .enum(['Low', 'Medium', 'High', 'Very High'])
-    .describe(
-      'The overall assessed risk level for this transit route.',
-    ),
-  summary: z
-    .string()
-    .describe(
-      'A concise summary (2-3 sentences) of the key risks and considerations for this specific product on this route.',
-    ),
-  keyConsiderations: z
-    .array(z.string())
-    .describe(
-      'A bulleted list of the most important factors to consider for this route.',
-    ),
-});
-export type AnalyzeSimulatedRouteOutput = z.infer<
-  typeof AnalyzeSimulatedRouteOutputSchema
->;
-
 // analyze-food-safety
 export const AnalyzeFoodSafetyInputSchema = z.object({
   productName: z.string().describe('The name of the food product.'),
@@ -774,4 +740,70 @@ export const PredictRegulationChangeOutputSchema = z.object({
 });
 export type PredictRegulationChangeOutput = z.infer<
   typeof PredictRegulationChangeOutputSchema
+>;
+
+// analyze-product-transit-risk
+export const AnalyzeProductTransitRiskInputSchema = z.object({
+  product: z.custom<any>().describe('The product being shipped.'),
+  originCountry: z.string().describe('The country of origin for the shipment.'),
+  destinationCountry: z
+    .string()
+    .describe('The destination country for the shipment.'),
+});
+export type AnalyzeProductTransitRiskInput = z.infer<
+  typeof AnalyzeProductTransitRiskInputSchema
+>;
+export const AnalyzeProductTransitRiskOutputSchema = z.object({
+  riskLevel: z
+    .enum(['Low', 'Medium', 'High', 'Very High'])
+    .describe(
+      'The overall assessed risk level for this transit route.',
+    ),
+  summary: z
+    .string()
+    .describe(
+      'A concise summary (2-3 sentences) of the key risks and considerations for this specific product.',
+    ),
+  keyConsiderations: z
+    .array(z.string())
+    .describe(
+      'A bulleted list of the most important factors to consider for this route.',
+    ),
+});
+export type ProductTransitRiskAnalysis = z.infer<
+  typeof AnalyzeProductTransitRiskOutputSchema
+>;
+
+// analyze-simulated-route
+export const AnalyzeSimulatedRouteInputSchema = z.object({
+  product: z.custom<any>().describe('The product being shipped.'),
+  originCountry: z.string().describe('The country of origin for the shipment.'),
+  destinationCountry: z
+    .string()
+    .describe('The destination country for the shipment.'),
+});
+export type AnalyzeSimulatedRouteInput = z.infer<
+  typeof AnalyzeSimulatedRouteInputSchema
+>;
+export const AnalyzeSimulatedRouteOutputSchema = z.object({
+  origin: z.string(),
+  destination: z.string(),
+  riskLevel: z
+    .enum(['Low', 'Medium', 'High', 'Very High'])
+    .describe(
+      'The overall assessed risk level for this transit route.',
+    ),
+  summary: z
+    .string()
+    .describe(
+      'A concise summary (2-3 sentences) of the key risks and considerations for this specific product on this route.',
+    ),
+  keyConsiderations: z
+    .array(z.string())
+    .describe(
+      'A bulleted list of the most important factors to consider for this route.',
+    ),
+});
+export type AnalyzeSimulatedRouteOutput = z.infer<
+  typeof AnalyzeSimulatedRouteOutputSchema
 >;
