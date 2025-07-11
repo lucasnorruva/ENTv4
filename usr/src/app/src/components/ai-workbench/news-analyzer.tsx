@@ -21,7 +21,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { runNewsAnalysis } from '@/lib/actions/ai';
+import { runNewsAnalysis } from '@/lib/actions/ai/news-analyzer-actions';
 import type { User } from '@/types';
 import type { AnalyzeNewsOutput } from '@/types/ai-outputs';
 import { Badge } from '../ui/badge';
