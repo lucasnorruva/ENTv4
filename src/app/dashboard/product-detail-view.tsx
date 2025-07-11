@@ -1,4 +1,3 @@
-
 // src/components/product-detail-view.tsx
 'use client';
 
@@ -187,14 +186,15 @@ export default function ProductDetailView({
               <div className="w-full overflow-x-auto">
                 <TabsList className="w-max">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="data">Data & Composition</TabsTrigger>
+                  <TabsTrigger value="data">Data &amp; Composition</TabsTrigger>
                   {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                   {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                  {showFoodTab && <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>}
                   {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                   <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                   <TabsTrigger value="circularity">Circularity</TabsTrigger>
                   <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
                   <TabsTrigger value="credentials">Digital Credentials</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
@@ -236,7 +236,10 @@ export default function ProductDetailView({
                 <CircularityTab product={product} />
               </TabsContent>
                <TabsContent value="sustainability" className="mt-4">
-                <SustainabilityTab product={product} compliancePath={compliancePath}/>
+                <SustainabilityTab product={product} />
+              </TabsContent>
+              <TabsContent value="compliance" className="mt-4">
+                <ComplianceTab product={product} compliancePath={compliancePath}/>
               </TabsContent>
               <TabsContent value="credentials" className="mt-4">
                 <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />

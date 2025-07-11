@@ -1,4 +1,3 @@
-
 // src/types/ai-outputs.ts
 /**
  * This file centralizes the output types from our Genkit AI flows.
@@ -243,7 +242,7 @@ export type AnalyzeTextileInput = z.infer<typeof AnalyzeTextileInputSchema>;
 export const AnalyzeTextileOutputSchema = z.object({
   identifiedFibers: z.array(z.object({
       fiber: z.string(),
-      type: z.enum(['Natural', 'Synthetic', 'Semi-Synthetic']),
+      type: z.enum(['Natural', 'Synthetic', 'Semi-Synthetic]),
   })).describe('A list of identified fibers and their classification.'),
   microplasticSheddingRisk: z.enum(['High', 'Medium', 'Low', 'Minimal']).describe('The estimated risk of microplastic shedding during washing.'),
   dyeSafetyAssessment: z.string().describe('A brief assessment of the potential risks associated with the described dye process (e.g., "Azo dyes check recommended").'),
@@ -415,5 +414,3 @@ export const PredictRegulationChangeOutputSchema = z.object({
   proactiveSteps: z.string().describe('A single, high-impact proactive step a company should consider taking in response to this prediction.'),
 });
 export type PredictRegulationChangeOutput = z.infer<typeof PredictRegulationChangeOutputSchema>;
-
-    

@@ -1,4 +1,3 @@
-
 // src/app/products/[id]/page.tsx
 import { getProductById } from "@/lib/actions/product-actions";
 import { getCompliancePathById } from "@/lib/actions/compliance-actions";
