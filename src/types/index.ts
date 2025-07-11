@@ -122,9 +122,16 @@ export interface Packaging {
   weight?: number;
 }
 
+export interface ScopeEmissions {
+    scope1?: number; // Direct emissions
+    scope2?: number; // Indirect emissions from purchased energy
+    scope3?: number; // All other indirect emissions
+}
+
 export interface Lifecycle {
   carbonFootprint?: number; // in kg CO2-eq
   carbonFootprintMethod?: string;
+  scopeEmissions?: ScopeEmissions;
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
@@ -240,6 +247,7 @@ export interface SustainabilityData extends EsgScoreOutput {
   complianceSummary: string;
   gaps?: ComplianceGap[];
   completenessScore?: number;
+  traceabilityScore?: number;
 }
 
 /**
@@ -479,3 +487,5 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
+
+    

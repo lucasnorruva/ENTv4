@@ -1,7 +1,8 @@
+
 // src/components/product-detail-tabs/sustainability-tab.tsx
 'use client';
 
-import { Leaf, Quote, Thermometer } from 'lucide-react';
+import { Leaf, Quote, Thermometer, Footprints, Layers } from 'lucide-react';
 import type { Product } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -36,6 +37,8 @@ interface SustainabilityTabProps {
 export default function SustainabilityTab({ product }: SustainabilityTabProps) {
   const esg = product.sustainability;
   const aiLifecycle = product.sustainability?.lifecycleAnalysis;
+  const scopeEmissions = product.lifecycle?.scopeEmissions;
+  const traceabilityScore = product.sustainability?.traceabilityScore;
 
   return (
     <div className="space-y-6">
@@ -80,6 +83,25 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
           )}
         </CardContent>
       </Card>
+      
+       {traceabilityScore !== undefined && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Traceability</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <InfoRow icon={Layers} label="Traceability Score">
+              <div className="flex items-center gap-4">
+                <span className="text-2xl font-bold text-primary">
+                  {traceabilityScore}%
+                </span>
+                <Progress value={traceabilityScore} className="w-full" />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">Percentage of materials traced to origin.</p>
+            </InfoRow>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -101,6 +123,24 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
               </p>
             )}
           </InfoRow>
+           {scopeEmissions && (
+                <InfoRow icon={Footprints} label="Scope Emissions (kg CO2-eq)">
+                  <div className="grid grid-cols-3 gap-4 text-center mt-2 border rounded-md p-2 bg-muted/50">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Scope 1</p>
+                      <p className="font-bold">{scopeEmissions.scope1 ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                      <p className="text-xs text-muted-foreground">Scope 2</p>
+                      <p className="font-bold">{scopeEmissions.scope2 ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                      <p className="text-xs text-muted-foreground">Scope 3</p>
+                      <p className="font-bold">{scopeEmissions.scope3 ?? 'N/A'}</p>
+                    </div>
+                  </div>
+                </InfoRow>
+            )}
           {aiLifecycle && (
             <InfoRow icon={Quote} label="AI Impact Analysis">
               <div className="space-y-2 mt-2 text-sm text-muted-foreground">
@@ -124,3 +164,5 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
     </div>
   );
 }
+
+    

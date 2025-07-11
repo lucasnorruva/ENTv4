@@ -1,3 +1,4 @@
+
 // src/lib/data.ts
 import type { Product, BlockchainProof } from '@/types';
 
@@ -61,6 +62,12 @@ export let products: Product[] = [
     packaging: { type: 'Recycled Cardboard', recyclable: true, weight: 55, recycledContent: 100 },
     lifecycle: {
       carbonFootprint: 25.5,
+      carbonFootprintMethod: 'ISO 14067',
+      scopeEmissions: {
+        scope1: 5.2,
+        scope2: 12.1,
+        scope3: 8.2,
+      },
       repairabilityScore: 8,
       expectedLifespan: 5,
       energyEfficiencyClass: 'A',
@@ -84,6 +91,7 @@ export let products: Product[] = [
       summary:
         'Excellent use of recycled materials and strong compliance record. Repairability score is high, contributing positively.',
       isCompliant: true,
+      traceabilityScore: 95,
       complianceSummary: 'This product is fully compliant with the assigned EU Electronics path.',
       gaps: [],
     },
@@ -195,6 +203,7 @@ export let products: Product[] = [
       environmental: 95,
       social: 98,
       governance: 82,
+      traceabilityScore: 88,
       summary:
         'Excellent sustainability profile due to GOTS and Fair Trade certifications. Material is fully biodegradable.',
       isCompliant: true,
@@ -420,3 +429,5 @@ export let products: Product[] = [
     endOfLifeStatus: 'Active',
   }
 ];
+
+    

@@ -31,9 +31,16 @@ const packagingSchema = z.object({
   weight: z.coerce.number().optional(),
 });
 
+const scopeEmissionsSchema = z.object({
+    scope1: z.coerce.number().optional(),
+    scope2: z.coerce.number().optional(),
+    scope3: z.coerce.number().optional(),
+});
+
 const lifecycleSchema = z.object({
   carbonFootprint: z.coerce.number().optional(),
   carbonFootprintMethod: z.string().optional(),
+  scopeEmissions: scopeEmissionsSchema.optional(),
   repairabilityScore: z.coerce.number().min(0).max(10).optional(),
   expectedLifespan: z.coerce.number().min(0).optional(),
   recyclingInstructions: z.string().optional(),
@@ -396,3 +403,5 @@ export const bulkProductImportSchema = z.object({
   }).optional(),
 });
 export type BulkProductImportValues = z.infer<typeof bulkProductImportSchema>;
+
+    
