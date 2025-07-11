@@ -19,6 +19,7 @@ export let products: Product[] = [
     manualFileName: 'smartwatch-manual-v5.pdf',
     manualFileSize: 1258291,
     manualFileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+    model3dUrl: '/mock-assets/smartwatch.glb',
     modelHotspots: [
       { position: [0, 0.5, 0], data: { name: 'Watch Face', material: 'Gorilla Glass' }, interactionType: 'showInfo' },
       { position: [0.5, 0, 0], data: { name: 'Crown', material: 'Recycled Aluminum' }, interactionType: 'showInfo' },
