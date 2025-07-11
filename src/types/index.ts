@@ -240,7 +240,12 @@ export interface ServiceRecord extends BaseEntity {
 /**
  * Groups all AI-generated and compliance-related data.
  */
-export interface SustainabilityData extends EsgScoreOutput {
+export interface SustainabilityData {
+  score?: number;
+  environmental?: number;
+  social?: number;
+  governance?: number;
+  summary?: string;
   classification?: ClassifyProductOutput;
   lifecycleAnalysis?: AnalyzeProductLifecycleOutput;
   lifecyclePrediction?: PredictLifecycleOutput;
