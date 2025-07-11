@@ -4,7 +4,6 @@
 import React from 'react';
 import { format } from 'date-fns';
 import {
-  Lightbulb,
   HeartPulse,
   Wrench,
   Recycle,
@@ -12,7 +11,9 @@ import {
   Paperclip,
   View,
   Fingerprint,
-  Award,
+  BrainCircuit,
+  AlertTriangle,
+  Lightbulb,
 } from 'lucide-react';
 import type { Product, ServiceRecord } from '@/types';
 import {
@@ -23,7 +24,12 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../ui/tooltip';
 
 function InfoRow({
   icon: Icon,
@@ -53,14 +59,16 @@ interface LifecycleTabProps {
 }
 
 export default function LifecycleTab({ product }: LifecycleTabProps) {
+  const prediction = product.sustainability?.lifecyclePrediction;
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Lifecycle & Circularity</CardTitle>
+          <CardTitle>Lifecycle & Repair</CardTitle>
           <CardDescription>
-            Data related to the product's lifespan, repairability, and
-            end-of-life.
+            Data related to the product's lifespan, repairability, and service
+            history.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -95,29 +103,34 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                     {product.manualFileName || 'Download Manual'}
                   </a>
                 </Button>
-                 {product.manualFileHash && (
-                   <TooltipProvider>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                               <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2 cursor-help">
-                                  <Fingerprint className="h-3 w-3" />
-                                  <span className="font-mono">SHA256: {product.manualFileHash.substring(0, 16)}...</span>
-                              </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                              <p className="font-mono text-xs">{product.manualFileHash}</p>
-                          </TooltipContent>
-                      </Tooltip>
-                   </TooltipProvider>
+                {product.manualFileHash && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="mt-2 flex cursor-help items-center gap-2 text-xs text-muted-foreground">
+                          <Fingerprint className="h-3 w-3" />
+                          <span className="font-mono">
+                            SHA256: {product.manualFileHash.substring(0, 16)}
+                            ...
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-mono text-xs">
+                          {product.manualFileHash}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Not provided.</p>
             )}
           </InfoRow>
-           <InfoRow icon={View} label="3D Model">
+          <InfoRow icon={View} label="3D Model">
             {product.model3dUrl ? (
-               <div>
+              <div>
                 <Button asChild variant="outline" size="sm">
                   <a
                     href={product.model3dUrl}
@@ -128,20 +141,25 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                     {product.model3dFileName || 'Download Model'}
                   </a>
                 </Button>
-                 {product.model3dFileHash && (
-                   <TooltipProvider>
-                      <Tooltip>
-                          <TooltipTrigger asChild>
-                               <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2 cursor-help">
-                                  <Fingerprint className="h-3 w-3" />
-                                  <span className="font-mono">SHA256: {product.model3dFileHash.substring(0, 16)}...</span>
-                              </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                              <p className="font-mono text-xs">{product.model3dFileHash}</p>
-                          </TooltipContent>
-                      </Tooltip>
-                   </TooltipProvider>
+                {product.model3dFileHash && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="mt-2 flex cursor-help items-center gap-2 text-xs text-muted-foreground">
+                          <Fingerprint className="h-3 w-3" />
+                          <span className="font-mono">
+                            SHA256: {product.model3dFileHash.substring(0, 16)}
+                            ...
+                          </span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="font-mono text-xs">
+                          {product.model3dFileHash}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             ) : (
@@ -151,18 +169,45 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
           <InfoRow
             icon={Recycle}
             label="Recycling Instructions"
-            value={
-              product.lifecycle?.recyclingInstructions || 'Not provided.'
-            }
+            value={product.lifecycle?.recyclingInstructions || 'Not provided.'}
           />
         </CardContent>
       </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <BrainCircuit /> AI Lifecycle Prediction
+          </CardTitle>
+          <CardDescription>
+            AI-powered forecasts about this product's expected lifespan and key failure points.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+            {prediction ? (
+              <div className='space-y-2'>
+                <InfoRow icon={HeartPulse} label="Predicted Lifespan" value={`${prediction.predictedLifespanYears} years`} />
+                <InfoRow icon={Wrench} label="Optimal Replacement" value={`${prediction.optimalReplacementTimeYears} years`} />
+                <InfoRow icon={AlertTriangle} label="Key Failure Points">
+                   <ul className="list-disc list-inside text-sm text-muted-foreground">
+                      {prediction.keyFailurePoints.map((point, i) => <li key={i}>{point}</li>)}
+                   </ul>
+                </InfoRow>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No prediction data available. Generate it from the "AI Actions" menu.
+              </p>
+            )}
+        </CardContent>
+      </Card>
+
       {product.serviceHistory && product.serviceHistory.length > 0 && (
         <Card>
-            <CardHeader>
-                <CardTitle>Service History</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <CardHeader>
+            <CardTitle>Service History</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               {product.serviceHistory
                 .sort(
@@ -171,12 +216,12 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                     new Date(a.createdAt).getTime(),
                 )
                 .map((record: ServiceRecord) => (
-                  <div key={record.id} className="text-sm border-l-2 pl-3">
+                  <div key={record.id} className="border-l-2 pl-3 text-sm">
                     <p className="font-semibold text-foreground">
                       {record.notes}
                     </p>
                     <p
-                      className="text-xs text-muted-foreground mt-1"
+                      className="mt-1 text-xs text-muted-foreground"
                       suppressHydrationWarning
                     >
                       Serviced by {record.providerName} on{' '}
@@ -186,20 +231,6 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                 ))}
             </div>
           </CardContent>
-        </Card>
-        )}
-      {product.massBalance && (
-        <Card>
-            <CardHeader>
-                <CardTitle>Circularity & Mass Balance</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <InfoRow
-                icon={Award}
-                label="Circularity Credits Allocated"
-                value={product.massBalance.creditsAllocated ? `${product.massBalance.creditsAllocated} Credits` : 'None'}
-                />
-            </CardContent>
         </Card>
       )}
     </div>
