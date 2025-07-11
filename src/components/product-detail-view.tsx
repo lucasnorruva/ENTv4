@@ -186,10 +186,10 @@ export default function ProductDetailView({
               <div className="w-full overflow-x-auto">
                 <TabsList className="w-max">
                   <TabsTrigger value="overview">Overview</TabsTrigger>
-                  <TabsTrigger value="data">Data & Composition</TabsTrigger>
+                  <TabsTrigger value="data">Data &amp; Composition</TabsTrigger>
                   {showElectronicsTab && <TabsTrigger value="electronics">Electronics</TabsTrigger>}
                   {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
-                  {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
+                  {showFoodTab && <TabsTrigger value="food">Food &amp; Beverage</TabsTrigger>}
                   {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
                   <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
                   <TabsTrigger value="circularity">Circularity</TabsTrigger>
