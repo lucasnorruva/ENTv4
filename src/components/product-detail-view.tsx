@@ -47,6 +47,7 @@ import FoodSafetyTab from './product-detail-tabs/food-safety-tab';
 import ConstructionTab from './product-detail-tabs/construction-tab';
 import DataCompositionTab from './product-detail-tabs/data-composition-tab';
 import DigitalCredentialsTab from './product-detail-tabs/digital-credentials-tab';
+import CircularityTab from './product-detail-tabs/circularity-tab';
 import { getStatusBadgeVariant, getStatusBadgeClasses } from '@/lib/dpp-display-utils';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -191,8 +192,10 @@ export default function ProductDetailView({
                   {showTextileTab && <TabsTrigger value="textile">Textile</TabsTrigger>}
                   {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
                   {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
-                  <TabsTrigger value="lifecycle">Lifecycle & Circularity</TabsTrigger>
-                  <TabsTrigger value="sustainability">Sustainability & Compliance</TabsTrigger>
+                  <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+                  <TabsTrigger value="circularity">Circularity</TabsTrigger>
+                  <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
+                  <TabsTrigger value="compliance">Compliance</TabsTrigger>
                   <TabsTrigger value="credentials">Digital Credentials</TabsTrigger>
                   <TabsTrigger value="supply_chain">Supply Chain</TabsTrigger>
                   <TabsTrigger value="history">History</TabsTrigger>
@@ -230,8 +233,14 @@ export default function ProductDetailView({
               <TabsContent value="lifecycle" className="mt-4">
                 <LifecycleTab product={product} />
               </TabsContent>
+              <TabsContent value="circularity" className="mt-4">
+                <CircularityTab product={product} />
+              </TabsContent>
                <TabsContent value="sustainability" className="mt-4">
                 <SustainabilityTab product={product} />
+              </TabsContent>
+              <TabsContent value="compliance" className="mt-4">
+                <ComplianceTab product={product} compliancePath={compliancePath}/>
               </TabsContent>
               <TabsContent value="credentials" className="mt-4">
                 <DigitalCredentialsTab product={product} user={user} onUpdate={handleUpdateAndRefresh} />

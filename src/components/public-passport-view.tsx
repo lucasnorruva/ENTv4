@@ -1,3 +1,4 @@
+
 // src/components/public-passport-view.tsx
 'use client';
 
@@ -188,7 +189,7 @@ export default function PublicPassportView({
             {showFoodTab && <TabsTrigger value="food">Food & Beverage</TabsTrigger>}
             {showConstructionTab && <TabsTrigger value="construction">Construction</TabsTrigger>}
             <TabsTrigger value="sustainability">Sustainability</TabsTrigger>
-            <TabsTrigger value="lifecycle">Lifecycle</TabsTrigger>
+            <TabsTrigger value="lifecycle">Lifecycle & Circularity</TabsTrigger>
             <TabsTrigger value="compliance">Compliance</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-4">

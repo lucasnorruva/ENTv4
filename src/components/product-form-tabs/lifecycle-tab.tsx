@@ -2,7 +2,7 @@
 'use client';
 
 import type { UseFormReturn } from 'react-hook-form';
-import { BatteryCharging, Paperclip, View } from 'lucide-react';
+import { BatteryCharging, Paperclip, View, Footprints } from 'lucide-react';
 import {
   FormControl,
   FormDescription,
@@ -111,6 +111,54 @@ export default function LifecycleTab({
           </FormItem>
         )}
       />
+       <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="scope-emissions" className="border p-4 rounded-lg">
+           <AccordionTrigger>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <Footprints />
+                Scope Emissions (kg CO2-eq)
+              </h3>
+            </AccordionTrigger>
+            <AccordionContent className="pt-4 space-y-4">
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormField
+                      control={form.control}
+                      name="lifecycle.scopeEmissions.scope1"
+                      render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Scope 1</FormLabel>
+                              <FormControl><Input type="number" placeholder="e.g., 5.2" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                   <FormField
+                      control={form.control}
+                      name="lifecycle.scopeEmissions.scope2"
+                      render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Scope 2</FormLabel>
+                              <FormControl><Input type="number" placeholder="e.g., 12.1" {...field} onChange={e => field.onChange(e.target.valueAsNumber)} /></FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+                   <FormField
+                      control={form.control}
+                      name="lifecycle.scopeEmissions.scope3"
+                      render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Scope 3</FormLabel>
+                              <FormControl><Input type="number" placeholder="e.g., 8.2" {...field} onChange={e => field.onChange(e.target.valueAsNumber)}/></FormControl>
+                              <FormMessage />
+                          </FormItem>
+                      )}
+                  />
+               </div>
+            </AccordionContent>
+        </AccordionItem>
+       </Accordion>
+
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}

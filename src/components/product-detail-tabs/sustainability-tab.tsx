@@ -1,4 +1,3 @@
-
 // src/components/product-detail-tabs/sustainability-tab.tsx
 'use client';
 
@@ -165,4 +164,3 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
   );
 }
 
-    
