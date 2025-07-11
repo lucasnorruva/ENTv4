@@ -2,7 +2,8 @@
 // This barrel file re-exports actions for easier importing.
 
 export * from './product-actions';
-export * from './product-ai-actions';
+// AI actions are now handled in their own barrel file at 'ai/index.ts'
+// to prevent circular dependencies and improve organization.
 export * from './user-actions';
 export * from './company-actions';
 export * from './audit-actions';
@@ -16,8 +17,7 @@ export * from './sync-actions';
 export * from './manufacturing-actions';
 export * from './ticket-actions';
 export * from './search-actions';
-export * from './dev-tool-actions';
-export * from './regulation-sync-actions';
+
 export * from '@/triggers/scheduled-verifications';
 export * from '@/triggers/scheduled-syncs';
 export * from '@/triggers/on-product-change';
