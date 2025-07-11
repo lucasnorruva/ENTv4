@@ -1,4 +1,3 @@
-// src/components/product-3d-viewer.tsx
 'use client';
 
 import React, { Suspense, useState } from 'react';
