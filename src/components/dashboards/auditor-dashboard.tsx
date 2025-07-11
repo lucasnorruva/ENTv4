@@ -4,7 +4,8 @@ import type { User } from '@/types';
 import AuditorDashboardClient from './auditor-dashboard-client';
 
 export default async function AuditorDashboard({ user }: { user: User }) {
-  const products = await getProducts(user.id);
+  // Auditors can see all products.
+  const products = await getProducts();
   
   return (
     <AuditorDashboardClient user={user} products={products} />

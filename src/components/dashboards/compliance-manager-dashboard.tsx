@@ -8,7 +8,8 @@ export default async function ComplianceManagerDashboard({
 }: {
   user: User;
 }) {
-  const allProducts = await getProducts(user.id);
+  // Compliance Managers can see all products.
+  const allProducts = await getProducts();
   const flaggedProducts = allProducts.filter(
     p => p.verificationStatus === 'Failed',
   );

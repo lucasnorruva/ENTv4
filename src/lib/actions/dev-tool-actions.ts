@@ -1,4 +1,3 @@
-
 // src/lib/actions/dev-tool-actions.ts
 'use server';
 
@@ -17,7 +16,7 @@ export async function generateComponentTest(
   if (!user) {
     throw new PermissionError('User not found.');
   }
-  checkPermission(user, 'developer:generate_tests');
+  checkPermission(user, 'developer:manage_api');
 
   if (!componentName || !componentCode) {
     throw new Error('Component name and code are required.');

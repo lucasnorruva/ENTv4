@@ -10,19 +10,18 @@ export default async function ServiceProviderDashboard({
 }: {
   user: User;
 }) {
+  // Service providers can see all products, tickets, and lines for this mock.
   const [products, allTickets, lines] = await Promise.all([
-    getProducts(user.id),
-    getServiceTickets(user.id),
+    getProducts(),
+    getServiceTickets(),
     getProductionLines(),
   ]);
-
-  const tickets = allTickets.filter(t => t.userId === user.id);
 
   return (
     <ServiceProviderDashboardClient
       user={user}
       products={products}
-      tickets={tickets}
+      tickets={allTickets}
       lines={lines}
     />
   );

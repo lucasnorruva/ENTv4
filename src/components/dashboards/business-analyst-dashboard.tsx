@@ -8,7 +8,9 @@ export default async function BusinessAnalystDashboard({
 }: {
   user: User;
 }) {
-  const products = await getProducts(user.id);
+  // Business Analysts can see all products.
+  const products = await getProducts();
+  
   const complianceData = {
     verified: products.filter(p => p.verificationStatus === 'Verified').length,
     pending: products.filter(p => p.verificationStatus === 'Pending').length,

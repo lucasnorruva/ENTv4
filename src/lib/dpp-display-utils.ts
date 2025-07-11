@@ -1,4 +1,3 @@
-
 // src/lib/dpp-display-utils.ts
 'use client';
 
@@ -8,10 +7,16 @@ import { CheckCircle, Clock, ShieldAlert } from 'lucide-react';
 export function getStatusIcon(status: string | undefined) {
   switch (status) {
     case 'Verified':
+    case 'Cleared':
+    case 'Active':
       return <CheckCircle />;
     case 'Pending':
+    case 'Detained':
+    case 'Idle':
       return <Clock />;
     case 'Failed':
+    case 'Rejected':
+    case 'Maintenance':
     default:
       return <ShieldAlert />;
   }
@@ -23,32 +28,44 @@ export function getStatusBadgeVariant(
   switch (status) {
     case 'Verified':
     case 'Cleared':
+    case 'Active':
+    case 'Closed':
       return 'default';
     case 'Pending':
     case 'Detained':
+    case 'Idle':
+    case 'In Progress':
       return 'secondary';
     case 'Failed':
     case 'Rejected':
+    case 'Maintenance':
+    case 'Open':
       return 'destructive';
     default:
-        return 'outline';
+      return 'outline';
   }
 }
 
 export function getStatusBadgeClasses(status: string | undefined): string {
-    switch (status) {
-      case 'Verified':
-      case 'Cleared':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
-      case 'Pending':
-      case 'Detained':
-        return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700';
-      case 'Failed':
-      case 'Rejected':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700';
-      default:
-        return '';
-    }
+  switch (status) {
+    case 'Verified':
+    case 'Cleared':
+    case 'Active':
+    case 'Closed':
+      return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-700';
+    case 'Pending':
+    case 'Detained':
+    case 'Idle':
+    case 'In Progress':
+      return 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:border-amber-700';
+    case 'Failed':
+    case 'Rejected':
+    case 'Maintenance':
+    case 'Open':
+      return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-700';
+    default:
+      return '';
+  }
 }
 
 export function getDataQualityBadgeClasses(warningCount: number): string {

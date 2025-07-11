@@ -7,5 +7,6 @@
 'use server';
 
 // This barrel file re-exports all AI-related actions.
-export * from '@/lib/actions/product-ai-actions';
-export * from '@/lib/actions/dev-tool-actions';
+export * from './news-analyzer-actions';
+export * from '../product-ai-actions';
+export * from '../dev-tool-actions';

@@ -1,11 +1,11 @@
-
+// src/components/test-generator-client.tsx
 'use client';
 
 import { useState, useTransition, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { generateComponentTest } from '@/lib/actions';
+import { generateComponentTest } from '@/lib/actions/ai';
 import type { User } from '@/types';
 import { Beaker, Loader2, Copy, Check } from 'lucide-react';
 import Editor from 'react-simple-code-editor';
