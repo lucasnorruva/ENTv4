@@ -68,75 +68,73 @@ export default function TestGeneratorClient({ user }: TestGeneratorClientProps) 
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Test Generator</CardTitle>
-          <CardDescription>
-            Paste your React component code to automatically generate a Jest/React Testing Library test file.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="component-name">Component Name</Label>
-                <Input
-                  id="component-name"
-                  placeholder="e.g., MyButton"
-                  value={componentName}
-                  onChange={e => setComponentName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="component-code">Component Source Code</Label>
-                <Textarea
-                  id="component-code"
-                  placeholder="Paste your component code here..."
-                  value={componentCode}
-                  onChange={e => setComponentCode(e.target.value)}
-                  className="min-h-[300px] font-mono text-xs"
-                />
-              </div>
-              <Button onClick={handleGenerate} disabled={isPending}>
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Beaker className="mr-2 h-4 w-4" />
-                )}
-                Generate Test
-              </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle>AI Test Generator</CardTitle>
+        <CardDescription>
+          Paste your React component code to automatically generate a Jest/React Testing Library test file.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="component-name">Component Name</Label>
+              <Input
+                id="component-name"
+                placeholder="e.g., MyButton"
+                value={componentName}
+                onChange={e => setComponentName(e.target.value)}
+              />
             </div>
-            <div className="space-y-2 relative">
-              <Label>Generated Test Code</Label>
-              <div className="rounded-md border h-[420px] overflow-auto bg-muted">
-                 <Editor
-                    readOnly
-                    value={generatedTestCode || '// Your generated test will appear here...'}
-                    onValueChange={() => {}}
-                    highlight={code => highlight(code, languages.javascript, 'javascript')}
-                    padding={10}
-                    style={editorStyle}
-                />
-              </div>
-              {generatedTestCode && (
-                 <Button
-                    size="icon"
-                    variant="ghost"
-                    className="absolute right-2 top-8 h-8 w-8"
-                    onClick={copyToClipboard}
-                  >
-                    {hasCopied ? (
-                      <Check className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </Button>
+            <div className="space-y-2">
+              <Label htmlFor="component-code">Component Source Code</Label>
+              <Textarea
+                id="component-code"
+                placeholder="Paste your component code here..."
+                value={componentCode}
+                onChange={e => setComponentCode(e.target.value)}
+                className="min-h-[300px] font-mono text-xs"
+              />
+            </div>
+            <Button onClick={handleGenerate} disabled={isPending}>
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Beaker className="mr-2 h-4 w-4" />
               )}
-            </div>
+              Generate Test
+            </Button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="space-y-2 relative">
+            <Label>Generated Test Code</Label>
+            <div className="rounded-md border h-[420px] overflow-auto bg-muted">
+               <Editor
+                  readOnly
+                  value={generatedTestCode || '// Your generated test will appear here...'}
+                  onValueChange={() => {}}
+                  highlight={code => highlight(code, languages.javascript, 'javascript')}
+                  padding={10}
+                  style={editorStyle}
+              />
+            </div>
+            {generatedTestCode && (
+               <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-2 top-8 h-8 w-8"
+                  onClick={copyToClipboard}
+                >
+                  {hasCopied ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                </Button>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
