@@ -151,7 +151,6 @@ export interface FoodSafetyData {
   allergens?: string;
 }
 
-
 export interface GreenClaim {
   claim: string;
   substantiation: string;
@@ -487,5 +486,3 @@ export interface RegulationSource extends BaseEntity {
       status: boolean;
     }[];
   }
-
-    
