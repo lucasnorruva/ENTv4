@@ -11,6 +11,12 @@ export default async function AdminLayout({
 }) {
   const user = await getCurrentUser(UserRoles.ADMIN);
 
+  // Add check for valid user and companyId
+  if (!user || !user.companyId) {
+    console.error('Admin user not found or missing companyId');
+    // In a real app, you would redirect to login here
+  }
+
   return (
     <DashboardShell user={user} role={UserRoles.ADMIN}>
       {children}

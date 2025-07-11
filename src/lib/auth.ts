@@ -75,12 +75,19 @@ export async function getCompanyById(id: string): Promise<Company | undefined> {
 export async function getCurrentUser(role?: Role): Promise<User> {
   const targetRole = role || UserRoles.ADMIN;
   
-  const user = users.find(u => u.roles.includes(targetRole));
+  // First, try to find a user with the target role and a companyId
+  let user = users.find(u => u.roles.includes(targetRole) && u.companyId);
 
   if (!user) {
-    console.warn(`No mock user found with role '${targetRole}'. Defaulting to first user.`);
-    return users[0];
+    // If not found, try to find any user with the target role
+    user = users.find(u => u.roles.includes(targetRole));
   }
 
+  if (!user) {
+    // If still not found, default to the first user (fallback)
+    console.warn(`No mock user found with role '${targetRole}' or companyId. Defaulting to first user.`);
+    return users[0];
+  }
+  
   return user;
 }
