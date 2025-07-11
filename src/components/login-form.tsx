@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
-  signInWithEmailAndPassword,
+  signInWithCustomToken,
   getMultiFactorResolver,
   TotpMultiFactorGenerator,
   type MultiFactorResolver,
@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { signInWithMockUser } from '@/lib/actions';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -61,7 +62,11 @@ export default function LoginForm() {
     async (values: z.infer<typeof loginSchema>) => {
       setIsLoading(true);
       try {
-        await signInWithEmailAndPassword(auth, values.email, values.password);
+        const result = await signInWithMockUser(values.email, values.password);
+        if (!result.success || !result.token) {
+          throw new Error(result.error || 'Invalid credentials.');
+        }
+        await signInWithCustomToken(auth, result.token);
         toast({ title: 'Login Successful' });
         router.push('/dashboard');
       } catch (error: any) {
