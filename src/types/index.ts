@@ -434,3 +434,19 @@ export interface BlockchainProof {
   merkleRoot?: string;
   proof?: string[]; // Array of hashes for Merkle proof
 }
+
+/**
+ * Represents a regulation data source for the sync hub.
+ */
+export interface RegulationSource extends BaseEntity {
+  name: string;
+  type: 'API' | 'Feed' | 'Manual';
+  status: 'Operational' | 'Degraded Performance' | 'Offline' | 'Not Implemented';
+  version?: string;
+  lastSync?: string;
+  checklist: {
+    id: string;
+    description: string;
+    status: boolean;
+  }[];
+}
