@@ -2,15 +2,14 @@
 // src/lib/actions/regulation-sync-actions.ts
 'use server';
 
-import type { CompliancePath, ComplianceGap, RegulationSource, User, Product } from '@/types';
+import type { CompliancePath, RegulationSource, User } from '@/types';
 import { regulationSyncData } from '../regulation-sync-data';
 import { getUserById } from '../auth';
 import { checkPermission } from '../permissions';
 import { logAuditEvent } from './audit-actions';
-import { getProductById } from './product-actions';
-import { getCompliancePathById } from './compliance-actions';
-import { verifyProductAgainstPath } from '@/services/compliance';
-import { analyzeNewsReports } from '@/ai/flows/analyze-news-reports';
+import { getCompliancePaths, saveCompliancePath } from './compliance-actions';
+import { analyzeNewsReports as analyzeNewsReportsFlow } from '@/ai/flows/analyze-news-reports';
+import { predictRegulationChange } from '@/ai/flows/predict-regulation-change';
 import type { AnalyzeNewsOutput } from '@/types/ai-outputs';
 
 // In a real app, this would trigger external API calls.
@@ -62,7 +61,7 @@ export async function runSync(
   // Simulate a sync process
   await new Promise(resolve => setTimeout(resolve, 2500));
   source.lastSync = new Date().toISOString();
-  
+
   // Randomly mark a checklist item as complete
   const incompleteItem = source.checklist.find(item => !item.status);
   if (incompleteItem) {
@@ -72,63 +71,103 @@ export async function runSync(
   return Promise.resolve(source);
 }
 
-export async function runTemporalComplianceCheck(
-  productId: string,
-  scenario: 'past' | 'present' | 'future',
-  userId: string,
-): Promise<{ isCompliant: boolean; gaps: ComplianceGap[], scenario: string }> {
-  const user = await getUserById(userId);
-  if (!user) throw new Error('User not found');
-  checkPermission(user, 'admin:manage_settings');
+// This function simulates an automated daily job.
+export async function runDailyReferenceDataSync(): Promise<{
+  syncedItems: number;
+  updatedRegulations: string[];
+  details: string;
+}> {
+  console.log('Running scheduled AI-powered regulatory prediction...');
+  await logAuditEvent(
+    'cron.prediction_engine.start',
+    'dailyRegulatoryPrediction',
+    {},
+    'system',
+  );
 
-  const product = await getProductById(productId, user.id);
-  if (!product) throw new Error('Product not found');
-  if (!product.compliancePathId) throw new Error('Product has no compliance path assigned.');
+  // This mock simulates deriving signals from internal data, not external news.
+  const internalSignals = [
+    'Increased number of products failing RoHS compliance in the last month.',
+    'High number of service tickets related to battery degradation.',
+  ];
 
-  const compliancePath = await getCompliancePathById(product.compliancePathId);
-  if (!compliancePath) throw new Error('Compliance path not found.');
+  const prediction = await predictRegulationChange({
+    signals: internalSignals,
+    targetIndustry: 'Electronics',
+  });
+  console.log('AI regulatory prediction:', prediction);
 
-  // Create a modified copy of the path for the simulation
-  let simulatedPath = JSON.parse(JSON.stringify(compliancePath)) as CompliancePath;
+  const allPaths = await getCompliancePaths();
+  const pathToUpdate = allPaths.find(
+    p =>
+      prediction.impactedRegulations.some(reg =>
+        p.regulations.includes(reg),
+      ) && p.category === 'Electronics',
+  );
 
-  switch (scenario) {
-    case 'past':
-      // Looser rules for the past
-      if (simulatedPath.rules.minSustainabilityScore) {
-        simulatedPath.rules.minSustainabilityScore -= 10;
-      }
-      simulatedPath.regulations = simulatedPath.regulations.filter(r => r === 'RoHS' || r === 'REACH'); // Only older regulations
-      break;
-    case 'future':
-      // Stricter rules for the future
-      if (simulatedPath.rules.minSustainabilityScore) {
-        simulatedPath.rules.minSustainabilityScore += 15;
-      }
-      simulatedPath.rules.bannedKeywords = [...(simulatedPath.rules.bannedKeywords || []), 'PVC'];
-      break;
-    case 'present':
-    default:
-      // Use current rules
-      break;
+  if (!pathToUpdate) {
+    const details =
+      'AI made a prediction, but no matching compliance path was found to update.';
+    console.log(details);
+    await logAuditEvent(
+      'cron.prediction_engine.end',
+      'dailyRegulatoryPrediction',
+      { details },
+      'system',
+    );
+    return { syncedItems: 0, updatedRegulations: [], details };
   }
-  
-  const { isCompliant, gaps } = await verifyProductAgainstPath(product, simulatedPath);
 
-  await logAuditEvent('regulation.time_machine.run', productId, { scenario, isCompliant, gapCount: gaps.length }, userId);
-  
-  return { isCompliant, gaps, scenario };
+  const oldScore = pathToUpdate.rules.minSustainabilityScore || 0;
+  const newScore = Math.min(100, oldScore + 1);
+
+  const updatedValues = {
+    name: pathToUpdate.name,
+    description: `${pathToUpdate.description} [Auto-updated based on AI prediction: ${prediction.prediction}]`,
+    category: pathToUpdate.category,
+    jurisdiction: pathToUpdate.jurisdiction,
+    regulations: pathToUpdate.regulations.map(r => ({ value: r })),
+    minSustainabilityScore: newScore,
+    requiredKeywords:
+      pathToUpdate.rules.requiredKeywords?.map(r => ({ value: r })) || [],
+    bannedKeywords:
+      pathToUpdate.rules.bannedKeywords?.map(r => ({ value: r })) || [],
+  };
+
+  await saveCompliancePath(
+    updatedValues,
+    'system:prediction_engine',
+    pathToUpdate.id,
+  );
+
+  const details = `Acted on prediction: "${prediction.prediction}". Updated path '${pathToUpdate.name}': minSustainabilityScore changed from ${oldScore} to ${newScore}.`;
+
+  await logAuditEvent(
+    'system.sync.prediction_update',
+    pathToUpdate.id,
+    {
+      change: details,
+      prediction,
+    },
+    'system',
+  );
+
+  console.log(`Regulatory prediction sync complete. ${details}`);
+
+  return {
+    syncedItems: 1,
+    updatedRegulations: [pathToUpdate.name],
+    details,
+  };
 }
 
 export async function runNewsAnalysis(
-  newsText: string,
+  topic: string,
   userId: string,
 ): Promise<AnalyzeNewsOutput> {
   const user = await getUserById(userId);
   if (!user) throw new Error('User not found');
   checkPermission(user, 'admin:manage_settings');
 
-  // Split the text into "articles" for the mock flow.
-  const articles = newsText.split(/[\n\r]+/).filter(Boolean).map(content => ({ headline: content.substring(0, 50) + "...", content }));
-
-  return analyzeNewsReports({ articles });
+  return analyzeNewsReportsFlow({ topic, articles: [] }); // Articles are now fetched inside the flow
 }
