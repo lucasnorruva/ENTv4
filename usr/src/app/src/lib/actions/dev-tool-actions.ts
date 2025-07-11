@@ -16,6 +16,7 @@ export async function generateComponentTest(
   if (!user) {
     throw new PermissionError('User not found.');
   }
+  // Allow developers to use this tool
   checkPermission(user, 'developer:manage_api');
 
   if (!componentName || !componentCode) {

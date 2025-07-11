@@ -36,12 +36,13 @@ export async function runDailyReferenceDataSync(): Promise<{
     return { syncedItems: 0, updatedRegulations: [], details };
   }
 
+  // Make the AI-driven update
   const oldScore = pathToUpdate.rules.minSustainabilityScore || 0;
-  const newScore = Math.min(100, oldScore + 1);
+  const newScore = Math.min(100, oldScore + 1); // Increment score as a mock update
   
   const updatedValues = {
       name: pathToUpdate.name,
-      description: `${pathToUpdate.description} [Auto-updated based on AI prediction: ${prediction.prediction}]`,
+      description: `${pathToUpdate.description} [Auto-updated based on AI prediction: ${prediction.prediction}]`, // Add a note
       category: pathToUpdate.category,
       jurisdiction: pathToUpdate.jurisdiction,
       regulations: pathToUpdate.regulations.map(r => ({value: r})),
