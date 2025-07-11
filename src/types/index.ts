@@ -1,4 +1,3 @@
-
 // src/types/index.ts
 import type { Role } from '@/lib/constants';
 import type {
@@ -127,7 +126,7 @@ export interface Lifecycle {
     scope1?: number;
     scope2?: number;
     scope3?: number;
-  },
+  };
   repairabilityScore?: number; // scale of 1-10
   expectedLifespan?: number; // in years
   recyclingInstructions?: string;
@@ -161,6 +160,12 @@ export interface TextileData {
 export interface FoodSafetyData {
   ingredients: { value: string }[];
   allergens?: string;
+}
+
+export interface NfcData {
+  uid: string;
+  technology: string;
+  writeProtected: boolean;
 }
 
 export interface Compliance {
@@ -228,12 +233,6 @@ export interface VerificationOverride {
   userId: string;
   reason: string;
   date: string;
-}
-
-export interface NfcData {
-  uid: string;
-  technology: string;
-  writeProtected: boolean;
 }
 
 /**

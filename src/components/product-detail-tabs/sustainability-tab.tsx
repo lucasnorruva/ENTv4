@@ -163,4 +163,3 @@ export default function SustainabilityTab({ product }: SustainabilityTabProps) {
     </div>
   );
 }
-
