@@ -13,7 +13,7 @@ import {
   Fingerprint,
   BrainCircuit,
   AlertTriangle,
-  Lightbulb,
+  Footprints,
 } from 'lucide-react';
 import type { Product, ServiceRecord } from '@/types';
 import {
@@ -60,6 +60,7 @@ interface LifecycleTabProps {
 
 export default function LifecycleTab({ product }: LifecycleTabProps) {
   const prediction = product.sustainability?.lifecyclePrediction;
+  const scopeEmissions = product.lifecycle?.scopeEmissions;
 
   return (
     <div className="space-y-6">
@@ -90,6 +91,24 @@ export default function LifecycleTab({ product }: LifecycleTabProps) {
                 : 'Not available'
             }
           />
+          {scopeEmissions && (
+                <InfoRow icon={Footprints} label="Scope Emissions (kg CO2-eq)">
+                  <div className="grid grid-cols-3 gap-4 text-center mt-2 border rounded-md p-2 bg-muted/50">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Scope 1</p>
+                      <p className="font-bold">{scopeEmissions.scope1 ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                      <p className="text-xs text-muted-foreground">Scope 2</p>
+                      <p className="font-bold">{scopeEmissions.scope2 ?? 'N/A'}</p>
+                    </div>
+                     <div>
+                      <p className="text-xs text-muted-foreground">Scope 3</p>
+                      <p className="font-bold">{scopeEmissions.scope3 ?? 'N/A'}</p>
+                    </div>
+                  </div>
+                </InfoRow>
+            )}
           <InfoRow icon={BookText} label="Service Manual">
             {product.manualUrl ? (
               <div>
